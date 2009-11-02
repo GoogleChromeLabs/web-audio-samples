@@ -383,8 +383,6 @@ function loadCubeMap(base, suffix) {
   checkGLError();
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   checkGLError();
-  gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-  checkGLError();
   var faces = [["posx", gl.TEXTURE_CUBE_MAP_POSITIVE_X],
                ["negx", gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
                ["posy", gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
@@ -405,7 +403,6 @@ function loadCubeMap(base, suffix) {
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texImage2D(face, 0, image);
         checkGLError();
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
         draw();
       }
     }(texture, face, image);
