@@ -1,0 +1,309 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Granular Effects
+</title>
+
+<!-- JQuery stuff -->
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var xaudio = 0;
+var buffer = 0;
+var bufferLength = 58.0;
+var source = 0;
+
+var rhythmIndex = 0;
+var loopNumber = 0;
+var speed = 0.3333;
+var pitch = 1.0;
+var pitchRandomization = 1.0;
+var panningRandomization = 0.0;
+var diffusionRandomization = 0.0;
+var realTime = 0.0;
+var grainTime = 0.0;
+
+var grainDuration = 0.090;
+var grainSpacing = 0.045;
+
+
+function speedHandler(event, ui) {
+  var param = ui.value;
+  
+  if (param < 0.0) {
+    speed = 4.0 * param - 0.1;
+  } else {
+    speed = 4.0 * param + 0.1;
+  }
+  
+  var info = document.getElementById("speed-value");
+  info.innerHTML = "speed = " + speed;
+}
+
+function pitchHandler(event, ui) {
+  var cents = ui.value;
+  pitch = cents;
+
+  var info = document.getElementById("pitch-value");
+  info.innerHTML = "pitch = " + cents + " cents";
+}
+
+function pitchRandomizationHandler(event, ui) {
+  var cents = ui.value;
+  pitchRandomization = cents;
+
+  var info = document.getElementById("pitchRandomization-value");
+  info.innerHTML = "pitchRandomization = " + cents + " cents";
+}
+
+function timeRandomizationHandler(event, ui) {
+  timeRandomization = ui.value;
+
+  var info = document.getElementById("timeRandomization-value");
+  info.innerHTML = "timeRandomization = " + timeRandomization + " seconds";
+}
+
+function diffusionRandomizationHandler(event, ui) {
+  diffusionRandomization = ui.value;
+
+  var info = document.getElementById("diffusionRandomization-value");
+  info.innerHTML = "diffusionRandomization = " + diffusionRandomization*100.0 + "%";
+}
+
+function panningRandomizationHandler(event, ui) {
+  panningRandomization = ui.value;
+
+  var info = document.getElementById("panningRandomization-value");
+  info.innerHTML = "panningRandomization = " + panningRandomization*100.0 + "%";
+}
+
+function grainSizeHandler(event, ui) {
+  grainDuration = ui.value;
+  grainSpacing = 0.25 /*0.5*/ * grainDuration;
+
+  var info = document.getElementById("grainSize-value");
+  info.innerHTML = "grainSize = " + grainDuration + " seconds";
+}
+
+function scheduleGrain() {
+  var source = xaudio.getVoice();
+  if (source && buffer) {
+    var totalPitch = pitch;
+    var r = Math.random();
+    var r2 = Math.random();
+    var r3 = Math.random();
+    var r4 = Math.random();
+    var r5 = Math.random();
+    r = (r - 0.5) * 2.0;
+    r2 = (r2 - 0.5) * 2.0;
+    r3 = (r3 - 0.5) * 2.0;
+    r4 = (r4 - 0.5) * 2.0;
+    r5 = (r5 - 0.5) * 2.0;
+    totalPitch += r * pitchRandomization;
+    
+    var pitchRate = Math.pow(2.0, totalPitch / 1200.0);
+
+    var randomGrainOffset = r2 * timeRandomization;
+    
+    var distance = 2.0;
+    var azimuth = Math.PI * panningRandomization * r3;
+    var elevation = 0.5 * Math.PI * panningRandomization * r4;
+
+    var x = Math.sin(azimuth);
+    var z = Math.cos(azimuth);
+    var y = Math.sin(elevation);
+    var scaleXZ = Math.cos(elevation);
+    
+    x *= distance * scaleXZ;
+    y *= distance;
+    z *= distance * scaleXZ;
+    
+    
+    source.buffer = buffer;
+
+    // source.panningModel = 0;  // passthrough panning
+    // source.setPosition(0, 0, -2.0);
+
+    // source.setPosition(2.0 * Math.sin(azimuth), 0, 2.0 * Math.cos(azimuth) );
+    source.setPosition(x, y, z);
+
+    source.sendGain = 2.0 * diffusionRandomization * r5;
+    source.mainGain = 2.0 - source.sendGain;
+    source.playbackPitch = pitchRate;
+    source.playGrain(realTime, grainTime + randomGrainOffset, grainDuration);
+  }
+  
+  realTime += grainSpacing;
+  grainTime += speed * grainSpacing;
+  if (grainTime > bufferLength) grainTime = 0.0;
+  if (grainTime < 0.0) grainTime += bufferLength;  // backwards wrap-around
+}
+
+function schedule() {
+  var currentTime = xaudio.currentTime;  
+  
+  while (realTime < currentTime + 0.030) {
+    scheduleGrain();
+  }
+
+  setTimeout("schedule()", 20);
+}
+
+function init() {
+  xaudio = document.getElementById('myAudioTag');  
+  load();
+}
+
+function load() {
+  loadReverbImpulseResponse('impulse-responses/spatialized4.aif');
+  loadHumanVoice("sounds/hyper-reality/human-voice.aif");
+}
+
+function loadReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  request.onerror = function() { 
+    alert("error loading reverb");
+  }
+  
+  request.send();
+}
+
+function loadHumanVoice(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() {
+    buffer = request.buffer;
+    bufferLength = buffer.length - 0.050;
+
+    finishLoading();  // we have the voice, put up sliders and start playing...
+  };
+  
+  request.onerror = function() {
+    alert("error loading");
+  };
+
+  request.send();
+}
+
+var kSpeed = 0.05;
+var kPitch = 0.0;
+var kDiffusionRandomization = 0.1;
+var kPanningRandomization = 0.15;
+var kGrainSize = 0.090;
+
+function finishLoading() {
+  // first, get rid of loading animation
+  var loading = document.getElementById("loading");
+  loading.innerHTML = "";
+  
+  addSlider("speed");
+  addSlider("pitch");
+  addSlider("pitchRandomization");
+  addSlider("timeRandomization");
+  addSlider("diffusionRandomization");
+  addSlider("panningRandomization");
+  addSlider("grainSize");
+  configureSlider("speed", kSpeed, -1.0, 1.0, speedHandler);  
+  configureSlider("pitch", kPitch, -3600.0, 2400.0, pitchHandler);  
+  configureSlider("pitchRandomization", 0.0, 0.0, 1200.0, pitchRandomizationHandler);
+  configureSlider("timeRandomization", 0.0, 0.0, 1.0, timeRandomizationHandler);  
+  configureSlider("diffusionRandomization", kDiffusionRandomization, 0.0, 1.0, diffusionRandomizationHandler);  
+  configureSlider("panningRandomization", kPanningRandomization, 0.0, 1.0, panningRandomizationHandler);
+  configureSlider("grainSize", kGrainSize, 0.010, 0.5, grainSizeHandler);
+
+	var ui = {value: 1.0};
+
+	ui.value = kSpeed;
+	speedHandler(0, ui);
+
+	ui.value = kPitch;
+	pitchHandler(0, ui);
+	pitchRandomizationHandler(0, ui);
+	timeRandomizationHandler(0, ui);
+
+	ui.value = kDiffusionRandomization;
+	diffusionRandomizationHandler(0, ui);
+	
+	ui.value = kPanningRandomization;
+	panningRandomizationHandler(0, ui);
+	
+  xaudio.listener.gain = 1.0;
+    
+  // start playing the granular effect
+  setTimeout("schedule()", 50);
+}
+
+</script>
+</head>
+
+<body>
+
+<h1>Granular Effects</h1>
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif">
+</div>
+
+</body>
+</html>

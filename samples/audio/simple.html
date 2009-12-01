@@ -1,0 +1,591 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+
+<!-- JQuery stuff -->
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+
+<link rel="stylesheet" type="text/css" href="style/simple.css" />
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var buffer;
+var xaudio;
+var source;
+var source2;
+var x = 0;
+var y = 0;
+var z = 0;
+var lastX = 0.0;
+var lastZ = 0.0;
+var hilightedElement = 0;
+var bufferList;
+var hihatShort;
+
+var fileCount = 15;
+var fileList = [
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/hyper-reality/white-noise.aif",
+  "sounds/hyper-reality/penny-spinning.aif",
+  "sounds/drum-samples/breakbeat.aif",
+  
+  "sounds/effects/ticking.aif",
+  "sounds/effects/waves.aif",
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/effects/cauldron.aif",
+  "sounds/hyper-reality/human-voice.aif",
+  "sounds/effects/ethnic8.aif",
+	"sounds/drum-samples/Loops/Break 28.aif",
+	"sounds/drum-samples/Loops/WallOfSound046_BlueYellow.aif"
+];
+
+function setReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  
+  request.send();
+}
+
+
+function setAudioSource(i) {
+  var buffer = bufferList[i];
+
+  // See if we have cached buffer
+  if (buffer) {
+    source2.buffer = buffer;
+  } else {
+    // Load asynchronously
+    var url = fileList[i];
+    var request = xaudio.createAudioRequest(url, true);
+    request.onload = function() { 
+      source2.buffer = request.buffer;
+      bufferList[i] = request.buffer;  // cache it
+    }
+  
+    request.send();
+  }
+}
+
+function loadHihat(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    hihatShort = request.buffer;
+  }
+
+  request.send();
+}
+
+function addSubjects() {
+  var s = "<h1>HRTF Subjects</h1> <ul> ";  
+  
+  s += getSubjectString("1002");
+  s += getSubjectString("1013");
+  s += getSubjectString("1021");
+  s += getSubjectString("1043");
+  s += getSubjectString("1046");
+  s += getSubjectString("1047");
+  s += getSubjectString("1051");
+  s += getSubjectString("1053");
+  s += getSubjectString("1055");
+  s += getSubjectString("1056");
+  s += getSubjectString("1057");
+  s += getSubjectString("1058");
+  s += getSubjectString("1059");
+  
+  s += "</ul> ";
+  
+  var subjects = document.getElementById("subjects");
+  
+  subjects.innerHTML = s;
+}
+
+function getSubjectString(name) {
+  return "<li onmousedown=\"xaudio.hrtfSubject = '"
+    + name + "'; highlightElement(this); \">"
+    + name + "</li> ";
+}
+
+function highlightElement(object) {
+  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  hilightedElement = object;
+  
+  object.style.backgroundColor = "green";
+}
+
+function pitchHandler(event, ui) {
+   var cents = ui.value;
+   var info = document.getElementById("pitch-value");
+   info.innerHTML = "pitch = " + cents + " cents";
+   
+   var rate = Math.pow(2.0, cents / 1200.0);
+   source2.playbackPitch = rate;
+}
+
+function reverbHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("reverb-value");
+  info.innerHTML = "reverb = " + value;
+  
+  source2.sendGain = value;
+}
+
+function influenceHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("influence-value");
+  info.innerHTML = "reverb main gain influence = " + value;
+  
+  // source.mainGainReverbInfluence = value;
+  source2.mainGainReverbInfluence = value;
+}
+
+function mainGainHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("mainGain-value");
+  info.innerHTML = "main gain = " + value;
+  
+  // source.mainGain = value;
+  source2.mainGain = value;
+}
+
+function cutoffHandler(event, ui) {
+  var value = ui.value;
+  var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
+  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+
+  var sampleRate = 44100.0;
+  var nyquist = sampleRate * 0.5;
+  var info = document.getElementById("cutoff-value");
+  info.innerHTML = "cutoff = " + v2 * nyquist + " hz";
+
+  source2.effect.param1 = v2;
+}
+
+function addSliders() {
+  addSlider("pitch");
+  addSlider("reverb");
+  addSlider("influence");
+  addSlider("mainGain");
+  addSlider("cutoff");
+  configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
+  configureSlider("reverb", 2.0, 0.0, 4.0, reverbHandler);
+  configureSlider("influence", 0.5, 0.0, 1.0, influenceHandler);
+  configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
+  configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
+}
+
+function setSourceBuffer(buffer) {
+  // source.buffer = buffer;
+  source2.buffer = buffer;
+}
+
+/**
+ * Start panning demo
+ */
+function init() {
+  addSliders();
+  addSubjects();
+
+  var canvas = document.getElementById('canvasID');
+  var canvas2 = document.getElementById('canvasElevationID');
+
+  var ctx = canvas.getContext('2d');
+  var ctx2 = canvas2.getContext('2d');
+  
+  // draw center
+  var width = canvas.width;
+  var height = canvas.height;
+  
+  ctx.fillStyle = "rgb(0,200,0)";
+  ctx.beginPath();
+  ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
+  ctx.fill();
+
+  ctx2.fillStyle = "rgb(0,200,0)";
+  ctx2.beginPath();
+  ctx2.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
+  ctx2.fill();
+
+  document.addEventListener("keydown", handleKeyDown, true);
+  canvas.addEventListener("mousedown", handleMouseDown, true);
+  canvas.addEventListener("mousemove", handleAzimuthMouseMove, true);
+  canvas.addEventListener("mouseup", handleMouseUp, true);
+
+  canvas2.addEventListener("mousedown", handleMouseDown, true);
+  canvas2.addEventListener("mousemove", handleElevationMouseMove, true);
+  canvas2.addEventListener("mouseup", handleMouseUp, true);
+
+  xaudio = document.getElementById('myAudioTag');
+  
+
+
+  bufferList = new Array(fileCount);
+  for (var i = 0; i < fileCount; ++i) {
+    bufferList[i] = 0;
+    // bufferList[i] = xaudio.createBuffer(fileList[i], true);
+  }
+  
+  loadHihat("sounds/drum-samples/hihat-short.aif");
+    
+  xaudio.listener.gain = 0.8;
+
+  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+  
+  source2 = xaudio.addSource();
+  source2.playbackPitch = 1.0;  // should be in cents!!!!
+	source2.sendGain = 3.0;
+  source2.setPosition(0, 0, -4.0);
+  source2.looping = true;
+
+  // Load up initial buffer
+  setAudioSource(4);
+
+  var currentTime = xaudio.currentTime;
+  source2.play(currentTime + 0.020);
+  
+  var effect = source2.effect;
+}
+
+var gIsMouseDown = false;
+var gLastX = 0;
+var gLastY = 0;
+
+function handleKeyDown(event) {
+  var voice = xaudio.getVoice();
+  if (voice) {
+    voice.buffer = hihatShort;
+    voice.panningModel = 0;  // passthrough panning
+    voice.setPosition(0, 0, -2.0);
+    voice.sendGain = 0.0;
+    voice.mainGain = 2.0;
+    voice.play(0.0);
+  }
+}
+
+function handleMouseDown(event) {
+  gIsMouseDown = true;
+}
+
+function handleMouseUp(event) {
+  gIsMouseDown = false;
+}
+
+function handleAzimuthMouseMove(event) {
+  var canvas = document.getElementById("canvasID");
+  handleMouseMove(event, canvas, 0);
+}
+
+function handleElevationMouseMove(event) {
+  var canvas = document.getElementById("canvasElevationID");
+  handleMouseMove(event, canvas, 1);
+}
+
+function handleMouseMove(event, canvas, type) {
+  if (gIsMouseDown) {
+    var posx = event.clientX;
+    var posy = event.clientY;
+
+    // var canvas = document.getElementById("canvasID");
+    var ctx = canvas.getContext('2d');
+
+    var myDiv = canvas;
+
+    var divWidth = parseFloat(window.getComputedStyle(myDiv, null).width);
+    var divHeight = parseFloat(window.getComputedStyle(myDiv, null).height);
+
+    var eventInfo = {event: event, element:myDiv};
+
+    var c = getRelativeCoordinates(eventInfo);
+
+  
+    // erase last location
+    ctx.fillStyle = "rgb(255,255,255)";
+
+    ctx.beginPath();
+    ctx.arc(gLastX,gLastY,12,0,Math.PI*2,true)
+    ctx.fill();
+
+    // draw new location
+    ctx.fillStyle = "rgb(200,0,0)";
+    ctx.beginPath();
+    ctx.arc(c.x,c.y,10,0,Math.PI*2,true);
+    ctx.fill();
+
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
+    divWidth = width;
+    divHeight = height;
+    
+    ctx.fillStyle = "rgb(0,200,0)";
+    ctx.beginPath();
+    ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true);
+    ctx.fill();
+    
+    ctx.strokeRect(0,0, width, height);
+    
+    gLastX = c.x;
+    gLastY = c.y;
+  
+    var a = c.x / divWidth;
+    var b = c.y / divHeight;
+  
+    x = 8.0 * (2.0*a - 1.0);
+
+    if (type == 0) {
+      z = 8.0 * (2.0*b - 1.0);
+    } else {
+      y = -8.0 * (2.0*b - 1.0);
+    }
+  
+                                        // source.setPosition(x, 0, -z);
+    source2.setPosition(x, y, z);
+    
+    // TODO(crogers) : this isn't really correct -- we need to factor in time here as well...
+    // source2.setVelocity(5.0 * (x - lastX), 0.0, 20.0 * (z - lastZ));
+
+    lastX = x;
+    lastZ = z;
+  }
+}
+
+</script>
+</head>
+
+<body>
+
+<div id="info">
+</div>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<canvas id="canvasID" width="400" height="400" style="border: 10px inset blue;">
+</canvas>
+
+<canvas id="canvasElevationID" width="400" height="400" style="border: 10px inset blue;">
+</canvas>
+
+
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+
+
+<br><br>
+<div style="position:relative; height:350px;">
+	
+<div style="position:absolute; top:0; left:0; width:30%; border: 2px inset blue;">
+<h1>Sounds</h1>
+<ul>
+<li onmousedown="setAudioSource(11);">
+Human Voice</li>
+
+<li onmousedown="setAudioSource(12);">
+Ethnic8</li>
+
+<li onmousedown="setAudioSource(13);">
+Break28</li>
+
+<li onmousedown="setAudioSource(14);">
+blue-yellow</li>
+
+<li onmousedown="setAudioSource(7);">
+Ticking Clock</li>
+
+<li onmousedown="setAudioSource(8);">
+Waves</li>
+
+<li onmousedown="setAudioSource(9);">
+...</li>
+
+<li onmousedown="setAudioSource(10);">
+Cauldron</li>
+
+<li onmousedown="setAudioSource(4);">
+white noise</li>
+
+<li onmousedown="setAudioSource(1);">
+...</li>
+
+<li onmousedown="setAudioSource(5);">
+penny spinning</li>
+
+<li onmousedown="setAudioSource(6);">
+breakbeat</li>
+
+<li onmousedown="setAudioSource(2);">
+...</li>
+
+<li onmousedown="setAudioSource(3);">
+...</li>
+
+</ul>
+</div>
+
+
+<div id="acoustic-spaces" style="position:absolute; top:0; left:300px; width:50%;  border: 2px inset blue;">
+<h1>Acoustic Spaces</h1>
+
+<ul>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized1.aif');">
+spatialized 1 (huge spacious)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized2.aif');">
+spatialized 2 (outside)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized3.aif');">
+spatialized 3 (outside)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized4.aif');">
+spatialized 4 (huge spacious)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized5.aif');">
+spatialized 5 (backwards)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized6.aif');">
+spatialized 6 (cosmic)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized7.aif');">
+spatialized 7 (dark cathedral)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized8.aif');">
+spatialized 8 (medium open)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized9.aif');">
+spatialized 9 (medium open)</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');">
+  Binaural</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-35-10/cardiod-35-10.aif');">
+Warehouse Cardiod-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-35-10/cardiod-35-10-spread.aif');">
+Warehouse Cardiod-35-10-spread</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif');">
+Warehouse Cardiod-rear-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/super-ceiling-35-10/super-ceiling-35-10.aif');">
+Warehouse Super-ceiling-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/omni-35-10/omni-35-10.aif');">
+Warehouse Omni-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');">
+Warehouse True-Stereo-15-8</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/backwards-4.aif');">
+Synthetic Backwards Noise 4 seconds</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/backwards-2.aif');">
+Synthetic Backwards Noise 2 seconds</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/cosmic-ping.aif');">
+Cosmic ping</li>
+
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/echo-chamber.aif');">
+Echo Chamber</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/noise-spreader1.aif');">
+Noise Spreader</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/peculiar-backwards.aif');">
+Fluttery</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/sifter.aif');">
+Sifter</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/wildecho.aif');">
+Wild Echo</li>
+
+
+
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/backslap1.aif');">
+backslap</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spreader25ms.aif');">
+spreader25ms</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spreader35ms.aif');">
+spreader35ms</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spreader55ms.aif');">
+spreader55ms</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spreader55ms-2.aif');">
+spreader55ms-2</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/sifter.aif');">
+sifter</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized.aif');">
+spatialized</li>
+
+</ul>
+
+</div>
+</div>
+
+<div id="subjects"> </div>
+
+</body>
+</html>

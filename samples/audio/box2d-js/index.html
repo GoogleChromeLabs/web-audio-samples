@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Box2DJS - Physics Engine for JavaScript</title>
+
+		<!--=============================-->
+		<!-- Copy this part to your app. -->
+		<!-- START                       -->
+		<!--=============================-->
+		<!-- libs -->
+		<!--[if IE]><script type="text/javascript" src="lib/excanvas.js"></script><![endif]-->
+    <script src="lib/prototype-1.6.0.2.js"></script>
+
+		<!-- box2djs -->
+    <script src='js/box2d/common/b2Settings.js'></script>
+    <script src='js/box2d/common/math/b2Vec2.js'></script>
+    <script src='js/box2d/common/math/b2Mat22.js'></script>
+    <script src='js/box2d/common/math/b2Math.js'></script>
+    <script src='js/box2d/collision/b2AABB.js'></script>
+    <script src='js/box2d/collision/b2Bound.js'></script>
+    <script src='js/box2d/collision/b2BoundValues.js'></script>
+    <script src='js/box2d/collision/b2Pair.js'></script>
+    <script src='js/box2d/collision/b2PairCallback.js'></script>
+    <script src='js/box2d/collision/b2BufferedPair.js'></script>
+    <script src='js/box2d/collision/b2PairManager.js'></script>
+    <script src='js/box2d/collision/b2BroadPhase.js'></script>
+    <script src='js/box2d/collision/b2Collision.js'></script>
+    <script src='js/box2d/collision/Features.js'></script>
+    <script src='js/box2d/collision/b2ContactID.js'></script>
+    <script src='js/box2d/collision/b2ContactPoint.js'></script>
+    <script src='js/box2d/collision/b2Distance.js'></script>
+    <script src='js/box2d/collision/b2Manifold.js'></script>
+    <script src='js/box2d/collision/b2OBB.js'></script>
+    <script src='js/box2d/collision/b2Proxy.js'></script>
+    <script src='js/box2d/collision/ClipVertex.js'></script>
+    <script src='js/box2d/collision/shapes/b2Shape.js'></script>
+    <script src='js/box2d/collision/shapes/b2ShapeDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2BoxDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2CircleDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2CircleShape.js'></script>
+    <script src='js/box2d/collision/shapes/b2MassData.js'></script>
+    <script src='js/box2d/collision/shapes/b2PolyDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2PolyShape.js'></script>
+    <script src='js/box2d/dynamics/b2Body.js'></script>
+    <script src='js/box2d/dynamics/b2BodyDef.js'></script>
+    <script src='js/box2d/dynamics/b2CollisionFilter.js'></script>
+    <script src='js/box2d/dynamics/b2Island.js'></script>
+    <script src='js/box2d/dynamics/b2TimeStep.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactNode.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Contact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraintPoint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactRegister.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactSolver.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2CircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Conservative.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2NullContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyAndCircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyContact.js'></script>
+    <script src='js/box2d/dynamics/b2ContactManager.js'></script>
+    <script src='js/box2d/dynamics/b2World.js'></script>
+    <script src='js/box2d/dynamics/b2WorldListener.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointNode.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Joint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2DistanceJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2DistanceJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Jacobian.js'></script>
+    <script src='js/box2d/dynamics/joints/b2GearJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2GearJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PrismaticJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PrismaticJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PulleyJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PulleyJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2RevoluteJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2RevoluteJointDef.js'></script>
+		<!--=============================-->
+		<!-- Copy this part to your app. -->
+		<!-- END                         -->
+		<!--=============================-->
+
+		<!-- demos -->
+    <script src='demos/draw_world.js'></script>
+    <script src='demos/demo_base.js'></script>
+    <script src='demos/top.js'></script>
+    <script src='demos/stack.js'></script>
+    <script src='demos/compound.js'></script>
+    <script src='demos/pendulum.js'></script>
+    <script src='demos/crank.js'></script>
+    <script src='demos/demos.js'></script>
+
+    <script src='style/prettify.js'></script>
+		<link href="style/prettify.css" rel="stylesheet" type="text/css" />
+		<script>Event.observe(window, 'load', function() {prettyPrint()});</script>
+
+		<link href="style/distant-planet.css" rel="stylesheet" type="text/css" />
+		<link href="style/box2d.css" rel="stylesheet" type="text/css" />
+  </head>
+<body>
+<div id="CONTAINER">
+	<div id="HEADER">
+		<h1>Box2D<br/><b>JS</b></h1>
+	</div>
+  <div id="NAVIGATION">
+		<div class="Nav">
+			<span class="links">
+				<a href="http://sourceforge.net/projects/box2d-js/">Home</a>
+				- <a href="http://sourceforge.net/project/showfiles.php?group_id=227549">Download</a>
+				- <a href="#about">About</a>
+				- <a href="#howto">Howto</a>
+				- <a href="#links">Links</a>
+				- <a href="#contact">Contact</a>
+			</span>
+		</div>
+  </div>
+  <div id="BODYBOX">
+  	<div class="LEFT"></div>
+    <div class="MIDDLE">
+    <canvas id="canvas" width='500' height='300' style="top:260px; left:125px;"></canvas>
+		<div id="spacer"> </div>
+		<p style="text-align:center">
+			<span class="key">Left-click</span> to create an object.
+			<span class="key">Right-click</span> to show next example.
+		</p>
+
+		<a name="about"></a>
+		<h1>What's this</h1>
+		<p>
+		Box2DJS is a JavaScript port of <a href="http://www.box2d.org/">Box2D Physics Engine</a>.
+		To tell the truth, this is converted from <a href="http://box2dflash.sourceforge.net/">Box2DFlashAS3</a>_1.4.3.1 in an automatic manner.
+		(The reason why not Box2DFlashAS3_2.0.0 based is simply because I overlooked the renewal.)
+		</p>
+
+		<a name="howto"></a>
+		<h1>How to use</h1>
+		<p>
+		Because this libray does not have a lazy-loading system now, you should load all classes before starting your simulation.
+		To make things worse, each library has a bit complecated dependency each other so that loading libraries in wrong order may cause a fatal error. 
+		To avoid such a trouble, it is strongly recomended to copy the header part of this file or `index.html' including the downloaded zip file.
+		</p>
+		<p>
+		Concerning the Box2D APIs of the library, they are completely same as Box2DFlashAS3. Please google information about it.
+		</p>
+
+		<h2>Sample code</h2>
+		<h3>Create a world</h3>
+		<pre class="prettyprint">var worldAABB = new b2AABB();
+worldAABB.minVertex.Set(-1000, -1000);
+worldAABB.maxVertex.Set(1000, 1000);
+var gravity = new b2Vec2(0, 300);
+var doSleep = true;
+var world = new b2World(worldAABB, gravity, doSleep); </pre>
+
+		<h3>Create a circle body</h3>
+		<pre class="prettyprint">var circleSd = new b2CircleDef();
+circleSd.density = 1.0;
+circleSd.radius = 20;
+circleSd.restitution = 1.0;
+circleSd.friction = 0;
+var circleBd = new b2BodyDef();
+circleBd.AddShape(circleSd);
+circleBd.position.Set(x,y);
+var circleBody = world.CreateBody(circleBd);</pre>
+
+		<h3>Create a revolute joint</h3>
+		<pre class="prettyprint">var jointDef = new b2RevoluteJointDef();
+jointDef.anchorPoint.Set(250, 200);
+jointDef.body1 = world.GetGroundBody();
+jointDef.body2 = circleBody;
+world.CreateJoint(jointDef);</pre>
+
+		<h3>Step a world</h3>
+		<pre class="prettyprint">world.Step();</pre>
+
+		<a name="dependencies"></a>
+		<h1>Dependencies</h1>
+		<ul>
+			<li><a href="http://www.prototypejs.org/">prototype.js</a></li>
+			<li><a href="http://sourceforge.net/projects/iecanvas">IECanvas</a> (when you use a canvas tag to display the result of your physics simulation)</li>
+		</ul>
+
+		<a name="links"></a>
+		<h1>Links</h1>
+		<ul>
+			<li><a href="http://sourceforge.net/projects/box2d-js/">Project Page (SF)</a></li>
+			<li><a href="http://sourceforge.net/project/showfiles.php?group_id=227549">Download Page (SF)</a></li>
+			<li><a href="http://www.box2d.org/">Box2D</a></li>
+			<li><a href="http://box2dflash.sourceforge.net/">Box2DFlashAS3</a></li>
+			<li><a href="http://www.kyucon.com/doc/box2d/">API Doc (Box2DFlashAS3)</a></li>
+		</ul>
+
+		<a name="contact"></a>
+		<h1>Contact</h1>
+		<p>
+		If you have some requests or find any bugs, please tell me about them.<br />
+		<div class="contact">
+		E-mail: andyjpn _at_ gmail _dot_ com<br />
+		Blog: <a href="http://d.hatena.ne.jp/technohippy/">http://d.hatena.ne.jp/technohippy/</a> (written in Japanese)
+		</div>
+		</p>
+
+    </div>
+    <div class="RIGHT"></div>
+    <div id="FOOTER">
+   	  <div class="footertext"><span class="links">&copy;Copyright 2008 ANDO Yasushi - <a href="http://www.rankrover.com">Website Design &amp; SEO by RankRover</a></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

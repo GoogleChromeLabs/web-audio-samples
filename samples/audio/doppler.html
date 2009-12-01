@@ -1,0 +1,451 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+
+<!-- JQuery stuff -->
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+
+<link rel="stylesheet" type="text/css" href="style/simple.css" />
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var kMainSpeed = 0.385;
+var kSecondarySpeed = 0.063;
+var kTertiarySpeed = 0.02;
+var kReverbGain = 0.85;
+var kMainSweepDistance = 30.0;
+
+var xaudio;
+var source;
+var x = 0;
+var y = 0;
+var z = 0;
+
+var gLastX = 0;
+var gLastY = 0;
+var gLastZ = 0;
+
+var lfo = 0;
+var slowLfo = 0;
+var tertiaryLfo = 0;
+var mode = 2;
+
+var canvas;
+var ctx;
+var gLastPixelX = 0;
+var gLastPixelY = 0;
+var gLastRadius = 12;
+var gLastLfoValue = 0;
+
+/**
+ * Class Lfo
+ */
+
+Lfo = function(initialValue, max, increment) {
+  this.lfo_ = initialValue;
+  this.max_ = max;
+  this.direction_ = 1.0;
+  this.increment_ = increment;
+}
+
+Lfo.prototype.advance = function() {
+  this.lfo_ += this.direction_ * this.increment_;
+  var abs_lfo = this.lfo_ >= 0.0 ? this.lfo_ : -this.lfo_;
+  
+  if (abs_lfo > this.max_) {
+    this.direction_ *= -1.0;
+    var sign = this.lfo_ >= 0.0 ? 1.0 : -1.0;
+    this.lfo_ = sign * this.max_;
+  }
+}
+
+Lfo.prototype.setValue = function(value) {
+  this.lfo_ = value;
+}
+
+Lfo.prototype.setIncrement = function(value) {
+  this.increment_ = value;
+}
+
+Lfo.prototype.getValue = function() {
+  return this.lfo_;
+}
+
+Lfo.prototype.getSinValue = function() {
+  var s = this.max_ * Math.sin(0.5 * Math.PI * this.lfo_ / this.max_);
+  return s;
+}
+
+
+Lfo.prototype.max = function() {
+  return this.max_;
+}
+
+Lfo.prototype.getDirection = function() {
+  return this.direction_;
+}
+
+
+var hilightedElement = 0;
+
+function highlightElement(object) {
+  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  hilightedElement = object;
+
+  object.style.backgroundColor = "green";
+}
+
+function setReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  
+  request.send();
+}
+
+
+function loadBufferAndPlay(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    source.buffer = request.buffer;
+    var currentTime = xaudio.currentTime;
+    source.play(currentTime + 0.020);
+
+    // get rid of loading animation
+    var loading = document.getElementById("loading");
+    loading.innerHTML = "";
+  }
+
+  request.send();
+}
+
+var kWhite = "rgb(255,255,255)";
+var kRed = "rgb(200,0,0)";
+var kGreen = "rgb(0,200,0)";
+
+function drawCircle(color, x, y, radius) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI*2, true)
+  ctx.fill();
+}
+
+function draw(x, y, z) {
+  var width = canvas.width;
+  var height = canvas.height;
+
+  var posx = 0.5*width + width * x / (2*kMainSweepDistance);
+  var posy = 0.5*height + height * -y / (2*kMainSweepDistance);
+
+  var radius = 1 + 0.5*kMainSweepDistance + 0.5*z;
+
+  // erase last location
+  drawCircle(kWhite, gLastPixelX, gLastPixelY, gLastRadius);
+
+  if (z <= 0) {
+    // draw new location
+    drawCircle(kRed, posx, posy, radius);
+
+    // draw center
+    drawCircle(kGreen, width/2, height/2, 0.5*kMainSweepDistance);
+  } else {
+    // draw center
+    drawCircle(kGreen, width/2, height/2, 0.5*kMainSweepDistance);
+
+    // draw new location
+    drawCircle(kRed, posx, posy, radius);
+  }
+
+
+  ctx.strokeRect(0,0, width, height);
+
+  gLastPixelX = posx;
+  gLastPixelY = posy;
+  gLastRadius = radius + 2;
+}
+
+
+
+/**
+ * "Animate" the doppler effect
+ */
+function schedule() {
+
+ // Calculate velocity for doppler effect
+ var velocity;
+ var direction = lfo.getDirection();
+ velocity = 20.0 * direction;
+
+ var sinLfoValue = lfo.getSinValue();
+ 
+ 
+ var slowValue = slowLfo.getSinValue();
+ var tertiaryValue = tertiaryLfo.getSinValue();
+
+
+ if (mode == 0) { // left-right
+   x = sinLfoValue;
+   y = slowValue;
+   z = tertiaryValue; //-2;
+   
+   source.setPosition(x, y, z); 
+ } else if (mode == 1) { // front-back
+   x = slowValue;
+   y = tertiaryValue; // 0;
+   z = sinLfoValue;
+   
+   source.setPosition(x, y, z); 
+ } else if (mode == 2) { // up-down
+   x = tertiaryValue; // 0;
+   y = sinLfoValue;
+   z = slowValue;
+   
+   source.setPosition(x, y, z); 
+ }
+
+ // Velocity (for doppler effect)
+ var kVelocityScale = 50.0;
+ var deltaX = kVelocityScale * (x - gLastX);
+ var deltaY = kVelocityScale * (y - gLastY);
+ var deltaZ = kVelocityScale * (z - gLastZ);
+ gLastX = x;
+ gLastY = y;
+ gLastZ = z;
+
+ source.setVelocity(deltaX, deltaY, deltaZ);
+ 
+ draw(x, y, z);
+
+ lfo.advance();
+ slowLfo.advance();
+ tertiaryLfo.advance();
+ setTimeout("schedule()", 20);
+}
+
+
+function mainSpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("mainSpeed-value");
+  info.innerHTML = "mainSpeed = " + value;
+  
+  lfo.setIncrement(value);
+}
+
+function secondarySpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("secondarySpeed-value");
+  info.innerHTML = "secondarySpeed = " + value;
+  
+  slowLfo.setIncrement(value);
+}
+
+function tertiarySpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("tertiarySpeed-value");
+  info.innerHTML = "tertiarySpeed = " + value;
+  
+  tertiaryLfo.setIncrement(value);
+}
+
+function pitchHandler(event, ui) {
+   var cents = ui.value;
+   var info = document.getElementById("pitch-value");
+   info.innerHTML = "pitch = " + cents + " cents";
+   
+   var rate = Math.pow(2.0, cents / 1200.0);
+   source.playbackPitch = rate;
+}
+
+function reverbHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("reverb-value");
+  info.innerHTML = "reverb = " + value;
+  
+  source.sendGain = value;
+}
+
+
+function addSliders() {
+  addSlider("mainSpeed");
+  addSlider("secondarySpeed");
+  addSlider("tertiarySpeed");
+  addSlider("pitch");
+  addSlider("reverb");
+  
+  configureSlider("mainSpeed", kMainSpeed, 0.05, 1.0, mainSpeedHandler);
+  configureSlider("secondarySpeed", kSecondarySpeed, 0.01, 1.0, secondarySpeedHandler);
+  configureSlider("tertiarySpeed", kTertiarySpeed, 0.01, 1.0, tertiarySpeedHandler);
+  configureSlider("pitch", -300, -2400.0, 2400.0, pitchHandler);
+  configureSlider("reverb", kReverbGain, 0.0, 4.0, reverbHandler);
+}
+
+/**
+ * Start doppler demo
+ */
+function init() {
+  xaudio = document.getElementById('myAudioTag');
+  
+  xaudio.listener.gain = 3.0;
+
+  // setReverbImpulseResponse('impulse-responses/Forest.wav');
+  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+  
+  source = xaudio.addSource();
+  source.playbackPitch = 0.75;
+	source.mainGain = 4.0;
+	source.sendGain = kReverbGain;
+
+  x = 0;
+  y = 0;
+  z = -4.0;
+  source.setPosition(x, y, z);
+
+  source.looping = true;
+
+  // Load up initial buffer
+  loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");
+  // loadBufferAndPlay("sounds/hyper-reality/refreshing drink.aif");
+  
+  
+  lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
+  slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
+  tertiaryLfo = new Lfo(-5.0, 5.0, kTertiarySpeed);
+
+  // UI stuff
+  canvas = document.getElementById('canvasID');
+  ctx = canvas.getContext('2d');
+  
+  addSliders();
+
+  // Start moving the source
+  setTimeout("schedule()", 20);
+}
+
+</script>
+</head>
+
+<body>
+
+<h1> Doppler Shift </h1>
+
+<div id="info">
+</div>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div style="position:relative; height:350px;">
+
+<canvas id="canvasID" width="400" height="400" style="position:absolute; top:0; left:0; border: 10px inset blue;">
+</canvas>
+
+
+<div style="position:absolute; top:50px; left:450px; width:50%;">
+
+<div class='emph'>
+
+
+<div class='bigList' onmousedown="mode = 0; highlightElement(this);">
+Left ... Right
+</div>
+
+<div class='bigList' onmousedown="mode = 1; highlightElement(this);">
+Front ... Back
+</div>
+
+<div class='bigList' onmousedown="mode = 2; highlightElement(this);">
+Up ... Down
+</div>
+
+<br><br><br>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/white-noise.aif'); highlightElement(this);">
+White Noise
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/refreshing drink.aif'); highlightElement(this);">
+Refreshing Drink
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/balls-of-the-orient.aif'); highlightElement(this);">
+Meditation Balls
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/drum-samples/handdrum-loop.wav'); highlightElement(this);">
+Hand-drum
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
+Crunched up Paper
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/siren.aif'); highlightElement(this);">
+Siren
+</div>
+
+</div>
+
+</div>
+
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif" width="400" height="400">
+</div>
+
+</body>
+</html>

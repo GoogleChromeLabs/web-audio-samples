@@ -1,0 +1,296 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<!-- JQuery stuff -->
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var xaudio = 0;
+var source1 = 0;
+var source2 = 0;
+var bufferLoader1 = 0;
+var bufferLoader2 = 0;
+var loadCount = 0;
+var tempo = 120.0;  // hardcoded for now
+
+function highlightElement(object) {
+  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  hilightedElement = object;
+
+  object.style.backgroundColor = "green";
+}
+
+/**
+ * Class BufferLoader
+ */
+
+BufferLoader = function(source, url) {
+  this.source_ = source;
+  this.url_ = url;
+  this.buffer_ = 0;
+  this.request_ = 0;
+}
+
+BufferLoader.prototype.load = function() {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(this.url_, false);
+  this.request_ = request;
+
+  var bufferLoader = this;
+  
+  request.onload = function() { 
+    bufferLoader.buffer = request.buffer;
+    bufferLoader.source_.buffer = request.buffer;
+
+    loadCount++;
+    
+    if (loadCount == 2) finishLoad();
+  }
+
+  request.send();
+}
+
+
+function crossfadeHandler(event, ui) {
+  var x = ui.value;
+  var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+  var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+  
+  source1.mainGain = gain1;
+  source2.mainGain = gain2;
+  
+  var info = document.getElementById("crossfade-value");
+  info.innerHTML = "crossfade = " + x;
+}
+
+function leftFilterHandler(event, ui) {
+  var value = ui.value;
+  var sampleRate = 44100.0;  // !!@@ don't hardcode
+  var nyquist = sampleRate * 0.5;
+  var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+
+  var info = document.getElementById("leftFilter-value");
+  info.innerHTML = "leftFilter = " + v2*nyquist + " Hz";
+
+  // (effects and params API in flux)
+  source1.effect.param1 = v2;
+  source1.effect.param2 = 5.0;
+}
+
+function rightFilterHandler(event, ui) {
+  var value = ui.value;
+  var sampleRate = 44100.0;  // !!@@ don't hardcode
+  var nyquist = sampleRate * 0.5;
+  var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+
+  var info = document.getElementById("rightFilter-value");
+  info.innerHTML = "rightFilter = " + v2*nyquist + " Hz";
+
+  // (effects and params API in flux)
+  source2.effect.param1 = v2;
+  source2.effect.param2 = 5.0;
+}
+
+function finishLoad() {
+  // first, get rid of loading animation
+  var loading = document.getElementById("loading");
+  loading.innerHTML = "";
+
+  addSlider("crossfade");
+  addSlider("leftFilter");
+  addSlider("rightFilter");
+  configureSlider("crossfade", 0.5, 0.0, 1.0, crossfadeHandler);
+  configureSlider("leftFilter", 0.99, 0.0, 1.0, leftFilterHandler);
+  configureSlider("rightFilter", 0.99, 0.0, 1.0, rightFilterHandler);
+
+  xaudio.listener.gain = 1.0;
+  
+  var now = xaudio.currentTime;
+  anchorTime = now + 0.040;
+  
+  source1.play(anchorTime);
+  source2.play(anchorTime);
+}
+
+function setReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  
+  request.send();
+}
+
+function loadBufferForSource(source, url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() {
+    // Start playing the new buffer at exactly the next 4-beat boundary
+    var currentTime = xaudio.currentTime;
+    var delta = currentTime - anchorTime;
+    var deltaBeat = (tempo / 60.0) * delta;
+    var roundedUpDeltaBeat = 4.0 + 4.0 * Math.floor(deltaBeat / 4.0);
+    var roundedUpDeltaTime = (60.0 / tempo) * roundedUpDeltaBeat;
+    var time = anchorTime + roundedUpDeltaTime;
+    
+    source.stop();
+    source.buffer = request.buffer;
+    source.play(time);
+  }
+
+  request.send();  
+}
+
+function init() {
+  xaudio = document.getElementById('myAudioTag');
+
+  source1 = xaudio.addSource();
+  source2 = xaudio.addSource();
+
+  source1.mainGain = 0.707;
+  source2.mainGain = 0.707;
+  source1.sendGain = 0.0;
+  source2.sendGain = 0.0;
+  
+  source1.looping = true;
+  source2.looping = true;
+
+  // passthrough panning
+  source1.panningModel = 0;
+  source2.panningModel = 0;
+  
+  // load reverb
+  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+  
+  bufferLoader1 = new BufferLoader(source1, "sounds/drum-samples/loops/blueyellow.aif");
+  bufferLoader2 = new BufferLoader(source2, "sounds/drum-samples/loops/crydamore.aif");
+  
+  bufferLoader1.load();
+  bufferLoader2.load();
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif" width="400" height="400">
+</div>
+
+
+<div style="position:relative; height:350px;">
+
+<div style="position:absolute; top:0; left:0; width:30%;">
+
+<!-- Left "turntable" -->
+
+<h2>Left</h2>
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/blueyellow.aif'); highlightElement(this);">
+blueyellow
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/break12.aif'); highlightElement(this);">
+break12
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/break28.aif'); highlightElement(this);">
+break28
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/crydamore.aif'); highlightElement(this);">
+crydamore
+</div>
+
+</div
+
+<div style="position:absolute; top:0; left:400px; width:50%;">
+
+<!-- Right "turntable" -->
+
+<h2>Right</h2>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/blueyellow.aif'); highlightElement(this);">
+blueyellow
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/break12.aif'); highlightElement(this);">
+break12
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/break28.aif'); highlightElement(this);">
+break28
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/crydamore.aif'); highlightElement(this);">
+crydamore
+</div>
+
+</div>
+
+
+</body>
+</html>
