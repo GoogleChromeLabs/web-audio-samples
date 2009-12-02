@@ -339,12 +339,12 @@ function init() {
   
   xaudio.listener.gain = 3.0;
 
-  // setReverbImpulseResponse('impulse-responses/Forest.wav');
-  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+  setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
+  // setReverbImpulseResponse('impulse-responses/spatialized3.aif');
   
   source = xaudio.addSource();
   source.playbackPitch = 0.75;
-	source.mainGain = 4.0;
+	source.mainGain = 3.0;
 	source.sendGain = kReverbGain;
 
   x = 0;
@@ -355,9 +355,7 @@ function init() {
   source.looping = true;
 
   // Load up initial buffer
-  loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");
-  // loadBufferAndPlay("sounds/hyper-reality/refreshing drink.aif");
-  
+  loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");  
   
   lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
   slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
