@@ -59,17 +59,124 @@ Convolution Effects
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio;
-var buffer;
-var latency = 0.0;
-var hihatShort;
+var xaudio = 0;
+var source = 0;
+
+// source buffers
+var humanVoice = 0;
+var guitar = 0;
+
+// impulse responses
+var backwards = 0;
+var cosmic = 0;
+var comb = 0;
+
+var loadCount = 0;
+
+var hilightedElement = 0;
+
+
+function highlightElement(object) {
+  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  hilightedElement = object;
+  
+  object.style.backgroundColor = "green";
+}
+
+function loadHumanVoice(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    humanVoice = request.buffer;
+    finishLoad();
+  }
+
+  request.send();
+}
+
+function loadGuitar(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    guitar = request.buffer;
+    finishLoad();
+  }
+
+  request.send();
+}
+
+function loadBackwardsResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    backwards = request.buffer;
+    finishLoad();
+  }
+  request.onerror = function() { 
+    alert("error loading reverb");
+  }
+  
+  request.send();
+}
+
+function loadCosmicResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    cosmic = request.buffer;
+    finishLoad();
+  }
+  request.onerror = function() { 
+    alert("error loading reverb");
+  }
+  
+  request.send();
+}
+
+
+
+function loadBufferAndPlay(responseIndex, reverbGain, bufferIndex) {
+  var response = 0;
+  switch (responseIndex) {
+    case 0: response = backwards; break;
+    case 1: response = cosmic; break;
+  }
+
+  xaudio.impulseResponseBuffer = response;
+  xaudio.listener.sendGain = reverbGain;
+
+  var buffer = 0;
+  switch (bufferIndex) {
+    case 0: buffer = humanVoice; break;
+    case 1: buffer = guitar; break;
+  }
+  
+  source.buffer = buffer;
+  source.play(0);
+}
 
 function finishLoad() {
+  loadCount++;
+  if (loadCount != 4) return;
+  
   xaudio.listener.gain = 1.0;
+  loadBufferAndPlay(0, 1.0, 0);
 }
 
 function init() {
   xaudio = document.getElementById('myAudioTag');
+  
+  source = xaudio.addSource();
+  source.playbackPitch = 1.0;  // should be in cents!!!!
+	source.sendGain = 3.0;
+  source.looping = true;
+  source.panningModel = 0;  // pass-through panning
+  
+  loadHumanVoice("sounds/hyper-reality/human-voice.aif");
+  loadGuitar("sounds/hyper-reality/balls-of-the-orient.aif");
+  
+  loadBackwardsResponse('impulse-responses/spatialized5.aif');
+  loadCosmicResponse('impulse-responses/cosmic-ping.aif');
 }
 
 </script>
@@ -87,21 +194,21 @@ function init() {
 
 <br><br><br>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 1.0, 'sounds/hyper-reality/human-voice.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 1.0, 0); highlightElement(this);">
 Human Voice (backwards)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 0.0, 'sounds/hyper-reality/human-voice.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 0.0, 0); highlightElement(this);">
 Human Voice (unprocessed)
 </div>
 
 <br><br><br>
 
-<div class='bigList'  onmousedown="loadBufferAndPlay(0, 1.0, 'sounds/hyper-reality/guitar-chords.aif'); highlightElement(this);">
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 1.0, 1); highlightElement(this);">
 Guitar Chords (extreme phase smearing)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 0.0, 'sounds/hyper-reality/guitar-chords.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(1, 0.0, 1); highlightElement(this);">
 Guitar Chords (unprocessed)
 </div>
 
