@@ -158,7 +158,7 @@ function scheduleGrain() {
     
     var distance = 2.0;
     var azimuth = Math.PI * panningRandomization * r3;
-    var elevation = 0.5 * Math.PI * panningRandomization * r4;
+    var elevation = Math.PI * (0.25 + 0.75 * panningRandomization * r4);
 
     var x = Math.sin(azimuth);
     var z = Math.cos(azimuth);
