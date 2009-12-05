@@ -75,6 +75,62 @@ var loadCount = 0;
 
 var hilightedElement = 0;
 
+var fileCount = 23;
+var fileList = [
+  "sounds/hyper-reality/human-voice.aif",       // 0
+  "sounds/hyper-reality/guitar-chords.aif",     // 1
+  "sounds/drum-samples/conga-rhythm.aif",       // 2
+  "sounds/hyper-reality/br-jam-loop.aif",       // 3
+
+  "impulse-responses/spatialized5.aif",         // 0
+  "impulse-responses/cosmic-ping-long.aif",     // 1
+  "impulse-responses/filter-telephone.aif",     // 2
+  "impulse-responses/comb-saw2.aif",            // 3
+  "impulse-responses/filter-rhythm1.aif",       // 4
+  "impulse-responses/filter-rhythm3.aif",       // 5
+  "impulse-responses/comb-saw1.aif",            // 6
+
+  "impulse-responses/comb-saw2.aif",            // 7
+
+
+  "impulse-responses/matrix-reverb2.aif",       // 8
+  "impulse-responses/matrix-reverb3.aif",       // 9
+  "impulse-responses/spatialized4.aif",         // 10
+  "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif",          // 11
+  "impulse-responses/diffusor3.aif",            // 12
+  "impulse-responses/matrix6-backwards.aif",    // 13
+  "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
+  "impulse-responses/wildecho.aif",             // 15
+  "impulse-responses/impulse-rhythm2.aif",      // 16
+  "impulse-responses/spreader50-65ms.aif",      // 17
+  "impulse-responses/feedback-spring.aif"       // 18
+
+];
+
+var responseOffset = 4;
+var bufferLoaderList = 0;
+
+function BufferLoader(url, mixToMono) {
+  this.url = url;
+  this.buffer = 0;
+  this.mixToMono = mixToMono;
+
+  this.load();
+}
+
+BufferLoader.prototype.load = function() {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(this.url, this.mixToMono);
+
+  var bufferLoader = this;
+
+  request.onload = function() {
+    bufferLoader.buffer = request.buffer;
+    finishLoading();
+  }
+  
+  request.send();
+}
 
 function highlightElement(object) {
   if (hilightedElement) hilightedElement.style.backgroundColor = "white";
@@ -83,84 +139,27 @@ function highlightElement(object) {
   object.style.backgroundColor = "green";
 }
 
-function loadHumanVoice(url) {
-  // Load asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    humanVoice = request.buffer;
-    finishLoad();
-  }
+function loadBufferAndPlay(bufferIndex, responseIndex, mainGain, reverbGain) {
+  source.buffer = bufferLoaderList[bufferIndex].buffer;
+  xaudio.impulseResponseBuffer = bufferLoaderList[responseOffset + responseIndex].buffer;
 
-  request.send();
-}
+  source.mainGain = mainGain;
+  source.sendGain = reverbGain;
+  source.mainGainReverbInfluence = 0.0;
 
-function loadGuitar(url) {
-  // Load asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    guitar = request.buffer;
-    finishLoad();
-  }
-
-  request.send();
-}
-
-function loadBackwardsResponse(url) {
-  // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    backwards = request.buffer;
-    finishLoad();
-  }
-  request.onerror = function() { 
-    alert("error loading reverb");
-  }
-  
-  request.send();
-}
-
-function loadCosmicResponse(url) {
-  // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    cosmic = request.buffer;
-    finishLoad();
-  }
-  request.onerror = function() { 
-    alert("error loading reverb");
-  }
-  
-  request.send();
-}
-
-
-
-function loadBufferAndPlay(responseIndex, reverbGain, bufferIndex) {
-  var response = 0;
-  switch (responseIndex) {
-    case 0: response = backwards; break;
-    case 1: response = cosmic; break;
-  }
-
-  xaudio.impulseResponseBuffer = response;
-  xaudio.listener.sendGain = reverbGain;
-
-  var buffer = 0;
-  switch (bufferIndex) {
-    case 0: buffer = humanVoice; break;
-    case 1: buffer = guitar; break;
-  }
-  
-  source.buffer = buffer;
   source.play(0);
 }
 
-function finishLoad() {
+function finishLoading() {
   loadCount++;
-  if (loadCount != 4) return;
+  if (loadCount != fileCount) return;
+  
+  // first, get rid of loading animation
+  var loading = document.getElementById("loading");
+  loading.innerHTML = "";
   
   xaudio.listener.gain = 1.0;
-  loadBufferAndPlay(0, 1.0, 0);
+  loadBufferAndPlay(0, 0, 0.0, 1.0);
 }
 
 function init() {
@@ -172,11 +171,11 @@ function init() {
   source.looping = true;
   source.panningModel = 0;  // pass-through panning
   
-  loadHumanVoice("sounds/hyper-reality/human-voice.aif");
-  loadGuitar("sounds/hyper-reality/balls-of-the-orient.aif");
-  
-  loadBackwardsResponse('impulse-responses/spatialized5.aif');
-  loadCosmicResponse('impulse-responses/cosmic-ping.aif');
+  bufferLoaderList = new Array(fileCount);
+
+  for (i = 0; i < fileCount; ++i) {
+    bufferLoaderList[i] = new BufferLoader(fileList[i]);  
+  }
 }
 
 </script>
@@ -190,27 +189,177 @@ function init() {
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
 
-<h1> Convolution Effects </h1>
-
-<br><br><br>
-
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 1.0, 0); highlightElement(this);">
-Human Voice (backwards)
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif">
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 0.0, 0); highlightElement(this);">
+<h1> Convolution Effects </h1>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 0, 0.35, 0.0); highlightElement(this);">
 Human Voice (unprocessed)
 </div>
 
-<br><br><br>
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 17, 0.2, 1.0); highlightElement(this);">
+Human Voice (spreader)
+</div>
 
-<div class='bigList'  onmousedown="loadBufferAndPlay(1, 1.0, 1); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 2, 0.0, 3.0); highlightElement(this);">
+Human Voice (telephone filter)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 18, 0.0, 4.0); highlightElement(this);">
+Human Voice (spring reverb simulation)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 6, 0.0, 1.5); highlightElement(this);">
+Human Voice (comb filter 1)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 7, 0.0, 1.5); highlightElement(this);">
+Human Voice (comb filter 2)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 15, 0.0, 2.0); highlightElement(this);">
+Human Voice (wild echo)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(0, 16, 0.25, 2.5); highlightElement(this);">
+Human Voice (chorus rhythm)
+</div>
+
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 0, 0.0, 0.7); highlightElement(this);">
+Human Voice (backwards)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 13, 0.0, 0.7); highlightElement(this);">
+Human Voice (extreme backwards - be patient!)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 11, 0.2, 1.5); highlightElement(this);">
+Human Voice (real warehouse)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(0, 14, 0.3, 1.5); highlightElement(this);">
+Human Voice (real binaurally recorded hall)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 9, 0.3, 1.5); highlightElement(this);">
+Human Voice (matrix reverb 3)
+</div>
+
+
+
+<br><br>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(1, 1, 0.3, 0.0); highlightElement(this);">
+Guitar Chords (unprocessed)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 0, 0.0, 0.7); highlightElement(this);">
+Guitar Chords (backwards)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 13, 0.0, 0.7); highlightElement(this);">
+Guitar Chords (extreme backwards - be patient!)
+</div>
+
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 1, 0.0, 0.8); highlightElement(this);">
 Guitar Chords (extreme phase smearing)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(1, 0.0, 1); highlightElement(this);">
-Guitar Chords (unprocessed)
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 10, 0.3, 0.25); highlightElement(this);">
+Guitar Chords (synthetic dense hall)
 </div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(1, 11, 0.4, 1.5); highlightElement(this);">
+Guitar Chords (real warehouse)
+</div>
+
+<br><br>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.3, 0.0); highlightElement(this);">
+Congas (unprocessed)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 4, 0.2, 3.0); highlightElement(this);">
+Congas (filter rhythm 1)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 5, 0.25, 2.5); highlightElement(this);">
+Congas (filter rhythm 2)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 7, 0.0, 2.5); highlightElement(this);">
+Congas (comb filter 2)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(2, 18, 0.0, 4.0); highlightElement(this);">
+Congas (spring reverb simulation)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.0, 3.0); highlightElement(this);">
+Congas (telephone filter)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 11, 0.2, 1.0); highlightElement(this);">
+Congas (real warehouse)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 14, 0.3, 1.5); highlightElement(this);">
+Congas (real binaurally recorded hall)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(2, 17, 0.1, 0.7); highlightElement(this);">
+Congas (spreader)
+</div>
+
+
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 8, 0.2, 2.0); highlightElement(this);">
+Congas (matrix reverb 2)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 9, 0.2, 0.7); highlightElement(this);">
+Congas (matrix reverb 3)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 10, 0.2, 0.4); highlightElement(this);">
+Congas (synthetic dense hall)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 12, 0.2, 1.5); highlightElement(this);">
+Congas (synthetic diffusor)
+</div>
+
+<br><br>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 2, 0.5, 0.0); highlightElement(this);">
+Dumbek (unprocessed)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 11, 0.2, 1.0); highlightElement(this);">
+Dumbek (real warehouse)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 14, 0.4, 1.2); highlightElement(this);">
+Dumbek (real binaurally recorded hall)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 0, 0.0, 0.7); highlightElement(this);">
+Dumbek (backwards)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(3, 7, 0.0, 2.0); highlightElement(this);">
+Dumbek (comb filter 2)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(3, 15, 0.0, 2.0); highlightElement(this);">
+Dumbek (wild echo)
+</div>
+
 
 </body>
 </html>
