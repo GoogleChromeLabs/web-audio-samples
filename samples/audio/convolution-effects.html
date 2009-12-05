@@ -152,7 +152,11 @@ function loadBufferAndPlay(bufferIndex, responseIndex, mainGain, reverbGain) {
 
 function finishLoading() {
   loadCount++;
-  if (loadCount != fileCount) return;
+  if (loadCount != fileCount) {
+    // not done yet - load next file
+    bufferLoaderList[loadCount] = new BufferLoader(fileList[loadCount]);  
+    return;
+  }
   
   // first, get rid of loading animation
   var loading = document.getElementById("loading");
@@ -173,9 +177,12 @@ function init() {
   
   bufferLoaderList = new Array(fileCount);
 
-  for (i = 0; i < fileCount; ++i) {
-    bufferLoaderList[i] = new BufferLoader(fileList[i]);  
-  }
+  // for (i = 0; i < fileCount; ++i) {
+  //   bufferLoaderList[i] = new BufferLoader(fileList[i]);  
+  // }
+
+  // start loading
+  bufferLoaderList[0] = new BufferLoader(fileList[0]);  
 }
 
 </script>
