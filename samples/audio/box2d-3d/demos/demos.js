@@ -21,13 +21,8 @@ var canvasLeft;
 var gCount = 0;
 var xaudio = 0;
 
-var pingFileName = "sounds/hyper-reality/filter-noise-3.aif";
-var quietFileName = "sounds/hyper-reality/filter-noise-1.aif";
-var frictionFileName = "sounds/hyper-reality/balls-of-the-orient.aif";
-
+var pingFileName = "../sounds/hyper-reality/filter-noise-3.aif";
 var pingBuffer = 0;
-var quietBuffer = 0;
-var frictionBuffer = 0;
 
 // Callback when a collision occurs
 function countContact(body1, body2) {
@@ -300,14 +295,13 @@ function setupStep2(clientElements) {
 
   xaudio = document.getElementById('myAudioTag');
 
-  pingBuffer = xaudio.createBuffer(pingFileName, true);
-  quietBuffer = xaudio.createBuffer(quietFileName, true);
-  frictionBuffer = xaudio.createBuffer(frictionFileName, true);
-
-  // forces audio system to init
   xaudio.listener.gain = 2.0;
-  // xaudio.setReverbImpulseResponse('impulse-responses/Forest.wav');
-  xaudio.setReverbImpulseResponse('impulse-responses/spreader55-75ms.aif');
+
+
+  pingBuffer = 0;
+  loadPing(pingFileName);
+
+  loadReverbImpulseResponse('../impulse-responses/spreader55-75ms.aif');
 
   var canvasElm = clientElements[0];
   canvasElm.id = 'canvas';
@@ -352,6 +346,27 @@ function createNewRandomObject(world, offset) {
     }
   }
 }
+
+function loadPing(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    pingBuffer = request.buffer;
+  }
+
+  request.send();
+}
+
+function loadReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+
+  request.send();
+}
+
 
 function init() {
   window.g_finished = false;  // for selenium.
