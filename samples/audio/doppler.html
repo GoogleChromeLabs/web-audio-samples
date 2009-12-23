@@ -61,7 +61,7 @@ window.onload = init;
 var kMainSpeed = 0.385;
 var kSecondarySpeed = 0.063;
 var kTertiarySpeed = 0.02;
-var kReverbGain = 0.85;
+var kReverbGain = 0.1;
 var kMainSweepDistance = 30.0;
 
 var xaudio;
@@ -328,7 +328,7 @@ function addSliders() {
   configureSlider("secondarySpeed", kSecondarySpeed, 0.01, 1.0, secondarySpeedHandler);
   configureSlider("tertiarySpeed", kTertiarySpeed, 0.01, 1.0, tertiarySpeedHandler);
   configureSlider("pitch", -300, -2400.0, 2400.0, pitchHandler);
-  configureSlider("reverb", kReverbGain, 0.0, 4.0, reverbHandler);
+  configureSlider("reverb", kReverbGain, 0.0, 0.5, reverbHandler);
 }
 
 /**
@@ -337,7 +337,7 @@ function addSliders() {
 function init() {
   xaudio = document.getElementById('myAudioTag');
   
-  xaudio.listener.gain = 3.0;
+  xaudio.listener.gain = 2.0;
 
   setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
   // setReverbImpulseResponse('impulse-responses/spatialized3.aif');
@@ -417,6 +417,12 @@ White Noise
 Refreshing Drink
 </div>
 
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
+Crunched up Paper
+</div>
+
+<!--
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/balls-of-the-orient.aif'); highlightElement(this);">
 Meditation Balls
 </div>
@@ -425,12 +431,11 @@ Meditation Balls
 Hand-drum
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
-Crunched up Paper
-</div>
-
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/siren.aif'); highlightElement(this);">
 Siren
+
+-->
+
 </div>
 
 </div>
