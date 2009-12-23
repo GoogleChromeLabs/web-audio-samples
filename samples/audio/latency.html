@@ -76,7 +76,7 @@ function handleKeyDown(event) {
   var voice = xaudio.getVoice();
   if (voice) {
     voice.buffer = hihatShort;
-    voice.panningModel = 0;  // passthrough panning
+    voice.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
     voice.setPosition(0, 0, -2.0);
     voice.sendGain = 0.0;
     voice.mainGain = 2.0;
@@ -105,6 +105,7 @@ function finishLoad() {
 function loadHihat(url) {
   // Load asynchronously
   var request = xaudio.createAudioRequest(url, true);
+  
   request.onload = function() { 
     hihatShort = request.buffer;
     finishLoad();  // add in the slider, etc. now that we've loaded the audio
@@ -114,7 +115,7 @@ function loadHihat(url) {
 }
 
 function init() {
-  xaudio = document.getElementById('myAudioTag');
+  xaudio = document.getElementById('myAudioTag');  
   loadHihat("sounds/drum-samples/hihat-short.aif");
 }
 
