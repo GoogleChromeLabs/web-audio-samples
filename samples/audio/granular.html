@@ -64,18 +64,24 @@ var buffer = 0;
 var bufferLength = 58.0;
 var source = 0;
 
+var kSpeed = 0.05;
+var kPitch = 0.0;
+var kDiffusionRandomization = 0.2;
+var kPanningRandomization = 0.15;
+var kGrainSize = 0.090;
+
 var rhythmIndex = 0;
 var loopNumber = 0;
 var speed = 0.3333;
 var pitch = 1.0;
 var pitchRandomization = 1.0;
-var panningRandomization = 0.0;
-var diffusionRandomization = 0.0;
+var panningRandomization = kPanningRandomization;
+var diffusionRandomization = kDiffusionRandomization;
 var realTime = 0.0;
 var grainTime = 0.0;
 
-var grainDuration = 0.090;
-var grainSpacing = 0.045;
+var grainDuration = kGrainSize;
+var grainSpacing = 0.5 * kGrainSize;
 
 
 function speedHandler(event, ui) {
@@ -149,7 +155,6 @@ function scheduleGrain() {
     r2 = (r2 - 0.5) * 2.0;
     r3 = (r3 - 0.5) * 2.0;
     r4 = (r4 - 0.5) * 2.0;
-    r5 = (r5 - 0.5) * 2.0;
     totalPitch += r * pitchRandomization;
     
     var pitchRate = Math.pow(2.0, totalPitch / 1200.0);
@@ -168,17 +173,12 @@ function scheduleGrain() {
     x *= distance * scaleXZ;
     y *= distance;
     z *= distance * scaleXZ;
-    
-    
+        
     source.buffer = buffer;
 
-    // source.panningModel = 0;  // passthrough panning
-    // source.setPosition(0, 0, -2.0);
-
-    // source.setPosition(2.0 * Math.sin(azimuth), 0, 2.0 * Math.cos(azimuth) );
     source.setPosition(x, y, z);
 
-    source.sendGain = 2.0 * diffusionRandomization * r5;
+    source.sendGain = diffusionRandomization * r5;
     source.mainGain = 2.0 - source.sendGain;
     source.playbackPitch = pitchRate;
     source.playGrain(realTime, grainTime + randomGrainOffset, grainDuration);
@@ -206,11 +206,11 @@ function init() {
 }
 
 function load() {
-  loadReverbImpulseResponse('impulse-responses/spatialized4.aif');
+  loadImpulseResponse('impulse-responses/spatialized4.aif');
   loadHumanVoice("sounds/hyper-reality/human-voice.aif");
 }
 
-function loadReverbImpulseResponse(url) {
+function loadImpulseResponse(url) {
   // Load impulse response asynchronously
   var request = xaudio.createAudioRequest(url, false);
   request.onload = function() { 
@@ -240,11 +240,6 @@ function loadHumanVoice(url) {
   request.send();
 }
 
-var kSpeed = 0.05;
-var kPitch = 0.0;
-var kDiffusionRandomization = 0.1;
-var kPanningRandomization = 0.15;
-var kGrainSize = 0.090;
 
 function finishLoading() {
   // first, get rid of loading animation
