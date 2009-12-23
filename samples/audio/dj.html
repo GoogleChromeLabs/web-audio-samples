@@ -146,6 +146,33 @@ function rightFilterHandler(event, ui) {
   source2.effect.param2 = 5.0;
 }
 
+function leftRhythmEffectHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("leftRhythmEffect-value");
+  info.innerHTML = "leftRhythmEffect = " + 100.0*value + "\%";
+  
+  source1.sendGain = value;
+}
+
+function rightRhythmEffectHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("rightRhythmEffect-value");
+  info.innerHTML = "rightRhythmEffect = " + 100.0*value + "\%";
+  
+  source2.sendGain = value;
+}
+
+
+function loadImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  
+  request.send();
+}
+
 function finishLoad() {
   // first, get rid of loading animation
   var loading = document.getElementById("loading");
@@ -154,11 +181,17 @@ function finishLoad() {
   addSlider("crossfade");
   addSlider("leftFilter");
   addSlider("rightFilter");
+  addSlider("leftRhythmEffect");
+  addSlider("rightRhythmEffect");
   configureSlider("crossfade", 0.5, 0.0, 1.0, crossfadeHandler);
   configureSlider("leftFilter", 0.99, 0.0, 1.0, leftFilterHandler);
   configureSlider("rightFilter", 0.99, 0.0, 1.0, rightFilterHandler);
+  configureSlider("leftRhythmEffect", 0.0, 0.0, 1.0, leftRhythmEffectHandler);
+  configureSlider("rightRhythmEffect", 0.0, 0.0, 1.0, rightRhythmEffectHandler);
 
   xaudio.listener.gain = 1.0;
+  
+  loadImpulseResponse("impulse-responses/filter-rhythm2.aif");
   
   var now = xaudio.currentTime;
   anchorTime = now + 0.040;
@@ -212,8 +245,8 @@ function init() {
   source2.looping = true;
 
   // passthrough panning
-  source1.panningModel = 0;
-  source2.panningModel = 0;
+  source1.panningModel = AudioSource.PASSTHROUGH;
+  source2.panningModel = AudioSource.PASSTHROUGH;
   
   // load reverb
   setReverbImpulseResponse('impulse-responses/spatialized3.aif');
