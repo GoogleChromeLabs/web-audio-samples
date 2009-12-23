@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>
-Convolution Effects
+Real-time Convolution Effects
 </title>
 
 
@@ -62,26 +62,22 @@ window.onload = init;
 var xaudio = 0;
 var source = 0;
 
-// source buffers
+// Source buffers
 var humanVoice = 0;
 var guitar = 0;
 
-// impulse responses
 var backwards = 0;
-var cosmic = 0;
-var comb = 0;
-
 var loadCount = 0;
-
 var hilightedElement = 0;
 
-var fileCount = 23;
+var fileCount = 29 /*23*/;
 var fileList = [
   "sounds/hyper-reality/human-voice.aif",       // 0
   "sounds/hyper-reality/guitar-chords.aif",     // 1
   "sounds/drum-samples/conga-rhythm.aif",       // 2
   "sounds/hyper-reality/br-jam-loop.aif",       // 3
 
+  // impulse responses
   "impulse-responses/spatialized5.aif",         // 0
   "impulse-responses/cosmic-ping-long.aif",     // 1
   "impulse-responses/filter-telephone.aif",     // 2
@@ -89,22 +85,30 @@ var fileList = [
   "impulse-responses/filter-rhythm1.aif",       // 4
   "impulse-responses/filter-rhythm3.aif",       // 5
   "impulse-responses/comb-saw1.aif",            // 6
-
   "impulse-responses/comb-saw2.aif",            // 7
-
-
   "impulse-responses/matrix-reverb2.aif",       // 8
   "impulse-responses/matrix-reverb3.aif",       // 9
   "impulse-responses/spatialized4.aif",         // 10
-  "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif",          // 11
+
+  // "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif",          // 11
+  "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.aif",          // 11
+
+
   "impulse-responses/diffusor3.aif",            // 12
   "impulse-responses/matrix6-backwards.aif",    // 13
   "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
   "impulse-responses/wildecho.aif",             // 15
   "impulse-responses/impulse-rhythm2.aif",      // 16
   "impulse-responses/spreader50-65ms.aif",      // 17
-  "impulse-responses/feedback-spring.aif"       // 18
+  "impulse-responses/feedback-spring.aif",      // 18
+  
+  "impulse-responses/house-impulses/kitchen.aif",                   // 19
+  "impulse-responses/house-impulses/kitchen-true-stereo.aif",       // 20
+  "impulse-responses/house-impulses/dining-living-true-stereo.aif", // 21
+  "impulse-responses/house-impulses/dining-far-kitchen.aif",        // 22
 
+  "impulse-responses/house-impulses/living-bedroom-leveled.aif",    // 23
+  "impulse-responses/filter-lopass160.aif"                          // 24
 ];
 
 var responseOffset = 4;
@@ -145,7 +149,7 @@ function loadBufferAndPlay(bufferIndex, responseIndex, mainGain, reverbGain) {
 
   source.mainGain = mainGain;
   source.sendGain = reverbGain;
-  source.mainGainReverbInfluence = 0.0;
+  source.gainSendInfluence = 0.0;
 
   source.play(0);
 }
@@ -163,7 +167,7 @@ function finishLoading() {
   loading.innerHTML = "";
   
   xaudio.listener.gain = 1.0;
-  loadBufferAndPlay(0, 0, 0.0, 1.0);
+  loadBufferAndPlay(0, 0, 0.0, 0.5);
 }
 
 function init() {
@@ -176,10 +180,6 @@ function init() {
   source.panningModel = 0;  // pass-through panning
   
   bufferLoaderList = new Array(fileCount);
-
-  // for (i = 0; i < fileCount; ++i) {
-  //   bufferLoaderList[i] = new BufferLoader(fileList[i]);  
-  // }
 
   // start loading
   bufferLoaderList[0] = new BufferLoader(fileList[0]);  
@@ -201,62 +201,185 @@ function init() {
 <img src="images/loading.gif">
 </div>
 
-<h1> Convolution Effects </h1>
+<h1> Real-time Convolution Effects </h1>
+
+<p>
+The following illustrate a diverse range of effects which are possible using the convolution engine:
+</p>
 
 <div class='bigList' onmousedown="loadBufferAndPlay(0, 0, 0.35, 0.0); highlightElement(this);">
 Human Voice (unprocessed)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 17, 0.2, 1.0); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 17, 0.2, 0.5); highlightElement(this);">
 Human Voice (spreader)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 2, 0.0, 3.0); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 2, 0.0, 1.0); highlightElement(this);">
 Human Voice (telephone filter)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 18, 0.0, 4.0); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 24, 0.0, 0.3); highlightElement(this);">
+Human Voice (lowpass filter)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 18, 0.0, 0.8); highlightElement(this);">
 Human Voice (spring reverb simulation)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 6, 0.0, 1.5); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 6, 0.0, 0.7); highlightElement(this);">
 Human Voice (comb filter 1)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 7, 0.0, 1.5); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 7, 0.0, 0.7); highlightElement(this);">
 Human Voice (comb filter 2)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 15, 0.0, 2.0); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 15, 0.0, 1.0); highlightElement(this);">
 Human Voice (wild echo)
 </div>
 
-<div class='bigList'  onmousedown="loadBufferAndPlay(0, 16, 0.25, 2.5); highlightElement(this);">
+<div class='bigList'  onmousedown="loadBufferAndPlay(0, 16, 0.25, 1.25); highlightElement(this);">
 Human Voice (chorus rhythm)
 </div>
 
-
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 0, 0.0, 0.7); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 0, 0.0, 0.4); highlightElement(this);">
 Human Voice (backwards)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 13, 0.0, 0.7); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 13, 0.0, 0.5); highlightElement(this);">
 Human Voice (extreme backwards - be patient!)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 11, 0.2, 1.5); highlightElement(this);">
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 11, 0.15, 0.5); highlightElement(this);">
 Human Voice (real warehouse)
 </div>
 
-<div class='bigList'  onmousedown="loadBufferAndPlay(0, 14, 0.3, 1.5); highlightElement(this);">
+<div class='bigList'  onmousedown="loadBufferAndPlay(0, 14, 0.3, 0.5); highlightElement(this);">
 Human Voice (real binaurally recorded hall)
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay(0, 9, 0.3, 1.5); highlightElement(this);">
-Human Voice (matrix reverb 3)
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 9, 0.3, 0.8); highlightElement(this);">
+Human Voice (matrix reverb)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(0, 10, 0.2, 0.2); highlightElement(this);">
+Human Voice (synthetic dense hall)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(0, 23, 0.2, 0.8); highlightElement(this);">
+Human Voice (real living-bedroom)
 </div>
 
 
+
+<br><br>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.3, 0.0); highlightElement(this);">
+Congas (unprocessed)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 4, 0.2, 0.5); highlightElement(this);">
+Congas (filter rhythm 1)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 5, 0.25, 0.5); highlightElement(this);">
+Congas (filter rhythm 2)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 7, 0.0, 0.5); highlightElement(this);">
+Congas (comb filter 2)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(2, 18, 0.1, 0.3); highlightElement(this);">
+Congas (spring reverb simulation)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.0, 0.6); highlightElement(this);">
+Congas (telephone filter)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 11, 0.1, 0.3); highlightElement(this);">
+Congas (real warehouse)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 14, 0.2, 0.2); highlightElement(this);">
+Congas (real binaurally recorded hall)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(2, 17, 0.15, 0.3); highlightElement(this);">
+Congas (spreader)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 8, 0.2, 0.3); highlightElement(this);">
+Congas (matrix reverb 2)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 9, 0.2, 0.3); highlightElement(this);">
+Congas (matrix reverb 3)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 10, 0.2, 0.07); highlightElement(this);">
+Congas (synthetic dense hall)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(2, 12, 0.2, 0.2); highlightElement(this);">
+Congas (synthetic diffusor)
+</div>
+
+<br><br>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 2, 0.5, 0.0); highlightElement(this);">
+Dumbek (unprocessed)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 11, 0.2, 0.3); highlightElement(this);">
+Dumbek (real warehouse)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 14, 0.4, 0.2); highlightElement(this);">
+Dumbek (real binaurally recorded hall)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 0, 0.0, 0.7); highlightElement(this);">
+Dumbek (backwards)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(3, 7, 0.0, 0.5); highlightElement(this);">
+Dumbek (comb filter 2)
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay(3, 15, 0.0, 0.7); highlightElement(this);">
+Dumbek (wild echo)
+</div>
+
+
+
+
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 20, 0.2, 1.0); highlightElement(this);">
+Dumbek (real kitchen-true-stereo)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 21, 0.2, 1.0); highlightElement(this);">
+Dumbek (real dining-living-true-stereo)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 22, 0.2, 1.0); highlightElement(this);">
+Dumbek (real dining-far-kitchen)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 22, 0.2, 1.0); highlightElement(this);">
+Dumbek (real dining-far-bedroom)
+</div>
+
+<div class='bigList'  onmousedown="loadBufferAndPlay(3, 23, 0.2, 0.7); highlightElement(this);">
+Dumbek (real living-bedroom)
+</div>
+
+
+<!--
 
 <br><br>
 
@@ -285,87 +408,8 @@ Guitar Chords (synthetic dense hall)
 Guitar Chords (real warehouse)
 </div>
 
-<br><br>
+-->
 
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.3, 0.0); highlightElement(this);">
-Congas (unprocessed)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 4, 0.2, 3.0); highlightElement(this);">
-Congas (filter rhythm 1)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 5, 0.25, 2.5); highlightElement(this);">
-Congas (filter rhythm 2)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 7, 0.0, 2.5); highlightElement(this);">
-Congas (comb filter 2)
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay(2, 18, 0.0, 4.0); highlightElement(this);">
-Congas (spring reverb simulation)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 2, 0.0, 3.0); highlightElement(this);">
-Congas (telephone filter)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 11, 0.2, 1.0); highlightElement(this);">
-Congas (real warehouse)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 14, 0.3, 1.5); highlightElement(this);">
-Congas (real binaurally recorded hall)
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay(2, 17, 0.1, 0.7); highlightElement(this);">
-Congas (spreader)
-</div>
-
-
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 8, 0.2, 2.0); highlightElement(this);">
-Congas (matrix reverb 2)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 9, 0.2, 0.7); highlightElement(this);">
-Congas (matrix reverb 3)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 10, 0.2, 0.4); highlightElement(this);">
-Congas (synthetic dense hall)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(2, 12, 0.2, 1.5); highlightElement(this);">
-Congas (synthetic diffusor)
-</div>
-
-<br><br>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(3, 2, 0.5, 0.0); highlightElement(this);">
-Dumbek (unprocessed)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(3, 11, 0.2, 1.0); highlightElement(this);">
-Dumbek (real warehouse)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(3, 14, 0.4, 1.2); highlightElement(this);">
-Dumbek (real binaurally recorded hall)
-</div>
-
-<div class='bigList'  onmousedown="loadBufferAndPlay(3, 0, 0.0, 0.7); highlightElement(this);">
-Dumbek (backwards)
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay(3, 7, 0.0, 2.0); highlightElement(this);">
-Dumbek (comb filter 2)
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay(3, 15, 0.0, 2.0); highlightElement(this);">
-Dumbek (wild echo)
-</div>
 
 
 </body>
