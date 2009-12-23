@@ -56,7 +56,7 @@ function countContact(body1, body2) {
       ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
 
 
-      ping.sendGain = gain < 0.25 ? 0.8 : 0.5;
+      ping.sendGain = gain < 0.25 ? 0.6 : 0.25;
       ping.mainGain = gain;  //isQuiet ? 0.0 : gain;
       
       // Randomize pitch          

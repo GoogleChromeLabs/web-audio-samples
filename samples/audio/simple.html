@@ -189,8 +189,8 @@ function influenceHandler(event, ui) {
   var info = document.getElementById("influence-value");
   info.innerHTML = "reverb main gain influence = " + value;
   
-  // source.mainGainReverbInfluence = value;
-  source2.mainGainReverbInfluence = value;
+  // source.gainSendInfluence = value;
+  source2.gainSendInfluence = value;
 }
 
 function mainGainHandler(event, ui) {
@@ -222,7 +222,7 @@ function addSliders() {
   addSlider("mainGain");
   addSlider("cutoff");
   configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
-  configureSlider("reverb", 2.0, 0.0, 4.0, reverbHandler);
+  configureSlider("reverb", 0.25, 0.0, 1.0, reverbHandler);
   configureSlider("influence", 0.5, 0.0, 1.0, influenceHandler);
   configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
   configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
@@ -276,7 +276,6 @@ function init() {
   bufferList = new Array(fileCount);
   for (var i = 0; i < fileCount; ++i) {
     bufferList[i] = 0;
-    // bufferList[i] = xaudio.createBuffer(fileList[i], true);
   }
   
   loadHihat("sounds/drum-samples/hihat-short.aif");
@@ -287,7 +286,7 @@ function init() {
   
   source2 = xaudio.addSource();
   source2.playbackPitch = 1.0;  // should be in cents!!!!
-	source2.sendGain = 3.0;
+	source2.sendGain = 0.25;
   source2.setPosition(0, 0, -4.0);
   source2.looping = true;
 

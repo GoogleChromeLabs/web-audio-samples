@@ -24,79 +24,78 @@
     var pingBuffer = 0;
     
 
+    // Callback when a collision occurs
     function countContact(body1, body2) {
       gCount++;
 
-  	  var velocity1 = body1.GetLinearVelocity();
-  	  var velocity2 = body2.GetLinearVelocity();
+      var velocity1 = body1.GetLinearVelocity();
+      var velocity2 = body2.GetLinearVelocity();
 
       var v1 = velocity1.Length();
       var v2 = velocity2.Length();
       var maxV = v1 > v2 ? v1 : v2;
 
       // base volume on velocity
-      var xx = maxV / 200.0;
+      var xx = maxV / 200.0 /*50.0*/;
       if (xx > 1.0) xx = 1.0;
       if (xx < 0.0) xx = 0.0;
       var s = Math.sin(0.5 * xx * Math.PI);
       s = s*s;
-      var gain = s;
+      var gain = s; //Math.sqrt(s);  // base volume on velocity
 
       var position1 = body1.GetCenterPosition();
       var position2 = body2.GetCenterPosition();
       var x = v1 > v2 ? position1.x : position2.x;
       var y = position1.y;
-      
+
       if (gCount > 0) {
         var ping = xaudio.getVoice();
 
         if (ping) {
           var isQuiet = (gain < 0.5);
-          ping.buffer = pingBuffer;
-          
-          ping.sendGain = gain < 0.25 ? 5.0*0.8 : 5.0*0.5;
-          ping.mainGain = gain;
-          
+          ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
+
+
+          ping.sendGain = gain < 0.25 ? 0.6 : 0.25;
+          ping.mainGain = gain;  //isQuiet ? 0.0 : gain;
+
           // Randomize pitch          
           var r = Math.random();
           var cents = 600.0 * (r - 0.5);
           var rate = Math.pow(2.0, cents / 1200.0);
           ping.playbackPitch = rate;  // really rate (not pitch)
-          
+
           // Adjust filter
           var value = 0.5 + 0.5 * xx;
           var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
           var v2 = Math.pow(2.0, noctaves * (value - 1.0));
-          
+
           var sampleRate = 44100.0;
           var nyquist = sampleRate * 0.5;
           ping.effect.param1 = v2;
           ping.effect.param2 = 5.0; // resonance
-          
+
           var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
           if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
           if (azimuth > 0.5*Math.PI) azimuth = 0.5*Math.PI;
-          
+
           var posX = 10.0 * Math.sin(azimuth);
           var posZ = 10.0 * Math.cos(azimuth);
-          
-          
+
+
           var elevation = -0.5*Math.PI * (y - 250.0) / 150.0;
           if (elevation < -0.5*Math.PI) elevation = -0.5*Math.PI;
           if (elevation > 0.5*Math.PI) elevation = 0.5*Math.PI;
-          
+
           var scaleY = Math.sin(elevation);
           var scaleXZ = Math.cos(elevation);
           posX *= scaleXZ;
           posZ *= scaleXZ;
           var posY = scaleY * 10.0;
-          
+
           ping.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
 
-          // var jitter = 0.020 * Math.random();
-          var currentTime = xaudio.currentTime;
-
-          var when = /*jitter +*/ currentTime;
+          var when = 0.020 * Math.random();
 
           ping.play(when);
         }
