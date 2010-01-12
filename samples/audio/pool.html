@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2009, Peterson Trethewey.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -12,9 +12,9 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-    * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
+    * The name of Peterson Trethewey may not be used to endorse or
+promote products derived from this software without specific prior
+written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -27,6 +27,12 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!--
+This sample is a pool game engine with a 3D physics model.  All models
+are procedurally generated.  Textures for the balls are loaded from a
+single image file and then split up using Bitmaps.
 -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -44,11 +50,12 @@ o3djs.require('o3djs.math');
 o3djs.require('o3djs.rendergraph');
 o3djs.require('o3djs.primitives');
 o3djs.require('o3djs.quaternions');
+o3djs.require('o3djs.material');
 o3djs.require('o3djs.effect');
 o3djs.require('o3djs.event');
 
 // Debug flags
-var SHADOWPOV = false;
+var SHADOWPOV = false; // Shows the rendertarget where the shadows get drawn.
 
 // global variables
 var g_o3dElement;
@@ -82,64 +89,244 @@ var g_light = [0, 0, 50];
 
 var g_materials;
 var g_solidMaterial;
+var g_fullScreenButtonRoot;
 
 var RENDER_TARGET_WIDTH = 512;
 var RENDER_TARGET_HEIGHT = 512;
 
-var g_table;
+var g_queueClock = 0;
+
+var g_rolling = false;
+var g_shooting = false;
+
+var g_table = null;
+
+// This queue is for demo mode which isn't finished.
+var g_queue = [
+    /*{condition: '!(g_shooting || g_rolling)',
+        action: 'cueNewShot(0.8);'}*/
+];
+
 
 var pool = {};
 
+
+
+
+
+
+
+
+
 var xaudio = 0;
 var pingBuffer = 0;
+var info = 0;
 
-function loadPing(url) {
+var ballBallLight = 0;
+var ballBallMedium = 0;
+var ballBallHard = 0;
+var stickCueLight = 0;
+var stickCueMedium = 0;
+var stickCueHard = 0;
+var ballPocket = 0;
+var mediumEdge = 0;
+var hardEdge = 0;
+
+var softCount = 0;
+var mediumCount = 0;
+var hardCount = 0;
+
+function updateInfo() {
+ var info = document.getElementById('info');
+ 
+ var s = "soft = " + softCount + " : medium = " + mediumCount + " : hard = " + hardCount;
+ 
+ // alert(s);
+ 
+ info.innerHTML = s;
+
+}
+
+function loadStickCueLight(url) {
   // Load asynchronously
   var request = xaudio.createAudioRequest(url, true);
   request.onload = function() { 
-    pingBuffer = request.buffer;
+    stickCueLight = request.buffer;
   }
 
   request.send();
 }
 
-function loadSoftPing(url) {
+function loadStickCueMedium(url) {
   // Load asynchronously
   var request = xaudio.createAudioRequest(url, true);
   request.onload = function() { 
-    softPingBuffer = request.buffer;
+    stickCueMedium = request.buffer;
   }
 
   request.send();
 }
 
-function playSound(buffer, velocity, x, y) {
-  var ping = xaudio.getVoice();
+function loadStickCueHard(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    stickCueHard = request.buffer;
+  }
 
-  if (ping) {
+  request.send();
+}
+
+
+function loadBallPocket(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    ballPocket = request.buffer;
+  }
+
+  request.send();
+}
+
+function loadImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = xaudio.createAudioRequest(url, false);
+  request.onload = function() { 
+    xaudio.impulseResponseBuffer = request.buffer;
+  }
+  
+  request.send();
+}
+
+
+function loadBallBallLight(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    ballBallLight = request.buffer;
+  }
+
+  request.send();
+}
+
+function loadBallBallMedium(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    ballBallMedium = request.buffer;
+  }
+
+  request.send();
+}
+
+function loadBallBallHard(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    ballBallHard = request.buffer;
+  }
+
+  request.send();
+}
+
+
+
+function loadMediumEdge(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    mediumEdge = request.buffer;
+  }
+
+  request.send();
+}
+
+function loadHardEdge(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() { 
+    hardEdge = request.buffer;
+  }
+
+  request.send();
+}
+
+
+
+function playSound(impactType, velocity, x, y) {
+  // info.innerHTML = velocity;
+
+  var buffer = 0;
+  var gainScale = 1.0;
+  var sendScale = 1.0;
+  
+  
+  if (impactType == 0) {
+    if (velocity < 0.36) {
+       buffer = ballBallLight;
+       // softCount++;
+       // updateInfo();
+    } else if (velocity < 0.66) {
+      buffer = ballBallMedium;
+      // mediumCount++;
+      // updateInfo();
+    } else {
+      buffer = ballBallHard;
+      // hardCount++;
+      // updateInfo();
+    }
+  } else if (impactType == 1) {
+    if (velocity < 0.66666) {
+      buffer = mediumEdge;
+    } else {
+      buffer = hardEdge;
+    }
+    gainScale = 0.2;
+    sendScale = 0.01;
+  } else if (impactType == 2) {
+    if (velocity < 0.36) {
+       buffer = stickCueLight;
+    } else if (velocity < 0.66) {
+      buffer = stickCueMedium;
+    } else {
+      buffer = stickCueHard;
+    }
+
+    gainScale = 1;
+    sendScale = 1.0;
+  } else if (impactType == 3) {
+    buffer = ballPocket;
+    gainScale = 0.5;
+    sendScale = 2.0;
+  }
+  
+  var voice = xaudio.getVoice();
+
+  if (voice) {
     // base volume on velocity
     var xx = velocity;
     if (xx > 1.0) xx = 1.0;
     if (xx < 0.0) xx = 0.0;
     var s = Math.sin(0.5 * xx * Math.PI);
     s = s*s;
-    var gain = s;
+    var gain = gainScale * s;
 
     
 
 
     var isQuiet = (gain < 0.5);
-    ping.buffer = buffer;
+    voice.buffer = buffer;
     
-    ping.sendGain = gain < 0.25 ? 5.0*0.8 : 5.0*0.5;
-    ping.mainGain = gain;
+    // voice.sendGain = gain < 0.25 ? 0.8 : 0.5;
+    voice.sendGain = sendScale *  0.5;
+    voice.mainGain = gain;
     
-    // Randomize pitch          
+    // // Randomize pitch          
     var r = Math.random();
     var cents = 600.0 * (r - 0.5);
     var rate = Math.pow(2.0, cents / 1200.0);
-    ping.playbackPitch = rate;  // really rate (not pitch)
-    
+    voice.playbackPitch = rate;  // really rate (not pitch)
+    // 
     // Adjust filter
     var value = 0.5 + 0.5 * xx;
     var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
@@ -147,8 +334,8 @@ function playSound(buffer, velocity, x, y) {
     
     var sampleRate = 44100.0;
     var nyquist = sampleRate * 0.5;
-    ping.effect.param1 = v2;
-    ping.effect.param2 = 5.0; // resonance
+    voice.effect.param1 = v2;
+    voice.effect.param2 = 5.0; // resonance
     
     var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
     if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
@@ -168,15 +355,34 @@ function playSound(buffer, velocity, x, y) {
     posZ *= scaleXZ;
     var posY = scaleY * 10.0;
     
-    ping.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
+    voice.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
 
-    ping.play(0);
+    // voice.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
+
+
+    if (impactType == 3) {
+      voice.play(xaudio.currentTime + 0.125);
+    } else {
+      voice.play(0);
+    }
   }
   
 }
 
 
 
+
+
+
+
+
+
+
+
+
+function myMod(n, m) {
+  return ((n % m) + m) % m;
+}
 
 pool.Ball = function() {
   this.mass = 1.0;
@@ -208,6 +414,18 @@ pool.Physics = function() {
   this.walls = [];
   this.collisions = [];
   this.wallCollisions = [];
+
+  this.placeBalls = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active) {
+        g_shadowOnParams[i].value = 0;
+        continue;
+      }
+      var p = ball.center;
+      placeBall(i, p[0], p[1], p[2], ball.orientation);
+    }
+  };
 
   this.step = function() {
     for (var i = 0; i < 5; ++i) {
@@ -246,6 +464,20 @@ pool.Physics = function() {
     var ball = this.balls[i];
     ball.velocity[0] += direction[0] * this.maxSpeed * this.speedFactor;
     ball.velocity[1] += direction[1] * this.maxSpeed * this.speedFactor;
+  };
+
+  this.stopAllBalls = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+        w[0] = 0;
+        w[1] = 0;
+        w[2] = 0;
+    }
   };
 
   this.stopSlowBalls = function() {
@@ -334,8 +566,33 @@ pool.Physics = function() {
         w[2] = 0;
         ball.verticalAcceleration = 0;
         ball.active = false;
+        ballOff(i);
+        if (i==0) {
+          ballOn(0);
+          ball.center[0] = 0;
+          ball.center[1] = 0;
+          ball.center[2] = 0;
+          g_physics.boundCueBall();
+        }
+
+        playSound(3, 0.75, 0,0);
+
       }
     }
+  };
+
+  this.boundCueBall = function() {
+    var c = this.balls[0].center;
+    if (c[0] < this.left)
+      c[0] = this.left;
+    if (c[0] > this.right)
+      c[0] = this.right;
+    if (c[1] < this.bottom)
+      c[1] = this.bottom;
+    if (c[1] > this.top)
+      c[1] = this.top;
+    this.pushOut();
+    this.placeBalls();
   };
 
   this.collide = function() {
@@ -343,6 +600,12 @@ pool.Physics = function() {
     this.collideWithWalls();
     return this.collisions.length != 0 || this.wallCollisions.length != 0;
   };
+
+  this.pushOut = function() {
+    while (this.collide()) {
+      this.pushCollisions();
+    }
+  }
 
   this.collideBalls = function() {
     this.collisions = [];
@@ -358,8 +621,10 @@ pool.Physics = function() {
         var dx = p1[0] - p2[0];
         var dy = p1[1] - p2[1];
 
-        if (dx * dx + dy * dy < 3.99) {
-          this.collisions.push({i: i, j: j});
+        var normSquared = dx * dx + dy * dy;
+        if (normSquared < 3.99) {
+          var norm = Math.sqrt(normSquared)
+          this.collisions.push({i: i, j: j, ammt: 2 - norm});
         }
       }
     }
@@ -424,20 +689,20 @@ pool.Physics = function() {
 
       for (var j = 0; j < this.walls.length; ++j) {
         var wall = this.walls[j];
-
-        if (Math.abs(x * wall.nx + y * wall.ny - wall.k) < 1) {
+        var norm = Math.abs(x * wall.nx + y * wall.ny - wall.k);
+        if (norm < 1) {
           var t = y * wall.nx - x * wall.ny;
           if (t > wall.a && t < wall.b) {
-            this.wallCollisions.push({i: i, x: wall.nx, y: wall.ny});
+            this.wallCollisions.push({i: i, x: wall.nx, y: wall.ny, ammt: 1 - norm});
             break;
           } else {
             var dx = x - wall.p[0];
             var dy = y - wall.p[1];
             var normSquared = dx * dx + dy * dy;
-            if (dx * dx + dy * dy < 1) {
+            if (normSquared < 1) {
               var norm = Math.sqrt(normSquared);
               this.wallCollisions.push(
-                  {i: i, x: dx / norm, y: dy / norm});
+                  {i: i, x: dx / norm, y: dy / norm, ammt: 1 - norm});
               break;
             }
             var dx = x - wall.q[0];
@@ -446,7 +711,7 @@ pool.Physics = function() {
             if (normSquared < 1) {
               var norm = Math.sqrt(normSquared);
               this.wallCollisions.push(
-                  {i: i, x: dx / norm, y: dy / norm});
+                  {i: i, x: dx / norm, y: dy / norm, n: 1 - norm});
               break;
             }
           }
@@ -454,6 +719,35 @@ pool.Physics = function() {
       }
     }
   };
+
+  this.pushCollisions = function() {
+    var l = this.wallCollisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.wallCollisions[i];
+      var p = this.balls[c.i].center;
+
+      p[0] += c.ammt * c.x;
+      p[1] += c.ammt * c.y;
+    }
+
+    var l = this.collisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.collisions[i];
+      var pi = this.balls[c.i].center;
+      var pj = this.balls[c.j].center;
+
+      var dx = pj[0] - pi[0];
+      var dy = pj[1] - pi[1];
+      var norm = Math.sqrt(dx * dx + dy * dy);
+
+      var r = [c.ammt * dx / norm / 2, c.ammt * dy / norm / 2];
+
+      pi[0] -= r[0];
+      pi[1] -= r[1];
+      pj[0] += r[0];
+      pj[1] += r[1];
+    }
+  }
 
   this.handleCollisions = function() {
     var l = this.wallCollisions.length;
@@ -465,19 +759,19 @@ pool.Physics = function() {
       var r1 = [-c.x, -c.y, 0];
       var r2 = [c.x, c.y, 0];
 
-      // alert("x = " + c.x + " : y = " + c.y );
-
-
-
       var impulse = this.impulse(
           v, w, ball.mass, ball.angularInertia, r1,
           [0, 0, 0], [0, 0, 0], 1e100, 1e100, r2,
-          r1, 0.99, 0.2, 0.1);
+          r1, 0.99, 1, 1);
 
       this.applyImpulse(c.i, impulse, r1);
 
-      playSound(softPingBuffer, 0.25, 0, 0);
+      var vMag = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 
+      var soundVelocity = 5.0 * vMag;
+      if (soundVelocity > 1.0) soundVelocity = 1.0;
+      
+      playSound(1 /* ball-wall */, soundVelocity, 0, 0);
     }
 
     var l = this.collisions.length;
@@ -500,17 +794,20 @@ pool.Physics = function() {
 
       this.applyImpulse(c.i, impulse, ri);
       this.applyImpulse(c.j, this.math.negativeVector(impulse), rj);
-      
+
+
       var v1 = Math.sqrt(vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
       var v2 = Math.sqrt(vj[0]*vj[0] + vj[1]*vj[1] + vj[2]*vj[2]);
       // alert("v1 = " + v1 + " : v2 = " + v2);
       
       
       
-      var soundVelocity = 10.0 * (v1 + v2);
+      var soundVelocity = 5.0 * (v1 + v2);
       if (soundVelocity > 1.0) soundVelocity = 1.0;
 
-      playSound(pingBuffer, soundVelocity, 0, 0);
+      playSound(0 /* ball-ball */, soundVelocity, 0, 0);
+
+
     }
   };
 
@@ -521,18 +818,6 @@ pool.Physics = function() {
                                Math.random() - 0.5,
                                Math.random() - 0.5,
                                Math.random() - 0.5]);
-    }
-  };
-
-  this.placeBalls = function() {
-    for (var i = 0; i < 16; ++i) {
-      var ball = this.balls[i];
-      if (!ball.active) {
-        g_shadowOnParams[i].value = 0;
-        continue;
-      }
-      var p = ball.center;
-      placeBall(i, p[0], p[1], p[2], ball.orientation);
     }
   };
 
@@ -624,7 +909,7 @@ pool.Physics = function() {
       var impulse = this.impulse(
           v, w, ball.mass, ball.angularInertia, [0, 0, -1],
           [0, 0, 0], [0, 0, 0], 1e100, 1e100, [0, 0, 1],
-          [0, 0, -1], 0.1, 0.2, 0.1);
+          [0, 0, -1], 0.1, 0.1, 0.02);
 
       this.applyImpulse(i, impulse, [0, 0, -1]);
     }
@@ -638,27 +923,24 @@ pool.Physics = function() {
       var v = ball.velocity;
       var w = ball.angularVelocity;
 
-      var k = 0.999;
-      v[0] *= k;
-      v[1] *= k;
-      w[0] *= k;
-      w[1] *= k;
-      w[2] *= k;
-
-      var wEpsilon = 0.00003;
-      var wLength = this.math.length(w);
-      if (wLength < wEpsilon) {
-        w[0] = 0;
-        w[1] = 0;
-        w[2] = 0;
-      } else {
-        var t = wEpsilon / wLength;
-        w[0] -= t * w[0];
-        w[1] -= t * w[1];
-        w[2] -= t * w[2];
-      }
+      this.loseEnergy(v, 0.00004);
+      this.loseEnergy(w, 0.00006);
     }
   };
+  
+  this.loseEnergy = function(v, epsilon) {
+      var vLength = this.math.length(v);
+      if (vLength < epsilon) {
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+      } else {
+        var t = epsilon / vLength;
+        v[0] -= t * v[0];
+        v[1] -= t * v[1];
+        v[2] -= t * v[2];
+      }
+   };
 };
 
 
@@ -671,13 +953,13 @@ function vectorToQuaternion(r) {
 
 CameraPosition = function() {
   this.center = [0, 0, 0];
-  this.theta = -Math.PI / 2;
-  this.phi = Math.PI / 2 - 0.1;
-  this.radius = 100;
+  this.theta = 0;
+  this.phi = 0;
+  this.radius = 1;
 };
 
 
-DragInfo = function() {
+CameraInfo = function() {
   this.lastX = 0;
   this.lastY = 0;
   this.position = new CameraPosition();
@@ -709,26 +991,30 @@ DragInfo = function() {
       this.targetPosition.phi = Math.PI / 2 - 0.01;
   };
 
-  this.getEyeAndTarget = function(eye, target) {
+  this.getCurrentPosition = function() {
     var t = this.lerpCoefficient;
     t = 3 * t * t - 2 * t * t * t;
     var a = this.position;
     var b = this.targetPosition;
 
-    var center = [(1 - t) * a.center[0] + t * b.center[0],
-                  (1 - t) * a.center[1] + t * b.center[1],
-                  (1 - t) * a.center[2] + t * b.center[2]];
-    var radius = (1 - t) * a.radius + t * b.radius;
-    var theta = (1 - t) * a.theta + t * b.theta;
-    var phi = (1 - t) * a.phi + t * b.phi;
+    return {center: [(1 - t) * a.center[0] + t * b.center[0],
+                     (1 - t) * a.center[1] + t * b.center[1],
+                     (1 - t) * a.center[2] + t * b.center[2]],
+            radius: (1 - t) * a.radius + t * b.radius,
+            theta: (1 - t) * a.theta + t * b.theta,
+            phi: (1 - t) * a.phi + t * b.phi};
+  }
 
-    var cosPhi = Math.cos(phi);
-    target[0] = center[0];
-    target[1] = center[1];
-    target[2] = center[2];
-    eye[0] = target[0] + radius * cosPhi * Math.cos(theta);
-    eye[1] = target[1] + radius * cosPhi * Math.sin(theta);
-    eye[2] = target[2] + radius * Math.sin(phi);
+  this.getEyeAndTarget = function(eye, target) {
+    var p = this.getCurrentPosition();
+
+    var cosPhi = Math.cos(p.phi);
+    target[0] = p.center[0];
+    target[1] = p.center[1];
+    target[2] = p.center[2];
+    eye[0] = target[0] + p.radius * cosPhi * Math.cos(p.theta);
+    eye[1] = target[1] + p.radius * cosPhi * Math.sin(p.theta);
+    eye[2] = target[2] + p.radius * Math.sin(p.phi);
   };
 
   this.goTo = function(center, theta, phi, radius) {
@@ -745,19 +1031,33 @@ DragInfo = function() {
       radius = this.targetPosition.radius;
     }
 
-    this.targetPosition.center[0] = center[0];
-    this.targetPosition.center[1] = center[1];
-    this.targetPosition.center[2] = center[2];
+    var p = this.getCurrentPosition();
+
+    this.position.center[0] = p.center[0];
+    this.position.center[1] = p.center[1];
+    this.position.center[2] = p.center[2];
+    this.position.theta = p.theta;
+    this.position.phi = p.phi;
+    this.position.radius = p.radius;
+
+    this.targetPosition.center = center;
     this.targetPosition.theta = theta;
     this.targetPosition.phi = phi;
     this.targetPosition.radius = radius;
 
     this.lerpCoefficient = 0;
     this.startingTime = g_clock;
+    
+    var k = 3 * Math.PI / 2;
+    this.position.theta =
+        myMod(this.position.theta + k, 2.0 * Math.PI) - k;
+    this.targetPosition.theta =
+        myMod(this.targetPosition.theta + k, 2.0 * Math.PI) - k;
   };
 
   this.backUp = function() {
-    this.goTo(null,
+    var c = this.targetPosition.center;
+    this.goTo([c[0], c[1], c[2]],
               null,
               Math.PI / 6,
               100);
@@ -781,34 +1081,38 @@ DragInfo = function() {
       this.position.radius = this.targetPosition.radius;
     }
   };
+  
+  this.lookingAt = function(center) {
+    return this.targetPosition.center == center;
+  }
+
+  this.goTo([0, 0, 0],
+            -Math.PI / 2,
+            Math.PI / 6,
+            140);
 };
 
-var g_dragInfo = new DragInfo();
+var g_cameraInfo = new CameraInfo();
 var g_dragging = false;
 
 function startDragging(e) {
-  g_dragInfo.begin(e.x, e.y);
+  g_cameraInfo.begin(e.x, e.y);
   g_dragging = true;
 }
 
 function drag(e) {
   if (g_dragging) {
-    g_dragInfo.update(e.x, e.y);
+    g_cameraInfo.update(e.x, e.y);
     updateContext();
   }
 }
 
 function stopDragging(e) {
   if (g_dragging) {
-    g_dragInfo.update(e.x, e.y);
+    g_cameraInfo.update(e.x, e.y);
     updateContext();
   }
   g_dragging = false;
-}
-
-function scrollMe(e) {
-  g_dragInfo.radius *= (e.deltaY < 0 ? 0.9 : 1.0 / 0.9);
-  updateContext();
 }
 
 /**
@@ -824,28 +1128,23 @@ function main(clientElements) {
   initShadowPlane();
   initTable();
   initHud();
-  setUpBalls();
-  g_physics.placeBalls();
+
+  rack(8);
+
   setRenderCallback();
   registerEventCallbacks();
 }
 
 
 function registerEventCallbacks() {
-  // Execute keyPressed() when we detect a keypress on the window or
-  // on the o3d object.
-
-  // Register mouse events handlers
+  // Register event handlers.
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', startDragging);
   o3djs.event.addEventListener(g_o3dElement, 'mousemove', drag);
   o3djs.event.addEventListener(g_o3dElement, 'mouseup', stopDragging);
-  o3djs.event.addEventListener(g_o3dElement, 'wheel', scrollMe);
 
   o3djs.event.addEventListener(g_o3dElement, 'keypress', keyPressed);
   o3djs.event.addEventListener(g_o3dElement, 'keyup', keyUp);
   o3djs.event.addEventListener(g_o3dElement, 'keydown', keyDown);
-
-  window.g_finished = true;  // for selenium testing.
 }
 
 
@@ -853,8 +1152,6 @@ function registerEventCallbacks() {
  * Creates the client area.
  */
 function initClient() {
-  window.g_finished = false;  // for selenium testing.
-
   o3djs.util.makeClients(main);
 }
 
@@ -871,14 +1168,37 @@ function initGlobals(clientElements) {
 
   // Create a pack to manage the objects created.
   g_pack = g_client.createPack();
-  
+
+
+
   // Audio init
   xaudio = document.getElementById('xaudio');
-  xaudio.listener.gain = 2.0;
+  xaudio.listener.gain = 3.0;
+  xaudio.listener.returnGain = 1.0;
+  
+  info = document.getElementById('info');
 
-  loadPing("sounds/hyper-reality/filter-noise-3.aif");
-  loadSoftPing("sounds/hyper-reality/filter-noise-1.aif");
+  // loadPing("sounds/hyper-reality/filter-noise-3.aif");
+  loadBallBallLight("sounds/pool-table/ball-ball-light2.aif");
+  loadBallBallMedium("sounds/pool-table/ball-ball-medium3.aif");
+  loadBallBallHard("sounds/pool-table/ball-ball-hard2.aif");
+  
+  // loadMediumEdge("sounds/hyper-reality/filter-noise-1.aif");
+  loadMediumEdge("sounds/pool-table/ball-edge-medium2.aif");
+  loadHardEdge("sounds/pool-table/ball-edge-hard1.aif");
+  
+  loadStickCueLight("sounds/pool-table/stick-cue-light2.aif");
+  loadStickCueMedium("sounds/pool-table/stick-cue-medium5.aif");
+  loadStickCueHard("sounds/pool-table/stick-cue-medium2.aif");
+  
+  loadBallPocket("sounds/pool-table/ball-pocket-balls.aif");
+  
+  // loadImpulseResponse('impulse-responses/house-impulses/dining-room.aif');  
+  loadImpulseResponse('impulse-responses/house-impulses/dining-room.aif');  
+  // loadImpulseResponse('impulse-responses/house-impulses/kitchen-true-stereo.aif');  
+  // loadImpulseResponse('impulse-responses/spatialized4.aif');
 }
+
 
 /**
  * Initalizes the render graph.
@@ -964,27 +1284,124 @@ function initRenderGraph() {
           o3djs.base.o3d.State.CMP_ALWAYS;
 }
 
+
+
+var g_bannerTexture;
+
+
+/**
+ * Creates the quad and texture that will display the fullscreen button, and
+ * makes a clickable region to match that will trigger the transition.
+ * @param {!number} clientHeight the height of the plugin region in pixels.
+ * @param {!o3djs.rendergraph.viewInfo} viewInfo the view corresponding to the
+ * orthographic projection on which we'll be displaying the banner.
+ */
+function initFullScreenButton(clientHeight, viewInfo, fullScreenTransform) {
+  // Create a material.
+  var material = o3djs.material.createMaterialFromFile(
+      g_pack,
+      'shaders/texture-only.shader',
+      viewInfo.zOrderedDrawList);
+
+  var plane = o3djs.primitives.createPlane(
+        g_pack, material, 1, 1, 1, 1,
+        [[1, 0, 0, 0],
+         [0, 0, 1, 0],
+         [0,-1, 0, 0],
+         [0, 0, 0, 1]]);
+
+  g_fullScreenButtonRoot = fullScreenTransform;
+  fullScreenTransform.addShape(plane);
+
+  // Load fullscreen button image.
+  var url = o3djs.util.getAbsoluteURI('assets/fullscreen.png');
+  o3djs.io.loadTexture(g_pack, url, function(texture, exception) {
+    if (exception) {
+      alert(exception);
+    } else {
+      var sampler = g_pack.createObject('Sampler');
+      sampler.addressModeU = g_o3d.Sampler.CLAMP;
+      sampler.addressModeV = g_o3d.Sampler.CLAMP;
+      var paramSampler = fullScreenTransform.createParam('texSampler0', 'ParamSampler');
+      paramSampler.value = sampler;
+
+      g_bannerTexture = sampler.texture = texture;
+      fullScreenTransform.addShape(plane);
+
+      // Convert to a top-left-corner-based coordinate system from the
+      // center-based default.
+      fullScreenTransform.translate(texture.width / 2, texture.height / 2, 0);
+
+      // Place the banner 10 pixels in from the bottom-left corner.
+      fullScreenTransform.translate(5, clientHeight - texture.height - 5, 0);
+
+      // Adjust the scale such that the above adjustment is in pixels; we could
+      // alternatively make the order work out by doing the scaling and
+      // transformation in separate transforms, with the translation in the
+      // parent and the scaling in the child.
+      fullScreenTransform.scale(texture.width, -texture.height, 1);
+
+      o3djs.event.addEventListener(g_o3dElement, 'resize', handleResizeEvent);
+
+      g_client.setFullscreenClickRegion(5, g_client.height - texture.height - 5, texture.width,
+        texture.height, getFullscreenModeId());
+    }
+    g_finished = true;  // for selenium testing.
+  });
+}
+
+
+/**
+ * Finds a display mode that the current screen supports.
+ */
+function getFullscreenModeId() {
+  var displayModes = g_client.getDisplayModes();
+  var bestMode;
+  for (var index in displayModes) {
+    var mode = displayModes[index];
+    if (!bestMode ||
+        (mode.width > bestMode.width && mode.height > bestMode.height)) {
+      bestMode = mode;
+    }
+  }
+  if (bestMode) {
+    return bestMode.id;
+  } else {  // getDisplayModes isn't implemented on all platforms yet.
+    return g_o3d.Renderer.DISPLAY_MODE_DEFAULT;
+  }
+}
+
+var timeoutId;
+
+function handleResizeEvent(event) {
+  // Only show the fullscreen banner if we're in plugin mode.
+  g_fullScreenButtonRoot.visible = !event.fullscreen;
+  updateContext();
+}
+
+
 /**
  * Sets up reasonable view and projection matrices.
  */
 function updateContext() {
   // Set up a perspective transformation for the projection.
   g_shadowPassViewInfo.drawContext.projection = 
-  g_viewInfo.drawContext.projection = g_math.matrix4.perspective(
-      g_math.degToRad(30), // 30 degree frustum.
-      g_o3dElement.clientWidth / g_o3dElement.clientHeight, // Aspect ratio.
-      1,                   // Near plane.
-      5000);               // Far plane.
+      g_viewInfo.drawContext.projection = g_math.matrix4.perspective(
+          g_math.degToRad(30), // 30 degree frustum.
+          g_client.width / g_client.height, // Aspect ratio.
+          1,                   // Near plane.
+          5000);               // Far plane.
 
   // Set the view transformation.
   var eye = [0, 0, 0];
   var target = [0, 0, 0];
-  g_dragInfo.getEyeAndTarget(eye, target);
+  g_cameraInfo.getEyeAndTarget(eye, target);
   g_shadowPassViewInfo.drawContext.view = 
   g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, [0, 0, 1]);
 
   updateMaterials();
 }
+
 
 function initMaterials() {
   g_materials = {
@@ -1011,7 +1428,7 @@ function initMaterials() {
 
     var eye = [0, 0, 0];
     var target = [0, 0, 0];
-    g_dragInfo.getEyeAndTarget(eye, target);
+    g_cameraInfo.getEyeAndTarget(eye, target);
 
     material.getParam('factor').value = 2 / g_tableWidth;
     material.getParam('lightWorldPosition').value = g_light;
@@ -1023,7 +1440,6 @@ function initMaterials() {
   g_shadowSampler = g_pack.createObject('Sampler');
   g_shadowSampler.texture = g_shadowTexture;
   g_materials['felt'].getParam('shadowSampler').value = g_shadowSampler;
-
 
   g_solidMaterial = g_pack.createObject('Material');
   o3djs.effect.attachStandardShader(
@@ -1037,18 +1453,20 @@ function initMaterials() {
   g_solidMaterial.getParam('shininess').value = 20;
 
   o3djs.io.loadBitmaps(g_pack,
-      o3djs.util.getAbsoluteURI('assets/poolballs_new.png'),
+      o3djs.util.getAbsoluteURI('assets/poolballs.png'),
       finishLoadingBitmaps);
 }
+
 
 function updateMaterials() {
   for (name in g_materials) {
     var eye = [0, 0, 0];
     var target = [0, 0, 0];
-    g_dragInfo.getEyeAndTarget(eye, target);
+    g_cameraInfo.getEyeAndTarget(eye, target);
     g_materials[name].getParam('eyeWorldPosition').value = eye;
   }
 }
+
 
 /**
  * Gets called back when the bitmap has loaded.
@@ -1080,6 +1498,7 @@ function finishLoadingBitmaps(bitmaps, exception) {
     g_ballTextureSamplerParams[i].value = g_ballTextureSamplers[i];
   }
 }
+
 
 function flatMesh(material, vertexPositions, faceIndices) {
   var vertexInfo = o3djs.primitives.createVertexInfo();
@@ -1345,6 +1764,11 @@ function initTable() {
 
 
 function initHud() {
+  var fullScreenTransform = g_pack.createObject('Transform');
+
+  initFullScreenButton(g_client.height, g_hudViewInfo, fullScreenTransform);
+
+  fullScreenTransform.parent = g_hudRoot;
   var barT1 = g_pack.createObject('Transform');
   g_barScaling = g_pack.createObject('Transform');
   var barT2 = g_pack.createObject('Transform');
@@ -1352,12 +1776,17 @@ function initHud() {
   barT1.parent = g_hudRoot;
   g_barScaling.parent = barT1;
   barT2.parent = g_barScaling;
-
+  
   var plane = o3djs.primitives.createPlane(
       g_pack, g_solidMaterial, 1, 1, 1, 1,
-      [[1, 0, 0, 0], [0, 0, 1, 0], [0,-1, 0, 0], [0, 0, 0, 1]]);
+      [[1, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0,-1, 0, 0],
+       [0, 0, 0, 1]]);
 
   barT2.addShape(plane);
+  fullScreenTransform.translate([0, 1, 0]);
+  fullScreenTransform.scale([1 / g_client.width, -1 / g_client.height, 1]);
 
   barT1.translate([0.05, 0.05, 0]);
   barT1.scale([0.05, 0.9, 1]);
@@ -1370,27 +1799,43 @@ function setBarScale(t) {
 }
 
 
-function setUpBalls() {
-  rackFor8Ball(6.0 * g_tableWidth / 12.0, -g_tableWidth / 2);
-  g_physics.randomOrientations();
-}
+function onrender(event) {
+  g_clock += event.elapsedTime;
 
+  g_queueClock += event.elapsedTime;
+  var clock = g_queueClock;
 
-function onrender(renderEvent) {
-  var elapsedTime = renderEvent.elapsedTime;
-  g_clock += elapsedTime;
-  
-  if (g_dragInfo) {
-    g_dragInfo.updateClock();
+  if (g_queue.length) {
+    if (eval(g_queue[0].condition)) {
+      var action = g_queue[0].action;
+      for (var i = 0; i < g_queue.length - 1; ++i) {
+        g_queue[i] = g_queue[i + 1];
+      }
+      g_queue.pop();
+      eval(action);
+      g_queueClock = 0;
+    }
+  }
+
+  if (g_cameraInfo) {
+    g_cameraInfo.updateClock();
   }
 
   if (g_physics) {
     if (g_physics.someBallsMoving()) {
       g_physics.step();
       g_physics.stopSlowBalls();
+    } else {
+      g_rolling = false;
     }
   }
+
   updateContext();
+}
+
+
+function setRenderCallback() {
+  g_client.setRenderCallback(onrender);
 }
 
 
@@ -1420,34 +1865,87 @@ function initPhysics() {
 }
 
 
-function setRenderCallback() {
-  g_client.setRenderCallback(onrender);
+function rack(game, yOffset, cueYOffset) {
+  var root3 = Math.sqrt(3);
+
+  if (!yOffset)
+    yOffset = 6.0 * g_tableWidth / 12.0;
+
+  if (!cueYOffset)
+    cueYOffset = -g_tableWidth / 2;
+
+  for (var i = 0; i < 16; ++i)
+    ballOn(i);
+
+  g_physics.stopAllBalls();
+
+  switch(game) {
+    case 8:
+      placeBall(1, 0, 0 + yOffset);
+      placeBall(9, -1, root3 + yOffset);
+      placeBall(2, 1, root3 + yOffset);
+      placeBall(10, 2, 2 * root3 + yOffset);
+      placeBall(8, 0, 2 * root3 + yOffset);
+      placeBall(3, -2, 2 * root3 + yOffset);
+      placeBall(11, -3, 3 * root3 + yOffset);
+      placeBall(4, -1, 3 * root3 + yOffset);
+      placeBall(12, 1, 3 * root3 + yOffset);
+      placeBall(5, 3, 3 * root3 + yOffset);
+      placeBall(13, 4, 4 * root3 + yOffset);
+      placeBall(6, 2, 4 * root3 + yOffset);
+      placeBall(14, 0, 4 * root3 + yOffset);
+      placeBall(15, -2, 4 * root3 + yOffset);
+      placeBall(7, -4, 4 * root3 + yOffset);
+    
+      placeBall(0, 0, cueYOffset);
+      break;
+      
+    case 9:
+      placeBall(1, 0, 0 + yOffset);
+      placeBall(2, 1, root3 + yOffset);
+      placeBall(3, -1, root3 + yOffset);
+      placeBall(9, 0, 2 * root3 + yOffset);
+      placeBall(4, 2, 2 * root3 + yOffset);
+      placeBall(5, -2, 2 * root3 + yOffset);
+      placeBall(6, 1, 3 * root3 + yOffset);
+      placeBall(7, -1, 3 * root3 + yOffset);
+      placeBall(8, 0, 4 * root3 + yOffset);
+    
+      for (var i = 10; i < 16; ++i) {
+        placeBall(i, 0, 0, -5);
+        ballOff(i);
+      }
+    
+      placeBall(0, 0, cueYOffset);
+      break;
+
+    case 0:
+      for (var i = 1; i < 16; ++i) {
+        placeBall(i, 0, 0, -5);
+        ballOff(i);
+      }
+      placeBall(0, 0, cueYOffset);
+      break;
+  }
+  
+  g_physics.randomOrientations();
+  g_physics.placeBalls();
+  g_cameraInfo.goTo([0, 0, 0], -Math.PI / 2, Math.PI / 6, 140);
 }
 
 
-function rackFor8Ball(yOffset, cueYOffset) {
-  var root3 = Math.sqrt(3);
+function ballOn(i) {
+  g_physics.balls[i].active = true;
+  g_physics.balls[i].sunkInPocket = -1;
+  g_ballTransforms[i].visible = true;
+  g_shadowOnParams[i].value = 1;
+}
 
-  placeBall(1, 0, 0 + yOffset);
-  placeBall(9, -1, root3 + yOffset);
-  placeBall(2, 1, root3 + yOffset);
-  placeBall(10, 2, 2 * root3 + yOffset);
-  placeBall(8, 0, 2 * root3 + yOffset);
-  placeBall(3, -2, 2 * root3 + yOffset);
-  placeBall(11, -3, 3 * root3 + yOffset);
-  placeBall(4, -1, 3 * root3 + yOffset);
-  placeBall(12, 1, 3 * root3 + yOffset);
-  placeBall(5, 3, 3 * root3 + yOffset);
-  placeBall(13, 4, 4 * root3 + yOffset);
-  placeBall(6, 2, 4 * root3 + yOffset);
-  placeBall(14, 0, 4 * root3 + yOffset);
-  placeBall(15, -2, 4 * root3 + yOffset);
-  placeBall(7, -4, 4 * root3 + yOffset);
 
-  placeBall(0, 0, cueYOffset);
-
-  //g_physics.velocities[0] = [0, 1];
-  //g_physics.angularVelocities[0] = [.1, 0, 0];
+function ballOff(i) {
+  g_physics.balls[i].active = false;
+  g_ballTransforms[i].visible = false;
+  g_shadowOnParams[i].value = 0;
 }
 
 
@@ -1493,39 +1991,129 @@ function initShadowPlane() {
   }
 }
 
-
-// Hack to avoid problem where user just taps space bar instead of holding for
-// more thrust.  If the user doesn't hold the button down for a few ticks
+// To avoid problem where user just taps space bar instead of holding for
+// more thrust:  If the user doesn't hold the button down for a few ticks
 // showing 'seriousness' the stroke doesn't take.
 var g_seriousness = 0;
+
+var g_shooting_timers = [];
+
+function cueNewShot(opt_power) {
+  if (!opt_power)
+    opt_power = 0.2;
+
+  g_queue.push(
+      {condition: 'clock > 1',
+          action: 'g_cameraInfo.zoomToPoint(g_physics.balls[0].center);'});
+
+  var cue = g_physics.balls[0];
+  var closest = null;
+  for (var i = 1; i < 16; ++i) {
+    var ball = g_physics.balls[i];
+    if (!ball.active) {
+      continue;
+    }
+    if (!closest || g_math.distance(cue.center, ball.center) <
+        g_math.distance(cue.center, closest.center)) {
+      closest = ball;
+    }
+  }
+
+  var obj = closest;
+
+  var p = obj.center;
+  var c = cue.center;
+
+  var currentmin = undefined;
+  var cut = [0, 0];
+  var j = 0;
+  for (var j = 0; j < g_physics.pocketCenters.length; ++j) {
+    var pocketCenter = g_physics.pocketCenters[j];
+    pocketCenter = g_math.subVector(pocketCenter, 
+        g_math.mulScalarVector(.5, g_math.normalize(pocketCenter)));
+    
+    var dx = pocketCenter[0] - p[0];
+    var dy = pocketCenter[1] - p[1];
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (!currentmin || (dist < currentmin &&
+         (p[0] - c[0]) * dx + (p[1] - c[1]) * dy > 0)) {
+      currentmin = dist;
+      cut[0] = -2 * dx / dist;
+      cut[1] = -2 * dy / dist;
+    }
+  }
+
+  var target = [p[0] + cut[0], p[1] + cut[1]];
+  var theta = 0;
+  if (obj) {
+    theta = Math.atan2(c[1] - target[1], c[0] - target[0]);
+  }
+
+  g_queue.push(
+      {condition: 'true',
+          action: 'g_cameraInfo.goTo(null, ' + theta + ', null, 0);'});
+
+  g_queue.push(
+      {condition: 'clock > 1.5',
+          action: 'startShooting();'});
+
+  g_queue.push(
+        {condition: 'g_physics.speedFactor >= ' + opt_power,
+            action: 'g_physics.speedFactor = ' + opt_power + '; finishShooting();'});
+
+  g_queue.push(
+        {condition: '!(g_shooting || g_rolling)',
+            action: 'cueNewShot();'});
+}
+
+function startShooting() {
+  g_shooting = true;
+  g_shooting_timers.push(
+      setInterval('increaseFactor()', 1000.0 / 60.0));
+}
+
+
+function increaseFactor() {
+  g_physics.speedFactor += 0.01;
+  setBarScale(g_physics.speedFactor);
+  if (g_physics.speedFactor > 1)
+    g_physics.speedFactor = 1;
+}
+
+
+function finishShooting() {
+  while (g_shooting_timers.length > 0)
+    clearTimeout(g_shooting_timers.pop())
+  if (g_physics.speedFactor > 0.0) {
+    playSound(2, g_physics.speedFactor, 0,0);
+
+    var eye = [0, 0, 0];
+    var target = [0, 0, 0];
+    g_cameraInfo.getEyeAndTarget(eye, target);
+    var dx = target[0] - eye[0];
+    var dy = target[1] - eye[1];
+    var norm = Math.sqrt(dx * dx + dy * dy);
+    g_physics.impartSpeed(0, [dx / norm, dy / norm]);
+    g_cameraInfo.backUp();
+    g_rolling = true;
+  }
+  g_physics.speedFactor = 0;
+  g_seriousness = 0;
+  setBarScale(g_physics.speedFactor);
+  g_shooting = false;
+}
+
 
 function keyUp(event) {
   switch (event.keyCode) {
     case 32:
-      if (g_physics.speedFactor > 0.0) {
-        var eye = [0, 0, 0];
-        var target = [0, 0, 0];
-        g_dragInfo.getEyeAndTarget(eye, target);
-        var dx = target[0] - eye[0];
-        var dy = target[1] - eye[1];
-        var norm = Math.sqrt(dx * dx + dy * dy);
-        g_physics.impartSpeed(0, [dx / norm, dy / norm]);
-        g_dragInfo.backUp();
-      }
-      g_physics.speedFactor = 0;
-      g_seriousness = 0;
-      setBarScale(g_physics.speedFactor);
+        finishShooting();
       break;
   }
 }
 
 function keyDown(event) {
   switch (event.keyCode) {
-    case 32:
-      //g_seriousness = 0;
-      //g_physics.speedFactor = 0;
-      //setBarScale(0);
-      break;
   }
 }
 
@@ -1534,88 +2122,77 @@ function keyPressed(event) {
   keyChar = keyChar.toLowerCase();
   var identifier = o3djs.event.getKeyIdentifier(event.charCode, event.keyCode);
 
-  switch (identifier) {
-    case 'Left':
-        g_dragInfo.targetPosition.theta -= 0.01;
-        g_dragInfo.bound();
-      break;
-
-    case 'Right':
-        g_dragInfo.targetPosition.theta += 0.01;
-        g_dragInfo.bound();
-      break;
-
-    case 'Up':
-        g_dragInfo.targetPosition.phi += 0.01;
-        g_dragInfo.bound();
-      break;
-
-    case 'Down':
-        g_dragInfo.targetPosition.phi -= 0.01;
-        g_dragInfo.bound();
-      break;
-  }
-
   var spotDelta = 1;
   var cueBall = g_physics.balls[0];
   var x = cueBall.center[0];
   var y = cueBall.center[1];
 
   switch(keyChar) {
-    case 'r':
-      if (g_physics.balls[0].active) {
-        g_physics.balls[0].active = false;
-        g_shadowOnParams[0].value = 0;
-        
-      } else {
-        g_physics.balls[0].active = true;
-        g_physics.balls[0].sunkInPocket = -1;
-        g_shadowOnParams[0].value = 1;
-      }
-    break;
+    case '*':
+      rack(8);
+      break;
+
+    case '(':
+      rack(9);
+      break;
+
+    case ')':
+      rack(0);
+      break;
 
     case 'd':
+      ballOn(0);
       placeBall(0, x + spotDelta, y);
+      g_physics.boundCueBall();
       break;
 
     case 'a':
+      ballOn(0);
       placeBall(0, x - spotDelta, y);
+      g_physics.boundCueBall();
       break;
 
     case 's':
+      ballOn(0);
       placeBall(0, x, y - spotDelta);
+      g_physics.boundCueBall();
       break;
 
     case 'w':
+      ballOn(0);
       placeBall(0, x, y + spotDelta);
+      g_physics.boundCueBall();
       break;
-  }
 
-  switch(keyChar) {
     case 'c':
-      g_dragInfo.zoomToPoint(g_physics.balls[0].center);
+      g_cameraInfo.zoomToPoint(g_physics.balls[0].center);
       break;
 
     case 't':
-      g_dragInfo.goTo([0, 0, 0], null, null, 100);
+      g_cameraInfo.goTo([0, 0, 0], null, null, 100);
       break;
 
     case '=':
-      g_dragInfo.targetPosition.radius *= 0.9;
+    case '+':
+      g_cameraInfo.targetPosition.radius *= 0.9;
       break;
 
     case '-':
-      g_dragInfo.targetPosition.radius /= 0.9;
+    case '_':
+      g_cameraInfo.targetPosition.radius /= 0.9;
       break;
 
     case ' ':
-      if (g_seriousness > 1) {
-        g_physics.speedFactor += 0.01;
-        if (g_physics.speedFactor > 1)
-          g_physics.speedFactor = 1;
-        setBarScale(g_physics.speedFactor);
+      if (!g_cameraInfo.lookingAt(g_physics.balls[0].center)) {
+        g_cameraInfo.zoomToPoint(g_physics.balls[0].center);
+      } else {
+        if (g_seriousness > 1) {
+          if (!(g_rolling || g_shooting)) {
+            startShooting();
+          }
+        }
+        g_seriousness++;
       }
-      g_seriousness++;
       break;
   }
 
@@ -1624,20 +2201,29 @@ function keyPressed(event) {
 
 </script>
 </head>
-<body onload="initClient()">
-<h1>8 Ball</h1>
+<body onload="initClient()" style="background-color: #111111">
 <br/>
+<center>
 <!-- Start of O3D plugin -->
-<div id="o3d" style="width: 1000px; height: 600px;"></div>
+<div id="o3d" style="width: 800px; height: 600px;"></div>
 <!-- End of O3D plugin -->
 
-Keys:<br>
-c: Cue ball view.<br>
-Hold-down-spacebar to shoot.<br>
-asdw: Position the cue ball.<br>
-r: Toggle cue ball active.<br>
-t: View center of the table.<br>
-+/-: Zoom in / out.
+<table width = 800 style="color: gray">
+<tr>
+<td> Click and drag to move the view. </td>
+<td> spacebar : Hold down to shoot.</td>
+<td> t : Table view mode.</td>
+<td> * : Rack for 8-Ball. </td>
+</tr>
+<tr>
+<td> +/- : Zoom in / out. </td>
+<td> asdw : Position the cue ball.</td>
+<td> c : Cue ball view mode.</td>
+<td> ( : Rack for 9-Ball. </td>
+</tr>
+<table>
+
+</center>
 
 <div style="display:none">
 <!-- Start of effect -->
@@ -1798,6 +2384,8 @@ t: View center of the table.<br>
 <!-- Start of xaudio -->
 <xaudio id="xaudio"></xaudio>
 
+<div id="info">
+</div>
+
 </body>
 </html>
-

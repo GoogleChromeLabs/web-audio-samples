@@ -56,7 +56,7 @@
           ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
 
 
-          ping.sendGain = gain < 0.25 ? 0.6 : 0.25;
+          ping.sendGain = gain < 0.125 ? 0.3 : 0.125;
           ping.mainGain = gain;  //isQuiet ? 0.0 : gain;
 
           // Randomize pitch          
@@ -112,7 +112,7 @@
       request.send();
     }
 
-    function loadReverbImpulseResponse(url) {
+    function loadImpulseResponse(url) {
       // Load impulse response asynchronously
       var request = xaudio.createAudioRequest(url, false);
       request.onload = function() { 
@@ -133,7 +133,8 @@
       pingBuffer = 0;
       loadPing(pingFileName);
 
-      loadReverbImpulseResponse('../impulse-responses/spreader55-75ms.aif');
+      // loadImpulseResponse('../impulse-responses/spreader55-75ms.aif');
+      loadImpulseResponse('../impulse-responses/house-impulses/dining-living-true-stereo.aif');
     }
 
 </script>

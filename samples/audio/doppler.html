@@ -60,9 +60,12 @@ window.onload = init;
 
 var kMainSpeed = 0.385;
 var kSecondarySpeed = 0.063;
+var kSecondaryRange = 1.0;
 var kTertiarySpeed = 0.02;
-var kReverbGain = 0.1;
+var kReverbGain = 0.15;
 var kMainSweepDistance = 30.0;
+
+var secondaryRange = kSecondaryRange;
 
 var xaudio;
 var source;
@@ -78,6 +81,7 @@ var lfo = 0;
 var slowLfo = 0;
 var tertiaryLfo = 0;
 var mode = 2;
+var dopplerFactor = 1.0;
 
 var canvas;
 var ctx;
@@ -231,7 +235,7 @@ function schedule() {
  var sinLfoValue = lfo.getSinValue();
  
  
- var slowValue = slowLfo.getSinValue();
+ var slowValue = secondaryRange * slowLfo.getSinValue();
  var tertiaryValue = tertiaryLfo.getSinValue();
 
 
@@ -265,6 +269,7 @@ function schedule() {
  gLastZ = z;
 
  source.setVelocity(deltaX, deltaY, deltaZ);
+ xaudio.listener.dopplerFactor = dopplerFactor;
  
  draw(x, y, z);
 
@@ -291,6 +296,12 @@ function secondarySpeedHandler(event, ui) {
   slowLfo.setIncrement(value);
 }
 
+function secondaryRangeHandler(event, ui) {
+  secondaryRange = ui.value;
+  var info = document.getElementById("secondaryRange-value");
+  info.innerHTML = "secondaryRange = " + secondaryRange;
+}
+
 function tertiarySpeedHandler(event, ui) {
   var value = ui.value;
   var info = document.getElementById("tertiarySpeed-value");
@@ -308,6 +319,15 @@ function pitchHandler(event, ui) {
    source.playbackPitch = rate;
 }
 
+function dopplerFactorHandler(event, ui) {
+   dopplerFactor = ui.value;
+   var info = document.getElementById("dopplerFactor-value");
+   info.innerHTML = "dopplerFactor = " + dopplerFactor;
+}
+
+
+
+
 function reverbHandler(event, ui) {
   var value = ui.value;
   var info = document.getElementById("reverb-value");
@@ -320,14 +340,18 @@ function reverbHandler(event, ui) {
 function addSliders() {
   addSlider("mainSpeed");
   addSlider("secondarySpeed");
+  // addSlider("secondaryRange");
   addSlider("tertiarySpeed");
-  addSlider("pitch");
+  // addSlider("pitch");
+  addSlider("dopplerFactor");
   addSlider("reverb");
   
   configureSlider("mainSpeed", kMainSpeed, 0.05, 1.0, mainSpeedHandler);
   configureSlider("secondarySpeed", kSecondarySpeed, 0.01, 1.0, secondarySpeedHandler);
+  // configureSlider("secondaryRange", kSecondaryRange, 0.5, 4.0, secondaryRangeHandler);
   configureSlider("tertiarySpeed", kTertiarySpeed, 0.01, 1.0, tertiarySpeedHandler);
-  configureSlider("pitch", -300, -2400.0, 2400.0, pitchHandler);
+  // configureSlider("pitch", -300, -2400.0, 2400.0, pitchHandler);
+  configureSlider("dopplerFactor", 1.0, 0.0, 4.0, dopplerFactorHandler);
   configureSlider("reverb", kReverbGain, 0.0, 0.5, reverbHandler);
 }
 
@@ -339,7 +363,11 @@ function init() {
   
   xaudio.listener.gain = 2.0;
 
-  setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
+  // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
+  // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');
+  setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
+
+
   // setReverbImpulseResponse('impulse-responses/spatialized3.aif');
   
   source = xaudio.addSource();
@@ -416,6 +444,11 @@ White Noise
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/refreshing drink.aif'); highlightElement(this);">
 Refreshing Drink
 </div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/cauldron.aif'); highlightElement(this);">
+Cauldron
+</div>
+
 
 
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
