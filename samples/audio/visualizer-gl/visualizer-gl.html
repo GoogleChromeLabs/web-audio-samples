@@ -1,0 +1,327 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<!--
+<link rel="stylesheet" type="text/css" href = "simple.css" />
+-->
+
+<!-- JQuery stuff -->
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<script type="text/javascript" src="../lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- WebGL stuff -->
+<script src="utils3d.js"> </script>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var xaudio;
+var buffer;
+var latency = 0.0;
+var audioBuffer;
+var freqData;
+
+function latencyHandler(event, ui) {
+  latency = Math.pow(2.0, 8.0 * (ui.value - 1.0));
+  if (ui.value == 0.0) latency = 0.0;
+  
+  var info = document.getElementById("latency-value");
+  info.innerHTML = "latency = " + latency + " seconds";
+}
+
+function handleKeyDown(event) {
+  if (!freqData || freqData.length != xaudio.realtimeAnalyser.frequencyLength) {
+    freqData = new WebGLFloatArray(xaudio.realtimeAnalyser.frequencyLength);
+  }
+  xaudio.realtimeAnalyser.getFrequencyData(freqData);
+  drawGL();
+  
+  setTimeout(handleKeyDown, 16);
+}
+
+function finishLoad() {
+  xaudio.listener.gain = 1.0;
+  
+  var voice = xaudio.getVoice();
+  if (voice) {
+    voice.buffer = audioBuffer;
+    voice.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
+    voice.setPosition(0, 0, -2.0);
+    voice.sendGain = 0.0;
+    voice.mainGain = 2.0;
+    voice.looping = true;
+
+    voice.play(0.0);
+  }
+
+
+  document.addEventListener("keydown", handleKeyDown, true);
+  
+  setTimeout(handleKeyDown, 16);
+}
+
+
+function loadAudioBuffer(url) {
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  
+  request.onload = function() { 
+    audioBuffer = request.buffer;
+    finishLoad();  // add in the slider, etc. now that we've loaded the audio
+  }
+
+  request.send();
+}
+
+function init() {
+  xaudio = document.getElementById('myAudioTag');  
+  loadAudioBuffer("../sounds/hyper-reality/human-voice.aif");
+
+  initGL();
+}
+
+//--------------------------------------------------------------------
+// WebGL code
+//
+
+var gl;
+var vbo;
+var tmpArray;
+var texture;
+var textureLoc;
+var foregroundColorLoc;
+var backgroundColorLoc;
+var texCoordOffset;
+// Background color
+var backgroundColor = [191.0 / 255.0,
+                       169.0 / 255.0,
+                       135.0 / 255.0,
+                       1.0];
+// Foreground color
+var foregroundColor = [63.0 / 255.0,
+                       39.0 / 255.0,
+                       0.0 / 255.0,
+                       1.0];
+
+function createGLErrorWrapper(context, fname) {
+    return function() {
+        var rv = context[fname].apply(context, arguments);
+        var err = context.getError();
+        if (err != 0)
+            throw "GL error " + err + " in " + fname;
+        return rv;
+    };
+}
+
+function create3DDebugContext(context) {
+    // Thanks to Ilmari Heikkinen for the idea on how to implement this so elegantly.
+    var wrap = {};
+    for (var i in context) {
+        try {
+            if (typeof context[i] == 'function') {
+                wrap[i] = createGLErrorWrapper(context, i);
+            } else {
+                wrap[i] = context[i];
+            }
+        } catch (e) {
+            // console.log("create3DDebugContext: Error accessing " + i);
+        }
+    }
+    wrap.getError = function() {
+        return context.getError();
+    };
+    return wrap;
+}
+
+function initGL() {
+  gl = initWebGL("c", "vshader", "fshader", [ "g_Position", "g_TexCoord0" ], backgroundColor, 1);
+  gl = create3DDebugContext(gl);
+  gl.viewport(0, 0, 1024, 768);
+
+  var vertices = new WebGLFloatArray([
+       1.0,  1.0, 0.0,
+      -1.0,  1.0, 0.0,
+      -1.0, -1.0, 0.0,
+       1.0,  1.0, 0.0,
+      -1.0, -1.0, 0.0,
+       1.0, -1.0, 0.0]);
+  var texCoords = new WebGLFloatArray([
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
+      1.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0]);
+  texCoordOffset = vertices.byteLength;
+
+  // Create the vertices and texture coordinates
+  vbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER,
+		texCoordOffset + texCoords.byteLength,
+		gl.STATIC_DRAW);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
+  gl.bufferSubData(gl.ARRAY_BUFFER, texCoordOffset, texCoords);
+
+  // Look up the uniform location(s) we need
+  textureLoc = gl.getUniformLocation(gl.program, "frequencyData");
+  foregroundColorLoc = gl.getUniformLocation(gl.program, "foregroundColor");
+  backgroundColorLoc = gl.getUniformLocation(gl.program, "backgroundColor");
+}
+
+function drawGL() {
+  if (!tmpArray || tmpArray.length != freqData.length) {
+    tmpArray = new WebGLUnsignedByteArray(freqData.length);
+    // (Re-)Allocate the texture object
+    if (texture) {
+      gl.deleteTexture(texture);
+      texture = null;
+    }
+    texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, freqData.length, 1, 0, gl.ALPHA, gl.UNSIGNED_BYTE,
+		  // This is forward compatible with changes coming to the WebGL API
+		  new WebGLUnsignedByteArray(freqData.length));
+  }
+  // Convert from floats to unsigned bytes
+  var minGain = -40.0;
+  var maxGain = 30.0;
+  var len = freqData.length;
+
+  for (var i = 0; i < len; i++) {
+    var x = freqData[i];
+    x = (x - minGain) / (maxGain - minGain);
+    if (x < 0.0) x = 0.0;
+    if (x > 1.0) x = 1.0;
+    tmpArray[i] = 255 * x;
+  }
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, tmpArray.length, 1, gl.ALPHA, gl.UNSIGNED_BYTE, tmpArray);
+
+  // Use and set up the shader
+  gl.useProgram(gl.program);
+  // Point the frequency data texture at texture unit 0 (the default),
+  // which is what we're using since we haven't called activeTexture
+  // in our program
+  gl.uniform1i(textureLoc, 0);
+  gl.uniform4fv(foregroundColorLoc, foregroundColor);
+  gl.uniform4fv(backgroundColorLoc, backgroundColor);
+
+  // Set up the vertex attribute arrays
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 0, texCoordOffset);
+
+  // Clear the render area
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Actually draw
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+  // Disable the attribute arrays for cleanliness
+  gl.disableVertexAttribArray(0);
+  gl.disableVertexAttribArray(1);
+}
+
+</script>
+<script id="vshader" type="x-shader/x-vertex">
+attribute vec3 g_Position;
+attribute vec2 g_TexCoord0;
+
+varying vec2 texCoord;
+
+void main()
+{
+  gl_Position = vec4(g_Position.x, g_Position.y, g_Position.z, 1.0);
+  texCoord = g_TexCoord0;
+}
+</script>
+
+<script id="fshader" type="x-shader/x-fragment">
+varying vec2 texCoord;
+uniform sampler2D frequencyData;
+uniform vec4 foregroundColor;
+uniform vec4 backgroundColor;
+
+void main()
+{
+  vec4 sample = texture2D(frequencyData, vec2(texCoord.x, 0.5));
+  if (texCoord.y > sample.a) {
+    discard;
+  }
+  float x = texCoord.y / sample.a;
+  x = x * x * x;
+  gl_FragColor = mix(foregroundColor,
+                     backgroundColor,
+                     x  );
+}
+</script>
+</head>
+
+<body>
+
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+<!-- Canvas tag for WebGL output -->
+<canvas id="c" width="1280px" height="800px"></canvas>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+</html>
