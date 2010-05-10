@@ -476,8 +476,12 @@ function drawGL() {
   }
 
   gl.uniform1i(frequencyDataLoc, 0);
-  gl.uniform4fv(foregroundColorLoc, foregroundColor);
-  gl.uniform4fv(backgroundColorLoc, backgroundColor);
+  if (foregroundColorLoc) {
+      gl.uniform4fv(foregroundColorLoc, foregroundColor);
+  }
+  if (backgroundColorLoc) {
+      gl.uniform4fv(backgroundColorLoc, backgroundColor);
+  }
 
   // Set up the vertex attribute arrays
   gl.enableVertexAttribArray(vertexLoc);
