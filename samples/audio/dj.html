@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2010, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Title
 </title>
 
-<!-- JQuery stuff -->
-<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
-<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 <style type="text/css">
   #slider { margin: 10px; }
@@ -58,9 +54,25 @@ Title
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio = 0;
+var xaudio;
+var context;
 var source1 = 0;
 var source2 = 0;
+var buffer;
+var convolver;
+var panner;
+var mainMixer;
+var mainMixerInput1;
+var mainMixerInput2;
+var dryMixer;
+var dryMixerInput1;
+var dryMixerInput2;
+var wetMixer;
+var wetMixerInput1;
+var wetMixerInput2;
+var lowFilter1;
+var lowFilter2;
+
 var bufferLoader1 = 0;
 var bufferLoader2 = 0;
 var loadCount = 0;
@@ -109,8 +121,8 @@ function crossfadeHandler(event, ui) {
   var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
   var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
   
-  source1.mainGain = gain1;
-  source2.mainGain = gain2;
+  source1.gain.value = gain1;
+  source2.gain.value = gain2;
   
   var info = document.getElementById("crossfade-value");
   info.innerHTML = "crossfade = " + x;
@@ -122,13 +134,12 @@ function leftFilterHandler(event, ui) {
   var nyquist = sampleRate * 0.5;
   var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
   var v2 = Math.pow(2.0, noctaves * (value - 1.0));
-
+  var cutoff = v2*nyquist;
+  
   var info = document.getElementById("leftFilter-value");
-  info.innerHTML = "leftFilter = " + v2*nyquist + " Hz";
+  info.innerHTML = "leftFilter = " + cutoff + " Hz";
 
-  // (effects and params API in flux)
-  source1.effect.param1 = v2;
-  source1.effect.param2 = 5.0;
+  lowFilter1.cutoff.value = cutoff;
 }
 
 function rightFilterHandler(event, ui) {
@@ -137,13 +148,12 @@ function rightFilterHandler(event, ui) {
   var nyquist = sampleRate * 0.5;
   var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
   var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+  var cutoff = v2*nyquist;
 
   var info = document.getElementById("rightFilter-value");
-  info.innerHTML = "rightFilter = " + v2*nyquist + " Hz";
+  info.innerHTML = "rightFilter = " + cutoff + " Hz";
 
-  // (effects and params API in flux)
-  source2.effect.param1 = v2;
-  source2.effect.param2 = 5.0;
+  lowFilter2.cutoff.value = cutoff;
 }
 
 function leftRhythmEffectHandler(event, ui) {
@@ -151,7 +161,7 @@ function leftRhythmEffectHandler(event, ui) {
   var info = document.getElementById("leftRhythmEffect-value");
   info.innerHTML = "leftRhythmEffect = " + 100.0*value + "\%";
   
-  source1.sendGain = value;
+  wetMixerInput1.gain.value = value;
 }
 
 function rightRhythmEffectHandler(event, ui) {
@@ -159,7 +169,7 @@ function rightRhythmEffectHandler(event, ui) {
   var info = document.getElementById("rightRhythmEffect-value");
   info.innerHTML = "rightRhythmEffect = " + 100.0*value + "\%";
   
-  source2.sendGain = value;
+  wetMixerInput2.gain.value = value;
 }
 
 
@@ -189,22 +199,20 @@ function finishLoad() {
   configureSlider("leftRhythmEffect", 0.0, 0.0, 1.0, leftRhythmEffectHandler);
   configureSlider("rightRhythmEffect", 0.0, 0.0, 1.0, rightRhythmEffectHandler);
 
-  xaudio.listener.gain = 1.0;
-  
   loadImpulseResponse("impulse-responses/filter-rhythm2.aif");
   
-  var now = xaudio.currentTime;
+  var now = context.currentTime;
   anchorTime = now + 0.040;
   
-  source1.play(anchorTime);
-  source2.play(anchorTime);
+  source1.noteOn(anchorTime);
+  source2.noteOn(anchorTime);
 }
 
 function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
   var request = xaudio.createAudioRequest(url, false);
   request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
+    convolver.buffer = request.buffer;
   }
   
   request.send();
@@ -215,7 +223,7 @@ function loadBufferForSource(source, url) {
   var request = xaudio.createAudioRequest(url, false);
   request.onload = function() {
     // Start playing the new buffer at exactly the next 4-beat boundary
-    var currentTime = xaudio.currentTime;
+    var currentTime = context.currentTime;
     var delta = currentTime - anchorTime;
     var deltaBeat = (tempo / 60.0) * delta;
     var roundedUpDeltaBeat = 4.0 + 4.0 * Math.floor(deltaBeat / 4.0);
@@ -224,38 +232,78 @@ function loadBufferForSource(source, url) {
     
     source.stop();
     source.buffer = request.buffer;
-    source.play(time);
+    source.noteOn(time);
   }
 
   request.send();  
 }
 
 function init() {
-  xaudio = document.getElementById('myAudioTag');
+    // Initialize audio
+    xaudio = document.getElementById('myAudioTag');
+    context = xaudio.context;
+    source1 = context.createBufferSource();
+    source2 = context.createBufferSource();
 
-  source1 = xaudio.addSource();
-  source2 = xaudio.addSource();
+    mainMixer = context.createMixer();
+    mainMixerInput1 = mainMixer.createInput();
+    mainMixerInput2 = mainMixer.createInput();
 
-  source1.mainGain = 0.707;
-  source2.mainGain = 0.707;
-  source1.sendGain = 0.0;
-  source2.sendGain = 0.0;
-  
-  source1.looping = true;
-  source2.looping = true;
+    dryMixer = context.createMixer();
+    dryMixerInput1 = dryMixer.createInput();
+    dryMixerInput2 = dryMixer.createInput();
 
-  // passthrough panning
-  source1.panningModel = AudioSource.PASSTHROUGH;
-  source2.panningModel = AudioSource.PASSTHROUGH;
-  
-  // load reverb
-  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
-  
-  bufferLoader1 = new BufferLoader(source1, "sounds/drum-samples/loops/blueyellow.aif");
-  bufferLoader2 = new BufferLoader(source2, "sounds/drum-samples/loops/crydamore.aif");
-  
-  bufferLoader1.load();
-  bufferLoader2.load();
+    wetMixer = context.createMixer();
+    wetMixerInput1 = wetMixer.createInput();
+    wetMixerInput2 = wetMixer.createInput();
+
+    lowFilter1 = context.createLowPass2Filter(source1);
+    lowFilter2 = context.createLowPass2Filter(source2);
+    lowFilter1.cutoff.value = 22050.0;
+    lowFilter2.cutoff.value = 22050.0;
+    lowFilter1.resonance.value = 5.0;
+    lowFilter2.resonance.value = 5.0;
+
+    convolver = context.createConvolver();
+
+    // Connect audio processing graph
+    source1.connect(lowFilter1);
+    source2.connect(lowFilter2);
+    lowFilter1.connect(dryMixerInput1);
+    lowFilter1.connect(wetMixerInput1);
+    lowFilter2.connect(dryMixerInput2);
+    lowFilter2.connect(wetMixerInput2);
+    dryMixer.connect(mainMixerInput1);
+    wetMixer.connect(convolver);
+    convolver.connect(mainMixerInput2);
+    mainMixer.connect(context.output);
+
+
+
+    source1.gain.value = 0.707;
+    source2.gain.value = 0.707;
+    
+    dryMixerInput1.gain.value = 1.0;
+    dryMixerInput2.gain.value = 1.0;
+    wetMixerInput1.gain.value = 0.0;
+    wetMixerInput2.gain.value = 0.0;
+
+    source1.looping = true;
+    source2.looping = true;
+
+    // passthrough panning
+    source1.panningModel = AudioSource.PASSTHROUGH;
+    source2.panningModel = AudioSource.PASSTHROUGH;
+
+    // load reverb
+    // setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+    setReverbImpulseResponse('impulse-responses/filter-rhythm2.aif');
+
+    bufferLoader1 = new BufferLoader(source1, "sounds/drum-samples/loops/blueyellow.aif");
+    bufferLoader2 = new BufferLoader(source2, "sounds/drum-samples/loops/crydamore.aif");
+
+    bufferLoader1.load();
+    bufferLoader2.load();
 }
 
 </script>
