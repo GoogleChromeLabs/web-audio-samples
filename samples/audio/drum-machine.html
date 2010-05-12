@@ -391,7 +391,6 @@ function drawAnalysis() {
     var nbins = xaudio.realtimeAnalyser.frequencyLength;
     var nbars = 9;
 
-
     var infoString = "";
 
     for (i = 0; i < nbars; ++i) {
@@ -495,30 +494,30 @@ function schedule() {
     while (noteTime < currentTime + 0.100) {
         // Kick
         if (rhythm1[rhythmIndex] == 1) {
-            playNote(currentKit.kickBuffer, AudioSource.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
+            playNote(currentKit.kickBuffer, AudioPannerNode.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
         }
 
         // Snare
         if (rhythm2[rhythmIndex] == 1) {
-            playNote(currentKit.snareBuffer, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
+            playNote(currentKit.snareBuffer, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
         }
 
         // Hihat
         if (rhythm3[rhythmIndex] == 1) {
-            playNote(currentKit.hihatBuffer, AudioSource.HRTF, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
+            playNote(currentKit.hihatBuffer, AudioPannerNode.HRTF, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
         }
 
         // Toms    
         if (rhythm4[rhythmIndex] == 1) {
-            playNote(currentKit.tom1, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom1, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
         }
 
         if (rhythm5[rhythmIndex] == 1) {
-            playNote(currentKit.tom2, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom2, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
         }
 
         if (rhythm6[rhythmIndex] == 1) {
-            playNote(currentKit.tom3, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom3, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
         }
 
 
