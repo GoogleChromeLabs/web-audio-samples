@@ -37,12 +37,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <title>Audio Canvas</title> 
 </head> 
  
-<body> 
-<h2>Audio Canvas</h2> 
+<body>
+<h2>Audio Canvas</h2>
 <p>This site introduces an early version of an audio engine with JavaScript bindings. This audio API is analogous to the &lt;canvas&gt; tag for 2D and 3D graphics.  The audio system proposed here is capable of dynamically positioning/spatializing and mixing multiple sound sources in three-dimensional space. A powerful mix engine is proposed, supporting effects, a convolution engine for reverb, multiple sends, submixes, etc. Scheduled sound playback is provided for musical applications requiring a high degree of rhythmic precision.</p> 
 <p>These APIs are currently under development, and we welcome feedback from other WebKit developers.</p> 
 <h2>Getting Started</h2> 
-<p>Currently, the Audio Canvas engine runs only on the Macintosh platform and requires a special build of WebKit, which you can download here.  <b><em>//Chris to provide link.</em></b></p> 
+<p>Currently, the Audio Canvas engine runs only on the Macintosh platform and requires a build from a special
+<a href="https://svn.webkit.org/repository/webkit/branches/audio/">branch</a> of WebKit.  This branch can be checked out using:
+
+<pre>
+svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
+</pre>
+
 <h2>Samples</h2> 
 <br> 
  
