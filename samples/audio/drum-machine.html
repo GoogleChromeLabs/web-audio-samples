@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2010, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <title>
 </title>
 
-<!-- JQuery stuff -->
-<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
-<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 <style type="text/css">
   #slider { margin: 10px; }
@@ -58,17 +54,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 window.onload = init;
 
 var canvas;
-var ctx;
+var canvasContext;
 var canvasWidth = 0;
 var canvasHeight = 0;
 
-// trouble with ref-counting...
-var buffer;
 var xaudio;
-var source1;
-var source2;
+var context;
+var mainMixer;
+var mainMixerInput1;
+var mainMixerInput2;
+var dryMixer;
+var wetMixer;
+var convolver;
+var listener;
 
-var bufferList;
+var sampleRate = 44100.0;
+var nyquist = sampleRate * 0.5;
+
+
 var startTime;
 var lastDrawTime = -1;
 
@@ -79,9 +82,9 @@ var kits;
 var kNumInstruments = 6;
 
 var currentKit = 0;
-var kickCutoff = 0.99;
-var snareCutoff = 0.99;
-var hihatCutoff = 0.99;
+var kickCutoff = 22050.0;
+var snareCutoff = 22050.0;
+var hihatCutoff = 22050.0;
 var reverbMix = 0.2;
 
 var kitCount = 0;
@@ -105,150 +108,135 @@ var kitNames = [
 ];
 
 function Kit(name) {
-  this.name = name;
+    this.name = name;
 
-  this.pathName = function() {
-    var pathName = "sounds/drum-samples/" + this.name + "/";
-    return pathName;
-  };
+    this.pathName = function() {
+        var pathName = "sounds/drum-samples/" + this.name + "/";
+        return pathName;
+    };
 
-  var pathName = this.pathName();
-  
-  var kickPath = pathName + "kick.aif";
-  var snarePath = pathName + "snare.aif";
-  var hihatPath = pathName + "hihat.aif";
-  var tom1Path = pathName + "tom1.aif";
-  var tom2Path = pathName + "tom2.aif";
-  var tom3Path = pathName + "tom3.aif";
+    var pathName = this.pathName();
 
-  this.kickBuffer = 0;
-  this.snareBuffer = 0;
-  this.hihatBuffer = 0;
-  
-  this.instrumentCount = kNumInstruments;
-  this.instrumentLoadCount = 0;
+    var kickPath = pathName + "kick.aif";
+    var snarePath = pathName + "snare.aif";
+    var hihatPath = pathName + "hihat.aif";
+    var tom1Path = pathName + "tom1.aif";
+    var tom2Path = pathName + "tom2.aif";
+    var tom3Path = pathName + "tom3.aif";
 
-  this.loadSample(0, kickPath, false);
-  this.loadSample(1, snarePath, false);
-  this.loadSample(2, hihatPath, true);  // we're panning only the hihat
-  this.loadSample(3, tom1Path, false);
-  this.loadSample(4, tom2Path, false);
-  this.loadSample(5, tom3Path, false);
+    this.kickBuffer = 0;
+    this.snareBuffer = 0;
+    this.hihatBuffer = 0;
+
+    this.instrumentCount = kNumInstruments;
+    this.instrumentLoadCount = 0;
+
+    this.loadSample(0, kickPath, false);
+    this.loadSample(1, snarePath, false);
+    this.loadSample(2, hihatPath, true);  // we're panning only the hihat
+    this.loadSample(3, tom1Path, false);
+    this.loadSample(4, tom2Path, false);
+    this.loadSample(5, tom3Path, false);
 }
 
 Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
-  // Load asynchronously
-  var request = xaudio.createAudioRequest(url, mixToMono);
+    // Load asynchronously
+    var request = xaudio.createAudioRequest(url, mixToMono);
 
-  var kit = this;
+    var kit = this;
 
-  request.onload = function() {
-    switch (sampleID) {
-      case 0: kit.kickBuffer = request.buffer; break;
-      case 1: kit.snareBuffer = request.buffer; break;
-      case 2: kit.hihatBuffer = request.buffer; break;
-      case 3: kit.tom1 = request.buffer; break;
-      case 4: kit.tom2 = request.buffer; break;
-      case 5: kit.tom3 = request.buffer; break;
+    request.onload = function() {
+        switch (sampleID) {
+            case 0: kit.kickBuffer = request.buffer; break;
+            case 1: kit.snareBuffer = request.buffer; break;
+            case 2: kit.hihatBuffer = request.buffer; break;
+            case 3: kit.tom1 = request.buffer; break;
+            case 4: kit.tom2 = request.buffer; break;
+            case 5: kit.tom3 = request.buffer; break;
+        }
+
+        kit.instrumentLoadCount++;
+        if (kit.instrumentLoadCount == kit.instrumentCount) finishLoading();
     }
-    
-    kit.instrumentLoadCount++;
-    if (kit.instrumentLoadCount == kit.instrumentCount) finishLoading();
-  }
-  
-  request.send();
+
+    request.send();
 }
 
 function tempoHandler(event, ui) {
-  tempo = ui.value;
+    tempo = ui.value;
 
-  var info = document.getElementById("tempo-value");
-  info.innerHTML = "tempo = " + tempo + " BPM";
+    var info = document.getElementById("tempo-value");
+    info.innerHTML = "tempo = " + tempo + " BPM";
 }
 
 function cutoffKickHandler(event, ui) {
-  var value = ui.value;
-  var sampleRate = 44100.0;
-  var nyquist = sampleRate * 0.5;
-  var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
-  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    var value = ui.value;
+    var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
 
-  var info = document.getElementById("kick_cutoff-value");
-  info.innerHTML = "kick_cutoff = " + v2*nyquist + " Hz";
+    var info = document.getElementById("kick_cutoff-value");
+    info.innerHTML = "kick_cutoff = " + v2*nyquist + " Hz";
 
-  kickCutoff = v2;
+    kickCutoff = v2;
 }
 
 function cutoffSnareHandler(event, ui) {
-  var value = ui.value;
-  var sampleRate = 44100.0;
-  var nyquist = sampleRate * 0.5;
-  var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
-  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    var value = ui.value;
+    var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
 
-  var info = document.getElementById("snare_cutoff-value");
-  info.innerHTML = "snare_cutoff = " + v2*nyquist + " Hz";
+    var info = document.getElementById("snare_cutoff-value");
+    info.innerHTML = "snare_cutoff = " + v2*nyquist + " Hz";
 
-  snareCutoff = v2;
+    snareCutoff = v2;
 }
 
 function cutoffHihatHandler(event, ui) {
-  var value = ui.value;
-  var sampleRate = 44100.0;
-  var nyquist = sampleRate * 0.5;
-  var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
-  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    var value = ui.value;
+    var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
 
-  var info = document.getElementById("hihat_cutoff-value");
-  info.innerHTML = "hihat_cutoff = " + v2*nyquist + " Hz";
+    var info = document.getElementById("hihat_cutoff-value");
+    info.innerHTML = "hihat_cutoff = " + v2*nyquist + " Hz";
 
-  hihatCutoff = v2;
+    hihatCutoff = v2;
 }
 
 function reverbHandler(event, ui) {
-  var value = ui.value;
-  var info = document.getElementById("reverb-value");
-  info.innerHTML = "reverb = " + value;
-  
-  reverbMix = value;
+    var value = ui.value;
+    var info = document.getElementById("reverb-value");
+    info.innerHTML = "reverb = " + value;
+
+    reverbMix = value;
 }
 
-
-
 function makeKitsList() {
-  var s = "<h1>Kits</h1> <ul> ";  
-  
-  var numKits = kitNames.length;
-  for (var i  = 0; i < numKits; i++) {
-    s += getKitString(i);
-  }
-  
-  s += "</ul> ";
-  
-  var kitElement = document.getElementById("kits");
-  
-  kitElement.innerHTML = s;
+    var s = "<h1>Kits</h1> <ul> ";  
+
+    var numKits = kitNames.length;
+    for (var i  = 0; i < numKits; i++) {
+        s += getKitString(i);
+    }
+
+    s += "</ul> ";
+
+    var kitElement = document.getElementById("kits");
+
+    kitElement.innerHTML = s;
 }
 
 function getKitString(index) {
-  var name = kitNames[index];
-  return "<li onmousedown=\"currentKit = kits[" + index + "]; highlightElement(this); \">" 
+    var name = kitNames[index];
+    return "<li onmousedown=\"currentKit = kits[" + index + "]; highlightElement(this); \">" 
     + name + "</li> ";
 }
 
-
-
-
-
-
 function highlightElement(object) {
-  if (kitElement) kitElement.style.backgroundColor = "white";
-  kitElement = object;
-  
-  object.style.backgroundColor = "green";
+    if (kitElement) kitElement.style.backgroundColor = "white";
+    kitElement = object;
+
+    object.style.backgroundColor = "green";
 }
-
-
 
 
 var rhythm1 = [
@@ -391,366 +379,388 @@ var tempo = 127.0;
 var noteTime = 0.0;
 
 function drawAnalysis() {
-  // draw center
-  var width = canvas.width;
-  var height = canvas.height;
-  
-  ctx.fillStyle = "rgb(150, 255, 150)";
-  ctx.lineWidth = 3;
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
 
-  var barHeight = height / 9.0;
-  
-  var nbins = xaudio.realtimeAnalyser.frequencyLength;
-  var nbars = 9;
+    canvasContext.fillStyle = "rgb(150, 255, 150)";
+    canvasContext.lineWidth = 3;
+
+    var barHeight = height / 9.0;
+
+    var nbins = xaudio.realtimeAnalyser.frequencyLength;
+    var nbars = 9;
 
 
-  var infoString = "";
+    var infoString = "";
 
-  for (i = 0; i < nbars; ++i) {
-    var ii = i;
-    
-    var decay = 0.45;  // starts at 37Hz (sample rate == 44.1KHz)
-    var bin = Math.pow(decay, (nbars-1) - ii) * (nbins-1);
-    bin = Math.floor(bin + 0.5);
-    
-    if (bin < 1) bin = 1;
-    
-    
-    var gainGrowth = 2.2; // 1.4; // 1.3;
-    var gainScale = Math.pow(gainGrowth, ii);
-    var gainScaleDb = 20.0 * Math.log(gainScale) / Math.log(10.0);
-    
-    var x = gainScaleDb + xaudio.realtimeAnalyser.frequencyBin(bin);
-    
-    
-    var minGain = 20.0;
-    var maxGain = 50.0;
-    
-    
-    
-    x = (x - minGain) / (maxGain - minGain);
-    
-    if (x < 0.0) x = 0.0;
-    if (x > 1.0) x = 1.0;
+    for (i = 0; i < nbars; ++i) {
+        var ii = i;
 
-    // x = Math.pow(x, 0.2);
-    
-    
-  
-    // var x = 0.5;
-    
-    
-    var meterWidth = width * x;
+        var decay = 0.45;  // starts at 37Hz (sample rate == 44.1KHz)
+        var bin = Math.pow(decay, (nbars-1) - ii) * (nbins-1);
+        bin = Math.floor(bin + 0.5);
 
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(0, ii*barHeight, meterWidth, barHeight);
-    
-    ctx.fillStyle = "rgb(255, 255, 255)";
-    ctx.fillRect(meterWidth, ii*barHeight, width - meterWidth, barHeight);
+        if (bin < 1) bin = 1;
 
-    // ctx.fillStyle = "rgb(0, 0, 0)";
-    // ctx.fillRect(0, 0, width, height);
-  }
 
-  // setTimeout("drawAnalysis()", 33);
-  
-  var info = document.getElementById('info');
-  info.innerHTML = infoString;
+        var gainGrowth = 2.2; // 1.4; // 1.3;
+        var gainScale = Math.pow(gainGrowth, ii);
+        var gainScaleDb = 20.0 * Math.log(gainScale) / Math.log(10.0);
+
+        var x = gainScaleDb + xaudio.realtimeAnalyser.frequencyBin(bin);
+
+
+        var minGain = 20.0;
+        var maxGain = 50.0;
+
+
+
+        x = (x - minGain) / (maxGain - minGain);
+
+        if (x < 0.0) x = 0.0;
+        if (x > 1.0) x = 1.0;
+
+        // x = Math.pow(x, 0.2);
+
+
+
+        // var x = 0.5;
+
+
+        var meterWidth = width * x;
+
+        canvasContext.fillStyle = "rgb(0, 0, 0)";
+        canvasContext.fillRect(0, ii*barHeight, meterWidth, barHeight);
+
+        canvasContext.fillStyle = "rgb(255, 255, 255)";
+        canvasContext.fillRect(meterWidth, ii*barHeight, width - meterWidth, barHeight);
+
+        // canvasContext.fillStyle = "rgb(0, 0, 0)";
+        // canvasContext.fillRect(0, 0, width, height);
+    }
+
+    // setTimeout("drawAnalysis()", 33);
+
+    var info = document.getElementById('info');
+    info.innerHTML = infoString;
 }
 
 function advanceNote() {
-  // Advance time by a 16th note...
-  var secondsPerBeat = 60.0 / tempo;
-  noteTime += 0.25 * secondsPerBeat;
+    // Advance time by a 16th note...
+    var secondsPerBeat = 60.0 / tempo;
+    noteTime += 0.25 * secondsPerBeat;
 
-  rhythmIndex++;
-  if (rhythmIndex == loopLength) {
-    rhythmIndex = 0;
-    loopNumber++
-  }
+    rhythmIndex++;
+    if (rhythmIndex == loopLength) {
+        rhythmIndex = 0;
+        loopNumber++
+    }
 }
 
-
-
 function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, resonance, noteTime) {
-  var voice = xaudio.getVoice();
-  if (voice) {
-    voice.buffer = buffer;
-    voice.panningModel = panningModel;
-    
-    voice.setPosition(x, y, z);
-    voice.sendGain = sendGain;
-    voice.mainGain = mainGain;
-    voice.effect.param1 = cutoff;
-    voice.effect.param2 = resonance;
-    voice.play(noteTime);
-  }
+    var voice = context.createBufferSource();
+    if (voice) {
+        voice.buffer = buffer;
+
+        var panner = context.createPanner(voice);
+        var dryMixerInput = dryMixer.createInput(voice);
+        var wetMixerInput = wetMixer.createInput(voice);
+        var filter = context.createLowPass2Filter(voice);
+
+        panner.panningModel = panningModel;
+        panner.listener = listener;
+
+        panner.setPosition(x, y, z);
+        wetMixerInput.gain.value = sendGain;
+        dryMixerInput.gain.value = mainGain;
+        filter.cutoff.value = nyquist * cutoff;
+        filter.resonance.value = resonance;
+
+        voice.connect(filter);
+        filter.connect(panner);
+        panner.connect(dryMixerInput);
+        panner.connect(wetMixerInput);
+
+        voice.noteOn(noteTime);
+    }
 }
 
 function schedule() {
-  var currentTime = xaudio.currentTime;
-  currentTime -= startTime;
-  
-  var resonance = 5.0;
-  
-  while (noteTime < currentTime + 0.100) {
-    // Kick
-    if (rhythm1[rhythmIndex] == 1) {
-      playNote(currentKit.kickBuffer, AudioSource.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
+    var currentTime = context.currentTime;
+    currentTime -= startTime;
+
+    var resonance = 5.0;
+
+    while (noteTime < currentTime + 0.100) {
+        // Kick
+        if (rhythm1[rhythmIndex] == 1) {
+            playNote(currentKit.kickBuffer, AudioSource.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
+        }
+
+        // Snare
+        if (rhythm2[rhythmIndex] == 1) {
+            playNote(currentKit.snareBuffer, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
+        }
+
+        // Hihat
+        if (rhythm3[rhythmIndex] == 1) {
+            playNote(currentKit.hihatBuffer, AudioSource.HRTF, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
+        }
+
+        // Toms    
+        if (rhythm4[rhythmIndex] == 1) {
+            playNote(currentKit.tom1, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+        }
+
+        if (rhythm5[rhythmIndex] == 1) {
+            playNote(currentKit.tom2, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+        }
+
+        if (rhythm6[rhythmIndex] == 1) {
+            playNote(currentKit.tom3, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+        }
+
+
+        // Attempt to synchronize drawing time with sound
+        if (noteTime != lastDrawTime) {
+            lastDrawTime = noteTime;
+            var timeoutTime = 1000 * (-0.020 +  noteTime - currentTime);
+            if (timeoutTime < 0) timeoutTime = 0;
+            setTimeout("drawPlayhead(" + rhythmIndex + ")", timeoutTime );
+        }
+
+        advanceNote();
     }
 
-    // Snare
-    if (rhythm2[rhythmIndex] == 1) {
-      playNote(currentKit.snareBuffer, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
-    }
+    // drawAnalysis();
 
-    // Hihat
-    if (rhythm3[rhythmIndex] == 1) {
-      playNote(currentKit.hihatBuffer, AudioSource.HRTF, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
-    }
-    
-    // Toms    
-    if (rhythm4[rhythmIndex] == 1) {
-      playNote(currentKit.tom1, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
-    }
-    
-    if (rhythm5[rhythmIndex] == 1) {
-      playNote(currentKit.tom2, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
-    }
-    
-    if (rhythm6[rhythmIndex] == 1) {
-      playNote(currentKit.tom3, AudioSource.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
-    }
-
-
-    // Attempt to synchronize drawing time with sound
-    if (noteTime != lastDrawTime) {
-      lastDrawTime = noteTime;
-      var timeoutTime = 1000 * (-0.020 +  noteTime - currentTime);
-      if (timeoutTime < 0) timeoutTime = 0;
-      setTimeout("drawPlayhead(" + rhythmIndex + ")", timeoutTime );
-    }
-
-    advanceNote();
-  }
-
-  // drawAnalysis();
-
-  setTimeout("schedule()", 20);
+    setTimeout("schedule()", 20);
 
 }
 
 function drawDrumGrid() {
-  // draw center
-  var width = canvas.width;
-  var height = canvas.height;
-  
-  ctx.strokeStyle = "rgb(150, 255, 150)";
-  ctx.lineWidth = 3;
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
 
-  var noteSize = width / 16.0;
-  var kInset = 2;
-  
-  for (inst = 0; inst < kNumInstruments; ++inst) {
-    for (i = 0; i < 16; ++i) {
-      ctx.strokeRect(i * noteSize + kInset, kInset + inst*noteSize,              noteSize - 2*kInset, noteSize - 2*kInset);
+    canvasContext.strokeStyle = "rgb(150, 255, 150)";
+    canvasContext.lineWidth = 3;
+
+    var noteSize = width / 16.0;
+    var kInset = 2;
+
+    for (inst = 0; inst < kNumInstruments; ++inst) {
+        for (i = 0; i < 16; ++i) {
+            canvasContext.strokeRect(i * noteSize + kInset, kInset + inst*noteSize,              noteSize - 2*kInset, noteSize - 2*kInset);
+        }
     }
-  }
 }
 
 function loadImpulseResponse(url) {
-  // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
-  }
-  
-  request.send();
+    // Load impulse response asynchronously
+    var request = xaudio.createAudioRequest(url, false);
+    request.onload = function() { 
+        convolver.buffer = request.buffer;
+    }
+
+    request.send();
 }
 
 // Called when all audio assets are finished loading
 function finishLoading() {
-  kitCount++;
-  if (kitCount < kitNames.length) return;
-  
-  if (isLoaded) return;
+    kitCount++;
+    if (kitCount < kitNames.length) return;
 
-  // get rid of loading animation
-  var loading = document.getElementById("loading");
-  loading.innerHTML = "";
-  
-  isLoaded = true;
-  currentKit = kits[0];
-  
-  makeKitsList();
-  
-  addSlider("tempo");
-  addSlider("kick_cutoff");
-  addSlider("snare_cutoff");
-  addSlider("hihat_cutoff");
-  addSlider("reverb");
+    if (isLoaded) return;
 
-  configureSlider("kick_cutoff", 0.99, 0.0, 1.0, cutoffKickHandler);
-  configureSlider("snare_cutoff", 0.99, 0.0, 1.0, cutoffSnareHandler);
-  configureSlider("hihat_cutoff", 0.99, 0.0, 1.0, cutoffHihatHandler);
-  configureSlider("tempo", tempo, 50.0, 180.0, tempoHandler);
-  configureSlider("reverb", reverbMix, 0.0, 1.0, reverbHandler);
-  
+    // get rid of loading animation
+    var loading = document.getElementById("loading");
+    loading.innerHTML = "";
 
-	var ui = {value: 1.0};
-	cutoffKickHandler(0, ui);
-	cutoffSnareHandler(0, ui);
-	cutoffHihatHandler(0, ui);
+    isLoaded = true;
+    currentKit = kits[0];
 
-	ui.value = tempo;
-	tempoHandler(0, ui);
-	
-  xaudio.listener.gain = 1.0;
-  xaudio.listener.returnGain = 1.0;
-  
-    
+    makeKitsList();
 
-  startTime = xaudio.currentTime + 0.160;
+    addSlider("tempo");
+    addSlider("kick_cutoff");
+    addSlider("snare_cutoff");
+    addSlider("hihat_cutoff");
+    addSlider("reverb");
 
-  // Start playing
-  setTimeout("schedule()", 10);
+    configureSlider("kick_cutoff", 0.99, 0.0, 1.0, cutoffKickHandler);
+    configureSlider("snare_cutoff", 0.99, 0.0, 1.0, cutoffSnareHandler);
+    configureSlider("hihat_cutoff", 0.99, 0.0, 1.0, cutoffHihatHandler);
+    configureSlider("tempo", tempo, 50.0, 180.0, tempoHandler);
+    configureSlider("reverb", reverbMix, 0.0, 1.0, reverbHandler);
+
+    var ui = {value: 1.0};
+    cutoffKickHandler(0, ui);
+    cutoffSnareHandler(0, ui);
+    cutoffHihatHandler(0, ui);
+
+    ui.value = tempo;
+    tempoHandler(0, ui);
+
+
+    startTime = context.currentTime + 0.160;
+
+    // Start playing
+    setTimeout("schedule()", 10);
 }
 
 function init() {
-  xaudio = document.getElementById('myAudioTag');
-  
-  loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
+    xaudio = document.getElementById('myAudioTag');
+    context = xaudio.context;
 
-  // Initialize drum kits
-  var numKits = kitNames.length;
-  kits = new Array(numKits);
-  for (var i  = 0; i < numKits; i++) {
-    kits[i] = new Kit(kitNames[i]);
-  }  
- 
-  initCanvas(); 
+    convolver = context.createConvolver();
+
+    mainMixer = context.createMixer();
+    dryMixer = context.createMixer();
+    wetMixer = context.createMixer();
+    mainMixerInput1 = mainMixer.createInput();
+    mainMixerInput2 = mainMixer.createInput();
+
+    // Connect up static processing graph - this basically includes the dry, wet, and main mixers
+    dryMixer.connect(mainMixerInput1);
+    wetMixer.connect(convolver);
+    convolver.connect(mainMixerInput2);
+    mainMixer.connect(context.output);
+
+    listener = context.createListener();
+
+
+    loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
+
+    // Initialize drum kits
+    var numKits = kitNames.length;
+    kits = new Array(numKits);
+    for (var i  = 0; i < numKits; i++) {
+        kits[i] = new Kit(kitNames[i]);
+    }  
+
+    initCanvas(); 
 }
 
 function initCanvas() {
-  canvas = document.getElementById('canvasID');
-  ctx = canvas.getContext('2d');
-  
-  canvas.addEventListener("mousedown", handleMouseDown, true);
-  canvas.addEventListener("mousemove", handleMouseMove, true);
-  canvas.addEventListener("mouseup", handleMouseUp, true);
-  
-  canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
-  canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
-  
-  drawDrumGrid();
-  
-  for (i = 0; i < 16; ++i) {
-    drawNote(rhythm1[i], i, 0);
-    drawNote(rhythm2[i], i, 1);
-    drawNote(rhythm3[i], i, 2);
-    drawNote(rhythm4[i], i, 3);
-    drawNote(rhythm5[i], i, 4);
-    drawNote(rhythm6[i], i, 5);
-  }
-}
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
 
+    canvas.addEventListener("mousedown", handleMouseDown, true);
+    canvas.addEventListener("mousemove", handleMouseMove, true);
+    canvas.addEventListener("mouseup", handleMouseUp, true);
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+
+    drawDrumGrid();
+
+    for (i = 0; i < 16; ++i) {
+        drawNote(rhythm1[i], i, 0);
+        drawNote(rhythm2[i], i, 1);
+        drawNote(rhythm3[i], i, 2);
+        drawNote(rhythm4[i], i, 3);
+        drawNote(rhythm5[i], i, 4);
+        drawNote(rhythm6[i], i, 5);
+    }
+}
 
 var gIsMouseDown = false;
 var gLastX = 0;
 var gLastY = 0;
 
 function handleMouseDown(event) {
-  gIsMouseDown = true;
+    gIsMouseDown = true;
 
-  var posx = event.clientX;
-  var posy = event.clientY;
-
-
-  var eventInfo = {event: event, element:canvas};
+    var posx = event.clientX;
+    var posy = event.clientY;
 
 
-  var c = getRelativeCoordinates(eventInfo);
+    var eventInfo = {event: event, element:canvas};
 
-  var x = c.x;
-  var y = c.y;
-  
-  var noteSize = canvasWidth / 16.0;
-  var kInset = 2;
 
-  var gridIndex = Math.floor(x / noteSize);
-  var instrumentIndex = Math.floor(y / noteSize);
-  
-  var notes = rhythm1;
-  
-  switch (instrumentIndex) {
-    case 0: notes = rhythm1; break;
-    case 1: notes = rhythm2; break;
-    case 2: notes = rhythm3; break;
-    case 3: notes = rhythm4; break;
-    case 4: notes = rhythm5; break;
-    case 5: notes = rhythm6; break;
-  }
-    
-  notes[gridIndex] = 1 - notes[gridIndex];
-  
-  var gridX = gridIndex * noteSize;
-  
-  drawNote(notes[gridIndex], gridIndex, instrumentIndex);
+    var c = getRelativeCoordinates(eventInfo);
+
+    var x = c.x;
+    var y = c.y;
+
+    var noteSize = canvasWidth / 16.0;
+    var kInset = 2;
+
+    var gridIndex = Math.floor(x / noteSize);
+    var instrumentIndex = Math.floor(y / noteSize);
+
+    var notes = rhythm1;
+
+    switch (instrumentIndex) {
+        case 0: notes = rhythm1; break;
+        case 1: notes = rhythm2; break;
+        case 2: notes = rhythm3; break;
+        case 3: notes = rhythm4; break;
+        case 4: notes = rhythm5; break;
+        case 5: notes = rhythm6; break;
+    }
+
+    notes[gridIndex] = 1 - notes[gridIndex];
+
+    var gridX = gridIndex * noteSize;
+
+    drawNote(notes[gridIndex], gridIndex, instrumentIndex);
 }
 
 function drawNote(draw, xindex, yindex) {
-  var noteSize = canvasWidth / 16.0;
+    var noteSize = canvasWidth / 16.0;
 
-  var gridX = xindex * noteSize;
-  var gridY = yindex * noteSize
+    var gridX = xindex * noteSize;
+    var gridY = yindex * noteSize
 
-  var radius = 10;
-  if (draw == 1) {
-    ctx.fillStyle = "rgb(200,0,0)";
-    radius = 10;
-  } else {
-    ctx.fillStyle = "rgb(255,255,255)";
-    radius = 12;
-  }
-  
-  ctx.beginPath();
-  ctx.arc(gridX + 0.5*noteSize, gridY + 0.5*noteSize, radius, 0, Math.PI*2, true);
-  ctx.fill();
+    var radius = 10;
+    if (draw == 1) {
+        canvasContext.fillStyle = "rgb(200,0,0)";
+        radius = 10;
+    } else {
+        canvasContext.fillStyle = "rgb(255,255,255)";
+        radius = 12;
+    }
+
+    canvasContext.beginPath();
+    canvasContext.arc(gridX + 0.5*noteSize, gridY + 0.5*noteSize, radius, 0, Math.PI*2, true);
+    canvasContext.fill();
 }
 
 function drawPlayhead(xindex) {
-  // xindex = rhythmIndex;
-  
-  var noteSize = canvasWidth / 16.0;
+    // xindex = rhythmIndex;
 
-  var yindex = 0;
-  
-  var kInset = 2;
-  
-  var lastIndex = (xindex - 1 + 16) % 16;
-  
-  for (i = 0; i < kNumInstruments; ++i) {
-    // erase old playhead
-    ctx.strokeStyle = "rgb(150, 255, 150)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(lastIndex * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
-    
-    // draw new playhead
-    ctx.strokeStyle = "rgb(255, 0, 0)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(xindex    * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
-  }
+    var noteSize = canvasWidth / 16.0;
+
+    var yindex = 0;
+
+    var kInset = 2;
+
+    var lastIndex = (xindex - 1 + 16) % 16;
+
+    for (i = 0; i < kNumInstruments; ++i) {
+        // erase old playhead
+        canvasContext.strokeStyle = "rgb(150, 255, 150)";
+        canvasContext.lineWidth = 3;
+        canvasContext.strokeRect(lastIndex * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
+
+        // draw new playhead
+        canvasContext.strokeStyle = "rgb(255, 0, 0)";
+        canvasContext.lineWidth = 2;
+        canvasContext.strokeRect(xindex    * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
+    }
 }
 
 function handleMouseUp(event) {
-  gIsMouseDown = false;
+    gIsMouseDown = false;
 }
 
 function handleMouseMove(event) {
-  if (gIsMouseDown) {
-  }
+    if (gIsMouseDown) {
+    }
 }
-
 
 </script>
 </head>
