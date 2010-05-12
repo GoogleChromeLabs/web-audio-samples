@@ -308,6 +308,7 @@ function finishLoading() {
     panningRandomizationHandler(0, ui);
 
     // start playing the granular effect
+    realTime = context.currentTime;  
     setTimeout("schedule()", 50);
 }
 
