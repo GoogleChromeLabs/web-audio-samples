@@ -15,13 +15,19 @@
 		<!-- box2djs -->
 
 <script>
-    var gCount = 0;
-    var xaudio = 0;
-
+    var xaudio;
+    var context;
+    var mainMixer;
+    var mainMixerInput1;
+    var mainMixerInput2;
+    var dryMixer;
+    var wetMixer;
+    var convolver;
+    var listener;
     
     var pingFileName = "../sounds/hyper-reality/filter-noise-3.aif";
-
     var pingBuffer = 0;
+    var gCount = 0;
     
 
     // Callback when a collision occurs
@@ -49,21 +55,35 @@
       var y = position1.y;
 
       if (gCount > 0) {
-        var ping = xaudio.getVoice();
+        var ping = context.createBufferSource();
 
         if (ping) {
           var isQuiet = (gain < 0.5);
           ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
-
-
-          ping.sendGain = gain < 0.125 ? 0.3 : 0.125;
-          ping.mainGain = gain;  //isQuiet ? 0.0 : gain;
+          
+          var filter = context.createLowPass2Filter(ping);
+          var panner = context.createPanner(ping);
+          panner.panningModel = AudioPannerNode.HRTF;
+          panner.listener = listener;
+          
+          // Create inputs to dry/wet mixers
+          var dryMixerInput = dryMixer.createInput(ping);
+          var wetMixerInput = wetMixer.createInput(ping);
+          if (!dryMixerInput || !wetMixerInput) alert("error creating mixer input...");
+          
+          ping.connect(filter);
+          filter.connect(panner);
+          panner.connect(dryMixerInput);
+          panner.connect(wetMixerInput);
+          
+          wetMixerInput.gain.value = gain < 0.125 ? 0.3 : 0.125;
+          dryMixerInput.gain.value = gain;  //isQuiet ? 0.0 : gain;
 
           // Randomize pitch          
           var r = Math.random();
           var cents = 600.0 * (r - 0.5);
           var rate = Math.pow(2.0, cents / 1200.0);
-          ping.playbackPitch = rate;  // really rate (not pitch)
+          ping.playbackRate = rate;  // really rate (not pitch)
 
           // Adjust filter
           var value = 0.5 + 0.5 * xx;
@@ -72,8 +92,8 @@
 
           var sampleRate = 44100.0;
           var nyquist = sampleRate * 0.5;
-          ping.effect.param1 = v2;
-          ping.effect.param2 = 5.0; // resonance
+          filter.cutoff.value = v2 * nyquist;
+          filter.resonance.value = 5.0;
 
           var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
           if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
@@ -93,11 +113,11 @@
           posZ *= scaleXZ;
           var posY = scaleY * 10.0;
 
-          ping.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
+          panner.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
 
-          var when = 0.020 * Math.random();
+          // var when = 0.020 * Math.random();
 
-          ping.play(when);
+          ping.noteOn();
         }
       }
     }
@@ -116,7 +136,7 @@
       // Load impulse response asynchronously
       var request = xaudio.createAudioRequest(url, false);
       request.onload = function() { 
-        xaudio.impulseResponseBuffer = request.buffer;
+        convolver.buffer = request.buffer;
       }
 
       request.send();
@@ -126,9 +146,25 @@
       prettyPrint();
 
       xaudio = document.getElementById('myAudioTag');
+      context = xaudio.context;
+      listener = context.createListener();
+      
+      convolver = context.createConvolver();
 
-      xaudio.listener.gain = 2.0;
+      mainMixer = context.createMixer();
+      dryMixer = context.createMixer();
+      wetMixer = context.createMixer();
+      mainMixerInput1 = mainMixer.createInput();
+      mainMixerInput2 = mainMixer.createInput();
 
+      // dryInput = dryMixer.createInput();
+      // wetInput = wetMixer.createInput();
+
+      // Connect up static processing graph - this basically includes the dry, wet, and main mixers
+      dryMixer.connect(mainMixerInput1);
+      wetMixer.connect(convolver);
+      convolver.connect(mainMixerInput2);
+      mainMixer.connect(context.output);
 
       pingBuffer = 0;
       loadPing(pingFileName);
