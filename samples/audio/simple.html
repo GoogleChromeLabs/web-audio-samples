@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2010, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 </title>
 
 
-<!-- JQuery stuff -->
-<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
-<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
+<!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 
 <link rel="stylesheet" type="text/css" href="style/simple.css" />
@@ -57,10 +53,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // init() once the page has finished loading.
 window.onload = init;
 
-var buffer;
 var xaudio;
+var context;
+var buffer;
+var mixer;
+var convolver;
+var panner;
+var listener;
 var source;
-var source2;
+var dryMixerInput;
+var wetMixerInput;
+var lowFilter;
+
 var x = 0;
 var y = 0;
 var z = 0;
@@ -91,315 +95,332 @@ var fileList = [
 ];
 
 function setReverbImpulseResponse(url) {
-  // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
-  }
-  
-  request.send();
+    // Load impulse response asynchronously
+    var request = xaudio.createAudioRequest(url, false);
+    request.onload = function() { 
+        convolver.buffer = request.buffer;
+    }
+
+    request.send();
 }
 
-
 function setAudioSource(i) {
-  var buffer = bufferList[i];
+    var buffer = bufferList[i];
 
-  // See if we have cached buffer
-  if (buffer) {
-    source2.buffer = buffer;
-  } else {
-    // Load asynchronously
-    var url = fileList[i];
-    var request = xaudio.createAudioRequest(url, true);
-    request.onload = function() { 
-      source2.buffer = request.buffer;
-      bufferList[i] = request.buffer;  // cache it
+    // See if we have cached buffer
+    if (buffer) {
+        source.buffer = buffer;
+    } else {
+        // Load asynchronously
+        var url = fileList[i];
+        var request = xaudio.createAudioRequest(url, true);
+        request.onload = function() { 
+            source.buffer = request.buffer;
+            bufferList[i] = request.buffer;  // cache it
+        }
+
+        request.send();
     }
-  
-    request.send();
-  }
 }
 
 function loadHihat(url) {
-  // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
-  request.onload = function() { 
-    hihatShort = request.buffer;
-  }
+    // Load asynchronously
+    var request = xaudio.createAudioRequest(url, true);
+    request.onload = function() { 
+        hihatShort = request.buffer;
+    }
 
-  request.send();
+    request.send();
 }
 
 function addSubjects() {
-  var s = "<h1>HRTF Subjects</h1> <ul> ";  
-  
-  s += getSubjectString("1002");
-  s += getSubjectString("1013");
-  s += getSubjectString("1021");
-  s += getSubjectString("1043");
-  s += getSubjectString("1046");
-  s += getSubjectString("1047");
-  s += getSubjectString("1051");
-  s += getSubjectString("1053");
-  s += getSubjectString("1055");
-  s += getSubjectString("1056");
-  s += getSubjectString("1057");
-  s += getSubjectString("1058");
-  s += getSubjectString("1059");
-  
-  s += "</ul> ";
-  
-  var subjects = document.getElementById("subjects");
-  
-  subjects.innerHTML = s;
+    var s = "<h1>HRTF Subjects</h1> <ul> ";  
+
+    s += getSubjectString("1002");
+    s += getSubjectString("1013");
+    s += getSubjectString("1021");
+    s += getSubjectString("1043");
+    s += getSubjectString("1046");
+    s += getSubjectString("1047");
+    s += getSubjectString("1051");
+    s += getSubjectString("1053");
+    s += getSubjectString("1055");
+    s += getSubjectString("1056");
+    s += getSubjectString("1057");
+    s += getSubjectString("1058");
+    s += getSubjectString("1059");
+
+    s += "</ul> ";
+
+    var subjects = document.getElementById("subjects");
+
+    subjects.innerHTML = s;
 }
 
 function getSubjectString(name) {
-  return "<li onmousedown=\"xaudio.hrtfSubject = '" 
+    return "<li onmousedown=\"xaudio.hrtfSubject = '" 
     + name + "'; highlightElement(this); \">"
     + name + "</li> ";
 }
 
 function highlightElement(object) {
-  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
-  hilightedElement = object;
-  
-  object.style.backgroundColor = "green";
+    if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+    hilightedElement = object;
+
+    object.style.backgroundColor = "green";
 }
 
 function pitchHandler(event, ui) {
-   var cents = ui.value;
-   var info = document.getElementById("pitch-value");
-   info.innerHTML = "pitch = " + cents + " cents";
-   
-   var rate = Math.pow(2.0, cents / 1200.0);
-   source2.playbackPitch = rate;
+    var cents = ui.value;
+    var info = document.getElementById("pitch-value");
+    info.innerHTML = "pitch = " + cents + " cents";
+
+    var rate = Math.pow(2.0, cents / 1200.0);
+    source.playbackRate.value = rate;
 }
 
 function reverbHandler(event, ui) {
-  var value = ui.value;
-  var info = document.getElementById("reverb-value");
-  info.innerHTML = "reverb = " + value;
-  
-  source2.sendGain = value;
+    var value = ui.value;
+    var info = document.getElementById("reverb-value");
+    info.innerHTML = "reverb = " + value;
+
+    wetMixerInput.gain.value = value;
 }
 
 function influenceHandler(event, ui) {
-  var value = ui.value;
-  var info = document.getElementById("influence-value");
-  info.innerHTML = "reverb main gain influence = " + value;
-  
-  // source.gainSendInfluence = value;
-  source2.gainSendInfluence = value;
+    var value = ui.value;
+    var info = document.getElementById("influence-value");
+    info.innerHTML = "reverb main gain influence = " + value;
+
+    // source.gainSendInfluence = value;
 }
 
 function mainGainHandler(event, ui) {
-  var value = ui.value;
-  var info = document.getElementById("mainGain-value");
-  info.innerHTML = "main gain = " + value;
-  
-  // source.mainGain = value;
-  source2.mainGain = value;
+    var value = ui.value;
+    var info = document.getElementById("mainGain-value");
+    info.innerHTML = "main gain = " + value;
+
+    dryMixerInput.gain.value = value;
 }
 
 function cutoffHandler(event, ui) {
-  var value = ui.value;
-  var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
-  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    var value = ui.value;
+    var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
 
-  var sampleRate = 44100.0;
-  var nyquist = sampleRate * 0.5;
-  var info = document.getElementById("cutoff-value");
-  info.innerHTML = "cutoff = " + v2 * nyquist + " hz";
+    var sampleRate = 44100.0;
+    var nyquist = sampleRate * 0.5;
+    var frequency = v2 * nyquist;
+    var info = document.getElementById("cutoff-value");
 
-  source2.effect.param1 = v2;
+    info.innerHTML = "cutoff = " + frequency + " hz";
+
+    lowFilter.cutoff.value = frequency;
 }
 
 function addSliders() {
-  addSlider("pitch");
-  addSlider("reverb");
-  addSlider("influence");
-  addSlider("mainGain");
-  addSlider("cutoff");
-  configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
-  configureSlider("reverb", 0.25, 0.0, 1.0, reverbHandler);
-  configureSlider("influence", 0.5, 0.0, 1.0, influenceHandler);
-  configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
-  configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
+    addSlider("pitch");
+    addSlider("reverb");
+    addSlider("influence");
+    addSlider("mainGain");
+    addSlider("cutoff");
+    configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
+    configureSlider("reverb", 0.25, 0.0, 1.0, reverbHandler);
+    configureSlider("influence", 0.5, 0.0, 1.0, influenceHandler);
+    configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
+    configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
 }
 
 function setSourceBuffer(buffer) {
-  // source.buffer = buffer;
-  source2.buffer = buffer;
+    source.buffer = buffer;
 }
 
 /**
  * Start panning demo
  */
-function init() {
-  addSliders();
-  addSubjects();
+ function init() {
+     addSliders();
+     addSubjects();
 
-  var canvas = document.getElementById('canvasID');
-  var canvas2 = document.getElementById('canvasElevationID');
+     var canvas = document.getElementById('canvasID');
+     var canvas2 = document.getElementById('canvasElevationID');
 
-  var ctx = canvas.getContext('2d');
-  var ctx2 = canvas2.getContext('2d');
-  
-  // draw center
-  var width = canvas.width;
-  var height = canvas.height;
-  
-  ctx.fillStyle = "rgb(0,200,0)";
-  ctx.beginPath();
-  ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
-  ctx.fill();
+     var ctx = canvas.getContext('2d');
+     var ctx2 = canvas2.getContext('2d');
 
-  ctx2.fillStyle = "rgb(0,200,0)";
-  ctx2.beginPath();
-  ctx2.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
-  ctx2.fill();
+     // draw center
+     var width = canvas.width;
+     var height = canvas.height;
 
-  document.addEventListener("keydown", handleKeyDown, true);
-  canvas.addEventListener("mousedown", handleMouseDown, true);
-  canvas.addEventListener("mousemove", handleAzimuthMouseMove, true);
-  canvas.addEventListener("mouseup", handleMouseUp, true);
+     ctx.fillStyle = "rgb(0,200,0)";
+     ctx.beginPath();
+     ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
+     ctx.fill();
 
-  canvas2.addEventListener("mousedown", handleMouseDown, true);
-  canvas2.addEventListener("mousemove", handleElevationMouseMove, true);
-  canvas2.addEventListener("mouseup", handleMouseUp, true);
+     ctx2.fillStyle = "rgb(0,200,0)";
+     ctx2.beginPath();
+     ctx2.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
+     ctx2.fill();
 
-  xaudio = document.getElementById('myAudioTag');
-  
+     document.addEventListener("keydown", handleKeyDown, true);
+     canvas.addEventListener("mousedown", handleMouseDown, true);
+     canvas.addEventListener("mousemove", handleAzimuthMouseMove, true);
+     canvas.addEventListener("mouseup", handleMouseUp, true);
+
+     canvas2.addEventListener("mousedown", handleMouseDown, true);
+     canvas2.addEventListener("mousemove", handleElevationMouseMove, true);
+     canvas2.addEventListener("mouseup", handleMouseUp, true);
 
 
-  bufferList = new Array(fileCount);
-  for (var i = 0; i < fileCount; ++i) {
-    bufferList[i] = 0;
-  }
-  
-  loadHihat("sounds/drum-samples/hihat-short.aif");
-    
-  xaudio.listener.gain = 0.8;
+     // Initialize audio
+     xaudio = document.getElementById('myAudioTag');
+     context = xaudio.context;
+     source = context.createBufferSource();
+     mixer = context.createMixer();
+     dryMixerInput = mixer.createInput();
+     wetMixerInput = mixer.createInput();
+     panner = context.createPanner(source);
 
-  setReverbImpulseResponse('impulse-responses/spatialized3.aif');
-  
-  source2 = xaudio.addSource();
-  source2.playbackPitch = 1.0;  // should be in cents!!!!
-	source2.sendGain = 0.25;
-  source2.setPosition(0, 0, -4.0);
-  source2.looping = true;
+     lowFilter = context.createLowPass2Filter(source);
+     lowFilter.cutoff.value = 22050.0;
+     lowFilter.resonance.value = 5.0;
 
-  // Load up initial buffer
-  setAudioSource(4);
+     convolver = context.createConvolver();
 
-  var currentTime = xaudio.currentTime;
-  source2.play(currentTime + 0.020);
-  
-  var effect = source2.effect;
-}
+     listener = context.createListener();
+     panner.listener = listener;
+
+     // Connect audio processing graph
+     source.connect(lowFilter);
+     lowFilter.connect(panner);
+     panner.connect(dryMixerInput);
+     panner.connect(convolver);
+     convolver.connect(wetMixerInput);
+     mixer.connect(context.output);
+
+
+     bufferList = new Array(fileCount);
+     for (var i = 0; i < fileCount; ++i) {
+         bufferList[i] = 0;
+     }
+
+     loadHihat("sounds/drum-samples/hihat-short.aif");
+
+     setReverbImpulseResponse('impulse-responses/spatialized3.aif');
+
+     source.playbackRate.value = 1.0;
+     wetMixerInput.gain.value = 0.25;
+
+     panner.setPosition(0, 0, -4.0);
+     source.looping = true;
+
+     // Load up initial buffer
+     setAudioSource(4);
+
+     var currentTime = context.currentTime;
+     source.noteOn(currentTime + 0.020);
+ }
 
 var gIsMouseDown = false;
 var gLastX = 0;
 var gLastY = 0;
 
 function handleKeyDown(event) {
-  var voice = xaudio.getVoice();
-  if (voice) {
-    voice.buffer = hihatShort;
-    voice.panningModel = 0;  // passthrough panning
-    voice.setPosition(0, 0, -2.0);
-    voice.sendGain = 0.0;
-    voice.mainGain = 2.0;
-    voice.play(0.0);
-  }
+    var voice = xaudio.getVoice();
+    if (voice) {
+        voice.buffer = hihatShort;
+        voice.panningModel = 0;  // passthrough panning
+        voice.setPosition(0, 0, -2.0);
+        voice.sendGain = 0.0;
+        voice.mainGain = 2.0;
+        voice.noteOn(0.0);
+    }
 }
 
 function handleMouseDown(event) {
-  gIsMouseDown = true;
+    gIsMouseDown = true;
 }
 
 function handleMouseUp(event) {
-  gIsMouseDown = false;
+    gIsMouseDown = false;
 }
 
 function handleAzimuthMouseMove(event) {
-  var canvas = document.getElementById("canvasID");
-  handleMouseMove(event, canvas, 0);
+    var canvas = document.getElementById("canvasID");
+    handleMouseMove(event, canvas, 0);
 }
 
 function handleElevationMouseMove(event) {
-  var canvas = document.getElementById("canvasElevationID");
-  handleMouseMove(event, canvas, 1);
+    var canvas = document.getElementById("canvasElevationID");
+    handleMouseMove(event, canvas, 1);
 }
 
 function handleMouseMove(event, canvas, type) {
-  if (gIsMouseDown) {
-    var posx = event.clientX;
-    var posy = event.clientY;
+    if (gIsMouseDown) {
+        var posx = event.clientX;
+        var posy = event.clientY;
 
-    // var canvas = document.getElementById("canvasID");
-    var ctx = canvas.getContext('2d');
+        // var canvas = document.getElementById("canvasID");
+        var ctx = canvas.getContext('2d');
 
-    var myDiv = canvas;
+        var myDiv = canvas;
 
-    var divWidth = parseFloat(window.getComputedStyle(myDiv, null).width);
-    var divHeight = parseFloat(window.getComputedStyle(myDiv, null).height);
+        var divWidth = parseFloat(window.getComputedStyle(myDiv, null).width);
+        var divHeight = parseFloat(window.getComputedStyle(myDiv, null).height);
 
-    var eventInfo = {event: event, element:myDiv};
+        var eventInfo = {event: event, element:myDiv};
 
-    var c = getRelativeCoordinates(eventInfo);
+        var c = getRelativeCoordinates(eventInfo);
 
-  
-    // erase last location
-    ctx.fillStyle = "rgb(255,255,255)";
 
-    ctx.beginPath();
-    ctx.arc(gLastX,gLastY,12,0,Math.PI*2,true)
-    ctx.fill();
+        // erase last location
+        ctx.fillStyle = "rgb(255,255,255)";
 
-    // draw new location
-    ctx.fillStyle = "rgb(200,0,0)";
-    ctx.beginPath();
-    ctx.arc(c.x,c.y,10,0,Math.PI*2,true);
-    ctx.fill();
+        ctx.beginPath();
+        ctx.arc(gLastX,gLastY,12,0,Math.PI*2,true)
+        ctx.fill();
 
-    // draw center
-    var width = canvas.width;
-    var height = canvas.height;
-    divWidth = width;
-    divHeight = height;
-    
-    ctx.fillStyle = "rgb(0,200,0)";
-    ctx.beginPath();
-    ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true);
-    ctx.fill();
-    
-    ctx.strokeRect(0,0, width, height);
-    
-    gLastX = c.x;
-    gLastY = c.y;
-  
-    var a = c.x / divWidth;
-    var b = c.y / divHeight;
-  
-    x = 8.0 * (2.0*a - 1.0);
+        // draw new location
+        ctx.fillStyle = "rgb(200,0,0)";
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,10,0,Math.PI*2,true);
+        ctx.fill();
 
-    if (type == 0) {
-      z = 8.0 * (2.0*b - 1.0);
-    } else {
-      y = -11.0 * (2.0*b - 1.0);
+        // draw center
+        var width = canvas.width;
+        var height = canvas.height;
+        divWidth = width;
+        divHeight = height;
+
+        ctx.fillStyle = "rgb(0,200,0)";
+        ctx.beginPath();
+        ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true);
+        ctx.fill();
+
+        ctx.strokeRect(0,0, width, height);
+
+        gLastX = c.x;
+        gLastY = c.y;
+
+        var a = c.x / divWidth;
+        var b = c.y / divHeight;
+
+        x = 8.0 * (2.0*a - 1.0);
+
+        if (type == 0) {
+            z = 8.0 * (2.0*b - 1.0);
+        } else {
+            y = -11.0 * (2.0*b - 1.0);
+        }
+
+        panner.setPosition(x, y, z);
+
+        // TODO(crogers) : this isn't really correct -- we need to factor in time here as well...
+        // source.setVelocity(5.0 * (x - lastX), 0.0, 20.0 * (z - lastZ));
+
+        lastX = x;
+        lastZ = z;
     }
-  
-                                        // source.setPosition(x, 0, -z);
-    source2.setPosition(x, y, z);
-    
-    // TODO(crogers) : this isn't really correct -- we need to factor in time here as well...
-    // source2.setVelocity(5.0 * (x - lastX), 0.0, 20.0 * (z - lastZ));
-
-    lastX = x;
-    lastZ = z;
-  }
 }
 
 </script>
@@ -554,9 +575,6 @@ Sifter</li>
 
 <li onmousedown="setReverbImpulseResponse('impulse-responses/wildecho.aif');">
 Wild Echo</li>
-
-
-
 
 <li onmousedown="setReverbImpulseResponse('impulse-responses/backslap1.aif');">
 backslap</li>
