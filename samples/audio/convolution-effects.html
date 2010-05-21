@@ -74,7 +74,7 @@ var hilightedElement = 0;
 
 var fileCount = 29 /*23*/;
 var fileList = [
-  "sounds/hyper-reality/human-voice.aif",       // 0
+  "sounds/hyper-reality/human-voice.mp4",       // 0
   "sounds/hyper-reality/guitar-chords.aif",     // 1
   "sounds/drum-samples/conga-rhythm.aif",       // 2
   "sounds/hyper-reality/br-jam-loop.aif",       // 3
@@ -167,13 +167,13 @@ function finishLoading() {
     var loading = document.getElementById("loading");
     loading.innerHTML = "";
 
-    loadBufferAndPlay(0, 0, 0.0, 0.5);
+    loadBufferAndPlay(0, 11, 0.0, 0.5);
 }
 
 function init() {
     xaudio = document.getElementById('myAudioTag');
     context = xaudio.context;
-    convolver = context.createConvolver(source);
+    convolver = context.createConvolver();
     source = context.createBufferSource();
     mixer = context.createMixer();
 
