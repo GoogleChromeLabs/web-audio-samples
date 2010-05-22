@@ -72,6 +72,14 @@ var backwards = 0;
 var loadCount = 0;
 var hilightedElement = 0;
 
+var wantsToPlaySourceIndex = 0;
+var wantsToPlayResponseIndex = 11;
+
+var playingSourceIndex = -1;
+var playingResponseIndex = -1;
+
+
+
 var fileCount = 29 /*23*/;
 var fileList = [
   "sounds/hyper-reality/human-voice.mp4",       // 0
@@ -146,28 +154,54 @@ function highlightElement(object) {
 }
 
 function loadBufferAndPlay(bufferIndex, responseIndex, mainGain, reverbGain) {
-    source.buffer = bufferLoaderList[bufferIndex].buffer;
-    convolver.buffer = bufferLoaderList[responseOffset + responseIndex].buffer;
+    if (!bufferLoaderList[bufferIndex] || !bufferLoaderList[responseOffset + responseIndex]) {
+        if (!bufferLoaderList[bufferIndex]) {
+            bufferLoaderList[bufferIndex] = new BufferLoader(fileList[bufferIndex]);  
+        }
 
-    mixerInput1.gain.value = mainGain;
-    mixerInput2.gain.value = reverbGain;
+        if (!bufferLoaderList[responseOffset + responseIndex]) {
+            bufferLoaderList[responseOffset + responseIndex] = new BufferLoader(fileList[responseOffset + responseIndex]);  
+        }
+    } else if (bufferLoaderList[bufferIndex].buffer && bufferLoaderList[responseOffset + responseIndex].buffer) {    
+        source.buffer = bufferLoaderList[bufferIndex].buffer;
+        convolver.buffer = bufferLoaderList[responseOffset + responseIndex].buffer;
 
-    source.noteOn(0);
+        mixerInput1.gain.value = mainGain;
+        mixerInput2.gain.value = reverbGain;
+
+        // alert("playing... " + bufferIndex + " : " + responseIndex);
+        // alert("b1 = " + bufferLoaderList[bufferIndex].buffer + " : b2 = " + bufferLoaderList[responseOffset + responseIndex].buffer);
+        source.noteOn(0);
+    }
 }
 
 function finishLoading() {
-    loadCount++;
-    if (loadCount != fileCount) {
-        // not done yet - load next file
-        bufferLoaderList[loadCount] = new BufferLoader(fileList[loadCount]);  
-        return;
+    if (
+        bufferLoaderList[wantsToPlaySourceIndex] != 0 
+        && bufferLoaderList[wantsToPlaySourceIndex].buffer != 0 
+        && bufferLoaderList[responseOffset + wantsToPlayResponseIndex] != 0
+        && bufferLoaderList[responseOffset + wantsToPlayResponseIndex].buffer != 0
+        && (wantsToPlaySourceIndex != playingSourceIndex || wantsToPlayResponseIndex != playingResponseIndex)
+    ) {
+        // first, get rid of loading animation
+        var loading = document.getElementById("loading");
+        loading.innerHTML = "";
+        
+        playingSourceIndex = wantsToPlaySourceIndex;
+        playingResponseIndex = wantsToPlayResponseIndex;
+
+        loadBufferAndPlay(wantsToPlaySourceIndex, wantsToPlayResponseIndex, 0.0, 0.5);
     }
 
-    // first, get rid of loading animation
-    var loading = document.getElementById("loading");
-    loading.innerHTML = "";
+    loadCount++;
 
-    loadBufferAndPlay(0, 11, 0.0, 0.5);
+    if (loadCount < fileCount) {
+        // not done yet - load next file
+        if (bufferLoaderList[loadCount] == 0) {
+            bufferLoaderList[loadCount] = new BufferLoader(fileList[loadCount]);
+        }
+        return;
+    }
 }
 
 function init() {
@@ -193,9 +227,15 @@ function init() {
     source.looping = true;
 
     bufferLoaderList = new Array(fileCount);
+    for (i = 0; i < fileCount; ++i) {
+        bufferLoaderList[i] = 0;
+    }
 
-    // start loading
-    bufferLoaderList[0] = new BufferLoader(fileList[0]);  
+    // Start loading initial "preset"
+    loadBufferAndPlay(wantsToPlaySourceIndex, wantsToPlayResponseIndex, 0.15, 0.5);
+
+    // Then start pre-loading others...   HACK HACK HACK
+    bufferLoaderList[1] = new BufferLoader(fileList[1]);
 }
 
 </script>
