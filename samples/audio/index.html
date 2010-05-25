@@ -107,17 +107,27 @@ svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
 
 <tr> 
 <td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="visualizer/visualizer.html" imageanchor="1"><img src="images/music-visualizer.png" border="1"></a></div> 
-</td> 
-<td style="width: 300px;"><a href="visualizer/visualizer.html"><b>Music Visualizer.</b></a> The JavaScript API provides access to real-time frequency-domain analysis data for creating music visualizers like those found in iTunes.</td> 
-</tr> 
- 
-<tr> 
-<td style="width: 60px;"> 
 <div style="display: block; text-align: left;"><a href="visualizer-gl/visualizer-gl.html" imageanchor="1"><img src="images/visualizer-gl.png" border="1"></a></div> 
 </td> 
-<td style="width: 300px;"><a href="visualizer-gl/visualizer-gl.html"><b>Realtime Analyser.</b></a> Here's another example of a visualizer using WebGL.</td> 
+<td style="width: 300px;"><a href="visualizer-gl/visualizer-gl.html"><b>Realtime Analyser.</b></a> Here's another example of a visualizer using WebGL.  This requires
+that WebGL be activated.  At the command-line you must type:
+<br>
+<br>
+<pre>
+$ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
+</pre>
+
+</td> 
 </tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="visualizer/visualizer.html" imageanchor="1"><img src="images/music-visualizer.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="visualizer/visualizer.html"><b>Music Visualizer.</b></a> The JavaScript API provides access to real-time frequency-domain analysis
+ data for creating music visualizers like those found in iTunes.  This demo requires the o3d plugin.</td> 
+</tr> 
+ 
  
  
 <tr> 
