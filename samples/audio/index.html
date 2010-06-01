@@ -124,7 +124,7 @@ $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
  
 <tr> 
 <td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="pool.html" imageanchor="1"><img src="images/8-ball2.png" border="1"></a></div> 
+<div style="display: block; text-align: left;"><a href="o3d-webgl-samples/pool.html" imageanchor="1"><img src="images/8-ball2.png" border="1"></a></div> 
 </td> 
 <td style="width: 300px;"><a href="pool.html"><b>8-ball</b></a> A virtual pool game complete with sound effects.    It currently requires the O3D plugin (download <a href="http://tools.google.com/dlpage/o3d/eula.html">here</a>) but could easily be implemented using WebGL.</td> 
 </tr> 
@@ -153,18 +153,32 @@ The code currently works on Mac OS X, but is actively being ported to Windows.
 <h3>Getting the Code</h3>
 
 <p>
-This audio branch can be checked out using:
+The audio branch can be checked out using:
 </p>
 
 <pre>
 svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
 </pre>
 
-<h3>Building for Chrome</h3>
+<h3>Building and Running for Chrome</h3>
 
+<h4>Building</h4>
 <p>
 To build for Chrome, it's necessary to build against a specific revision of Chromium (matching where the audio branch was taken in WebKit).
 The Chromium subversion revision is r45638.  The <code>WebKit</code> directory (<code>src/third_party/WebKit</code>) must be from the audio branch (see above <code>svn co</code> command).
+</p>
+
+<h4>Running</h4>
+<p>
+It is currently necessary to disable the sandbox in order to run the demos.  For example, to run your debug build of chromium:
+</p>
+
+<pre>
+$ /YourFullPath/Chromium/src/xcodebuild/Debug/Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-webgl
+</pre>
+
+<p>
+Optionally, for debugging purposes, you may wish to use the <code>--single-process</code> option.
 </p>
 
 <h3>Building for Safari</h3>
@@ -176,6 +190,14 @@ To build for Safari, go into the WebKit scripts directory (from the branch):
 <pre>
 $ cd WebKit/WebKitTools/Scripts
 $ ./build-webkit --debug
+</pre>
+
+<p>
+If you haven't yet done so, you can enable WebGL now (necessary for some of the demos):
+</p>
+
+<pre>
+$ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 </pre>
 
 <p>
