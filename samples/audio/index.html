@@ -34,20 +34,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <head> 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 <link href="style/codesite.css" rel="stylesheet" type="text/css" /> 
-<title>Audio Canvas</title> 
+<title>Web Audio</title> 
 </head> 
  
 <body>
-<h2>Audio Canvas</h2>
-<p>This site introduces an early version of an audio engine with JavaScript bindings. This audio API is analogous to the &lt;canvas&gt; tag for 2D and 3D graphics.  The audio system proposed here is capable of dynamically positioning/spatializing and mixing multiple sound sources in three-dimensional space. A powerful mix engine is proposed, supporting effects, a convolution engine for reverb, multiple sends, submixes, etc. Scheduled sound playback is provided for musical applications requiring a high degree of rhythmic precision.</p> 
-<p>These APIs are currently under development, and we welcome feedback from other WebKit developers.</p> 
+<h2>Web Audio Examples</h2>
+<p>This site introduces an early version of an audio engine with javascript API. It is analogous to the <code>canvas</code> element for 2D and 3D graphics.
+  The engine is capable of dynamically positioning/spatializing and mixing multiple sound sources in three-dimensional space.
+   It has a powerful modular routing system, supporting effects, a convolution engine for reverb, multiple sends, submixes, etc.
+    Scheduled sound playback is provided for musical applications requiring a high degree of rhythmic precision.  Realtime analysis / visualizer support
+    is also provided.</p> 
+<p>These APIs are currently under development, and we welcome feedback - <b>crogers@google.com</b>.</p> 
 <h2>Getting Started</h2> 
-<p>Currently, the Audio Canvas engine runs only on the Macintosh platform and requires a build from a special
-<a href="https://svn.webkit.org/repository/webkit/branches/audio/">branch</a> of WebKit.  This branch can be checked out using:
-
-<pre>
-svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
-</pre>
+<p>Currently, the audio API requires a build from a special
+<a href="https://svn.webkit.org/repository/webkit/branches/audio/">branch</a> of WebKit.  Build instructions are <a href="#how-to-build">here</a>.
 
 <h2>Samples</h2> 
 <br> 
@@ -55,27 +55,6 @@ svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
  
 <table> 
 <tbody> 
-<tr> 
-<td cellpadding="10" style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="doppler.html"><img src="images/doppler.png" border="1"></a></div> 
-</td> 
-<td style="width: 3000px;"><a href="doppler.html"><b>Doppler Shift</b></a> is a demo where an object is animated around the listener and illustrates both 3D spatialized positioning and doppler shifting, where the pitch of a sound increases as it moves toward the listener and decreases as it moves away.  It's possible to change the trajectory of the object left/right, front/back, and up/down, as well as to select some parameters such as speed, pitch, and sound source.<br> 
-</td> 
-</tr> 
- 
-<tr> 
-<td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="box2d-js/box2d-audio.html" imageanchor="1"><img src="images/box2d.png" border="1"></a></div> 
-</td> 
-<td style="width: 300px;"><a href="box2d-js/box2d-audio.html"><b>box2d</b></a> is an example of an interactive application with a real-time physics engine.  You can drop objects by clicking anywhere on the screen.  The collisions between the objects are accompanied by sound effects which take into account the  positions of the objects, as well as the force of the impacts.</td> 
-</tr> 
- 
-<tr> 
-<td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="box2d-3d/box2d-3d.html" imageanchor="1"><img src="images/box3d.png" border="1"></a></div> 
-</td> 
-<td style="width: 300px;"><a href="box2d-3d/box2d-3d.html"><b>box3d</b></a> demonstrates the same audio features as the box2d example but has more interesting 3D graphics.  It currently requires the O3D plugin (download <a href="http://tools.google.com/dlpage/o3d/eula.html">here</a>) but could easily be implemented using WebGL.</td> 
-</tr> 
  
 <tr> 
 <td style="width: 60px;"> 
@@ -107,7 +86,7 @@ svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
 
 <tr> 
 <td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="visualizer-gl/visualizer-gl.html" imageanchor="1"><img src="images/visualizer-gl.png" border="1"></a></div> 
+<div style="display: block; text-align: left;"><a href="visualizer-gl/visualizer-gl.html" imageanchor="1"><img src="images/visualizer2-gl.png" border="1"></a></div> 
 </td> 
 <td style="width: 300px;"><a href="visualizer-gl/visualizer-gl.html"><b>Realtime Analyser.</b></a> Here's another example of a visualizer using WebGL.  This requires
 that WebGL be activated.  At the command-line you must type:
@@ -120,14 +99,20 @@ $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 </td> 
 </tr> 
 
-<tr> 
-<td style="width: 60px;"> 
-<div style="display: block; text-align: left;"><a href="visualizer/visualizer.html" imageanchor="1"><img src="images/music-visualizer.png" border="1"></a></div> 
-</td> 
-<td style="width: 300px;"><a href="visualizer/visualizer.html"><b>Music Visualizer.</b></a> The JavaScript API provides access to real-time frequency-domain analysis
- data for creating music visualizers like those found in iTunes.  This demo requires the o3d plugin.</td> 
-</tr> 
- 
+ <tr> 
+ <td style="width: 60px;"> 
+ <div style="display: block; text-align: left;"><a href="box2d-js/box2d-audio.html" imageanchor="1"><img src="images/box2d.png" border="1"></a></div> 
+ </td> 
+ <td style="width: 300px;"><a href="box2d-js/box2d-audio.html"><b>box2d</b></a> is an example of an interactive application with a real-time physics engine.  You can drop objects by clicking anywhere on the screen.  The collisions between the objects are accompanied by sound effects which take into account the  positions of the objects, as well as the force of the impacts.</td> 
+ </tr> 
+
+
+ <tr> 
+ <td style="width: 60px;"> 
+ <div style="display: block; text-align: left;"><a href="box2d-3d/box2d-3d.html" imageanchor="1"><img src="images/box3d.png" border="1"></a></div> 
+ </td> 
+ <td style="width: 300px;"><a href="box2d-3d/box2d-3d.html"><b>box3d</b></a> demonstrates the same audio features as the box2d example but has more interesting 3D graphics.  It currently requires the O3D plugin (download <a href="http://tools.google.com/dlpage/o3d/eula.html">here</a>) but could easily be implemented using WebGL.</td> 
+ </tr> 
  
  
 <tr> 
@@ -143,9 +128,66 @@ $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 </td> 
 <td style="width: 300px;"><a href="pool.html"><b>8-ball</b></a> A virtual pool game complete with sound effects.    It currently requires the O3D plugin (download <a href="http://tools.google.com/dlpage/o3d/eula.html">here</a>) but could easily be implemented using WebGL.</td> 
 </tr> 
+
+<tr> 
+<td cellpadding="10" style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="doppler.html"><img src="images/doppler.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="doppler.html"><b>Doppler Shift</b></a> is a demo where an object is animated around the listener and illustrates both 3D spatialized positioning and doppler shifting, where the pitch of a sound increases as it moves toward the listener and decreases as it moves away.  It's possible to change the trajectory of the object left/right, front/back, and up/down, as well as to select some parameters such as speed, pitch, and sound source.<br> 
+</td> 
+</tr> 
  
+
 </tbody> 
 </table> 
+
+<br><br>
+
+<div id="how-to-build">
+<h2>How to Build and Run</h2>
+
+<p>
+The code currently works on Mac OS X, but is actively being ported to Windows.
+</p>
+
+<h3>Getting the Code</h3>
+
+<p>
+This audio branch can be checked out using:
+</p>
+
+<pre>
+svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
+</pre>
+
+<h3>Building for Chrome</h3>
+
+<p>
+To build for Chrome, it's necessary to build against a specific revision of Chromium (matching where the audio branch was taken in WebKit).
+The Chromium subversion revision is r45638.  The <code>WebKit</code> directory (<code>src/third_party/WebKit</code>) must be from the audio branch (see above <code>svn co</code> command).
+</p>
+
+<h3>Building for Safari</h3>
+
+<p>
+To build for Safari, go into the WebKit scripts directory (from the branch):
+</p>
+
+<pre>
+$ cd WebKit/WebKitTools/Scripts
+$ ./build-webkit --debug
+</pre>
+
+<p>
+After building, you can run in Safari:
+</p>
+
+<pre>
+$ ./run-safari --debug
+</pre>
+
+</div>
+
  
 </body> 
 </html> 
