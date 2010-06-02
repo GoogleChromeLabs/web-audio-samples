@@ -359,7 +359,7 @@
         represents the final destination to the audio hardware.  Other nodes such as mixers and filters may be placed between
         the <code>AudioSourceNode</code> nodes and the final <code>AudioOutputNode</code> node.
         
-        As much as possible it should free the developer from having to deal with low-level details and just "do the right thing" when two objects are connected together.
+        The developer doesn't have to worry about low-level stream format details when two objects are connected together; the right thing just happens .
         For example, if a mono audio stream is connected to a stereo mixer it should just mix to left and right channels appropriately.
 
         </p>
@@ -535,6 +535,9 @@ function playSound() {
     <p> 
       This interface represents audio sources, audio outputs, and intermediate processing modules.
       These modules may be connected together to form <a href="#ModularRouting-section">processing graphs</a> for rendering audio to the audio hardware.
+      Each node may have inputs and/or outputs.
+      An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioOutputNode</code> has one input and no outputs and
+      represents the final destination to the audio hardware.  Most processing nodes such as filters will have one input and one output.
       
     </p> 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -555,7 +558,8 @@ function playSound() {
 
     <div id="attributes-AudioNode" class="section"> 
     <h3>4.1. Attributes</h3> 
-    <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The output hardware sample-rate in sample frames per seconds.</p></dd></dl> 
+    <dl><dt id="dfn-numberOfInputs"><code>numberOfInputs</code></dt><dd><p>The number of inputs feeding into the AudioNode</p></dd></dl> 
+    <dl><dt id="dfn-numberOfOutputs"><code>numberOfOutputs</code></dt><dd><p>The number of outputs coming out of the AudioNode</p></dd></dl> 
     </div>
     
     <div id="methodsandparams-AudioNode" class="section"> 
@@ -612,7 +616,7 @@ function playSound() {
     </code></pre></div></div> 
 
 
-    <div id="attributes-AudioNode" class="section"> 
+    <div id="attributes-AudioContext" class="section"> 
     <h3>5.1. Attributes</h3> 
     <dl><dt id="dfn-output"><code>output</code></dt><dd><p>An <code>AudioOutputNode</code> with a single input representing the final destination for all audio (to be rendered to the audio hardware).</p></dd></dl> 
     <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>All scheduled times are relative to this time.
@@ -622,7 +626,7 @@ function playSound() {
     </p></dd></dl> 
     </div> 
 
-    <div id="methodsandparams-blob" class="section"> 
+    <div id="methodsandparams-AudioContext" class="section"> 
     <h3>5.2. Methods and Parameters</h3> 
     <dl><dt id="dfn-createBufferSource">The <code>createBufferSource</code> method</dt> 
     <dd>
@@ -696,7 +700,7 @@ function playSound() {
         <span class="comment">// An advanced implementation could include automation: </span>         
         <span class="comment">// Can be piecewise linear, or sample-accurate buffer for envelopes, </span>         
         <span class="comment">// volume fade-outs, LFOs, grain windows, etc. </span>         
-        Curve automation;
+        AudioCurve automation;
 
     }
     </code></pre></div></div> 
@@ -710,7 +714,7 @@ function playSound() {
     <dl><dt id="dfn-defaultValue"><code>defaultValue</code></dt><dd><p>Initial value for the value attribute</p></dd></dl> 
     <dl><dt id="dfn-name"><code>name</code></dt><dd><p>The name of the parameter.</p></dd></dl> 
     <dl><dt id="dfn-units"><code>units</code></dt><dd><p>Represents the type of value (seconds, decibels, cents, etc.).</p></dd></dl> 
-    <dl><dt id="dfn-automation"><code>automation</code></dt><dd><p>A Curve which may automate the parameter value over time.</p></dd></dl> 
+    <dl><dt id="dfn-automation"><code>automation</code></dt><dd><p>An AudioCurve which may automate the parameter value over time.</p></dd></dl> 
     </div> 
 
 
@@ -738,14 +742,14 @@ function playSound() {
         attribute AudioGain gain;
         
         readonly attribute float sampleRate;
-        readonly attribute float frameLength;
+        readonly attribute float length;
 
         <span class="comment">// in seconds </span>         
-        readonly attribute float length;  
+        readonly attribute float duration;  
 
         readonly attribute int numberOfChannels;
 
-        <span class="comment">// could later add API to access channel data </span>         
+        <span class="comment">// TODO: add API to access channel data </span>         
 
     }
     </code></pre></div></div> 
@@ -755,8 +759,8 @@ function playSound() {
     <h3>7.1. Attributes</h3> 
     <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The amount of gain to apply when using this buffer in any <code>AudioBufferSourceNode</code>.  The default value is 1.0. </p></dd></dl> 
     <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample-rate for the PCM audio data in samples per second.</p></dd></dl> 
-    <dl><dt id="dfn-frameLength"><code>frameLength</code></dt><dd><p>Length of the PCM audio data in sample-frames.</p></dd></dl> 
-    <dl><dt id="dfn-length"><code>length</code></dt><dd><p>Length of the PCM audio data in seconds.</p></dd></dl> 
+    <dl><dt id="dfn-length"><code>length</code></dt><dd><p>Length of the PCM audio data in sample-frames.</p></dd></dl> 
+    <dl><dt id="dfn-duration"><code>duration</code></dt><dd><p>Duration of the PCM audio data in seconds.</p></dd></dl> 
     <dl><dt id="dfn-numberOfChannels"><code>numberOfChannels</code></dt><dd><p>The number of discrete audio channels.</p></dd></dl> 
     </div> 
 
@@ -891,7 +895,7 @@ function playSound() {
         <span class="comment">// Many sources can share the same buffer  </span>   
         attribute AudioBuffer buffer;
 
-        attribute boolean looping;
+        attribute boolean loop;
 
         void noteOn(in float when);
         void noteGrainOn(in float when, in float grainOffset, in float grainDuration);
@@ -901,15 +905,51 @@ function playSound() {
     </code></pre></div></div>
 
 
-    <div id="attributes-AudioElementSourceNode" class="section"> 
+    <div id="attributes-AudioBufferSourceNode" class="section"> 
     <h3>11.1. Attributes</h3> 
     <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>Represents the audio asset to be played. </p></dd></dl> 
-    <dl><dt id="dfn-buffer"><code>looping</code></dt><dd><p>Represents if the audio data should playback in a loop. </p></dd></dl> 
+    <dl><dt id="dfn-loop"><code>loop</code></dt><dd><p>Indicates if the audio data should play in a loop. </p></dd></dl> 
     </div> 
 
   </div> 
 
 
+  <div id="methodsandparams-AudioBufferSourceNode" class="section"> 
+  <h3>11.2. Methods and Parameters</h3> 
+  <dl><dt id="dfn-noteOn">The <code>noteOn</code> method</dt> 
+  <dd>
+  <p>Schedules a sound to playback at an exact time.</p> 
+  <p>The <dfn id="dfn-when">when</dfn> parameter describes at what time (in seconds) the sound should start playing.
+  This time is relative to the <b>currentTime</b> attribute of the AudioContext.  If 0 is passed in for this value or if the
+  value is less than <b>currentTime</b>, then the sound will start playing immediately.
+  </p> 
+  </dd>
+
+  <dl><dt id="dfn-noteGrainOn">The <code>noteGrainOn</code> method</dt> 
+  <dd>
+  <p>Schedules a portion of a sound to playback at an exact time.  A "grain window" will be applied to the portion of the sound within the buffer,
+    smoothly fading in and out.</p> 
+  <p>The <dfn id="dfn-when">when</dfn> parameter describes at what time (in seconds) the sound should start playing.
+  This time is relative to the <b>currentTime</b> attribute of the AudioContext.  If 0 is passed in for this value or if the
+  value is less than <b>currentTime</b>, then the sound will start playing immediately.
+  </p> 
+
+  <p>The <dfn id="dfn-grainOffset">grainOffset</dfn> parameter describes the offset in the buffer (in seconds) for the portion to be played.  </p> 
+  <p>The <dfn id="dfn-grainDuration">grainDuration</dfn> parameter describes the duration of the portion (in seconds) to be played.  </p>
+  </dd>
+
+  <dl><dt id="dfn-noteOff">The <code>noteOff</code> method</dt> 
+  <dd>
+  <p>Schedules a sound to stop playback at an exact time.  In an advanced implementation, the sound may not stop playing back immediately but
+    would instead enter the "release" portion of its envelope.</p> 
+  <p>The <dfn id="dfn-when">when</dfn> parameter describes at what time (in seconds) the sound should stop playing.
+  This time is relative to the <b>currentTime</b> attribute of the AudioContext.  If 0 is passed in for this value or if the
+  value is less than <b>currentTime</b>, then the sound will stop playing immediately.
+  </p> 
+  </dd>
+    
+    
+  </dd></dl> 
 
 
 
@@ -920,7 +960,7 @@ function playSound() {
 
     <h2>12. The AudioPannerNode Interface</h2> 
     <p> 
-      This interface represents a processing node which <a href="#Spatialization-section">positions/spatializes</a> an incoming audio stream in three-dimensional space.
+      This interface represents a processing node which <a href="#Spatialization-section">positions / spatializes</a> an incoming audio stream in three-dimensional space.
       
     </p> 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -945,7 +985,8 @@ function playSound() {
         void setOrientation(in float x, in float y, in float z);
         void setVelocity(in float x, in float y, in float z);
 
-        <span class="comment">// Distance model </span>         
+        <span class="comment">// Distance model and attributes </span>         
+        attribute short distanceModel;
         attribute float refDistance;
         attribute float maxDistance;
         attribute float rolloffFactor;
@@ -965,6 +1006,84 @@ function playSound() {
 
   </div> 
 
+  <div id="attributes-AudioPannerNode" class="section"> 
+  <h3>12.1. Constants</h3> 
+
+  <dl><dt id="dfn-PASSTHROUGH"><code>PASSTHROUGH</code></dt><dd><p>An algorithm which passes the incoming audio unchanged to the output (no processing occurs). </p></dd></dl> 
+  <dl><dt id="dfn-EQUALPOWER"><code>EQUALPOWER</code></dt><dd><p>A simple and efficient spatialization algorithm using equal-power panning. </p></dd></dl> 
+  <dl><dt id="dfn-HRTF"><code>HRTF</code></dt><dd><p>A higher quality spatialization algorithm using a convolution with measured impulse responses from human subjects.
+  This panning method renders stereo output. </p></dd></dl> 
+  <dl><dt id="dfn-SOUNDFIELD"><code>SOUNDFIELD</code></dt><dd><p>An algorithm which spatializes multi-channel audio using sound field algorithms. </p></dd></dl> 
+  <dl><dt id="dfn-MATRIXMIX"><code>MATRIXMIX</code></dt><dd><p>An algorithm where <b>N</b> input channels are spatialized to <b>M</b> output channels according to
+  a matrix of weighting coefficients. </p></dd></dl> 
+
+  </div> 
+
+
+
+  <div id="attributes-AudioPannerNode" class="section"> 
+  <h3>12.2. Attributes</h3> 
+  <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>Represents the <b>listener</b> whose position and orientation is used together with
+  the panner's position and orientation to determine how the audio will be spatialized. </p></dd></dl> 
+
+  <dl><dt id="dfn-panningModel"><code>panningModel</code></dt><dd><p>Determines which spatialization algorithm  will be used to position the audio in 3D space.  See the <b>constants</b>
+  for the available choices.  The default is <b>HRTF</b>. </p></dd></dl> 
+
+  <dl><dt id="dfn-distanceModel"><code>distanceModel</code></dt><dd><p>Determines which algorithm will be used to reduce the volume of an audio source as it moves away from the
+    listener.  TODO: add constants... </p></dd></dl> 
+
+
+  <dl><dt id="dfn-refDistance"><code>refDistance</code></dt><dd><p>A reference distance for reducing volume as source move further from the listener. </p></dd></dl> 
+  <dl><dt id="dfn-maxDistance"><code>maxDistance</code></dt><dd><p>The maximum distance between source and listener, after which the volume will not be reduced any further. </p></dd></dl> 
+  <dl><dt id="dfn-rolloffFactor"><code>rolloffFactor</code></dt><dd><p>Describes how quickly the volume is reduced as source moves away from listener. </p></dd></dl> 
+
+  <dl><dt id="dfn-coneInnerAngle"><code>coneInnerAngle</code></dt><dd><p>A parameter for directional audio sources, this is an angle, inside of which there will be no volume reduction. </p></dd></dl> 
+  <dl><dt id="dfn-coneOuterAngle"><code>coneOuterAngle</code></dt><dd><p>A parameter for directional audio sources, this is an angle, outside of which the volume will be
+    reduced to a constant value of <b>coneOuterGain</b>. </p></dd></dl> 
+
+  <dl><dt id="dfn-coneOuterGain"><code>coneOuterGain</code></dt><dd><p>A parameter for directional audio sources, this is the amount of volume reduction outside of
+  the <b>coneOuterAngle</b>. </p></dd></dl> 
+
+  </div> 
+
+
+  <h3>12.3. Methods and Parameters</h3> 
+  <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
+  <dd>
+  <p>Sets the position of the audio source relative to the <b>listener</b> attribute.  A 3D cartesian coordinate system is used.</p> 
+  <p>The <dfn id="dfn-x">x, y, z</dfn> parameters represent the coordinates in 3D space.  </p> 
+  </dd>
+
+  <dl><dt id="dfn-setOrientation">The <code>setOrientation</code> method</dt> 
+  <dd>
+  <p>Describes which direction the audio source is pointing in the 3D cartesian coordinate space.  Depending on how directional the sound is (controlled by the <b>cone</b> attributes),
+    a sound pointing away from the listener may be very quiet or completely silent.</p> 
+    <p>The <dfn id="dfn-x">x, y, z</dfn> parameters represent a direction vector in 3D space.  </p> 
+  </dd>
+
+  <dl><dt id="dfn-setVelocity">The <code>setVelocity</code> method</dt> 
+  <dd>
+  <p>Sets the velocity vector of the audio source.  This vector controls both the direction of travel and the speed in 3D space.
+  This velocity relative to the listener's velocity is used to determine how much doppler shift (pitch change) to apply.</p> 
+  <p>The <dfn id="dfn-x">x, y, z</dfn> parameters describe a direction vector indicating direction of travel and intensity.  </p> 
+  </dd>
+
+
+    
+    
+  </dd></dl> 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -981,9 +1100,6 @@ function playSound() {
 
         <span class="comment">// linear gain (default 1.0) </span>         
         attribute float gain;
-
-        <span class="comment">// send return gain (default 1.0) </span>         
-        attribute float returnGain;
 
         <span class="comment">// same as OpenAL (default 1.0) </span>         
         attribute float dopplerFactor;
@@ -1003,7 +1119,39 @@ function playSound() {
   </div> 
 
 
+  <div id="attributes-AudioListener" class="section"> 
+  <h3>13.1. Attributes</h3> 
+  <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>A linear gain used in conjunction with <code>AudioPannerNode</code> objects when spatializing. </p></dd></dl> 
 
+  <dl><dt id="dfn-dopplerFactor"><code>dopplerFactor</code></dt><dd><p>A constant used to determine the amount of pitch shift to use when rendering a doppler effect. </p></dd></dl> 
+  <dl><dt id="dfn-speedOfSound"><code>speedOfSound</code></dt><dd><p>The speed of sound used for calculating doppler shift.  The default value is 343.3 meters / second. </p></dd></dl> 
+
+  </div> 
+
+
+  <h3>13.2. Methods and Parameters</h3> 
+  <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
+  <dd>
+  <p>Sets the position of the listener in a 3D cartesian coordinate space.  <code>AudioPannerNode</code> objects use this position relative to individual audio sources for spatialization.</p> 
+  <p>The <dfn id="dfn-x">x, y, z</dfn> parameters represent the coordinates in 3D space.  </p> 
+  </dd>
+
+  <dl><dt id="dfn-setOrientation">The <code>setOrientation</code> method</dt> 
+  <dd>
+  <p>Describes which direction the listener is pointing in the 3D cartesian coordinate space.  Both a <b>front</b> vector and an <b>up</b> vector are provided.</p> 
+  <p>The <dfn id="dfn-x">x, y, z</dfn> parameters represent a <b>front</b> direction vector in 3D space.  </p> 
+  <p>The <dfn id="dfn-x">xUp, yUp, zUp</dfn> parameters represent an <b>up</b> direction vector in 3D space.  </p> 
+  </dd>
+
+  <dl><dt id="dfn-setVelocity">The <code>setVelocity</code> method</dt> 
+  <dd>
+  <p>Sets the velocity vector of the listener.  This vector controls both the direction of travel and the speed in 3D space.
+  This velocity relative an audio source's velocity is used to determine how much doppler shift (pitch change) to apply.</p> 
+  <p>The <dfn id="dfn-x">x, y, z</dfn> parameters describe a direction vector indicating direction of travel and intensity.  </p> 
+  </dd>
+
+
+  </dd></dl> 
 
 
 
@@ -1034,6 +1182,12 @@ function playSound() {
   </div> 
 
 
+  <div id="attributes-ConvolverNode" class="section"> 
+  <h3>14.1. Attributes</h3> 
+  <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>A mono or multi-channel audio buffer containing the impulse response used by the convolver. </p></dd></dl> 
+
+  </div> 
+
 
 
 
@@ -1048,9 +1202,7 @@ function playSound() {
 
     interface <dfn id="dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</dfn> : AudioNode {
 
-        <span class="comment">// Copies the current frequency data into the passed array. </span>        
-        <span class="comment">// If the array has fewer elements than the frequencyBinCount, </span>        
-        <span class="comment">// the excess elements will be dropped. </span>        
+        <span class="comment">// Real-time frequency-domain data </span>        
         void getFloatFrequencyData(in WebGLFloatArray array);
         void getByteFrequencyData(in WebGLUnsignedByteArray array);
 
@@ -1060,13 +1212,9 @@ function playSound() {
         attribute unsigned long fftSize;
         readonly attribute unsigned long frequencyBinCount;
 
-        <span class="comment">// minDecibels / maxDecibels represent the range in which to scale the FFT analysis data </span>
-        <span class="comment">// for conversion to unsigned byte values </span>        
         attribute float minDecibels;
         attribute float maxDecibels;
 
-        <span class="comment">// A value from 0.0 -> 1.0 where 0.0 represents no time averaging </span>
-        <span class="comment">// with the last analysis frame. </span>
         attribute float smoothingTimeConstant;
 
     };
@@ -1076,8 +1224,45 @@ function playSound() {
   </div> 
 
 
+  <div id="attributes-ConvolverNode" class="section"> 
+  <h3>15.1. Attributes</h3> 
+  <dl><dt id="dfn-fftSize"><code>fftSize</code></dt><dd><p>The size of the FFT used for frequency-domain analsis.  This must be a power of two. </p></dd></dl> 
+  <dl><dt id="dfn-frequencyBinCount"><code>frequencyBinCount</code></dt><dd><p>Half the FFT size. </p></dd></dl> 
+  <dl><dt id="dfn-minDecibels"><code>minDecibels</code></dt><dd><p> The minimum power value in the scaling range for the FFT analysis data 
+   for conversion to unsigned byte values.     
+   </p></dd></dl> 
+  <dl><dt id="dfn-maxDecibels"><code>maxDecibels</code></dt><dd><p> The maximum power value in the scaling range for the FFT analysis data 
+      for conversion to unsigned byte values. </p></dd></dl> 
+  <dl><dt id="dfn-smoothingTimeConstant"><code>smoothingTimeConstant</code></dt><dd><p> A value from 0.0 -> 1.0 where 0.0 represents no time averaging 
+    with the last analysis frame. </p></dd></dl> 
+
+  </div> 
 
 
+  <h3>15.2. Methods and Parameters</h3> 
+  <dl><dt id="dfn-getFloatFrequencyData">The <code>getFloatFrequencyData</code> method</dt> 
+  <dd>
+  <p>Copies the current frequency data into the passed floating-point array.  If the array has fewer elements than the frequencyBinCount, the excess elements will be dropped.         
+  </p> 
+  <p>The <dfn id="dfn-array">array</dfn> parameter is where frequency-domain analysis data will be copied. </p> 
+  </dd>
+
+  <dl><dt id="dfn-getByteFrequencyData">The <code>getByteFrequencyData</code> method</dt> 
+  <dd>
+  <p>Copies the current frequency data into the passed unsigned byte array.  If the array has fewer elements than the frequencyBinCount, the excess elements will be dropped.         
+  </p> 
+  <p>The <dfn id="dfn-array">array</dfn> parameter is where frequency-domain analysis data will be copied. </p> 
+  </dd>
+
+  <dl><dt id="dfn-getByteTimeDomainData">The <code>getByteTimeDomainData</code> method</dt> 
+  <dd>
+  <p>Copies the current time-domain (waveform) data into the passed unsigned byte array.  If the array has fewer elements than the frequencyBinCount, the excess elements will be dropped.         
+  </p> 
+  <p>The <dfn id="dfn-array">array</dfn> parameter is where time-domain analysis data will be copied. </p> 
+  </dd>
+
+    
+  </dd></dl> 
 
 
 
