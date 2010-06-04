@@ -43,7 +43,7 @@ Title
 -->
 
 <!-- Slider stuff -->
-<script type="text/javascript" src="../lib/events.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
 
 
 
@@ -53,14 +53,14 @@ Title
 </style>
 
 <!-- WebGL stuff -->
-<script src="o3djs/base.js"></script>
-<script src="cameracontroller.js"></script>
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
 
 <!-- TODO(kbr): remove this dependency -->
-<script src="moz/matrix4x4.js"></script>
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
 
 <!-- Visualizer GL library -->
-<script type="text/javascript" src="visualizer.js"></script>
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
 
 <!-- Our javascript code -->
 <script type="text/javascript">
@@ -119,7 +119,7 @@ function initAudio() {
     source.connect(analyser);
     analyser.connect(context.output);    
 
-    loadAudioBuffer("../sounds/hyper-reality/human-voice.mp4");
+    loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
 
     analyser.fftSize = 2048;
 }

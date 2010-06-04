@@ -209,12 +209,12 @@ AnalyserView.prototype.initGL = function() {
   // Note we do not unbind this buffer -- not necessary
 
   // Load the shaders
-  // this.frequencyShader = o3djs.shader.loadFromScriptNodes(gl, "commonVertShader", "frequencyFragShader");
-  // this.sonogramShader = o3djs.shader.loadFromScriptNodes(gl, "commonVertShader", "sonogramFragShader");
-  // this.sonogram3DShader = o3djs.shader.loadFromScriptNodes(gl, "sonogram3DVertShader", "sonogramFragShader");
-  this.frequencyShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/frequency-fragment.shader");
-  this.sonogramShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/sonogram-fragment.shader");
-  this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "../shaders/sonogram-vertex.shader", "../shaders/sonogram-fragment.shader");
+  // this.frequencyShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/frequency-fragment.shader");
+  // this.sonogramShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/sonogram-fragment.shader");
+  // this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "../shaders/sonogram-vertex.shader", "../shaders/sonogram-fragment.shader");
+  this.frequencyShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/frequency-fragment.shader");
+  this.sonogramShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/sonogram-fragment.shader");
+  this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "shaders/sonogram-vertex.shader", "shaders/sonogram-fragment.shader");
 }
 
 AnalyserView.prototype.initByteBuffer = function() {
