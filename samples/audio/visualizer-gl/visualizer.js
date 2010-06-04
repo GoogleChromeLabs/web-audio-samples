@@ -110,10 +110,6 @@ AnalyserView.prototype.initGL = function() {
     gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
     gl.enable(gl.DEPTH_TEST);
 
-    //  gl = initWebGL("c", "vshader", "fshader", [ "g_Position", "g_TexCoord0" ], backgroundColor, 1);
-    //  gl = create3DDebugContext(gl);
-    gl.viewport(0, 0, 1280, 800);
-
     // Initialization for the 2D visualizations
     var vertices = new WebGLFloatArray([
         1.0,  1.0, 0.0,
