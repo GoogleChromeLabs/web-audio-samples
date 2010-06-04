@@ -68,6 +68,45 @@ o3djs.shader.loadFromScriptNodes = function(gl,
                                  fragmentScript.text);
 }
 
+
+/**
+ * Loads text from an external file. This function is synchronous.
+ * @param {string} url The url of the external file.
+ * @return {string} the loaded text if the request is synchronous.
+ */
+o3djs.shader.loadTextFileSynchronous = function(url) {
+  var error = 'loadTextFileSynchronous failed to load url "' + url + '"';
+  var request;
+
+  request = new XMLHttpRequest();
+  if (request.overrideMimeType) {
+    request.overrideMimeType('text/plain');
+  }
+
+  request.open('GET', url, false);
+  request.send(null);
+  if (request.readyState != 4) {
+    throw error;
+  }
+  return request.responseText;
+};
+
+
+o3djs.shader.loadFromURL = function(gl,
+                                    vertexURL,
+                                    fragmentURL) {
+
+  var vertexText = o3djs.shader.loadTextFileSynchronous(vertexURL);
+  var fragmentText = o3djs.shader.loadTextFileSynchronous(fragmentURL);
+
+  if (!vertexText || !fragmentText)
+    return null;
+  return new o3djs.shader.Shader(gl,
+                                 vertexText,
+                                 fragmentText);
+}
+
+
 /**
  * Helper which convers GLSL names to JavaScript names.
  * @private
