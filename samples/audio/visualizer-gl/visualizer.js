@@ -309,6 +309,7 @@ AnalyserView.prototype.drawGL = function() {
     if (this.analysisType == ANALYSISTYPE_SONOGRAM || this.analysisType == ANALYSISTYPE_3D_SONOGRAM) {
         this.yoffset = (this.yoffset + 1) % TEXTURE_HEIGHT;
     }
+    var yoffset = this.yoffset;
 
     // Point the frequency data texture at texture unit 0 (the default),
     // which is what we're using since we haven't called activeTexture

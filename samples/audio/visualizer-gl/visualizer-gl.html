@@ -87,13 +87,13 @@ var analyserView2;
 
 function init() {
     analyserView1 = new AnalyserView("view1");
-    analyserView2 = new AnalyserView("view2");
+    // analyserView2 = new AnalyserView("view2");
 
     initAudio();
     analyserView1.initByteBuffer();
-    analyserView2.initByteBuffer();
+    // analyserView2.initByteBuffer();
     
-    analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);
+    // analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);
 }
 
 function loadAudioBuffer(url) {
@@ -126,7 +126,7 @@ function initAudio() {
 
 function draw() {
     analyserView1.doFrequencyAnalysis();
-    analyserView2.doFrequencyAnalysis();
+    // analyserView2.doFrequencyAnalysis();
     setTimeout(draw, 0);
 }
 
@@ -159,8 +159,11 @@ function finishLoad() {
 <canvas id="view2" width="1280px" height="800px"></canvas>
 -->
 
-<canvas id="view1" width="640px" height="400px"></canvas>
+<canvas id="view1" width="1280px" height="800px"></canvas>
+
+<!--
 <canvas id="view2" width="640px" height="400px"></canvas>
+-->
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
