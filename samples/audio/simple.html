@@ -153,8 +153,8 @@ function pitchHandler(event, ui) {
 
 function reverbHandler(event, ui) {
     var value = ui.value;
-    var info = document.getElementById("reverb-value");
-    info.innerHTML = "reverb = " + value;
+    var info = document.getElementById("ambience-value");
+    info.innerHTML = "ambience = " + value;
 
     wetMixerInput.gain.value = value;
 }
