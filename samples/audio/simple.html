@@ -268,8 +268,7 @@ function setSourceBuffer(buffer) {
      panner.connect(convolver);
      convolver.connect(wetMixerInput);
      mixer.connect(context.output);
-
-
+     
      bufferList = new Array(fileCount);
      for (var i = 0; i < fileCount; ++i) {
          bufferList[i] = 0;
@@ -281,6 +280,8 @@ function setSourceBuffer(buffer) {
 
      source.playbackRate.value = 1.0;
      wetMixerInput.gain.value = kInitialReverbLevel;
+
+     mixer.outputGain.value = 0.5; // reduce overall volume a little
 
      panner.setPosition(0, 0, -4.0);
      source.looping = true;

@@ -186,8 +186,8 @@ function scheduleGrain() {
         panner.listener = listener;
 
         panner.setPosition(x, y, z);
-        wetMixerInput.gain.value = diffusionRandomization * r5;
-        dryMixerInput.gain.value = 2.0 - wetMixerInput.gain.value;
+        wetMixerInput.gain.value = 0.5 * diffusionRandomization * r5;
+        dryMixerInput.gain.value = 1.0 - wetMixerInput.gain.value;
         source.playbackRate.value = pitchRate;
 
         source.connect(panner);
@@ -231,6 +231,8 @@ function init() {
     mainMixer.connect(context.output);
 
     listener = context.createListener();
+    
+    mainMixer.outputGain.value = 0.5;
 
     load();
 }

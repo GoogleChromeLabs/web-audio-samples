@@ -25,7 +25,7 @@
     var convolver;
     var listener;
     
-    var pingFileName = "../sounds/hyper-reality/filter-noise-3.aif";
+    var pingFileName = "../sounds/hyper-reality/filter-noise-2.aif";
     var pingBuffer = 0;
     var gCount = 0;
     
@@ -42,12 +42,13 @@
       var maxV = v1 > v2 ? v1 : v2;
 
       // base volume on velocity
-      var xx = maxV / 200.0 /*50.0*/;
+      var xx = maxV / 150.0; //200.0;
       if (xx > 1.0) xx = 1.0;
       if (xx < 0.0) xx = 0.0;
-      var s = Math.sin(0.5 * xx * Math.PI);
+      // var s = Math.sin(0.5 * xx * Math.PI);
+      var s = xx;
       s = s*s;
-      var gain = s; //Math.sqrt(s);  // base volume on velocity
+      var gain = s;
 
       var position1 = body1.GetCenterPosition();
       var position2 = body2.GetCenterPosition();
@@ -76,14 +77,15 @@
           panner.connect(dryMixerInput);
           panner.connect(wetMixerInput);
           
-          wetMixerInput.gain.value = gain < 0.125 ? 0.3 : 0.125;
+          // wetMixerInput.gain.value = gain < 0.125 ? 0.3 : 0.125;
+          wetMixerInput.gain.value = gain < 0.125 ? 0.15 : 0.1;
           dryMixerInput.gain.value = gain;  //isQuiet ? 0.0 : gain;
 
           // Randomize pitch          
           var r = Math.random();
           var cents = 600.0 * (r - 0.5);
           var rate = Math.pow(2.0, cents / 1200.0);
-          ping.playbackRate = rate;  // really rate (not pitch)
+          ping.playbackRate.value = rate;
 
           // Adjust filter
           var value = 0.5 + 0.5 * xx;
@@ -93,7 +95,7 @@
           var sampleRate = 44100.0;
           var nyquist = sampleRate * 0.5;
           filter.cutoff.value = v2 * nyquist;
-          filter.resonance.value = 5.0;
+          filter.resonance.value = 10.0 /*5.0*/;
 
           var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
           if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
@@ -157,20 +159,21 @@
       mainMixerInput1 = mainMixer.createInput();
       mainMixerInput2 = mainMixer.createInput();
 
-      // dryInput = dryMixer.createInput();
-      // wetInput = wetMixer.createInput();
-
       // Connect up static processing graph - this basically includes the dry, wet, and main mixers
       dryMixer.connect(mainMixerInput1);
       wetMixer.connect(convolver);
       convolver.connect(mainMixerInput2);
       mainMixer.connect(context.output);
+      
+      // reduce overall volume
+      mainMixer.outputGain.value = 0.2;
 
       pingBuffer = 0;
       loadPing(pingFileName);
 
       // loadImpulseResponse('../impulse-responses/spreader55-75ms.aif');
-      loadImpulseResponse('../impulse-responses/house-impulses/dining-living-true-stereo.aif');
+      // loadImpulseResponse('../impulse-responses/house-impulses/dining-living-true-stereo.aif');
+      loadImpulseResponse('../impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
     }
 
 </script>
