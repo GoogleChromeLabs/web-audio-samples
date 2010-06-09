@@ -85,7 +85,7 @@ var currentKit = 0;
 var kickCutoff = 22050.0;
 var snareCutoff = 22050.0;
 var hihatCutoff = 22050.0;
-var reverbMix = 0.2;
+var reverbMix = 0.15;
 
 var kitCount = 0;
 
@@ -106,6 +106,10 @@ var kitNames = [
   "acoustic-kit",
   "4OP-FM"
 ];
+
+var gridColor = "rgb(192,192,192)";
+var playheadColor = "rgb(80, 100, 80)";
+var noteColor = "rgb(200,60,20)";
 
 function Kit(name) {
     this.name = name;
@@ -173,33 +177,31 @@ function cutoffKickHandler(event, ui) {
     var value = ui.value;
     var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
     var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    kickCutoff = v2*nyquist;
 
     var info = document.getElementById("kick_cutoff-value");
-    info.innerHTML = "kick_cutoff = " + v2*nyquist + " Hz";
-
-    kickCutoff = v2;
+    info.innerHTML = "kick_cutoff = " + kickCutoff + " Hz";
 }
 
 function cutoffSnareHandler(event, ui) {
     var value = ui.value;
     var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
     var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    snareCutoff = v2*nyquist;
 
     var info = document.getElementById("snare_cutoff-value");
-    info.innerHTML = "snare_cutoff = " + v2*nyquist + " Hz";
+    info.innerHTML = "snare_cutoff = " + snareCutoff + " Hz";
 
-    snareCutoff = v2;
 }
 
 function cutoffHihatHandler(event, ui) {
     var value = ui.value;
     var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
     var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    hihatCutoff = v2*nyquist;
 
     var info = document.getElementById("hihat_cutoff-value");
-    info.innerHTML = "hihat_cutoff = " + v2*nyquist + " Hz";
-
-    hihatCutoff = v2;
+    info.innerHTML = "hihat_cutoff = " + hihatCutoff + " Hz";
 }
 
 function reverbHandler(event, ui) {
@@ -314,13 +316,13 @@ var rhythm4 = [
   
   0,
   0,
-  0,
+  1,
   0,
   
   0,
   0,
   0,
-  1,
+  0,
   
   0,
   0,
@@ -334,7 +336,7 @@ var rhythm5 = [
   0,
   0,
 
-  1,
+  0,
   0,
   0,
   0,
@@ -359,23 +361,23 @@ var rhythm6 = [
   0,
   0,
   0,
-  0,
+  1,
 
-  0,
-  0,
-  0,
-  0,
-
-  0,
   0,
   1,
+  0,
+  0,
+
+  0,
+  0,
+  0,
   0
 ];
 
 var loopLength = 16;
 var rhythmIndex = 0;
 var loopNumber = 0;
-var tempo = 127.0;
+var tempo = 115.0;
 var noteTime = 0.0;
 
 function drawAnalysis() {
@@ -434,12 +436,7 @@ function drawAnalysis() {
 
         canvasContext.fillStyle = "rgb(255, 255, 255)";
         canvasContext.fillRect(meterWidth, ii*barHeight, width - meterWidth, barHeight);
-
-        // canvasContext.fillStyle = "rgb(0, 0, 0)";
-        // canvasContext.fillRect(0, 0, width, height);
     }
-
-    // setTimeout("drawAnalysis()", 33);
 
     var info = document.getElementById('info');
     info.innerHTML = infoString;
@@ -473,7 +470,7 @@ function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, res
         panner.setPosition(x, y, z);
         wetMixerInput.gain.value = sendGain;
         dryMixerInput.gain.value = mainGain;
-        filter.cutoff.value = nyquist * cutoff;
+        filter.cutoff.value = cutoff;
         filter.resonance.value = resonance;
 
         voice.connect(filter);
@@ -509,15 +506,15 @@ function schedule() {
 
         // Toms    
         if (rhythm4[rhythmIndex] == 1) {
-            playNote(currentKit.tom1, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom1, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
         if (rhythm5[rhythmIndex] == 1) {
-            playNote(currentKit.tom2, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom2, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
         if (rhythm6[rhythmIndex] == 1) {
-            playNote(currentKit.tom3, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, 1.0, resonance, noteTime);
+            playNote(currentKit.tom3, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
 
@@ -538,12 +535,14 @@ function schedule() {
 
 }
 
+
 function drawDrumGrid() {
     // draw center
     var width = canvas.width;
     var height = canvas.height;
 
-    canvasContext.strokeStyle = "rgb(150, 255, 150)";
+    // canvasContext.strokeStyle = "rgb(150, 255, 150)";
+    canvasContext.strokeStyle = gridColor;
     canvasContext.lineWidth = 3;
 
     var noteSize = width / 16.0;
@@ -578,7 +577,9 @@ function finishLoading() {
     loading.innerHTML = "";
 
     isLoaded = true;
-    currentKit = kits[0];
+
+    // Setup initial drumkit
+    currentKit = kits[4];
 
     makeKitsList();
 
@@ -588,20 +589,11 @@ function finishLoading() {
     addSlider("hihat_cutoff");
     addSlider("reverb");
 
+    configureSlider("tempo", tempo, 50.0, 180.0, tempoHandler);
     configureSlider("kick_cutoff", 0.99, 0.0, 1.0, cutoffKickHandler);
     configureSlider("snare_cutoff", 0.99, 0.0, 1.0, cutoffSnareHandler);
     configureSlider("hihat_cutoff", 0.99, 0.0, 1.0, cutoffHihatHandler);
-    configureSlider("tempo", tempo, 50.0, 180.0, tempoHandler);
     configureSlider("reverb", reverbMix, 0.0, 1.0, reverbHandler);
-
-    var ui = {value: 1.0};
-    cutoffKickHandler(0, ui);
-    cutoffSnareHandler(0, ui);
-    cutoffHihatHandler(0, ui);
-
-    ui.value = tempo;
-    tempoHandler(0, ui);
-
 
     startTime = context.currentTime + 0.160;
 
@@ -716,7 +708,7 @@ function drawNote(draw, xindex, yindex) {
 
     var radius = 10;
     if (draw == 1) {
-        canvasContext.fillStyle = "rgb(200,0,0)";
+        canvasContext.fillStyle = noteColor;
         radius = 10;
     } else {
         canvasContext.fillStyle = "rgb(255,255,255)";
@@ -741,12 +733,12 @@ function drawPlayhead(xindex) {
 
     for (i = 0; i < kNumInstruments; ++i) {
         // erase old playhead
-        canvasContext.strokeStyle = "rgb(150, 255, 150)";
+        canvasContext.strokeStyle = gridColor;
         canvasContext.lineWidth = 3;
         canvasContext.strokeRect(lastIndex * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
 
         // draw new playhead
-        canvasContext.strokeStyle = "rgb(255, 0, 0)";
+        canvasContext.strokeStyle = playheadColor;
         canvasContext.lineWidth = 2;
         canvasContext.strokeRect(xindex    * noteSize + kInset, i * noteSize + kInset, noteSize - 2*kInset, noteSize - 2*kInset);
     }
@@ -773,7 +765,7 @@ function handleMouseMove(event) {
 <!-- Start of xaudio -->
 <xaudio id="myAudioTag"></xaudio>
 
-<canvas id="canvasID" width="600" height="226" style="border: 5px inset blue;">
+<canvas id="canvasID" width="600" height="226" style="border: 2px inset blue;">
 </canvas>
 
 <br><br>
