@@ -230,7 +230,7 @@ function loadBufferForSource(source, url) {
     var roundedUpDeltaTime = (60.0 / tempo) * roundedUpDeltaBeat;
     var time = anchorTime + roundedUpDeltaTime;
     
-    source.stop();
+    source.noteOff();
     source.buffer = request.buffer;
     source.noteOn(time);
   }
