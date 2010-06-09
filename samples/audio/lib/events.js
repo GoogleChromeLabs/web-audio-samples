@@ -61,26 +61,8 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
      + name
      + '</div> </div> <br>  ';
 
-     // alert(sliderText);
-    
     controls.innerHTML = controls.innerHTML + sliderText;
   }
-
-
-  // <div style="width:500px;">
-  //     <input id="newSlider"
-  //            type="range" min="0" max="1" step="0.01" value="0" style="height: 20px; width: 450px;"
-  //            
-  //            onchange="newSliderChange(this.value);">
-  // 
-  //     <div id="newSlider-value"
-  //      style="position:relative; left:30em; top:-22px;"> 
-  // 
-  //      newSlider
-  //      </div>
-  // </div>
-  // <br>
-
 
   function configureSlider(name, value, min, max, handler) {
       // var controls = document.getElementById("controls");
@@ -90,15 +72,11 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
 
       var slider = document.getElementById(divName);
 
-      // alert("slider = " + slider );
-      
-      slider.value = value;
       slider.min = min;
       slider.max = max;
+      slider.value = value;
       slider.onchange = function() { handler(0, this); };
-      // slider.onchange = function() { alert("1"); }
   }
-
 
   function addSliderOld(name) {
     var controls = document.getElementById("controls");
@@ -131,13 +109,3 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
 
    slider.bind('slide', handler);
   }
-
-  // var hilightedElement = 0;
-  // 
-  // function highlightElement(object) {
-  //   if (hilightedElement) hilightedElement.style.backgroundColor = "white";
-  //   hilightedElement = object;
-  // 
-  //   object.style.backgroundColor = "green";
-  // }
-
