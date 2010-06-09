@@ -371,7 +371,21 @@
         <img src="modular-routing1.png"/>
 
         <p>
-            ADD JAVASCRIPT EXAMPLE CODE HERE...
+            Illustrating this simple routing, here's a simple example playing a single sound:
+
+                    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code"> 
+
+            var context = new AudioContext();
+
+            function playSound() {
+                var source = context.createBufferSource();
+                source.buffer = dogBarkingBuffer;
+                source.connect(context.output);
+                source.noteOn(0);
+            }
+                    </code></pre></div></div> 
+
+
         </p>
 
         <p>
