@@ -548,8 +548,6 @@ function playSound() {
         void disconnect(in int output = 0);
         readonly attribute unsigned long numberOfInputs;
         readonly attribute unsigned long numberOfOutputs;
-
-        <span class="comment">// output hardware sample-rate </span> 
         readonly attribute float sampleRate;
 
     }
@@ -560,6 +558,9 @@ function playSound() {
     <h3>4.1. Attributes</h3> 
     <dl><dt id="dfn-numberOfInputs"><code>numberOfInputs</code></dt><dd><p>The number of inputs feeding into the AudioNode</p></dd></dl> 
     <dl><dt id="dfn-numberOfOutputs"><code>numberOfOutputs</code></dt><dd><p>The number of outputs coming out of the AudioNode</p></dd></dl> 
+    <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample rate (in sample-frames per second)
+     at which the AudioNode handles audio (both inputs and outputs).
+    It is assumed in this simplified model that sample-rate converters or "varispeed" processors are not supported.</p></dd></dl> 
     </div>
     
     <div id="methodsandparams-AudioNode" class="section"> 
@@ -568,8 +569,8 @@ function playSound() {
     <dd>
     <p>Connects the AudioNode to another AudioNode.</p> 
     <p>The <dfn id="dfn-destination">destination</dfn> parameter is the AudioNode to connect to.</p> 
-    <p>The <dfn id="dfn-output">output</dfn> parameter is an index describing which output of the AudioNode from which to connect. </p>
-    <p>The <dfn id="dfn-input">input</dfn> parameter is an index describing which input of the destination AudioNode to connect to. </p>
+    <p>The <dfn id="dfn-output">output</dfn> parameter is an index describing which output of the AudioNode from which to connect. An out-of-bound value throws an exception.</p>
+    <p>The <dfn id="dfn-input">input</dfn> parameter is an index describing which input of the destination AudioNode to connect to.  An out-of-bound value throws an exception. </p>
       
     </dd></dl> 
 
@@ -618,7 +619,8 @@ function playSound() {
 
     <div id="attributes-AudioContext" class="section"> 
     <h3>5.1. Attributes</h3> 
-    <dl><dt id="dfn-output"><code>output</code></dt><dd><p>An <code>AudioOutputNode</code> with a single input representing the final destination for all audio (to be rendered to the audio hardware).</p></dd></dl> 
+    <dl><dt id="dfn-output"><code>output</code></dt><dd><p>An <code>AudioOutputNode</code> with a single input representing the final destination for all audio
+     (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>output</code>.</p></dd></dl> 
     <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>All scheduled times are relative to this time.
     This is not a "transport" time which can be started, paused, and re-positioned.
     It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
@@ -635,22 +637,30 @@ function playSound() {
     
     <dl><dt id="dfn-createLowPass2Filter">The <code>createLowPass2Filter</code> method</dt> 
     <dd>
-    <p>Creates a LowPass2FilterNode representing a two-pole low-pass filter.</p> 
+    <p>Creates a LowPass2FilterNode representing a two-pole resonant low-pass filter.</p> 
+    <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
+     controlling the <a href="#DynamicLifetime">lifetime</a> of the low-pass filter. </p>
     </dd>
     
     <dl><dt id="dfn-createHighPass2Filter">The <code>createHighPass2Filter</code> method</dt> 
     <dd>
-    <p>Creates a HighPass2FilterNode representing a two-pole high-pass filter.</p> 
+    <p>Creates a HighPass2FilterNode representing a two-pole resonant high-pass filter.</p> 
+    <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
+     controlling the <a href="#DynamicLifetime">lifetime</a> of the high-pass filter. </p>
     </dd>
     
     <dl><dt id="dfn-createPanner">The <code>createPanner</code> method</dt> 
     <dd>
     <p>Creates an AudioPannerNode.</p> 
+    <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
+     controlling the <a href="#DynamicLifetime">lifetime</a> of the panner. </p>
     </dd>
     
     <dl><dt id="dfn-createConvolver">The <code>createConvolver</code> method</dt> 
     <dd>
     <p>Creates a ConvolverNode.</p> 
+    <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
+     controlling the <a href="#DynamicLifetime">lifetime</a> of the convolver. </p>
     </dd>
     
     <dl><dt id="dfn-createMixer">The <code>createMixer</code> method</dt> 
@@ -708,9 +718,10 @@ function playSound() {
 
     <div id="attributes-AudioNode" class="section"> 
     <h3>6.1. Attributes</h3> 
-    <dl><dt id="dfn-value"><code>value</code></dt><dd><p>The parameter's floating-point value.</p></dd></dl> 
-    <dl><dt id="dfn-minValue"><code>minValue</code></dt><dd><p>Minimum value.</p></dd></dl> 
-    <dl><dt id="dfn-maxValue"><code>maxValue</code></dt><dd><p>Minimum value.</p></dd></dl> 
+    <dl><dt id="dfn-value"><code>value</code></dt><dd><p>The parameter's floating-point value.  If a value is set outside the allowable range described by
+    <code>minValue</code> and <code>maxValue</code> an exception is thrown.   </p></dd></dl> 
+    <dl><dt id="dfn-minValue"><code>minValue</code></dt><dd><p>Minimum value.  The <code>value</code> attribute must not be set lower than this value.</p></dd></dl> 
+    <dl><dt id="dfn-maxValue"><code>maxValue</code></dt><dd><p>Maximum value.  The <code>value</code> attribute must be set lower than this value. </p></dd></dl> 
     <dl><dt id="dfn-defaultValue"><code>defaultValue</code></dt><dd><p>Initial value for the value attribute</p></dd></dl> 
     <dl><dt id="dfn-name"><code>name</code></dt><dd><p>The name of the parameter.</p></dd></dl> 
     <dl><dt id="dfn-units"><code>units</code></dt><dd><p>Represents the type of value (seconds, decibels, cents, etc.).</p></dd></dl> 
@@ -719,6 +730,36 @@ function playSound() {
 
 
   </div> 
+
+
+
+
+
+
+
+
+
+  <h3>6.2. AudioGain</h3> 
+
+  <p> 
+    This interface is a particular type of <code>AudioParam</code> which specifically controls the gain (volume) of some aspect of the audio processing.
+    The unit type is "linear gain".  The <code>minValue</code> is 0.0, and although the nominal <code>maxValue</code> is 1.0, higher values are allowed
+    (no exception thrown).
+    
+    
+  </p> 
+  <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+  interface <dfn id="dfn-AudioGain">AudioGain</dfn> : AudioParam {
+
+  };
+  </code></pre></div></div> 
+
+
+
+
+
+
 
 
 
@@ -780,9 +821,7 @@ function playSound() {
 
     interface <dfn id="dfn-AudioMixerNode">AudioMixerNode</dfn> {
 
-        attribute AudioGain outputGain;
-        
-        <span class="comment">// |owner| controls object's lifetime </span>         
+        attribute AudioGain outputGain;        
         attribute AudioMixerInputNode createInput(in AudioNode owner = 0);
 
     }
@@ -803,6 +842,8 @@ function playSound() {
   <dd>
   <p>Creates an AudioMixerInputNode.</p> 
   </dd>
+  <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
+   controlling the <a href="#DynamicLifetime">lifetime</a> of the mixer input. </p>
     
     
   </dd></dl> 
@@ -840,7 +881,10 @@ function playSound() {
   <h3>9.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-addGainContribution">The <code>addGainContribution</code> method</dt> 
   <dd>
-  <p>Adds an additional gain contribution.</p> 
+  <p>Adds an additional gain contribution.  This method handles more advanced use cases and is particularly useful in conjunction with the <code>AudioPannerNode</code>
+   <code>coneGain</code> and <code>distanceGain</code> attributes for explicit control of these gain contributions when a panned source
+   is being sent to both a reverberation mixer and a dry mixer.  For example, it may be desired to <b>only</b> decrease the gain of a panned source due
+   to distance effects in the dry mix, but not the reverberation mix. </p> 
   </dd>
     
     
