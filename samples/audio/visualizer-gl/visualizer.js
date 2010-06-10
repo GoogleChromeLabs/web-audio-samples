@@ -61,6 +61,7 @@ AnalyserView = function(canvasElementID) {
     this.yoffset = 0;
 
     this.frequencyShader = 0;
+    this.waveformShader = 0;
     this.sonogramShader = 0;
     this.sonogram3DShader = 0;
 
@@ -205,10 +206,8 @@ AnalyserView.prototype.initGL = function() {
   // Note we do not unbind this buffer -- not necessary
 
   // Load the shaders
-  // this.frequencyShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/frequency-fragment.shader");
-  // this.sonogramShader = o3djs.shader.loadFromURL(gl, "../shaders/common-vertex.shader", "../shaders/sonogram-fragment.shader");
-  // this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "../shaders/sonogram-vertex.shader", "../shaders/sonogram-fragment.shader");
   this.frequencyShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/frequency-fragment.shader");
+  this.waveformShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/waveform-fragment.shader");
   this.sonogramShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/sonogram-fragment.shader");
   this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "shaders/sonogram-vertex.shader", "shaders/sonogram-fragment.shader");
 }
@@ -290,6 +289,7 @@ AnalyserView.prototype.drawGL = function() {
     var TEXTURE_HEIGHT = this.TEXTURE_HEIGHT;
     
     var frequencyShader = this.frequencyShader;
+    var waveformShader = this.waveformShader;
     var sonogramShader = this.sonogramShader;
     var sonogram3DShader = this.sonogram3DShader;
     
@@ -318,16 +318,20 @@ AnalyserView.prototype.drawGL = function() {
     var backgroundColorLoc;
     var texCoordOffset;
 
+    var currentShader;
+
     switch (this.analysisType) {
     case ANALYSISTYPE_FREQUENCY:
+    case ANALYSISTYPE_WAVEFORM:
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        frequencyShader.bind();
-        vertexLoc = frequencyShader.gPositionLoc;
-        texCoordLoc = frequencyShader.gTexCoord0Loc;
-        frequencyDataLoc = frequencyShader.frequencyDataLoc;
-        foregroundColorLoc = frequencyShader.foregroundColorLoc;
-        backgroundColorLoc = frequencyShader.backgroundColorLoc;
-        gl.uniform1f(frequencyShader.yoffsetLoc, 0.5 / (TEXTURE_HEIGHT - 1));
+        currentShader = this.analysisType == ANALYSISTYPE_FREQUENCY ? frequencyShader : waveformShader;
+        currentShader.bind();
+        vertexLoc = currentShader.gPositionLoc;
+        texCoordLoc = currentShader.gTexCoord0Loc;
+        frequencyDataLoc = currentShader.frequencyDataLoc;
+        foregroundColorLoc = currentShader.foregroundColorLoc;
+        backgroundColorLoc = currentShader.backgroundColorLoc;
+        gl.uniform1f(currentShader.yoffsetLoc, 0.5 / (TEXTURE_HEIGHT - 1));
         texCoordOffset = vboTexCoordOffset;
         break;
 
@@ -357,7 +361,6 @@ AnalyserView.prototype.drawGL = function() {
         var discretizedYOffset = Math.floor(normalizedYOffset * (sonogram3DHeight - 1)) / (sonogram3DHeight - 1);
         gl.uniform1f(sonogram3DShader.vertexYOffsetLoc, discretizedYOffset);
         gl.uniform1f(sonogram3DShader.verticalScaleLoc, sonogram3DGeometrySize / 4.0);
-        // gl.uniform1f(sonogram3DShader.verticalScaleLoc, 1.0);
 
         // Set up the model, view and projection matrices
         projection.loadIdentity();
@@ -375,18 +378,8 @@ AnalyserView.prototype.drawGL = function() {
         mvp.multiply(model);
         mvp.multiply(view);
         mvp.multiply(projection);
-        // var worldInverseTranspose = model.inverse();
-        // worldInverseTranspose.transpose();
-        // var viewInverse = view.inverse();
         gl.uniformMatrix4fv(sonogram3DShader.worldViewProjectionLoc, gl.FALSE, mvp.elements);
-        // gl.uniformMatrix4fv(sonogram3DShader.worldLoc, gl.FALSE, model.elements);
-        // gl.uniformMatrix4fv(sonogram3DShader.worldInverseTransposeLoc, gl.FALSE, worldInverseTranspose.elements);
-        // gl.uniformMatrix4fv(sonogram3DShader.viewInverseLoc, gl.FALSE, viewInverse.elements);
         texCoordOffset = vbo3DTexCoordOffset;
-        break;
-
-    case ANALYSISTYPE_WAVEFORM:
-        // FIXME
         break;
     }
 
@@ -410,7 +403,7 @@ AnalyserView.prototype.drawGL = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Actually draw
-    if (this.analysisType == ANALYSISTYPE_FREQUENCY || this.analysisType == ANALYSISTYPE_SONOGRAM) {
+    if (this.analysisType == ANALYSISTYPE_FREQUENCY || this.analysisType == ANALYSISTYPE_WAVEFORM || this.analysisType == ANALYSISTYPE_SONOGRAM) {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     } else if (this.analysisType == ANALYSISTYPE_3D_SONOGRAM) {
         // Note: this expects the element array buffer to still be bound
