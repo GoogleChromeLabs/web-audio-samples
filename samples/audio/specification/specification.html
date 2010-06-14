@@ -1802,19 +1802,20 @@ Voice-dropping algorithms must be explored.  An AudioSourceNode could have a <co
 
 <h3> Javascript Issues with real-time Processing and Synthesis: </h3>
 
-While processing audio in javascript, it is extremely challenging to get reliable, glitch-free audio while achieving a reasonably low-latency, especially under heavy processor load.
+While processing audio in javascript, it is extremely challenging to get reliable, glitch-free audio while achieving a reasonably low-latency,
+especially under heavy processor load.
 
 <ul>
+    <li> Javascript is very much slower than heavily optimized C++ code and is not able to take advantage of SSE optimizations and multi-threading which is
+        critical for getting good performance on today's processors.  Optimized native code may be on the order of twenty times faster for processing FFTs as
+        compared with javascript.  It is not efficient enough for heavy-duty processing of audio such as convolution and 3D spatialization of large numbers of audio sources. </li>
+    <li> setInterval() and XHR handling will steal time from the audio processing.  In a reasonably complex game, some javascript resources will be
+      needed for game physics and graphics. This creates challenges because audio rendering is deadline driven (to avoid glitches and get low enough latency).</li>
     <li> Javascript does not run in a real-time processing thread and thus may be pre-empted by many other threads running on the system.</li>
     <li> Garbage Collection (and autorelease pools on Mac OS X) can cause unpredictable delay. </li>
     <li> Multiple javascript contexts may be running on the main thread, stealing time from the context doing the processing. </li>
-    <li> setInterval() and XHR handling will steal time from the audio processing.  In a reasonably complex game, some javascript resources will be
-     needed for game physics and graphics. </li>
     <li> Other code (other than javascript) such as page rendering runs on the main thread. </li>
     <li> Locks are taken and memory is allocated on the main thread.  This can cause additional thread preemption. </li>
-    <li> Javascript is very much slower than heavily optimized C++ code and is not able to take advantage of SSE optimizations and multi-threading which is
-        critical for getting good performance on today's processors. It is not efficient enough for heavy-duty processing of audio such as convolution and 3D spatialization
-        of multiple audio sources. </li>
 </ul>
 
 The problems are even more difficult with today's generation of mobile devices which have processors with relatively poor performance and power consumption / battery-life issues.
