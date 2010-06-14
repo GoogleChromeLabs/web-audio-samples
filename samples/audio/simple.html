@@ -74,24 +74,16 @@ var hilightedElement = 0;
 var bufferList;
 var hihatShort;
 
-var fileCount = 15;
+var fileCount = 8;
 var fileList = [
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/hyper-reality/white-noise.aif",
-  "sounds/hyper-reality/penny-spinning.aif",
-  "sounds/drum-samples/breakbeat.aif",
-  
-  "sounds/effects/ticking.aif",
-  "sounds/effects/waves.aif",
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/effects/cauldron.aif",
-  "sounds/hyper-reality/human-voice.mp4",
-  "sounds/effects/ethnic8.aif",
-	"sounds/drum-samples/Loops/Break 28.aif",
-	"sounds/drum-samples/Loops/WallOfSound046_BlueYellow.aif"
+    "sounds/hyper-reality/white-noise.aif",
+    "sounds/hyper-reality/human-voice.mp4",
+    "sounds/effects/ticking.aif",
+    "sounds/effects/waves.aif",
+    "sounds/effects/cauldron.aif",
+    "sounds/hyper-reality/obama-oilspill.mp4",
+    "sounds/hyper-reality/penny-spinning.aif",
+    "sounds/drum-samples/breakbeat.aif",
 ];
 
 var kInitialReverbLevel = 0.6;
@@ -287,7 +279,7 @@ function setSourceBuffer(buffer) {
      source.looping = true;
 
      // Load up initial buffer
-     setAudioSource(4);
+     setAudioSource(3);
 
      var currentTime = context.currentTime;
      source.noteOn(currentTime + 0.020);
@@ -427,47 +419,29 @@ function handleMouseMove(event, canvas, type) {
 <div style="position:absolute; top:0; left:0; width:250px; border: 2px inset blue;">
 <h1>Sounds</h1>
 <ul>
-<li onmousedown="setAudioSource(11);">
-Human Voice</li>
-
-<li onmousedown="setAudioSource(12);">
-Ethnic8</li>
-
-<li onmousedown="setAudioSource(13);">
-Break28</li>
-
-<li onmousedown="setAudioSource(14);">
-blue-yellow</li>
-
-<li onmousedown="setAudioSource(7);">
-Ticking Clock</li>
-
-<li onmousedown="setAudioSource(8);">
-Waves</li>
-
-<li onmousedown="setAudioSource(9);">
-...</li>
-
-<li onmousedown="setAudioSource(10);">
-Cauldron</li>
-
-<li onmousedown="setAudioSource(4);">
-white noise</li>
+<li onmousedown="setAudioSource(0);">
+White Noise</li>
 
 <li onmousedown="setAudioSource(1);">
-...</li>
-
-<li onmousedown="setAudioSource(5);">
-penny spinning</li>
-
-<li onmousedown="setAudioSource(6);">
-breakbeat</li>
+Spoken Word</li>
 
 <li onmousedown="setAudioSource(2);">
-...</li>
+Ticking Clock</li>
 
 <li onmousedown="setAudioSource(3);">
-...</li>
+Waves</li>
+
+<li onmousedown="setAudioSource(4);">
+Cauldron</li>
+
+<li onmousedown="setAudioSource(5);">
+Obama Oilspill</li>
+
+<li onmousedown="setAudioSource(6);">
+Penny Spinning</li>
+
+<li onmousedown="setAudioSource(7);">
+Breakbeat</li>
 
 </ul>
 </div>
@@ -477,6 +451,24 @@ breakbeat</li>
 <h1>Acoustic Spaces</h1>
 
 <ul>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');">
+  Binaural</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-35-10/cardiod-35-10-spread.aif');">
+Warehouse Cardiod-35-10-spread</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif');">
+Warehouse Cardiod-rear-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/super-ceiling-35-10/super-ceiling-35-10.aif');">
+Warehouse Super-ceiling-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/omni-35-10/omni-35-10.aif');">
+Warehouse Omni-35-10</li>
+
+<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');">
+Warehouse True-Stereo-15-8</li>
 
 <li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized1.aif');">
 spatialized 1 (huge spacious)</li>
@@ -505,23 +497,6 @@ spatialized 8 (medium open)</li>
 <li onmousedown="setReverbImpulseResponse('impulse-responses/spatialized9.aif');">
 spatialized 9 (medium open)</li>
 
-<li onmousedown="setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');">
-  Binaural</li>
-
-<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-35-10/cardiod-35-10-spread.aif');">
-Warehouse Cardiod-35-10-spread</li>
-
-<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.aif');">
-Warehouse Cardiod-rear-35-10</li>
-
-<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/super-ceiling-35-10/super-ceiling-35-10.aif');">
-Warehouse Super-ceiling-35-10</li>
-
-<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/omni-35-10/omni-35-10.aif');">
-Warehouse Omni-35-10</li>
-
-<li onmousedown="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');">
-Warehouse True-Stereo-15-8</li>
 
 
 <li onmousedown="setReverbImpulseResponse('impulse-responses/echo-chamber.aif');">
@@ -547,8 +522,6 @@ backslap</li>
 
 </div>
 </div>
-
-<div id="subjects"> </div>
 
 </body>
 </html>
