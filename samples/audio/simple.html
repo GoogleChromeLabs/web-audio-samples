@@ -65,11 +65,12 @@ var dryMixerInput;
 var wetMixerInput;
 var lowFilter;
 
+var gTopProjection = 0;
+var gFrontProjection = 0;
+
 var x = 0;
 var y = 0;
 var z = 0;
-var lastX = 0.0;
-var lastZ = 0.0;
 var hilightedElement = 0;
 var bufferList;
 var hihatShort;
@@ -155,8 +156,6 @@ function influenceHandler(event, ui) {
     var value = ui.value;
     var info = document.getElementById("influence-value");
     info.innerHTML = "reverb main gain influence = " + value;
-
-    // source.gainSendInfluence = value;
 }
 
 function mainGainHandler(event, ui) {
@@ -185,12 +184,10 @@ function cutoffHandler(event, ui) {
 function addSliders() {
     addSlider("pitch");
     addSlider("ambience");
-    // addSlider("influence");
     addSlider("mainGain");
     addSlider("cutoff");
     configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
     configureSlider("ambience", kInitialReverbLevel, 0.0, 1.0, reverbHandler);
-    // configureSlider("influence", 0.5, 0.0, 1.0, influenceHandler);
     configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
     configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
 }
@@ -210,6 +207,9 @@ function setSourceBuffer(buffer) {
 
      var ctx = canvas.getContext('2d');
      var ctx2 = canvas2.getContext('2d');
+     
+     gTopProjection = new Projection('canvasID', 0);
+     gFrontProjection = new Projection('canvasElevationID', 1);
 
      // draw center
      var width = canvas.width;
@@ -278,16 +278,108 @@ function setSourceBuffer(buffer) {
      panner.setPosition(0, 0, -4.0);
      source.looping = true;
 
-     // Load up initial buffer
-     setAudioSource(3);
+     // Load up initial sound
+     setAudioSource(0);
+
+     var cn = {x: 0.0, y: -0.5};
+     gTopProjection.drawDotNormalized(cn);
+     
+     cn.y = 0.0;
+     gFrontProjection.drawDotNormalized(cn);
 
      var currentTime = context.currentTime;
      source.noteOn(currentTime + 0.020);
  }
 
 var gIsMouseDown = false;
-var gLastX = 0;
-var gLastY = 0;
+
+// type: 0: top-view  1: front-view
+function Projection(canvasID, type) {
+    this.canvasID = canvasID;
+    this.canvas = document.getElementById(canvasID);
+    this.type = type;
+    this.lastX = 0;
+    this.lastY = 0;
+}
+
+// With normalized graphics coordinate system (-1 -> 1)
+Projection.prototype.drawDotNormalized = function(cn) {
+    var c = {
+        x: 0.5 * (cn.x + 1.0) * this.canvas.width,
+        y: 0.5 * (cn.y + 1.0) * this.canvas.height
+    }
+    
+    this.drawDot(c);
+}
+
+Projection.prototype.handleMouseMove = function(event, suppressY) {
+    if (gIsMouseDown) {
+        var eventInfo = {event: event, element:this.canvas};
+        var c = getRelativeCoordinates(eventInfo);
+        if (suppressY) {
+            c.y = this.lastY;
+        }
+        this.drawDot(c);
+    }
+}
+
+Projection.prototype.eraseLastDot = function() {
+    var ctx = this.canvas.getContext('2d');
+
+    // Erase last location
+    ctx.fillStyle = "rgb(255,255,255)";
+    ctx.beginPath();
+    ctx.arc(this.lastX, this.lastY, 12, 0, Math.PI * 2, true)
+    ctx.fill();
+}
+
+Projection.prototype.drawDot = function(c) {
+    var canvas = this.canvas;
+    var type = this.type;
+    
+    var ctx = canvas.getContext('2d');
+
+    // Erase last location
+    this.eraseLastDot();
+
+    // Draw new location
+    ctx.fillStyle = "rgb(200,0,0)";
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 10,0, Math.PI * 2, true);
+    ctx.fill();
+
+    // Draw center
+    var width = canvas.width;
+    var height = canvas.height;
+    divWidth = width;
+    divHeight = height;
+
+    ctx.fillStyle = "rgb(0,200,0)";
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2 , 10, 0, Math.PI * 2, true);
+    ctx.fill();
+
+    ctx.strokeRect(0,0, width, height);
+
+    this.lastX = c.x;
+    this.lastY = c.y;
+
+    var a = c.x / divWidth;
+    var b = c.y / divHeight;
+
+    x = 8.0 * (2.0*a - 1.0);
+
+    if (type == 0) {
+        z = 8.0 * (2.0*b - 1.0);
+    } else {
+        y = -11.0 * (2.0*b - 1.0);
+    }
+
+    panner.setPosition(x, y, z);
+
+    lastX = x;
+    lastZ = z;    
+}
 
 function handleKeyDown(event) {
     var voice = xaudio.getVoice();
@@ -310,81 +402,13 @@ function handleMouseUp(event) {
 }
 
 function handleAzimuthMouseMove(event) {
-    var canvas = document.getElementById("canvasID");
-    handleMouseMove(event, canvas, 0);
+    gTopProjection.handleMouseMove(event, false);
+    gFrontProjection.handleMouseMove(event, true);
 }
 
 function handleElevationMouseMove(event) {
-    var canvas = document.getElementById("canvasElevationID");
-    handleMouseMove(event, canvas, 1);
-}
-
-function handleMouseMove(event, canvas, type) {
-    if (gIsMouseDown) {
-        var posx = event.clientX;
-        var posy = event.clientY;
-
-        // var canvas = document.getElementById("canvasID");
-        var ctx = canvas.getContext('2d');
-
-        var myDiv = canvas;
-
-        var divWidth = parseFloat(window.getComputedStyle(myDiv, null).width);
-        var divHeight = parseFloat(window.getComputedStyle(myDiv, null).height);
-
-        var eventInfo = {event: event, element:myDiv};
-
-        var c = getRelativeCoordinates(eventInfo);
-
-
-        // erase last location
-        ctx.fillStyle = "rgb(255,255,255)";
-
-        ctx.beginPath();
-        ctx.arc(gLastX,gLastY,12,0,Math.PI*2,true)
-        ctx.fill();
-
-        // draw new location
-        ctx.fillStyle = "rgb(200,0,0)";
-        ctx.beginPath();
-        ctx.arc(c.x,c.y,10,0,Math.PI*2,true);
-        ctx.fill();
-
-        // draw center
-        var width = canvas.width;
-        var height = canvas.height;
-        divWidth = width;
-        divHeight = height;
-
-        ctx.fillStyle = "rgb(0,200,0)";
-        ctx.beginPath();
-        ctx.arc(width/2, height/2 , 10, 0,Math.PI*2,true);
-        ctx.fill();
-
-        ctx.strokeRect(0,0, width, height);
-
-        gLastX = c.x;
-        gLastY = c.y;
-
-        var a = c.x / divWidth;
-        var b = c.y / divHeight;
-
-        x = 8.0 * (2.0*a - 1.0);
-
-        if (type == 0) {
-            z = 8.0 * (2.0*b - 1.0);
-        } else {
-            y = -11.0 * (2.0*b - 1.0);
-        }
-
-        panner.setPosition(x, y, z);
-
-        // TODO(crogers) : this isn't really correct -- we need to factor in time here as well...
-        // source.setVelocity(5.0 * (x - lastX), 0.0, 20.0 * (z - lastZ));
-
-        lastX = x;
-        lastZ = z;
-    }
+    gFrontProjection.handleMouseMove(event, false);
+    gTopProjection.handleMouseMove(event, true);
 }
 
 </script>
@@ -393,6 +417,7 @@ function handleMouseMove(event, canvas, type) {
 <body>
 
 
+<h1>Top View ---------------- Front View </h1>
 <canvas id="canvasID" width="400" height="400" style="border: 10px inset blue;">
 </canvas>
 
