@@ -76,41 +76,41 @@ var fileCount = 29;
 var responseOffset = 4;
 
 var fileList = [
-  "sounds/hyper-reality/human-voice.mp4",       // 0
-  "sounds/hyper-reality/guitar-chords.aif",     // 1
-  "sounds/drum-samples/conga-rhythm.aif",       // 2
-  "sounds/hyper-reality/br-jam-loop.aif",       // 3
+    "sounds/hyper-reality/human-voice.mp4",       // 0
+    "sounds/hyper-reality/obama-oilspill.mp4",    // 1
+    "sounds/drum-samples/conga-rhythm.aif",       // 2
+    "sounds/hyper-reality/br-jam-loop.aif",       // 3
 
-  // impulse responses
-  "impulse-responses/spatialized5.aif",         // 0
-  "impulse-responses/cosmic-ping-long.aif",     // 1
-  "impulse-responses/filter-telephone.aif",     // 2
-  "impulse-responses/comb-saw2.aif",            // 3
-  "impulse-responses/filter-rhythm1.aif",       // 4
-  "impulse-responses/filter-rhythm3.aif",       // 5
-  "impulse-responses/comb-saw1.aif",            // 6
-  "impulse-responses/comb-saw2.aif",            // 7
-  "impulse-responses/matrix-reverb2.aif",       // 8
-  "impulse-responses/matrix-reverb3.aif",       // 9
-  "impulse-responses/spatialized4.aif",         // 10
+    // impulse responses
+    "impulse-responses/spatialized5.aif",         // 0
+    "impulse-responses/cosmic-ping-long.aif",     // 1
+    "impulse-responses/filter-telephone.aif",     // 2
+    "impulse-responses/comb-saw2.aif",            // 3
+    "impulse-responses/filter-rhythm1.aif",       // 4
+    "impulse-responses/filter-rhythm3.aif",       // 5
+    "impulse-responses/comb-saw1.aif",            // 6
+    "impulse-responses/comb-saw2.aif",            // 7
+    "impulse-responses/matrix-reverb2.aif",       // 8
+    "impulse-responses/matrix-reverb3.aif",       // 9
+    "impulse-responses/spatialized4.aif",         // 10
 
-  "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.aif",          // 11
+    "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.aif",          // 11
 
-  "impulse-responses/diffusor3.aif",            // 12
-  "impulse-responses/matrix6-backwards.aif",    // 13
-  "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
-  "impulse-responses/wildecho.aif",             // 15
-  "impulse-responses/impulse-rhythm2.aif",      // 16
-  "impulse-responses/spreader50-65ms.aif",      // 17
-  "impulse-responses/feedback-spring.aif",      // 18
-  
-  "impulse-responses/house-impulses/kitchen.aif",                   // 19
-  "impulse-responses/house-impulses/kitchen-true-stereo.aif",       // 20
-  "impulse-responses/house-impulses/dining-living-true-stereo.aif", // 21
-  "impulse-responses/house-impulses/dining-far-kitchen.aif",        // 22
+    "impulse-responses/diffusor3.aif",            // 12
+    "impulse-responses/matrix6-backwards.aif",    // 13
+    "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
+    "impulse-responses/wildecho.aif",             // 15
+    "impulse-responses/impulse-rhythm2.aif",      // 16
+    "impulse-responses/spreader50-65ms.aif",      // 17
+    "impulse-responses/feedback-spring.aif",      // 18
 
-  "impulse-responses/house-impulses/living-bedroom-leveled.aif",    // 23
-  "impulse-responses/filter-lopass160.aif"                          // 24
+    "impulse-responses/house-impulses/kitchen.aif",                   // 19
+    "impulse-responses/house-impulses/kitchen-true-stereo.aif",       // 20
+    "impulse-responses/house-impulses/dining-living-true-stereo.aif", // 21
+    "impulse-responses/house-impulses/dining-far-kitchen.aif",        // 22
+
+    "impulse-responses/house-impulses/living-bedroom-leveled.aif",    // 23
+    "impulse-responses/filter-lopass160.aif"                          // 24
 ];
 
 var assetList = 0;
@@ -265,19 +265,12 @@ Preset.prototype.play = function() {
     source.noteOn(0);
 }
 
-
-
-
-
-
-
 function highlightElement(object) {
     if (hilightedElement) hilightedElement.style.backgroundColor = "white";
     hilightedElement = object;
 
     object.style.backgroundColor = "green";
 }
-
 
 function initAssets() {
     assetList = new Array();
@@ -291,51 +284,71 @@ function initAssets() {
 function initPresets() {
     presetList = new Array();
     
-    presetList[0] = new Preset(0, 'Human Voice (unprocessed)', 0, 0, 0.35, 0.0);
-    presetList[1] = new Preset(1, 'Human Voice (spreader)', 0, 17, 0.2, 0.5);
-    presetList[2] = new Preset(2, 'Human Voice (telephone filter)', 0, 2, 0.0, 1.0);
-    presetList[3] = new Preset(3, 'Human Voice (lowpass filter)', 0, 24, 0.0, 0.3);
-    presetList[4] = new Preset(4, 'Human Voice (spring reverb simulation)', 0, 18, 0.0, 0.8);
-    presetList[5] = new Preset(5, 'Human Voice (comb filter 1)', 0, 6, 0.0, 0.7);
-    presetList[6] = new Preset(6, 'Human Voice (comb filter 2)', 0, 7, 0.0, 0.7);
+    var n = 0;
     
-    presetList[7] = new Preset(7, 'Human Voice (wild echo)', 0, 15, 0.0, 1.0);
-    presetList[8] = new Preset(8, 'Human Voice (chorus rhythm)', 0, 16, 0.25, 1.25);
-    presetList[9] = new Preset(9, 'Human Voice (backwards)', 0, 0, 0.0, 0.4);
+    // n++
     
-    presetList[10] = new Preset(10, 'Human Voice (extreme backwards - be patient!)', 0, 13, 0.0, 0.5);
-    presetList[11] = new Preset(11, 'Human Voice (real warehouse)', 0, 11, 0.15, 0.5);
-    presetList[12] = new Preset(12, 'Human Voice (real binaurally recorded hall)', 0, 14, 0.3, 0.5);
-    presetList[13] = new Preset(13, 'Human Voice (matrix reverb)', 0, 9, 0.3, 0.8);
-    presetList[14] = new Preset(14, 'Human Voice (synthetic dense hall)', 0, 10, 0.2, 0.2);
-    presetList[15] = new Preset(15, 'Human Voice (real living-bedroom)', 0, 23, 0.2, 0.8);
+    presetList[n] = new Preset(n++, 'Spoken Word (unprocessed)', 0, 0, 0.35, 0.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (spreader)', 0, 17, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (telephone filter)', 0, 2, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (lowpass filter)', 0, 24, 0.0, 0.3);
+    presetList[n] = new Preset(n++, 'Spoken Word (spring reverb simulation)', 0, 18, 0.0, 0.8);
+    presetList[n] = new Preset(n++, 'Spoken Word (comb filter 1)', 0, 6, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Spoken Word (comb filter 2)', 0, 7, 0.0, 0.7);
+    
+    presetList[n] = new Preset(n++, 'Spoken Word (wild echo)', 0, 15, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (chorus rhythm)', 0, 16, 0.25, 1.25);
+    presetList[n] = new Preset(n++, 'Spoken Word (backwards)', 0, 0, 0.0, 0.4);
+    
+    presetList[n] = new Preset(n++, 'Spoken Word (extreme backwards - be patient!)', 0, 13, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (real warehouse)', 0, 11, 0.15, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (real binaurally recorded hall)', 0, 14, 0.3, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (matrix reverb)', 0, 9, 0.3, 0.8);
+    presetList[n] = new Preset(n++, 'Spoken Word (synthetic dense hall)', 0, 10, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Spoken Word (real living-bedroom)', 0, 23, 0.2, 0.8);
 
+    presetList[n] = new Preset(n++, 'Congas (unprocessed)', 2, 2, 0.3, 0.0);
+    presetList[n] = new Preset(n++, 'Congas (filter rhythm 1)', 2, 4, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (filter rhythm 2)', 2, 5, 0.25, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (comb filter 2)', 2, 7, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (spring reverb simulation)', 2, 18, 0.1, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (telephone filter)', 2, 2, 0.0, 0.6);
+    presetList[n] = new Preset(n++, 'Congas (real warehouse)', 2, 11, 0.1, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (real binaurally recorded hall)', 2, 14, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Congas (spreader)', 2, 17, 0.15, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (matrix reverb 2)', 2, 8, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (matrix reverb 3)', 2, 9, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (synthetic dense hall)', 2, 10, 0.2, 0.07);
+    presetList[n] = new Preset(n++, 'Congas (synthetic diffusor)', 2, 12, 0.2, 0.2);
 
+    presetList[n] = new Preset(n++, 'Obama (unprocessed)', 1, 0, 0.35, 0.0);
+    presetList[n] = new Preset(n++, 'Obama (spreader)', 1, 17, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (telephone filter)', 1, 2, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Obama (lowpass filter)', 1, 24, 0.0, 0.3);
+    presetList[n] = new Preset(n++, 'Obama (spring reverb simulation)', 1, 18, 0.0, 0.8);
+    presetList[n] = new Preset(n++, 'Obama (comb filter 1)', 1, 6, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Obama (comb filter 2)', 1, 7, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Obama (wild echo)', 1, 15, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Obama (chorus rhythm)', 1, 16, 0.25, 1.25);
+    presetList[n] = new Preset(n++, 'Obama (backwards)', 1, 0, 0.0, 0.4);
+    presetList[n] = new Preset(n++, 'Obama (extreme backwards - be patient!)', 1, 13, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (real warehouse)', 1, 11, 0.15, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (real binaurally recorded hall)', 1, 14, 0.3, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (matrix reverb)', 1, 9, 0.3, 0.8);
+    presetList[n] = new Preset(n++, 'Obama (synthetic dense hall)', 1, 10, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Obama (real living-bedroom)', 1, 23, 0.2, 0.8);
 
-    presetList[16] = new Preset(16, 'Congas (unprocessed)', 2, 2, 0.3, 0.0);
-    presetList[17] = new Preset(17, 'Congas (filter rhythm 1)', 2, 4, 0.2, 0.5);
-    presetList[18] = new Preset(18, 'Congas (filter rhythm 2)', 2, 5, 0.25, 0.5);
-    presetList[19] = new Preset(19, 'Congas (comb filter 2)', 2, 7, 0.0, 0.5);
-    presetList[20] = new Preset(20, 'Congas (spring reverb simulation)', 2, 18, 0.1, 0.3);
-    presetList[21] = new Preset(21, 'Congas (telephone filter)', 2, 2, 0.0, 0.6);
-    presetList[22] = new Preset(22, 'Congas (real warehouse)', 2, 11, 0.1, 0.3);
-    presetList[23] = new Preset(23, 'Congas (real binaurally recorded hall)', 2, 14, 0.2, 0.2);
-    presetList[24] = new Preset(24, 'Congas (spreader)', 2, 17, 0.15, 0.3);
-    presetList[25] = new Preset(25, 'Congas (matrix reverb 2)', 2, 8, 0.2, 0.3);
-    presetList[26] = new Preset(26, 'Congas (matrix reverb 3)', 2, 9, 0.2, 0.3);
-    presetList[27] = new Preset(27, 'Congas (synthetic dense hall)', 2, 10, 0.2, 0.07);
-    presetList[28] = new Preset(28, 'Congas (synthetic diffusor)', 2, 12, 0.2, 0.2);
-    presetList[29] = new Preset(29, 'Dumbek (unprocessed)', 3, 2, 0.5, 0.0);
-    presetList[30] = new Preset(30, 'Dumbek (real warehouse)', 3, 11, 0.2, 0.3);
-    presetList[31] = new Preset(31, 'Dumbek (real binaurally recorded hall)', 3, 14, 0.4, 0.2);
-    presetList[32] = new Preset(32, 'Dumbek (backwards)', 3, 0, 0.0, 0.7);
-    presetList[33] = new Preset(33, 'Dumbek (comb filter 2)', 3, 7, 0.0, 0.5);
-    presetList[34] = new Preset(34, 'Dumbek (wild echo)', 3, 15, 0.0, 0.7);
-    presetList[35] = new Preset(35, 'Dumbek (real kitchen-true-stereo)', 3, 20, 0.2, 1.0);
-    presetList[36] = new Preset(36, 'Dumbek (real dining-living-true-stereo)', 3, 21, 0.2, 1.0);
-    presetList[37] = new Preset(37, 'Dumbek (real dining-far-kitchen)', 3, 22, 0.2, 1.0);
-    presetList[38] = new Preset(38, 'Dumbek (real dining-far-bedroom)', 3, 22, 0.2, 1.0);
-    presetList[39] = new Preset(39, 'Dumbek (real living-bedroom)', 3, 23, 0.2, 0.7);
+    presetList[n] = new Preset(n++, 'Dumbek (unprocessed)', 3, 2, 0.5, 0.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real warehouse)', 3, 11, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Dumbek (real binaurally recorded hall)', 3, 14, 0.4, 0.2);
+    presetList[n] = new Preset(n++, 'Dumbek (backwards)', 3, 0, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Dumbek (comb filter 2)', 3, 7, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Dumbek (wild echo)', 3, 15, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Dumbek (real kitchen-true-stereo)', 3, 20, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-living-true-stereo)', 3, 21, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-far-kitchen)', 3, 22, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-far-bedroom)', 3, 22, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real living-bedroom)', 3, 23, 0.2, 0.7);
 }
 
 function init() {
