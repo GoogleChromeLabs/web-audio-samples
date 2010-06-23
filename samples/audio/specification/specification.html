@@ -1336,6 +1336,14 @@ function playSound() {
   <div id="MixerGainStructure-section" class="section"> 
   <h2>17. Mixer Gain Structure</h2> 
 
+  <h3> Background</h3>
+  <p>
+  One of the most important considerations when dealing with audio processing graphs is how to adjust the gain (volume) at various points.  For example, in a standard mixing board model,
+  each channel has pre-gain, post-gain, and send-gains.  Submix and master out busses also have gain control.  The gain control described here can be used to implement
+  standard mixing boards as well as other architectures.
+  </p>
+
+  <h3> Summing Inputs</h3>
   <p>
   The inputs to AudioNodes have the ability to accept connections from multiple outputs.  The input then acts as a unity gain summing junction with each output signal being
   added with the others:
@@ -1343,24 +1351,26 @@ function playSound() {
 
   <img src="unity-gain-summing-junction.png"/>
 
+  <h3> Gain Control</h3>
   <p>
-  But many times, it's important to be able to control the gain for each of the output signals.  The AudioGainNode gives us this control:
+  But many times, it's important to be able to control the gain for each of the output signals.  The AudioGainNode gives this control:
   </p>
 
   <img src="mixer-architecture-new.png"/>
   
   <p>
-  Using these two concepts of unity gain summing junctions and AudioGainNodes, it's possible to construct audio mixers.
+  Using these two concepts of unity gain summing junctions and AudioGainNodes, it's possible to construct simple or complex mixing scenarios.
   </p>
   
+  <h3> Example: Mixer with Send Busses</h3>
   
   <p>
-  In a complex routing topology involving multiple sends and submixes, explicit control is needed over the volume or "gain" of each connection to a mixer.
+  In a routing scenario involving multiple sends and submixes, explicit control is needed over the volume or "gain" of each connection to a mixer.
   Such routing topologies are very common and exist in even the simplest of electronic gear sitting around in a basic recording studio.
   </p>
 
   <p>
-  Here's an example with two send mixers and a main mixer:
+  Here's an example with two send mixers and a main mixer.  Although possible, for simplicity's sake, pre-gain control and insert effects are not illustrated:
   </p>
   
   <img src="mixer-gain-structure.png"/>
