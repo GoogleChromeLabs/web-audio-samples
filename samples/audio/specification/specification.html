@@ -805,7 +805,8 @@ function playSound() {
 
         readonly attribute int numberOfChannels;
 
-        <span class="comment">// TODO: add API to access channel data </span>         
+        <span class="comment">// TODO: change from WebGLFloatArray to newer API </span>         
+        WebGLFloatArray getChannelData(in unsigned long channel);
 
     }
     </code></pre></div></div> 
@@ -819,6 +820,17 @@ function playSound() {
     <dl><dt id="dfn-duration"><code>duration</code></dt><dd><p>Duration of the PCM audio data in seconds.</p></dd></dl> 
     <dl><dt id="dfn-numberOfChannels"><code>numberOfChannels</code></dt><dd><p>The number of discrete audio channels.</p></dd></dl> 
     </div> 
+
+    <div id="methodsandparams-AudioBuffer" class="section"> 
+    <h3>7.2. Methods and Parameters</h3> 
+
+    <dl><dt id="dfn-getChannelData">The <code>getChannelData</code> method</dt> 
+    <dd>
+    <p>Gets direct access to the audio data stored in an AudioBuffer.</p> 
+    <p>The <dfn id="dfn-channel">channel</dfn> parameter is an index representing the particular channel to get data for. </p>
+    </dd>
+    </div>
+
 
   </div> 
 
