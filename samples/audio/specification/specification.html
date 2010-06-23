@@ -33,9 +33,9 @@
     <div class="section"> 
       <h2>Abstract</h2> 
      <p> 
-      This specification describes a high-level javascript <acronym title="Application Programming Interface">API</acronym> for processing and synthesizing audio in web applications.  The primary paradigm
+      This specification describes a high-level JavaScript <acronym title="Application Programming Interface">API</acronym> for processing and synthesizing audio in web applications.  The primary paradigm
       is of an audio routing graph, where a number of AudioNode objects are connected together to define the overall audio rendering.  The actual processing will primarily take place
-      in the underlying implementation (typically optimized Assembly / C / C++ code), but <a href="#JavascriptProcessing-section">direct javascript processing and synthesis</a> is also supported.
+      in the underlying implementation (typically optimized Assembly / C / C++ code), but <a href="#JavaScriptProcessing-section">direct JavaScript processing and synthesis</a> is also supported.
 
      </p>
       
@@ -54,7 +54,8 @@
 	    <li>An <a class="dfnref" href="#dfn-AudioParam">AudioParam</a> interface, for controlling an individual aspect of an AudioNode's functioning, such as volume.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-AudioBuffer">AudioBuffer</a> interface, for working with memory-resident audio assets (for one-shot sound playback, etc.).
+	    <li>An <a class="dfnref" href="#dfn-AudioBuffer">AudioBuffer</a> interface, for working with memory-resident audio assets.  These can represent one-shot sounds,
+	    or longer audio clips.
 	    </li>
 
 	    <li>An <a class="dfnref" href="#dfn-AudioGainNode">AudioGainNode</a> interface, for explicit gain control.  Because inputs to AudioNodes support multiple connections
@@ -76,12 +77,12 @@
 	    <li>A <a class="dfnref" href="#dfn-ConvolverNode">ConvolverNode</a> interface, an AudioNode for applying a real-time linear effect (such as the sound of a concert hall).
 	    </li> 
 
-	    <li>A <a class="dfnref" href="#dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</a> interface, for use with music visualizers, etc..
+	    <li>A <a class="dfnref" href="#dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</a> interface, for use with music visualizers, or other visualization applications.
 	    </li> 
 
         </ul> 
         
-        Additionally, in a more complex implementation we can have the following:
+        Additionally, a more complex can have the following:
         
         <ul> 
 
@@ -103,7 +104,7 @@
 
 
 	    <li>An <a class="dfnref" href="#dfn-AudioCurve">AudioCurve</a> interface, for implementing high-resolution automation, including LFOs (low frequency oscillators),
-	        envelopes, volume fade curves, etc.
+	        envelopes, and volume fade curves.
 	    </li> 
 
 	    <li>A <a class="dfnref" href="#dfn-WaveShaperNode">WaveShaperNode</a> interface, an AudioNode which applies a non-linear waveshaping effect for distortion and other more subtle
@@ -143,7 +144,7 @@
         This document is the 24 May 2010 <b>First Audio Incubator Proposal</b> for the
         <cite>Web Audio API</cite> specification.
       
-      Please send comments about this document to &lt;crogers@google.com&gt; ... or the Audio Incubator mailing list.
+      Please send comments about this document to &lt;public-xg-audio@w3.org&gt (the audio incubator mailing list) or &lt;crogers@google.com&gt;.
     </p> 
       
       <p> 
@@ -239,8 +240,8 @@
           <li><a href="#Convolution-section">
           20. Linear Effects using Convolution</a></li>
 
-          <li><a href="#JavascriptProcessing-section">
-          21. Javascript Synthesis and Processing</a></li>
+          <li><a href="#JavaScriptProcessing-section">
+          21. JavaScript Synthesis and Processing</a></li>
 
           <li><a href="#RealtimeAnalysis-section">
           22. Realtime Analysis</a></li>
@@ -282,10 +283,10 @@
       
       <p>
       The APIs have been designed with a wide variety of <a href="#ExampleApplications-section">use cases</a> in mind.
-      Ideally, it should be able to support <i>any</i> use case which could reasonably be implemented with an optimized C++ engine controlled via Javascript and run in a browser.
+      Ideally, it should be able to support <i>any</i> use case which could reasonably be implemented with an optimized C++ engine controlled via JavaScript and run in a browser.
       That said, modern desktop audio software can have very advanced capabilities, some of which would be difficult or impossible to build with this system.
       Apple's Logic Audio is one such application which has support for external MIDI controllers, arbitrary plugin audio effects and synthesizers,
-      highly optimized direct-to-disk audio file reading/writing, tightly integrated time-stretching, etc., etc.
+      highly optimized direct-to-disk audio file reading/writing, tightly integrated time-stretching, and so on.
       Nevertheless, the proposed system will be quite capable of supporting a large range of reasonably complex games and interactive applications, including musical ones.
       And it can be a very good complement to the more advanced graphics features just now being offered by WebGL.
       The API has been designed so that more advanced capabilities can be added at a later time.
@@ -299,15 +300,15 @@
     </p>
       
       <ul>
-          <li> <a href="#ModularRouting-section">Modular routing</a> supporting complex mixing/effect architectures, multiple sends, submixes, etc.</li>
+          <li> <a href="#ModularRouting-section">Modular routing</a> supporting complex mixing/effect architectures, including multiple sends and submixes.</li>
           <li> <a href="#DynamicLifetime">Dynamic creation</a> of audio sources with flexible effect routing</li>          
-          <li> Audio stream synthesis and processing <a href="#JavascriptProcessing-section">directly in javascript</a>
+          <li> Audio stream synthesis and processing <a href="#JavaScriptProcessing-section">directly in JavaScript</a>
           <li> Processing of audio sources from an <a href="#AudioElementIntegration-section"><code>audio</code> element</a>
           <li> <a href="#EventScheduling-section">Sample-accurate scheduled sound playback</a> for musical applications requiring a very high degree of rhythmic precision such as drum machines and sequencers</li>
           <li> <a href="#Spatialization-section">Spatialized audio</a> supporting a wide range of 3D games and immersive environments:
 
           <ul> 
-              <li> Several panning models: equal-power, HRTF, sound-field, etc. </li> 
+              <li> Panning models: equal-power, HRTF, sound-field, pass-through, matrix-mix </li> 
               <li> Distance Attenuation </li> 
               <li> Sound Cones </li> 
               <li> Obstruction / Occlusion </li> 
@@ -315,7 +316,8 @@
               <li> Source / Listener based
           </ul> 
           
-          <li> A <a href="#Convolution-section">convolution engine</a> for a wide range of linear effects, especially very  high-quality room effects:</li>
+          <li> A <a href="#Convolution-section">convolution engine</a> for a wide range of linear effects, especially very high-quality room effects.
+            Here are some examples of possible effects:</li>
           <ul> 
         		<li> Small / large room </li>
         		<li> Cathedral </li>
@@ -324,13 +326,16 @@
         		<li> Tunnel </li>
         		<li> Hallway </li>
         		<li> Forest </li>
-        		<li> Sound of a distant room through a doorway... </li>
-        		<li> Strange backwards effects, extreme comb filter effects... </li>
+        		<li> Amphitheater </li>
+        		<li> Sound of a distant room through a doorway </li>
+        		<li> Extreme filters</li>
+        		<li> Strange backwards effects</li>
+        		<li> Extreme comb filter effects </li>
           </ul> 
           
           
           <li> Efficient <a href="#RealtimeAnalysis-section">real-time time-domain and frequency analysis / music visualizer support</a></li>
-          <li> Efficient biquad filters for lowpass, highpass filters, etc. </li>
+          <li> Efficient biquad filters for lowpass, highpass, and other common filters. </li>
       </ul>
 
       In addition these features can be supported:
@@ -419,7 +424,7 @@
       A "note" is represented by an <code>AudioBufferSourceNode</code>, which can be directly connected to other processing nodes.  When the note has finished playing, the context will automatically
       release the reference to the <code>AudioBufferSourceNode</code>, which in turn will release references to any nodes it is connected to, and so on.  The nodes will automatically get disconnected
       from the graph and will be deleted when they have no more references.  Nodes in the graph which are long-lived and shared between dynamic voices can be managed explicitly.
-      Although it sounds complicated, this all happens automatically with no extra javascript handling required.
+      Although it sounds complicated, this all happens automatically with no extra JavaScript handling required.
       </p>
 
         
@@ -431,10 +436,10 @@
         <img src="dynamic-allocation.png"/>
 
         <p>The low-pass filter, panner, and second gain nodes are directly connected from the one-shot sound.  So when it has finished playing the context will
-         automatically release them (everything within the dotted line).  If there are no longer any javascript references to the one-shot sound and connected nodes, then they will be immediately 
+         automatically release them (everything within the dotted line).  If there are no longer any JavaScript references to the one-shot sound and connected nodes, then they will be immediately 
          removed from the graph and deleted. The streaming source, has a global reference and will remain connected until it is explicitly disconnected.
 
-        Here's how it might look in javascript:
+        Here's how it might look in JavaScript:
         </p> 
         <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code"> 
 
@@ -457,8 +462,8 @@ function setupAudioContext() {
     compressor.connect(context.destination);
 }
 
-<span class="comment">// Later in response to some user action (mouse click, etc.) </span>
-<span class="comment">// we can dynamically play a one-shot sound. </span>
+<span class="comment">// Later in response to some user action (typically mouse or key event) </span>
+<span class="comment">// a one-shot sound can be played. </span>
 function playSound() {
     var oneShotSound = context.createBufferSource();
     oneShotSound.buffer = dogBarkingBuffer;
@@ -618,7 +623,7 @@ function playSound() {
         AudioPannerNode createPanner();
         ConvolverNode createConvolver();
         AudioGainNode createGain();
-        <span class="comment">// etc......... </span>         
+        <span class="comment">// and so on... </span>         
 
     }
     </code></pre></div></div> 
@@ -631,7 +636,7 @@ function playSound() {
      <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>This is a time in seconds which starts at zero when the context is created and increases in real-time.
      All scheduled times are relative to it. This is not a "transport" time which can be started, paused, and re-positioned.
      It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
-     on top of this (in javascript).  This time corresponds to an ever-increasing hardware timestamp.
+     on top of this (in JavaScript).  This time corresponds to an ever-increasing hardware timestamp.
      </p></dd></dl> 
     <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>An <a href="AudioListener-section"><code>AudioListener</code></a> which is used for 3D <a href="#Spatialization-section">spatialization</a>.</p></dd></dl> 
     </div> 
@@ -688,11 +693,7 @@ function playSound() {
     <p>Creates an AudioGainNode.</p> 
     </dd>
         
-    <p>
-        etc...
-    </p>
-    
-      
+
     </dd></dl> 
 
   </div> 
@@ -718,7 +719,7 @@ function playSound() {
 
         readonly attribute DOMString name;
 
-        <span class="comment">// Should define units constants here (seconds, decibels, cents, etc.)... </span>         
+        <span class="comment">// Should define units constants here (seconds, decibels, cents, etc.) </span>         
         
         readonly attribute short units;
 
@@ -784,7 +785,7 @@ function playSound() {
   <div id="AudioBuffer-section" class="section"> 
     <h2>7. The AudioBuffer Interface</h2> 
     <p> 
-      This interface represents a memory-resident audio asset (for one-shot sound playback, etc.).  
+      This interface represents a memory-resident audio asset (for one-shot sounds and other short audio clips).  
       Its format is non-interleaved linear PCM with a nominal range of -1.0 -> +1.0.  It can contain one or more channels.
       It is analogous to a WebGL texture.  Typically, it would be expected that the length of the PCM data would be fairly short (usually somewhat less than a minute).  For longer
       sounds, such as music soundtracks, streaming should be used with the <code>audio</code> element and <code>AudioElementSourceNode</code>.
@@ -981,7 +982,7 @@ function playSound() {
         <span class="comment">// Panning is relative to this listener  </span>         
         attribute AudioListener listener;
 
-        <span class="comment">// Panning model... </span>         
+        <span class="comment">// Panning model </span>         
         const unsigned short PASSTHROUGH = 0;
         const unsigned short EQUALPOWER = 1;
         const unsigned short HRTF = 2;
@@ -1041,7 +1042,7 @@ function playSound() {
   for the available choices.  The default is <b>HRTF</b>. </p></dd></dl> 
 
   <dl><dt id="dfn-distanceModel"><code>distanceModel</code></dt><dd><p>Determines which algorithm will be used to reduce the volume of an audio source as it moves away from the
-    listener.  TODO: add constants... </p></dd></dl> 
+    listener.  TODO: add constants </p></dd></dl> 
 
 
   <dl><dt id="dfn-refDistance"><code>refDistance</code></dt><dd><p>A reference distance for reducing volume as source move further from the listener. </p></dd></dl> 
@@ -1294,7 +1295,7 @@ function playSound() {
   <h3>Approach 1:</h3>
 
 
-  One approach is to add a new attribute to <code>audio</code>, which for now we can call <code>audioSource</code>.
+  One approach is to add a new attribute to <code>audio</code>, which for now can be called <code>audioSource</code>.
   It would be an <code>AudioNode</code> of type <a href="#AudioElementSourceNode"><code>AudioElementSourceNode</code></a> which could be directly wired into an audio routing graph for processing streaming audio.
 
   The other AudioSource subclasses would be able to operate independently from any <code>audio</code> element:
@@ -1308,9 +1309,9 @@ function playSound() {
 
   <h3>Approach 2:</h3>
 
-  Here we consider that an AudioSource can exist only when used with a corresponding <code>audio</code> element.
-  As in the first approach, we would use the <code>audio</code> element's new audioSource attribute to access the <code>AudioSourceNode</code>.
-  This would require that we add new constructors to Audio for each of the different cases:
+  Here it can be considered that an AudioSource exists only when used with a corresponding <code>audio</code> element.
+  As in the first approach, the <code>audio</code> element's new audioSource attribute would be used to access the <code>AudioSourceNode</code>.
+  This would require adding new constructors to Audio for each of the different cases:
   
   <pre>
 
@@ -1354,7 +1355,7 @@ function playSound() {
   
   
   <p>
-  In a complex routing topology involving multiple sends and submixes, we will need explicit control over the volume or "gain" of each connection to a mixer.
+  In a complex routing topology involving multiple sends and submixes, explicit control is needed over the volume or "gain" of each connection to a mixer.
   Such routing topologies are very common and exist in even the simplest of electronic gear sitting around in a basic recording studio.
   </p>
 
@@ -1371,7 +1372,7 @@ function playSound() {
   </p>
   
   <p>
-  Here's how the above diagram could be constructed in javascript:
+  Here's how the above diagram could be constructed in JavaScript:
   </p>
  
   <div class="example"><div class="exampleHeader">Example</div> 
@@ -1402,7 +1403,7 @@ function setupRoutingGraph() {
 
     <span class="comment">// Send1 effect </span>
     reverb = context.createConvolver();
-    <span class="comment">// ... more setup of reverb ... </span>
+    <span class="comment">// Convolver impulse response may be set here or later </span>
 
     <span class="comment">// Send2 effect </span>
     chorus = context.createChorus();
@@ -1451,8 +1452,8 @@ function setupRoutingGraph() {
     g2_1.gain.value = 0.2; <span class="comment"> // For example, set source1 reverb gain </span>
 
     <span class="comment"> // Because g2_1.gain is of type "AudioGain" which is an "AudioParam", </span>
-    <span class="comment"> // we could also attach an automation curve to it. </span>
-    <span class="comment"> // We could also create a "mixing board" UI in canvas or WebGL controlling these gains... </span>
+    <span class="comment"> // an automation curve could also be attached to it. </span>
+    <span class="comment"> // A "mixing board" UI could be created in canvas or WebGL controlling these gains. </span>
 }
 
  </code></pre></div></div> 
@@ -1465,9 +1466,9 @@ function setupRoutingGraph() {
   <h2>18. Event Scheduling</h2> 
     Need more detail here, but for now:
     <ul>
-  	<li> Audio events such as start/stop play, fades, etc. can be scheduled
+  	<li> Audio events such as start/stop play and volume fades can be scheduled
   		to happen in a rhythmically perfect way (sample-accurate scheduling)
-  	<li> Allows sequencing applications such as drum-machines, digital-dj mixers.  Ultimately, if may be useful for DAW applications.
+  	<li> Allows sequencing applications such as drum-machines, digital-dj mixers.  Ultimately, it may be useful for DAW applications.
   	<li> Allows rhythmically accurate segueways from one section of music to
   		another (as is possible with the FMOD engine)
   	<li> Allows scheduling of sound "grains" for granular synthesis effects.
@@ -1545,7 +1546,7 @@ The following algorithms can be implemented:
 <h3> Distance Effects</h3>
 <ul>
 <li>Sources farther away are typically quieter than nearer ones.
-<li>Different rolloff curves are assignable per-source: linear, inverse, exponential...
+<li>Different rolloff curves are assignable per-source: linear, inverse, exponential
 </ul
 
 <h3> Sound Cones</h3>
@@ -1619,7 +1620,7 @@ Single channel convolution operates on a mono audio source, using a mono impulse
 multi-channel audio sources and impulse responses must be considered.  Audio sources and playback systems can be stereo, 5.1, or more
 channels.  In the general case the source has N input channels, the impulse response has K channels, and the playback system has M output channels.
 Thus it's a matter of how to matrix these channels to achieve the final result.  The following diagram, illustrates the common cases for stereo
-playback where N, K, and M are all less than or equal to 2.  It's relatively easy to create similar diagrams for 5.1, etc.
+playback where N, K, and M are all less than or equal to 2.  Similarly, the matrixing for 5.1 and other playback configurations can be defined.
 </p>
 
 <img src="reverb-matrixing.png">
@@ -1641,7 +1642,7 @@ a long exponential sine sweep.  The test-tone can be as long as 20 or 30 seconds
 
   Several recordings of the
 test tone played through a speaker can be made with microphones placed and oriented at various positions in the room.  It's important
-to document the types of microphones, their settings, positions, orientations, etc. for each recording taken.
+to document speaker placement/orientation, the types of microphones, their settings, placement, and orientations for each recording taken.
 
 <p>
 Post-processing is required for each of these recordings by performing an inverse-convolution with the test tone,
@@ -1653,8 +1654,9 @@ ready to be loaded into the convolution reverb engine to re-create the sound of 
 Two command-line tools have been written:
 </p>
  <code>generate_testtones</code> generates an exponential sine-sweep test-tone and its inverse.  Another
-tool <code>convolve</code> was written for post-processing.  With these tools, anybody with recording equipment can record their own impulse responses.  To test the tools in practice, I went to a warehouse space with interesting
-acoustics and made several recordings, and later post-processed them with the tools I wrote.
+tool <code>convolve</code> was written for post-processing.  With these tools, anybody with recording equipment can record their own impulse responses.
+  To test the tools in practice, several recordings were made in a warehouse space with interesting
+acoustics.  These were later post-processed with the command-line tools.
 </p>
 
 <pre>
@@ -1704,19 +1706,19 @@ Microphones: AKG 414s, Speaker: Mackie HR824
 
 
 
-<div id="JavascriptProcessing-section" class="section"> 
-<h2>21. Javascript Synthesis and Processing</h2>
+<div id="JavaScriptProcessing-section" class="section"> 
+<h2>21. JavaScript Synthesis and Processing</h2>
 
 <p>
-The Mozilla project has conducted <a href="https://wiki.mozilla.org/Audio_Data_API">Experiments</a> to synthesize and process audio directly in javascript.
+The Mozilla project has conducted <a href="https://wiki.mozilla.org/Audio_Data_API">Experiments</a> to synthesize and process audio directly in JavaScript.
 This approach is interesting for a certain class of audio processing and they have produced a number of impressive demos.  This specification includes
-a means of synthesizing and processing directly using javascript by using special types of <code>AudioNode</code> objects.
+a means of synthesizing and processing directly using JavaScript by using special types of <code>AudioNode</code> objects.
 </p>
 
 <p>
-Javascript has a variety of <a href="#Performance-section">performance issues</a> so it is not suitable for all types of audio processing.
-The approach proposed in this document includes the ability to perform computationally intensive aspects of the audio processing (too expensive for javascript to compute in real-time) 
-such as multi-source 3D spatialization and convolution in optimized C++ code.  Both direct javascript processing and C++ optimized code can be combined due to the APIs
+JavaScript has a variety of <a href="#Performance-section">performance issues</a> so it is not suitable for all types of audio processing.
+The approach proposed in this document includes the ability to perform computationally intensive aspects of the audio processing (too expensive for JavaScript to compute in real-time) 
+such as multi-source 3D spatialization and convolution in optimized C++ code.  Both direct JavaScript processing and C++ optimized code can be combined due to the APIs
  <a href="#ModularRouting-section">modular approach</a>.
 </p>
 
@@ -1769,22 +1771,22 @@ Voice-dropping algorithms must be explored.  An AudioSourceNode could have a <co
 </p>
 
 
-<h3> Javascript Issues with real-time Processing and Synthesis: </h3>
+<h3> JavaScript Issues with real-time Processing and Synthesis: </h3>
 
-While processing audio in javascript, it is extremely challenging to get reliable, glitch-free audio while achieving a reasonably low-latency,
+While processing audio in JavaScript, it is extremely challenging to get reliable, glitch-free audio while achieving a reasonably low-latency,
 especially under heavy processor load.
 
 <ul>
-    <li> Javascript is very much slower than heavily optimized C++ code and is not able to take advantage of SSE optimizations and multi-threading which is
+    <li> JavaScript is very much slower than heavily optimized C++ code and is not able to take advantage of SSE optimizations and multi-threading which is
         critical for getting good performance on today's processors.  Optimized native code can be on the order of twenty times faster for processing FFTs as
-        compared with javascript.  It is not efficient enough for heavy-duty processing of audio such as convolution and 3D spatialization of large numbers of audio sources. </li>
-    <li> setInterval() and XHR handling will steal time from the audio processing.  In a reasonably complex game, some javascript resources will be
+        compared with JavaScript.  It is not efficient enough for heavy-duty processing of audio such as convolution and 3D spatialization of large numbers of audio sources. </li>
+    <li> setInterval() and XHR handling will steal time from the audio processing.  In a reasonably complex game, some JavaScript resources will be
       needed for game physics and graphics. This creates challenges because audio rendering is deadline driven (to avoid glitches and get low enough latency).</li>
-    <li> Javascript does not run in a real-time processing thread and thus can be pre-empted by many other threads running on the system.</li>
-    <li> Garbage Collection (and autorelease pools on Mac OS X) can cause unpredictable delay on a javascript thread. </li>
-    <li> Multiple javascript contexts can be running on the main thread, stealing time from the context doing the processing. </li>
-    <li> Other code (other than javascript) such as page rendering runs on the main thread. </li>
-    <li> Locks can be taken and memory is allocated on the javascript thread.  This can cause additional thread preemption. </li>
+    <li> JavaScript does not run in a real-time processing thread and thus can be pre-empted by many other threads running on the system.</li>
+    <li> Garbage Collection (and autorelease pools on Mac OS X) can cause unpredictable delay on a JavaScript thread. </li>
+    <li> Multiple JavaScript contexts can be running on the main thread, stealing time from the context doing the processing. </li>
+    <li> Other code (other than JavaScript) such as page rendering runs on the main thread. </li>
+    <li> Locks can be taken and memory is allocated on the JavaScript thread.  This can cause additional thread preemption. </li>
 </ul>
 
 The problems are even more difficult with today's generation of mobile devices which have processors with relatively poor performance and power consumption / battery-life issues.
@@ -1810,8 +1812,8 @@ Here are some of the types of applications a web audio system should be able to 
 <br><br>
 3D environments with audio are common in games made for desktop applications and game consoles.
 Imagine a 3D island environment with spatialized audio, seagulls flying overhead, the waves crashing against the shore, the
-crackling of the fire, the creaking of the bridge, the rustling of the trees in the wind...  The sounds can be positioned
-naturally as you move through the scene.  Even going underwater, low-pass filters can be tweaked for just the right underwater sound.
+crackling of the fire, the creaking of the bridge, and the rustling of the trees in the wind.  The sounds can be positioned
+naturally as one moves through the scene.  Even going underwater, low-pass filters can be tweaked for just the right underwater sound.
 
   <br><br>
 
