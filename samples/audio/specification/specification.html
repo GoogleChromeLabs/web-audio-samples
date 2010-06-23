@@ -45,7 +45,7 @@
     
 	<ul> 
 	    <li>An <a class="dfnref" href="#dfn-AudioNode">AudioNode</a> interface, which represents audio sources, audio outputs, and intermediate processing modules.
-	    AudioNodes may be dynamically connected together in a <a href="#ModularRouting-section">modular fashion</a>.
+	    AudioNodes can be dynamically connected together in a <a href="#ModularRouting-section">modular fashion</a>.
 	    </li> 
 	    
 	    <li>An <a class="dfnref" href="#dfn-AudioContext">AudioContext</a> interface, which contains an audio signal graph representing connections betweens AudioNodes.
@@ -58,7 +58,7 @@
 	    </li>
 
 	    <li>An <a class="dfnref" href="#dfn-AudioGainNode">AudioGainNode</a> interface, for explicit gain control.  Because inputs to AudioNodes support multiple connections
-	     (as a unity-gain summing junction), mixers may be <a href="#MixerGainStructure-section">easily built</a> with AudioGainNodes. 
+	     (as a unity-gain summing junction), mixers can be <a href="#MixerGainStructure-section">easily built</a> with AudioGainNodes. 
 	    </li> 
 
 	    <li>An <a class="dfnref" href="#dfn-AudioBufferSourceNode">AudioSourceNode</a> interface, an AudioNode which generates audio.
@@ -81,11 +81,11 @@
 
         </ul> 
         
-        Additionally, in a more complex implementation we may have the following:
+        Additionally, in a more complex implementation we can have the following:
         
         <ul> 
 
-	    <li>The following linear filters may be implemented efficiently as "biquad" filters (two poles, two zeroes).  Each would be a subclass of AudioNode, or
+	    <li>The following linear filters can be implemented efficiently as "biquad" filters (two poles, two zeroes).  Each would be a subclass of AudioNode, or
 	    there could simply be a BiquadFilterNode which could be configured in different ways:
 	    <ul>
             <li> LowPass1Filter </li>
@@ -288,7 +288,7 @@
       highly optimized direct-to-disk audio file reading/writing, tightly integrated time-stretching, etc., etc.
       Nevertheless, the proposed system will be quite capable of supporting a large range of reasonably complex games and interactive applications, including musical ones.
       And it can be a very good complement to the more advanced graphics features just now being offered by WebGL.
-      The API has been designed so that more advanced capabilities may be added at a later time.
+      The API has been designed so that more advanced capabilities can be added at a later time.
       
       </p>
       
@@ -333,7 +333,7 @@
           <li> Efficient biquad filters for lowpass, highpass filters, etc. </li>
       </ul>
 
-      In addition these features may be supported:
+      In addition these features can be supported:
       <ul>
           <li> Dynamics compression for overall control and sweetening of the mix </li>
           <li> A Waveshaping effect for distortion and other non-linear effects</li>
@@ -348,9 +348,9 @@
       <h2>Modular Routing</h2>
 
         <p>
-        Modular routing allows arbitrary connections between different <code>AudioNode</code> objects.  Each node may have inputs and/or outputs.
+        Modular routing allows arbitrary connections between different <code>AudioNode</code> objects.  Each node can have inputs and/or outputs.
         An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioDestinationNode</code> has one input and no outputs and
-        represents the final destination to the audio hardware.  Other nodes such as filters may be placed between
+        represents the final destination to the audio hardware.  Other nodes such as filters can be placed between
         the <code>AudioSourceNode</code> nodes and the final <code>AudioDestinationNode</code> node.
         
         The developer doesn't have to worry about low-level stream format details when two objects are connected together; the right thing just happens.
@@ -358,7 +358,7 @@
 
         </p>
         <p>
-        In the simplest case, a single source may be routed directly to the output.  All routing occurs within an <code>AudioContext</code> containing a single
+        In the simplest case, a single source can be routed directly to the output.  All routing occurs within an <code>AudioContext</code> containing a single
         <code>AudioDestinationNode</code>:
         </p>
         
@@ -411,14 +411,14 @@
       It is released when the note has finished playing either due to it having reached the end of its sample-data (if non-looping),
       it having reached a sustain phase of its envelope which is zero, or due to a MIDI note-off message putting it into the release phase of its envelope.
       In the MIDI note-off case, the note is not released immediately, but only when the release envelope phase has finished. At any given time,
-      there may be a large number of notes playing but the set of notes is constantly changing as new notes are added into the routing graph, and old ones are released.
+      there can be a large number of notes playing but the set of notes is constantly changing as new notes are added into the routing graph, and old ones are released.
       </p>
       
       <p>
       The audio system automatically deals with tearing-down the part of the routing graph for individual "note" events.
-      A "note" is represented by an <code>AudioBufferSourceNode</code>, which may be directly connected to other processing nodes.  When the note has finished playing, the context will automatically
+      A "note" is represented by an <code>AudioBufferSourceNode</code>, which can be directly connected to other processing nodes.  When the note has finished playing, the context will automatically
       release the reference to the <code>AudioBufferSourceNode</code>, which in turn will release references to any nodes it is connected to, and so on.  The nodes will automatically get disconnected
-      from the graph and will be deleted when they have no more references.  Nodes in the graph which are long-lived and shared between dynamic voices may be managed explicitly.
+      from the graph and will be deleted when they have no more references.  Nodes in the graph which are long-lived and shared between dynamic voices can be managed explicitly.
       Although it sounds complicated, this all happens automatically with no extra javascript handling required.
       </p>
 
@@ -541,8 +541,8 @@ function playSound() {
     <h2>4. The AudioNode Interface</h2> 
     <p> 
       This interface represents audio sources, audio outputs, and intermediate processing modules.
-      These modules may be connected together to form <a href="#ModularRouting-section">processing graphs</a> for rendering audio to the audio hardware.
-      Each node may have inputs and/or outputs.
+      These modules can be connected together to form <a href="#ModularRouting-section">processing graphs</a> for rendering audio to the audio hardware.
+      Each node can have inputs and/or outputs.
       An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioDestinationNode</code> has one input and no outputs and
       represents the final destination to the audio hardware.  Most processing nodes such as filters will have one input and one output.
       
@@ -740,7 +740,7 @@ function playSound() {
     <dl><dt id="dfn-defaultValue"><code>defaultValue</code></dt><dd><p>Initial value for the value attribute</p></dd></dl> 
     <dl><dt id="dfn-name"><code>name</code></dt><dd><p>The name of the parameter.</p></dd></dl> 
     <dl><dt id="dfn-units"><code>units</code></dt><dd><p>Represents the type of value (seconds, decibels, cents, etc.).</p></dd></dl> 
-    <dl><dt id="dfn-automation"><code>automation</code></dt><dd><p>An AudioCurve which may automate the parameter value over time.</p></dd></dl> 
+    <dl><dt id="dfn-automation"><code>automation</code></dt><dd><p>An AudioCurve which can automate the parameter value over time.</p></dd></dl> 
     </div> 
 
 
@@ -785,7 +785,7 @@ function playSound() {
     <h2>7. The AudioBuffer Interface</h2> 
     <p> 
       This interface represents a memory-resident audio asset (for one-shot sound playback, etc.).  
-      Its format is non-interleaved linear PCM with a nominal range of -1.0 -> +1.0.  It may contain one or more channels.
+      Its format is non-interleaved linear PCM with a nominal range of -1.0 -> +1.0.  It can contain one or more channels.
       It is analogous to a WebGL texture.  Typically, it would be expected that the length of the PCM data would be fairly short (usually somewhat less than a minute).  For longer
       sounds, such as music soundtracks, streaming should be used with the <code>audio</code> element and <code>AudioElementSourceNode</code>.
       
@@ -1068,7 +1068,7 @@ function playSound() {
   <dl><dt id="dfn-setOrientation">The <code>setOrientation</code> method</dt> 
   <dd>
   <p>Describes which direction the audio source is pointing in the 3D cartesian coordinate space.  Depending on how directional the sound is (controlled by the <b>cone</b> attributes),
-    a sound pointing away from the listener may be very quiet or completely silent.</p> 
+    a sound pointing away from the listener can be very quiet or completely silent.</p> 
     <p>The <dfn id="dfn-x">x, y, z</dfn> parameters represent a direction vector in 3D space.  </p> 
   </dd>
 
@@ -1491,14 +1491,14 @@ A common feature requirement for modern 3D games is the ability to dynamically s
 </p>
 
 <p>
-Using an <code>AudioPannerNode</code>, an audio stream may be spatialized or positioned in space relative to an <code>AudioListener</code>.  An <code>AudioContext</code> will
+Using an <code>AudioPannerNode</code>, an audio stream can be spatialized or positioned in space relative to an <code>AudioListener</code>.  An <code>AudioContext</code> will
 contain a single <code>AudioListener</code>.   Both panners and listeners have a position in 3D space using a cartesian coordinate system.
 <code>AudioPannerNode</code> objects (representing the source stream) have an <code>orientation</code> vector representing in which direction the sound is projecting.
 Additionally, they have a <code>sound cone</code> representing how directional the sound is.  For example, the sound could be omnidirectional, in which case it would be heard
-anywhere regardless of its orientation, or it may be more directional and heard only if it is facing the listener.
+anywhere regardless of its orientation, or it can be more directional and heard only if it is facing the listener.
 <code>AudioListener</code> objects (representing a person's ears) have an <code>orientation</code> and <code>up</code> vector representing in which direction the person is facing.
-Because both the source stream and the listener may be moving they both have a <code>velocity</code> vector representing both the speed and direction of movement.  Taken together,
-these two velocities may be used to generate a doppler shift effect which changes the pitch.
+Because both the source stream and the listener can be moving, they both have a <code>velocity</code> vector representing both the speed and direction of movement.  Taken together,
+these two velocities can be used to generate a doppler shift effect which changes the pitch.
 </p>
 
 <h3>Panning Algorithm</h3>
@@ -1531,7 +1531,7 @@ The following algorithms can be implemented:
   <li> Pass-through
     <p>
       This is mostly useful for stereo sources to pass the left/right channels unpanned to the left/right speakers.  Similarly for 5.0 sources,
-      the channels may be passed unchanged.
+      the channels can be passed unchanged.
     </p>
 
     <li> Matrix Mix
@@ -1554,7 +1554,7 @@ The following algorithms can be implemented:
 The listener and each sound source have an orientation vector describing which way they are facing.
 Each sound source's sound projection characteristics are described by an inner and outer "cone" describing the
 sound intensity as a function of the source/listener angle from the source's orientation vector.   Thus, a sound source
-pointing directly at the listener will be louder than if it is pointed off-axis. Sound sources may also be omni-directional.
+pointing directly at the listener will be louder than if it is pointed off-axis. Sound sources can also be omni-directional.
 </p>
 
 
@@ -1582,14 +1582,14 @@ pointing directly at the listener will be louder than if it is pointed off-axis.
 <h3>Background</h3>
 <p>
 <a href="http://en.wikipedia.org/wiki/Convolution">Convolution</a> is a mathematical process which can be applied to an audio signal to achieve many interesting high-quality linear effects.
-Very often, the effect is used to simulate an acoustic space such as a concert hall, cathedral, or outdoor amphitheater.  It may also
+Very often, the effect is used to simulate an acoustic space such as a concert hall, cathedral, or outdoor amphitheater.  It can also
 be used for complex filter effects, like a muffled sound coming from inside a closet, sound underwater, sound coming through a telephone,
 or playing through a vintage speaker cabinet.  This technique is very commonly used in major motion picture and music production and is
 considered to be extremely versatile and of high quality.
 </p>
 
 <p>
-Each unique effect is defined by an <code>impulse response</code>.  An impulse response can be represented as an audio file and <a href="#recording-impulse-responses">may be recorded</a> from 
+Each unique effect is defined by an <code>impulse response</code>.  An impulse response can be represented as an audio file and <a href="#recording-impulse-responses">can be recorded</a> from 
 a real acoustic space such as a cave, or can be synthetically generated through a great variety of techniques.
 </p>
 
@@ -1616,7 +1616,7 @@ is easily represented by an audio file which can be referenced by URL.  The rang
 
 <p>
 Single channel convolution operates on a mono audio source, using a mono impulse response.  But to achieve a more spacious sound,
-multi-channel audio sources and impulse responses must be considered.  Audio sources and playback systems may be stereo, 5.1, or more
+multi-channel audio sources and impulse responses must be considered.  Audio sources and playback systems can be stereo, 5.1, or more
 channels.  In the general case the source has N input channels, the impulse response has K channels, and the playback system has M output channels.
 Thus it's a matter of how to matrix these channels to achieve the final result.  The following diagram, illustrates the common cases for stereo
 playback where N, K, and M are all less than or equal to 2.  It's relatively easy to create similar diagrams for 5.1, etc.
@@ -1634,13 +1634,13 @@ playback where N, K, and M are all less than or equal to 2.  It's relatively eas
 
 The most <a href="http://pcfarina.eng.unipr.it/Public/Papers/226-AES122.pdf">modern</a>
  and accurate way to record the impulse response of a real acoustic space is to use
-a long exponential sine sweep.  The test-tone may be as long as 20 or 30 seconds.
+a long exponential sine sweep.  The test-tone can be as long as 20 or 30 seconds, or longer.
 
 
 
 
   Several recordings of the
-test tone played through a speaker may be made with microphones placed and oriented at various positions in the room.  It's important
+test tone played through a speaker can be made with microphones placed and oriented at various positions in the room.  It's important
 to document the types of microphones, their settings, positions, orientations, etc. for each recording taken.
 
 <p>
@@ -1716,7 +1716,7 @@ a means of synthesizing and processing directly using javascript by using specia
 <p>
 Javascript has a variety of <a href="#Performance-section">performance issues</a> so it is not suitable for all types of audio processing.
 The approach proposed in this document includes the ability to perform computationally intensive aspects of the audio processing (too expensive for javascript to compute in real-time) 
-such as multi-source 3D spatialization and convolution in optimized C++ code.  Both direct javascript processing and C++ optimized code may be combined due to the APIs
+such as multi-source 3D spatialization and convolution in optimized C++ code.  Both direct javascript processing and C++ optimized code can be combined due to the APIs
  <a href="#ModularRouting-section">modular approach</a>.
 </p>
 
@@ -1746,7 +1746,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
   to be.  In the extreme, it can make musical production or game-play impossible.  At moderate levels it can affect timing and give the impression of
   sounds lagging behind or the game being non-responsive.  For musical applications the timing problems affect rhythm.  For gaming, the timing problems affect precision of  gameplay.
   For interactive applications, it generally cheapens the users experience much in the same way that very low animation frame-rates do.
-  Depending on the application, a reasonable latency may be from as low as 3-6 milliseconds to 25-50 milliseconds.
+  Depending on the application, a reasonable latency can be from as low as 3-6 milliseconds to 25-50 milliseconds.
 </p>
 
 
@@ -1776,15 +1776,15 @@ especially under heavy processor load.
 
 <ul>
     <li> Javascript is very much slower than heavily optimized C++ code and is not able to take advantage of SSE optimizations and multi-threading which is
-        critical for getting good performance on today's processors.  Optimized native code may be on the order of twenty times faster for processing FFTs as
+        critical for getting good performance on today's processors.  Optimized native code can be on the order of twenty times faster for processing FFTs as
         compared with javascript.  It is not efficient enough for heavy-duty processing of audio such as convolution and 3D spatialization of large numbers of audio sources. </li>
     <li> setInterval() and XHR handling will steal time from the audio processing.  In a reasonably complex game, some javascript resources will be
       needed for game physics and graphics. This creates challenges because audio rendering is deadline driven (to avoid glitches and get low enough latency).</li>
-    <li> Javascript does not run in a real-time processing thread and thus may be pre-empted by many other threads running on the system.</li>
-    <li> Garbage Collection (and autorelease pools on Mac OS X) can cause unpredictable delay. </li>
-    <li> Multiple javascript contexts may be running on the main thread, stealing time from the context doing the processing. </li>
+    <li> Javascript does not run in a real-time processing thread and thus can be pre-empted by many other threads running on the system.</li>
+    <li> Garbage Collection (and autorelease pools on Mac OS X) can cause unpredictable delay on a javascript thread. </li>
+    <li> Multiple javascript contexts can be running on the main thread, stealing time from the context doing the processing. </li>
     <li> Other code (other than javascript) such as page rendering runs on the main thread. </li>
-    <li> Locks are taken and memory is allocated on the main thread.  This can cause additional thread preemption. </li>
+    <li> Locks can be taken and memory is allocated on the javascript thread.  This can cause additional thread preemption. </li>
 </ul>
 
 The problems are even more difficult with today's generation of mobile devices which have processors with relatively poor performance and power consumption / battery-life issues.
