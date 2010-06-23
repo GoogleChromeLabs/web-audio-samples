@@ -35,7 +35,7 @@
      <p> 
       This specification describes a high-level javascript <acronym title="Application Programming Interface">API</acronym> for processing and synthesizing audio in web applications.  The primary paradigm
       is of an audio routing graph, where a number of AudioNode objects are connected together to define the overall audio rendering.  The actual processing will primarily take place
-      in the underlying implementation (typically optimized C / C++ code), but <a href="#JavascriptProcessing-section">direct javascript processing and synthesis</a> is also supported.
+      in the underlying implementation (typically optimized Assembly / C / C++ code), but <a href="#JavascriptProcessing-section">direct javascript processing and synthesis</a> is also supported.
 
      </p>
       
@@ -57,11 +57,9 @@
 	    <li>An <a class="dfnref" href="#dfn-AudioBuffer">AudioBuffer</a> interface, for working with memory-resident audio assets (for one-shot sound playback, etc.).
 	    </li>
 
-	    <li>An <a class="dfnref" href="#dfn-AudioMixerNode">AudioMixerNode</a> interface, which mixes multiple AudioNode outputs into a single output stream.
+	    <li>An <a class="dfnref" href="#dfn-AudioGainNode">AudioGainNode</a> interface, for explicit gain control.  Because inputs to AudioNodes support multiple connections
+	     (as a unity-gain summing junction), mixers may be <a href="#MixerGainStructure-section">easily built</a> with AudioGainNodes. 
 	    </li> 
-
-	    <li>An <a class="dfnref" href="#dfn-AudioMixerInputNode">AudioMixerInputNode</a> interface, which controls the individual volume contribution of a single input of an AudioMixerNode.
-	    </li>
 
 	    <li>An <a class="dfnref" href="#dfn-AudioBufferSourceNode">AudioSourceNode</a> interface, an AudioNode which generates audio.
 	    </li> 
@@ -75,10 +73,10 @@
 	    <li>An <a class="dfnref" href="#dfn-ImpulseResponse">ImpulseResponse</a> interface, which defines a linear effect (such as the sound of a concert hall) to be loaded into a ConvolverNode.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-ConvolverNode">ConvolverNode</a> interface, an AudioNode for applying a real-time linear effect (such as the sound of a concert hall).
+	    <li>A <a class="dfnref" href="#dfn-ConvolverNode">ConvolverNode</a> interface, an AudioNode for applying a real-time linear effect (such as the sound of a concert hall).
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</a> interface, for use with music visualizers, etc..
+	    <li>A <a class="dfnref" href="#dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</a> interface, for use with music visualizers, etc..
 	    </li> 
 
         </ul> 
@@ -87,7 +85,8 @@
         
         <ul> 
 
-	    <li>The following linear filters may be implemented efficiently as "biquad" filters (two poles, two zeroes) (each would be a subclass of AudioNode):
+	    <li>The following linear filters may be implemented efficiently as "biquad" filters (two poles, two zeroes).  Each would be a subclass of AudioNode, or
+	    there could simply be a BiquadFilterNode which could be configured in different ways:
 	    <ul>
             <li> LowPass1Filter </li>
             <li> HighPass1Filter </li>
@@ -107,24 +106,22 @@
 	        envelopes, volume fade curves, etc.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-WaveShaperNode">WaveShaperNode</a> interface, an AudioNode which applies a non-linear waveshaping effect.
+	    <li>A <a class="dfnref" href="#dfn-WaveShaperNode">WaveShaperNode</a> interface, an AudioNode which applies a non-linear waveshaping effect for distortion and other more subtle
+	    warming effects.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-DynamicsProcessorNode">DynamicsProcessorNode</a> interface, an AudioNode for dynamic-shaping (compressor / expander) effects.
+	    <li>A <a class="dfnref" href="#dfn-DynamicsProcessorNode">DynamicsProcessorNode</a> interface, an AudioNode for dynamic-shaping (compressor / expander) effects.
 	    </li> 
-
-
 
 	    <li>An <a class="dfnref" href="#dfn-AudioDelayNode">AudioDelayNode</a> interface, an AudioNode which applies a dynamically adjustable variable delay.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-ChorusNode">ChorusNode</a> interface, an AudioNode implementing a chorus effect.
+	    <li>A <a class="dfnref" href="#dfn-ChorusNode">ChorusNode</a> interface, an AudioNode implementing a chorus effect.
 	    </li> 
-
  
         </ul> 
   
-  <p>The <a href="#introduction">introductory</a> section covers the motivation behind this specification.</p> 
+  <p>The <a href="#introduction">introductory</a> section covers the motivation behind this specification..</p> 
     <p> 
       This API is designed to be used in conjunction with other APIs and elements on the web platform,
       notably: <a href="#XHR2" class="dfnref">XMLHttpRequest</a> (using the <code>responseBlob</code> attribute).
@@ -206,11 +203,8 @@
           <li><a href="#AudioBuffer-section">
           7. The AudioBuffer Interface</a></li>
       
-          <li><a href="#AudioMixerNode-section">
-          8. The AudioMixerNode Interface</a></li>
-      
-          <li><a href="#AudioMixerInputNode-section">
-          9. The AudioMixerInputNode Interface</a></li>
+          <li><a href="#AudioGainNode-section">
+          9. The AudioGainNode Interface</a></li>
       
           <li><a href="#AudioElementSourceNode-section">
           10. The AudioElementSourceNode Interface</a></li>
@@ -288,8 +282,8 @@
       
       <p>
       The APIs have been designed with a wide variety of <a href="#ExampleApplications-section">use cases</a> in mind.
-      It ideally should be able to support <i>any</i> use case which could reasonably be implemented with an optimized C++ engine controlled via Javascript and run in a browser.
-      That said, we need to be humble in admitting the types of applications which would be difficult or impossible to build with this system.
+      Ideally, it should be able to support <i>any</i> use case which could reasonably be implemented with an optimized C++ engine controlled via Javascript and run in a browser.
+      That said, modern desktop audio software can have very advanced capabilities, some of which would be difficult or impossible to build with this system.
       Apple's Logic Audio is one such application which has support for external MIDI controllers, arbitrary plugin audio effects and synthesizers,
       highly optimized direct-to-disk audio file reading/writing, tightly integrated time-stretching, etc., etc.
       Nevertheless, the proposed system will be quite capable of supporting a large range of reasonably complex games and interactive applications, including musical ones.
@@ -355,17 +349,17 @@
 
         <p>
         Modular routing allows arbitrary connections between different <code>AudioNode</code> objects.  Each node may have inputs and/or outputs.
-        An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioOutputNode</code> has one input and no outputs and
-        represents the final destination to the audio hardware.  Other nodes such as mixers and filters may be placed between
-        the <code>AudioSourceNode</code> nodes and the final <code>AudioOutputNode</code> node.
+        An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioDestinationNode</code> has one input and no outputs and
+        represents the final destination to the audio hardware.  Other nodes such as filters may be placed between
+        the <code>AudioSourceNode</code> nodes and the final <code>AudioDestinationNode</code> node.
         
-        The developer doesn't have to worry about low-level stream format details when two objects are connected together; the right thing just happens .
-        For example, if a mono audio stream is connected to a stereo mixer it should just mix to left and right channels appropriately.
+        The developer doesn't have to worry about low-level stream format details when two objects are connected together; the right thing just happens.
+        For example, if a mono audio stream is connected to a stereo input it should just mix to left and right channels appropriately.
 
         </p>
         <p>
         In the simplest case, a single source may be routed directly to the output.  All routing occurs within an <code>AudioContext</code> containing a single
-        <code>AudioOutputNode</code>:
+        <code>AudioDestinationNode</code>:
         </p>
         
         <img src="modular-routing1.png"/>
@@ -380,7 +374,7 @@
             function playSound() {
                 var source = context.createBufferSource();
                 source.buffer = dogBarkingBuffer;
-                source.connect(context.output);
+                source.connect(context.destination);
                 source.noteOn(0);
             }
                     </code></pre></div></div> 
@@ -406,7 +400,7 @@
     <h2>Dynamic Lifetime</h2>
 
       <p>
-      In addition to allowing the creation of powerful static routing configurations, it should also be possible to do custom effect routing on dynamically allocated voices which have
+      In addition to allowing the creation of static routing configurations, it should also be possible to do custom effect routing on dynamically allocated voices which have
       a limited lifetime.  For the purposes of this discussion, let's call these short-lived voices "notes".  Many audio applications incorporate the ideas of notes, examples being drum machines,
       sequencers, and 3D games with many one-shot sounds getting triggered according to game play.
       </p>
@@ -421,7 +415,11 @@
       </p>
       
       <p>
-      The audio system automatically deals with tearing-down the part of the routing graph for individual "note" events.  It does this through an explicit object lifetime model where each node in the graph has an "owner" (possibly nil).  When the node's owner is released then the node itself is released.  For parts of the graph which are long-lived and shared between dynamic voices, the owner may be nil and these nodes may be managed explicitly
+      The audio system automatically deals with tearing-down the part of the routing graph for individual "note" events.
+      A "note" is represented by an <code>AudioBufferSourceNode</code>, which may be directly connected to other processing nodes.  When the note has finished playing, the context will automatically
+      release the reference to the <code>AudioBufferSourceNode</code>, which in turn will release references to any nodes it is connected to, and so on.  The nodes will automatically get disconnected
+      from the graph and will be deleted when they have no more references.  Nodes in the graph which are long-lived and shared between dynamic voices may be managed explicitly.
+      Although it sounds complicated, this all happens automatically with no extra javascript handling required.
       </p>
 
         
@@ -432,35 +430,31 @@
         <div class="example"><div class="exampleHeader">Example</div> 
         <img src="dynamic-allocation.png"/>
 
-        <p>The low-pass filter, panner, and 2nd mixer input nodes are "owned" by the one-shot sound.  So when it has finished playing it will
-         automatically release them (everything within the dotted line).
-         The streaming source, on the other hand, has no explicit owner and will remain connected until it is explicitly disconnected.
+        <p>The low-pass filter, panner, and second gain nodes are directly connected from the one-shot sound.  So when it has finished playing the context will
+         automatically release them (everything within the dotted line).  If there are no longer any javascript references to the one-shot sound and connected nodes, then they will be immediately 
+         removed from the graph and deleted. The streaming source, has a global reference and will remain connected until it is explicitly disconnected.
 
         Here's how it might look in javascript:
         </p> 
         <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code"> 
 
-var listener = 0;
 var context = 0;
 var compressor = 0;
-var mixer = 0;
-var mixerInput1 = 0;
-var mixerInput2 = 0;
+var gainNode1 = 0;
+var streamingAudio = 0;
 
 <span class="comment">// Initial setup of the "long-lived" part of the routing graph </span> 
 function setupAudioContext() {
     context = new AudioContext();
 
     compressor = context.createCompressor();
-    mixer = context.createMixer();
-    mixerInput1 = mixer.createInput();
+    gainNode1 = context.createGain();
 
-    streamingAudio.audioSource.connect(mixerInput1);
+    streamingAudio = document.getElementById('audioTagID');
+    streamingAudio.audioSource.connect(gainNode1);
 
-    mixer.connect(compressor);
-    compressor.connect(context.output);
-
-    listener = context.createListener();
+    gainNode1.connect(compressor);
+    compressor.connect(context.destination);
 }
 
 <span class="comment">// Later in response to some user action (mouse click, etc.) </span>
@@ -469,20 +463,19 @@ function playSound() {
     var oneShotSound = context.createBufferSource();
     oneShotSound.buffer = dogBarkingBuffer;
 
-    <span class="comment">// Pass the oneShotSound as the owner so the filter, panner, </span>
-    <span class="comment">// and mixer input will go away when the sound is done. </span>
-    var lowpass = context.createLowPass2Filter(oneShotSound);
-    var panner = context.createPanner(oneShotSound);
-    var mixerInput2 = mixer.createInput(oneShotSound);
+    <span class="comment">// Create a filter, panner, and gain node. </span>
+    var lowpass = context.createLowPass2Filter();
+    var panner = context.createPanner();
+    var gainNode2 = context.createGain();
     
     <span class="comment">// Make connections </span>
     oneShotSound.connect(lowpass);
     lowpass.connect(panner);
-    panner.connect(mixer);
+    panner.connect(gainNode2);
+    gainNode2.connect(compressor);
 
-    panner.listener = listener;
-
-    oneShotSound.noteOn(0.75);
+    <span class="comment">// Play 0.75 seconds from now (to play immediately pass in 0.0)</span>
+    oneShotSound.noteOn(context.currentTime + 0.75);
 }
         </code></pre></div></div> 
         </div> 
@@ -550,7 +543,7 @@ function playSound() {
       This interface represents audio sources, audio outputs, and intermediate processing modules.
       These modules may be connected together to form <a href="#ModularRouting-section">processing graphs</a> for rendering audio to the audio hardware.
       Each node may have inputs and/or outputs.
-      An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioOutputNode</code> has one input and no outputs and
+      An <code>AudioSourceNode</code> has no inputs and a single output.  An <code>AudioDestinationNode</code> has one input and no outputs and
       represents the final destination to the audio hardware.  Most processing nodes such as filters will have one input and one output.
       
     </p> 
@@ -612,38 +605,51 @@ function playSound() {
 
     interface <dfn id="dfn-AudioContext">AudioContext</dfn> {
 
-        readonly attribute AudioOutputNode output;
-
-        <span class="comment">// in seconds - all scheduled times are relative to this </span> 
+        readonly attribute AudioDestinationNode destination;
         readonly attribute float currentTime;
+        readonly attribute AudioListenerNode listener;
 
+        AudioBuffer createBuffer(in unsigned long numberOfChannels, in unsigned long length, in float sampleRate);
+        
+        <span class="comment">// AudioNode creation </span>         
         AudioBufferSourceNode createBufferSource();
-        LowPass2FilterNode createLowPass2Filter(in AudioNode owner = 0);
-        HighPass2FilterNode createHighPass2Filter(in AudioNode owner = 0);
-        AudioPannerNode createPanner(in AudioNode owner = 0);
-        ConvolverNode createConvolver(in AudioNode owner = 0);
-        AudioMixerNode createMixer();
+        LowPass2FilterNode createLowPass2Filter();
+        HighPass2FilterNode createHighPass2Filter();
+        AudioPannerNode createPanner();
+        ConvolverNode createConvolver();
+        AudioGainNode createGain();
         <span class="comment">// etc......... </span>         
-
-        AudioListener createListener();
 
     }
     </code></pre></div></div> 
 
 
-    <div id="attributes-AudioContext" class="section"> 
+    <div id="attributes-AudioContext" class="section">
     <h3>5.1. Attributes</h3> 
-    <dl><dt id="dfn-output"><code>output</code></dt><dd><p>An <code>AudioOutputNode</code> with a single input representing the final destination for all audio
-     (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>output</code>.</p></dd></dl> 
-    <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>All scheduled times are relative to this time.
-    This is not a "transport" time which can be started, paused, and re-positioned.
-    It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
-    on top of this (in javascript).  This time corresponds to an ever-increasing hardware timestamp.
-    </p></dd></dl> 
+    <dl><dt id="dfn-destination"><code>destination</code></dt><dd><p>An <code>AudioDestinationNode</code> with a single input representing the final destination for all audio
+     (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>destination</code>.</p></dd></dl> 
+     <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>This is a time in seconds which starts at zero when the context is created and increases in real-time.
+     All scheduled times are relative to it. This is not a "transport" time which can be started, paused, and re-positioned.
+     It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
+     on top of this (in javascript).  This time corresponds to an ever-increasing hardware timestamp.
+     </p></dd></dl> 
+    <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>An <a href="AudioListener-section"><code>AudioListener</code></a> which is used for 3D <a href="#Spatialization-section">spatialization</a>.</p></dd></dl> 
     </div> 
 
     <div id="methodsandparams-AudioContext" class="section"> 
     <h3>5.2. Methods and Parameters</h3> 
+
+    <dl><dt id="dfn-createBuffer">The <code>createBuffer</code> method</dt> 
+    <dd>
+    <p>Creates an AudioBuffer of the given size.  The audio data in the buffer will be zero-initialized (silent).</p> 
+
+    <p>The <dfn id="dfn-numberOfChannels">numberOfChannels</dfn> parameter determines how many channels the buffer will have. </p>
+    <p>The <dfn id="dfn-length">length</dfn> parameter determines the size of the buffer in sample-frames. </p>
+    <p>The <dfn id="dfn-sampleRate">sampleRate</dfn> parameter determines the sample-rate of the buffer in sample-frames per second. </p>
+
+    </dd>
+    
+
     <dl><dt id="dfn-createBufferSource">The <code>createBufferSource</code> method</dt> 
     <dd>
     <p>Creates an AudioBufferSourceNode.</p> 
@@ -677,16 +683,11 @@ function playSound() {
      controlling the <a href="#DynamicLifetime">lifetime</a> of the convolver. </p>
     </dd>
     
-    <dl><dt id="dfn-createMixer">The <code>createMixer</code> method</dt> 
+    <dl><dt id="dfn-createGain">The <code>createGain</code> method</dt> 
     <dd>
-    <p>Creates an AudioMixerNode.</p> 
+    <p>Creates an AudioGainNode.</p> 
     </dd>
-    
-    <dl><dt id="dfn-createListener">The <code>createListener</code> method</dt> 
-    <dd>
-    <p>Creates an AudioListener.</p> 
-    </dd>
-    
+        
     <p>
         etc...
     </p>
@@ -821,89 +822,29 @@ function playSound() {
 
   </div> 
 
+  <div id="AudioGainNode-node" class="section"> 
 
-
-  <div id="AudioMixerNode-section" class="section"> 
-    <h2>8. The AudioMixerNode Interface</h2> 
+    <h2>9. The AudioGainNode Interface</h2> 
     <p> 
-      This interface represents an AudioNode which efficiently <a href="#MixerGainStructure-section">mixes</a> the output from multiple <code>AudioMixerInputNodes</code> into a single output stream.
-      It has a single output representing the mixed down stream.  Any dynamic input or output gain changes must be smoothed (de-zippered) in the implementation
-      to avoid audible glitches.
+      This interface is an AudioNode with a single input and single output which scales (changes gain of) the incoming audio signal by a certain amount.  The default amount is 1.0 (no gain change).
       
     </p> 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
 
-    interface <dfn id="dfn-AudioMixerNode">AudioMixerNode</dfn> {
-
-        attribute AudioGain outputGain;        
-        attribute AudioMixerInputNode createInput(in AudioNode owner = 0);
-
-    }
-    </code></pre></div></div> 
-
-
-    <div id="attributes-AudioMixerNode" class="section"> 
-    <h3>8.1. Attributes</h3> 
-    <dl><dt id="dfn-outputGain"><code>outputGain</code></dt><dd><p>The amount of gain to apply to the final output mix.  The default value is 1.0. </p></dd></dl> 
-    </div> 
-
-  </div> 
-
-
-  <div id="methodsandparams-AudioMixerNode" class="section"> 
-  <h3>8.2. Methods and Parameters</h3> 
-  <dl><dt id="dfn-createInput">The <code>createInput</code> method</dt> 
-  <dd>
-  <p>Creates an AudioMixerInputNode.</p> 
-  </dd>
-  <p>The <dfn id="dfn-owner">owner</dfn> parameter is an optional <code>AudioNode</code>
-   controlling the <a href="#DynamicLifetime">lifetime</a> of the mixer input. </p>
-    
-    
-  </dd></dl> 
-
-
-
-
-  <div id="AudioMixerInputNode-node" class="section"> 
-
-    <h2>9. The AudioMixerInputNode Interface</h2> 
-    <p> 
-      This interface controls the individual volume contribution of a single input of the AudioMixerNode.
-      
-    </p> 
-    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
-
-    interface <dfn id="dfn-AudioMixerInputNode">AudioMixerInputNode</dfn> {
+    interface <dfn id="dfn-AudioGainNode">AudioGainNode</dfn> : AudioNode {
 
         AudioGain gain;
-        void addGainContribution(in AudioGain);
 
     }
     </code></pre></div></div> 
 
 
-    <div id="attributes-AudioMixerInputNode" class="section"> 
+    <div id="attributes-AudioGainNode" class="section"> 
     <h3>9.1. Attributes</h3> 
-    <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The amount of gain to apply to this particular input of the mixer.  The default value is 1.0. </p></dd></dl> 
+    <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The amount of gain to apply.  The default value is 1.0 (no gain change). </p></dd></dl> 
     </div> 
 
   </div> 
-
-
-  <div id="methodsandparams-AudioMixerInputNode" class="section"> 
-  <h3>9.2. Methods and Parameters</h3> 
-  <dl><dt id="dfn-addGainContribution">The <code>addGainContribution</code> method</dt> 
-  <dd>
-  <p>Adds an additional gain contribution.  This method handles more advanced use cases and is particularly useful in conjunction with the <code>AudioPannerNode</code>
-   <code>coneGain</code> and <code>distanceGain</code> attributes for explicit control of these gain contributions when a panned source
-   is being sent to both a reverberation mixer and a dry mixer.  For example, it may be desired to <b>only</b> decrease the gain of a panned source due
-   to distance effects in the dry mix, but not the reverberation mix. </p> 
-  </dd>
-    
-    
-  </dd></dl> 
-
 
 
 
@@ -1055,8 +996,8 @@ function playSound() {
         attribute float coneOuterGain;
 
         <span class="comment">// Dynamically calculated value </span>         
-        // readonly attribute AudioGain coneGain;
-        // readonly attribute AudioGain distanceGain;
+        readonly attribute AudioGain coneGain;
+        readonly attribute AudioGain distanceGain;
 
     };
     </code></pre></div></div> 
@@ -1383,7 +1324,26 @@ function playSound() {
   <h2>17. Mixer Gain Structure</h2> 
 
   <p>
-  In a more complex routing topology involving multiple sends and submixes, we will need explicit control over the volume or "gain" of each connection to a mixer.  Such routing topologies are very common and exist in even the simplest of electronic gear sitting around in a basic recording studio.
+  The inputs to AudioNodes have the ability to accept connections from multiple outputs.  The input then acts as a unity gain summing junction with each output signal being
+  added with the others:
+  </p>
+
+  <img src="unity-gain-summing-junction.png"/>
+
+  <p>
+  But many times, it's important to be able to control the gain for each of the output signals.  The AudioGainNode gives us this control:
+  </p>
+
+  <img src="mixer-architecture-new.png"/>
+  
+  <p>
+  Using these two concepts of unity gain summing junctions and AudioGainNodes, it's possible to construct audio mixers.
+  </p>
+  
+  
+  <p>
+  In a complex routing topology involving multiple sends and submixes, we will need explicit control over the volume or "gain" of each connection to a mixer.
+  Such routing topologies are very common and exist in even the simplest of electronic gear sitting around in a basic recording studio.
   </p>
 
   <p>
@@ -1393,9 +1353,9 @@ function playSound() {
   <img src="mixer-gain-structure.png"/>
   
   <p>
-  This diagram is using a shorthand notation where "send 1", "send 2", and "main bus" are actually mixers, but are not represented as boxes and are instead shown as summing busses,
-   where the intersections g2_1, g3_1, etc. represent the "gain" or volume for the given source on the given mixer.
-  In order to expose this gain, an <a href="#dfn-AudioMixerNode"> <code>AudioMixerInput</code></a> is used:
+    This diagram is using a shorthand notation where "send 1", "send 2", and "main bus" are actually inputs to AudioNodes, but here are represented as summing busses,
+    where the intersections g2_1, g3_1, etc. represent the "gain" or volume for the given source on the given mixer.
+    In order to expose this gain, an <a href="#dfn-AudioGainNode"> <code>AudioGainNode</code></a> is used:
   </p>
   
   <p>
@@ -1408,9 +1368,6 @@ function playSound() {
 
 var context = 0;
 var compressor = 0;
-var mainMixer = 0;
-var send1Mixer = 0;
-var send2Mixer = 0;
 var reverb = 0;
 var chorus = 0;
 var s1 = 0;
@@ -1430,9 +1387,6 @@ function setupRoutingGraph() {
     context = new AudioContext();
 
     compressor = context.createCompressor();
-    mainMixer = context.createMixer();
-    send1Mixer = context.createMixer();
-    send2Mixer = context.createMixer();
 
     <span class="comment">// Send1 effect </span>
     reverb = context.createConvolver();
@@ -1441,18 +1395,17 @@ function setupRoutingGraph() {
     <span class="comment">// Send2 effect </span>
     chorus = context.createChorus();
 
-    <span class="comment">// Connect main mixer to final compressor before main output </span>
-    compressor.connect(context.output);
-    mainMixer.connect(compressor);
+    <span class="comment">// Connect final compressor to final destination </span>
+    compressor.connect(context.destination);
 
     <span class="comment">// Connect sends 1 & 2 through effects to main mixer </span>
-    send1Mixer.connect(reverb);
-    s1 = mainMixer.createInput();
+    s1 = context.createGain();
     reverb.connect(s1);
-
-    send2Mixer.connect(chorus);
-    s2 = mainMixer.createInput();
+    s1.connect(compressor);
+    
+    s2 = context.createGain();
     chorus.connect(s2);
+    s2.connect(compressor);
 
     <span class="comment">// Create a couple of sources </span>
     source1 = context.createBufferSource();
@@ -1461,27 +1414,31 @@ function setupRoutingGraph() {
     source2.buffer = footstepsBuffer;
 
     <span class="comment">// Connect source1 </span>
-    g1_1 = mainMixer.createInput(source1);
-    g2_1 = send1Mixer.createInput(source1);
-    g3_1 = send2Mixer.createInput(source1);
+    g1_1 = context.createGain();
+    g2_1 = context.createGain();
+    g3_1 = context.createGain();
     source1.connect(g1_1);
     source1.connect(g2_1);
     source1.connect(g3_1);
+    g1_1.connect(compressor);
+    g2_1.connect(reverb);
+    g3_1.connect(chorus);
 
     <span class="comment">// Connect source2 </span>
-    g1_2 = mainMixer.createInput(source2);
-    g2_2 = send1Mixer.createInput(source2);
-    g3_2 = send2Mixer.createInput(source2);
+    g1_2 = context.createGain();
+    g2_2 = context.createGain();
+    g3_2 = context.createGain();
     source2.connect(g1_2);
     source2.connect(g2_2);
     source2.connect(g3_2);
+    g1_2.connect(compressor);
+    g2_2.connect(reverb);
+    g3_2.connect(chorus);
 
     <span class="comment">// We now have explicit control over all the volumes g1_1, g2_1, ..., s1, s2 </span>
-    <span class="comment">// </span>
-    <span class="comment">// For example: </span>
-    g2_1.gain.value = 0.2; <span class="comment"> // sets source1 reverb gain </span>
+    g2_1.gain.value = 0.2; <span class="comment"> // For example, set source1 reverb gain </span>
 
-    <span class="comment"> // Because g2_1 is of type "AudioGain" which is an "AudioParam", </span>
+    <span class="comment"> // Because g2_1.gain is of type "AudioGain" which is an "AudioParam", </span>
     <span class="comment"> // we could also attach an automation curve to it. </span>
     <span class="comment"> // We could also create a "mixing board" UI in canvas or WebGL controlling these gains... </span>
 }
