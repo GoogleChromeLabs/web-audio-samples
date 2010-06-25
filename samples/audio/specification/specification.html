@@ -806,8 +806,7 @@ function playSound() {
 
         readonly attribute int numberOfChannels;
 
-        <span class="comment">// TODO: change from WebGLFloatArray to newer API </span>         
-        WebGLFloatArray getChannelData(in unsigned long channel);
+        Float32Array getChannelData(in unsigned long channel);
 
     }
     </code></pre></div></div> 
@@ -1215,11 +1214,11 @@ function playSound() {
     interface <dfn id="dfn-RealtimeAnalyserNode">RealtimeAnalyserNode</dfn> : AudioNode {
 
         <span class="comment">// Real-time frequency-domain data </span>        
-        void getFloatFrequencyData(in WebGLFloatArray array);
-        void getByteFrequencyData(in WebGLUnsignedByteArray array);
+        void getFloatFrequencyData(in Float32Array array);
+        void getByteFrequencyData(in Uint8Array array);
 
         <span class="comment">// Real-time waveform data </span>        
-        void getByteTimeDomainData(in WebGLUnsignedByteArray array);
+        void getByteTimeDomainData(in Uint8Array array);
 
         attribute unsigned long fftSize;
         readonly attribute unsigned long frequencyBinCount;
