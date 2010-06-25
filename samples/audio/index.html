@@ -129,7 +129,7 @@ $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 <div style="display: block; text-align: left;"><a href="o3d-webgl-samples/pool.html" imageanchor="1"><img src="images/8-ball2.png" border="1"></a></div> 
 </td> 
 <td style="width: 300px;"><a href="pool.html"><b>8-ball</b></a> A virtual pool game complete with sound effects.
-    It uses WebGL (originally ported from o3d).  The graphics are a bit slow in the debug version - improvements to come.</td> 
+    It uses WebGL (originally ported from o3d).</td> 
 </tr> 
 
 <tr> 
@@ -192,7 +192,7 @@ To build for Safari, go into the WebKit scripts directory (from the branch):
 
 <pre>
 $ cd WebKit/WebKitTools/Scripts
-$ ./build-webkit --debug
+$ ./build-webkit --release
 </pre>
 
 <p>
@@ -208,7 +208,7 @@ After building, you can run in Safari:
 </p>
 
 <pre>
-$ ./run-safari --debug
+$ ./run-safari --release
 </pre>
 
 </div>
