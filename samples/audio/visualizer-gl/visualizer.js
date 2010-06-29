@@ -112,14 +112,14 @@ AnalyserView.prototype.initGL = function() {
     gl.enable(gl.DEPTH_TEST);
 
     // Initialization for the 2D visualizations
-    var vertices = new WebGLFloatArray([
+    var vertices = new Float32Array([
         1.0,  1.0, 0.0,
         -1.0,  1.0, 0.0,
         -1.0, -1.0, 0.0,
         1.0,  1.0, 0.0,
         -1.0, -1.0, 0.0,
         1.0, -1.0, 0.0]);
-    var texCoords = new WebGLFloatArray([
+    var texCoords = new Float32Array([
         1.0, 1.0,
         0.0, 1.0,
         0.0, 0.0,
@@ -146,8 +146,8 @@ AnalyserView.prototype.initGL = function() {
     if (numVertices > 65536) {
         throw "Sonogram 3D resolution is too high: can only handle 65536 vertices max";
     }
-    vertices = new WebGLFloatArray(numVertices * 3);
-    texCoords = new WebGLFloatArray(numVertices * 2);
+    vertices = new Float32Array(numVertices * 3);
+    texCoords = new Float32Array(numVertices * 2);
 
     for (var z = 0; z < sonogram3DHeight; z++) {
         for (var x = 0; x < sonogram3DWidth; x++) {
@@ -181,7 +181,7 @@ AnalyserView.prototype.initGL = function() {
     var sonogram3DNumIndices = (sonogram3DWidth - 1) * (sonogram3DHeight - 1) * 6;
     this.sonogram3DNumIndices = sonogram3DNumIndices;
     
-    var indices = new WebGLUnsignedShortArray(sonogram3DNumIndices);
+    var indices = new Uint16Array(sonogram3DNumIndices);
     // We need to use TRIANGLES instead of for example TRIANGLE_STRIP
     // because we want to make one draw call instead of hundreds per
     // frame, and unless we produce degenerate triangles (which are very
