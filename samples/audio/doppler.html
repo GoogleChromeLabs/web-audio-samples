@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2010, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 <!-- JQuery stuff -->
-<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
-<script type="text/javascript" src="http://jqueryui.com/latest/jquery-1.3.2.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.core.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.slider.js"></script>
 <script type="text/javascript" src="lib/events.js"></script>
 
 <link rel="stylesheet" type="text/css" href="style/simple.css" />
@@ -62,13 +58,20 @@ var kMainSpeed = 0.385;
 var kSecondarySpeed = 0.063;
 var kSecondaryRange = 1.0;
 var kTertiarySpeed = 0.02;
-var kReverbGain = 0.15;
+var kReverbGain = 0.2;
 var kMainSweepDistance = 30.0;
 
 var secondaryRange = kSecondaryRange;
 
 var xaudio;
+var context;
+var mixer;
+var convolver;
+var panner;
+var listener;
 var source;
+var dryMixerInput;
+var wetMixerInput;
 var x = 0;
 var y = 0;
 var z = 0;
@@ -152,7 +155,7 @@ function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
   var request = xaudio.createAudioRequest(url, false);
   request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
+    convolver.buffer = request.buffer;
   }
   
   request.send();
@@ -164,8 +167,9 @@ function loadBufferAndPlay(url) {
   var request = xaudio.createAudioRequest(url, true);
   request.onload = function() { 
     source.buffer = request.buffer;
-    var currentTime = xaudio.currentTime;
-    source.play(currentTime + 0.020);
+    // var currentTime = context.currentTime;
+    // source.noteOn(currentTime + 0.020);
+    source.noteOn();
 
     // get rid of loading animation
     var loading = document.getElementById("loading");
@@ -226,57 +230,56 @@ function draw(x, y, z) {
  * "Animate" the doppler effect
  */
 function schedule() {
-
- // Calculate velocity for doppler effect
- var velocity;
- var direction = lfo.getDirection();
- velocity = 20.0 * direction;
-
- var sinLfoValue = lfo.getSinValue();
- 
- 
- var slowValue = secondaryRange * slowLfo.getSinValue();
- var tertiaryValue = tertiaryLfo.getSinValue();
-
-
- if (mode == 0) { // left-right
-   x = sinLfoValue;
-   y = slowValue;
-   z = tertiaryValue; //-2;
+   // Calculate velocity for doppler effect
+   var velocity;
+   var direction = lfo.getDirection();
+   velocity = 20.0 * direction;
    
-   source.setPosition(x, y, z); 
- } else if (mode == 1) { // front-back
-   x = slowValue;
-   y = tertiaryValue; // 0;
-   z = sinLfoValue;
+   var sinLfoValue = lfo.getSinValue();
    
-   source.setPosition(x, y, z); 
- } else if (mode == 2) { // up-down
-   x = tertiaryValue; // 0;
-   y = sinLfoValue;
-   z = slowValue;
    
-   source.setPosition(x, y, z); 
- }
-
- // Velocity (for doppler effect)
- var kVelocityScale = 50.0;
- var deltaX = kVelocityScale * (x - gLastX);
- var deltaY = kVelocityScale * (y - gLastY);
- var deltaZ = kVelocityScale * (z - gLastZ);
- gLastX = x;
- gLastY = y;
- gLastZ = z;
-
- source.setVelocity(deltaX, deltaY, deltaZ);
- xaudio.listener.dopplerFactor = dopplerFactor;
- 
- draw(x, y, z);
-
- lfo.advance();
- slowLfo.advance();
- tertiaryLfo.advance();
- setTimeout("schedule()", 20);
+   var slowValue = secondaryRange * slowLfo.getSinValue();
+   var tertiaryValue = tertiaryLfo.getSinValue();
+   
+   
+   if (mode == 0) { // left-right
+     x = sinLfoValue;
+     y = slowValue;
+     z = tertiaryValue; //-2;
+   
+     panner.setPosition(x, y, z); 
+   } else if (mode == 1) { // front-back
+     x = slowValue;
+     y = tertiaryValue; // 0;
+     z = sinLfoValue;
+   
+     panner.setPosition(x, y, z); 
+   } else if (mode == 2) { // up-down
+     x = tertiaryValue; // 0;
+     y = sinLfoValue;
+     z = slowValue;
+   
+     panner.setPosition(x, y, z); 
+   }
+   
+   // Velocity (for doppler effect)
+   var kVelocityScale = 50.0;
+   var deltaX = kVelocityScale * (x - gLastX);
+   var deltaY = kVelocityScale * (y - gLastY);
+   var deltaZ = kVelocityScale * (z - gLastZ);
+   gLastX = x;
+   gLastY = y;
+   gLastZ = z;
+   
+   panner.setVelocity(deltaX, deltaY, deltaZ);
+   listener.dopplerFactor = dopplerFactor;
+   
+   draw(x, y, z);
+   
+   lfo.advance();
+   slowLfo.advance();
+   tertiaryLfo.advance();
+   setTimeout("schedule()", 20);
 }
 
 
@@ -316,7 +319,7 @@ function pitchHandler(event, ui) {
    info.innerHTML = "pitch = " + cents + " cents";
    
    var rate = Math.pow(2.0, cents / 1200.0);
-   source.playbackPitch = rate;
+   source.playbackRate.value = rate;
 }
 
 function dopplerFactorHandler(event, ui) {
@@ -325,15 +328,12 @@ function dopplerFactorHandler(event, ui) {
    info.innerHTML = "dopplerFactor = " + dopplerFactor;
 }
 
-
-
-
 function reverbHandler(event, ui) {
   var value = ui.value;
   var info = document.getElementById("reverb-value");
   info.innerHTML = "reverb = " + value;
   
-  source.sendGain = value;
+  wetMixerInput.gain.value = 8.0 * value;
 }
 
 
@@ -358,46 +358,59 @@ function addSliders() {
 /**
  * Start doppler demo
  */
-function init() {
-  xaudio = document.getElementById('myAudioTag');
-  
-  xaudio.listener.gain = 2.0;
+ function init() {
+     xaudio = document.getElementById('myAudioTag');
+     context = xaudio.context;
+     source = context.createBufferSource();
+     mixer = context.createMixer();
+     dryMixerInput = mixer.createInput();
+     wetMixerInput = mixer.createInput();
+     panner = context.createPanner(source);
+     convolver = context.createConvolver();
 
-  // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
-  // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');
-  setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
+     listener = context.createListener();
+     panner.listener = listener;
+     mixer.outputGain.value = 2.0;
 
+     // Connect audio processing graph
+     source.connect(panner);
+     panner.connect(dryMixerInput);
+     panner.connect(convolver);
+     convolver.connect(wetMixerInput);
+     mixer.connect(context.output);
+     
+     // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
+     // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');
+     setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
 
-  // setReverbImpulseResponse('impulse-responses/spatialized3.aif');
-  
-  source = xaudio.addSource();
-  source.playbackPitch = 0.75;
-	source.mainGain = 3.0;
-	source.sendGain = kReverbGain;
+     source.playbackRate.value = 0.75;
+     dryMixerInput.gain.value = 3.0;
+     wetMixerInput.gain.value = kReverbGain;
 
-  x = 0;
-  y = 0;
-  z = -4.0;
-  source.setPosition(x, y, z);
+     x = 0;
+     y = 0;
+     z = -4.0;
 
-  source.looping = true;
+     panner.setPosition(x, y, z);
 
-  // Load up initial buffer
-  loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");  
-  
-  lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
-  slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
-  tertiaryLfo = new Lfo(-5.0, 5.0, kTertiarySpeed);
+     source.looping = true;
 
-  // UI stuff
-  canvas = document.getElementById('canvasID');
-  ctx = canvas.getContext('2d');
-  
-  addSliders();
+     // Load up initial buffer
+     loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");  
 
-  // Start moving the source
-  setTimeout("schedule()", 20);
-}
+     lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
+     slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
+     tertiaryLfo = new Lfo(-5.0, 5.0, kTertiarySpeed);
+
+     // UI stuff
+     canvas = document.getElementById('canvasID');
+     ctx = canvas.getContext('2d');
+
+     addSliders();
+
+     // Start moving the source
+     setTimeout("schedule()", 20);
+ }
 
 </script>
 </head>
@@ -455,19 +468,6 @@ Cauldron
 Crunched up Paper
 </div>
 
-<!--
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/balls-of-the-orient.aif'); highlightElement(this);">
-Meditation Balls
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/drum-samples/handdrum-loop.wav'); highlightElement(this);">
-Hand-drum
-</div>
-
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/siren.aif'); highlightElement(this);">
-Siren
-
--->
 
 </div>
 
