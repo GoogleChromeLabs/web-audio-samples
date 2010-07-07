@@ -165,8 +165,8 @@
       convolver.connect(mainMixerInput2);
       mainMixer.connect(context.output);
       
-      // reduce overall volume
-      mainMixer.outputGain.value = 0.2;
+      // Change overall volume
+      mainMixer.outputGain.value = 1.5;
 
       pingBuffer = 0;
       loadPing(pingFileName);
