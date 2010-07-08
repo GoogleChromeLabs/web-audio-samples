@@ -1,5 +1,5 @@
 <!--
-Copyright 2009, Google Inc.
+Copyright 2010, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,15 +38,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Title
 </title>
 
-<link rel="stylesheet" type="text/css" href = "simple.css" />
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
 
 <!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 <style type="text/css">
   #slider { margin: 10px; }
 </style>
-
-
 
 <!-- Our javascript code -->
 <script type="text/javascript">
@@ -56,6 +54,7 @@ Title
 window.onload = init;
 
 var xaudio;
+var context;
 var buffer;
 var latency = 0.0;
 var hihatShort;
@@ -69,18 +68,14 @@ function latencyHandler(event, ui) {
 }
 
 function handleKeyDown(event) {
-    var voice = xaudio.getVoice();
-    if (voice) {
-        voice.buffer = hihatShort;
-        voice.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
-        voice.setPosition(0, 0, -2.0);
-        voice.sendGain = 0.0;
-        voice.mainGain = 2.0;
+    var source = context.createBufferSource();
 
-        var currentTime = xaudio.currentTime;
-        var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
-        voice.play(playTime);
-    }
+    source.buffer = hihatShort;
+    source.connect(context.output);
+    
+    var currentTime = context.currentTime;
+    var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
+    source.noteOn(playTime);
 }
 
 function finishLoad() {
@@ -92,11 +87,8 @@ function finishLoad() {
     ui.value = 0.0;
     latencyHandler(0, ui);
 
-    xaudio.listener.gain = 1.0;
-
     document.addEventListener("keydown", handleKeyDown, true);  
 }
-
 
 function loadHihat(url) {
     // Load asynchronously
@@ -111,7 +103,9 @@ function loadHihat(url) {
 }
 
 function init() {
-    xaudio = document.getElementById('myAudioTag');  
+    xaudio = document.getElementById('myAudioTag');
+    context = xaudio.context;
+
     loadHihat("sounds/drum-samples/hihat-short.aif");
 }
 
