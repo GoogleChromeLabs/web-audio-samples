@@ -144,6 +144,7 @@ var g_queue = [
 // Audio stuff
 
 var xaudio = 0;
+var context = 0;
 var pingBuffer = 0;
 var info = 0;
 
@@ -166,10 +167,7 @@ function updateInfo() {
  
  var s = "soft = " + softCount + " : medium = " + mediumCount + " : hard = " + hardCount;
  
- // alert(s);
- 
  info.innerHTML = s;
-
 }
 
 function loadStickCueLight(url) {
@@ -217,7 +215,7 @@ function loadImpulseResponse(url) {
   // Load impulse response asynchronously
   var request = xaudio.createAudioRequest(url, false);
   request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
+    convolver.buffer = request.buffer;
   }
   
   request.send();
@@ -325,9 +323,11 @@ function playSound(impactType, velocity, x, y) {
     sendScale = 2.0;
   }
   
-  var voice = xaudio.getVoice();
+  var voice = context.createBufferSource();
 
   if (voice) {
+    voice.buffer = buffer;
+
     // base volume on velocity
     var xx = velocity;
     if (xx > 1.0) xx = 1.0;
@@ -335,22 +335,25 @@ function playSound(impactType, velocity, x, y) {
     var s = Math.sin(0.5 * xx * Math.PI);
     s = s*s;
     var gain = gainScale * s;
-
-    
-
-
     var isQuiet = (gain < 0.5);
-    voice.buffer = buffer;
     
-    // voice.sendGain = gain < 0.25 ? 0.8 : 0.5;
-    voice.sendGain = sendScale *  0.5;
-    voice.mainGain = gain;
+    // Setup send and main gains
+    var sendGain = context.createGainNode(voice);
+    var mainGain = context.createGainNode(voice);
+    var filter = context.createLowPass2Filter(voice);
+    sendGain.gain.value = sendScale;
+    mainGain.gain.value = gain;
+    voice.connect(filter);
+    filter.connect(sendGain);
+    filter.connect(mainGain);
+    sendGain.connect(convolver);
+    mainGain.connect(context.output);
     
     // // Randomize pitch          
     var r = Math.random();
     var cents = 600.0 * (r - 0.5);
     var rate = Math.pow(2.0, cents / 1200.0);
-    voice.playbackPitch = rate;  // really rate (not pitch)
+    voice.playbackRate.value = rate;  // really rate (not pitch)
     // 
     // Adjust filter
     var value = 0.5 + 0.5 * xx;
@@ -359,8 +362,9 @@ function playSound(impactType, velocity, x, y) {
     
     var sampleRate = 44100.0;
     var nyquist = sampleRate * 0.5;
-    voice.effect.param1 = v2;
-    voice.effect.param2 = 5.0; // resonance
+
+    filter.cutoff.value = v2 * nyquist;
+    filter.resonance.value = 0.0;
     
     var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
     if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
@@ -380,26 +384,16 @@ function playSound(impactType, velocity, x, y) {
     posZ *= scaleXZ;
     var posY = scaleY * 10.0;
     
-    voice.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
-
-    // voice.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
-
+    // FIXME: add panner back in...
+    // voice.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
 
     if (impactType == 3) {
-      voice.play(xaudio.currentTime + 0.125);
+      voice.noteOn(context.currentTime + 0.125);
     } else {
-      voice.play(0);
+      voice.noteOn(0);
     }
-  }
-  
+  }  
 }
-
-
-
-
-
-
-
 
 
 
@@ -852,9 +846,6 @@ pool.Physics = function() {
 
       var v1 = Math.sqrt(vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
       var v2 = Math.sqrt(vj[0]*vj[0] + vj[1]*vj[1] + vj[2]*vj[2]);
-      // alert("v1 = " + v1 + " : v2 = " + v2);
-      
-      
       
       var soundVelocity = 5.0 * (v1 + v2);
       if (soundVelocity > 1.0) soundVelocity = 1.0;
@@ -1214,8 +1205,9 @@ function initClient() {
 function initAudio() {
     // Audio init
     xaudio = document.getElementById('xaudio');
-    xaudio.listener.gain = 3.0;
-    xaudio.listener.returnGain = 1.0;
+    context = xaudio.context;
+    convolver = context.createConvolver();
+    convolver.connect(context.output);
 
     info = document.getElementById('info');
 
@@ -1235,8 +1227,8 @@ function initAudio() {
     loadBallPocket("../sounds/pool-table/ball-pocket-balls.aif");
 
     // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');  
-    loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');  
-    // loadImpulseResponse('../impulse-responses/house-impulses/kitchen-true-stereo.aif');  
+    // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');  
+    loadImpulseResponse('../impulse-responses/house-impulses/cinema-hallway.aif');  
     // loadImpulseResponse('../impulse-responses/spatialized4.aif');
 }
 
