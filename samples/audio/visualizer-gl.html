@@ -132,9 +132,6 @@ function draw() {
 
 function finishLoad() {
     source.buffer = audioBuffer;
-    source.panningModel = AudioSource.PASSTHROUGH;  // passthrough panning
-    source.sendGain = 0.0;
-    source.mainGain = 1.0;
     source.looping = true;
 
     source.noteOn(0.0);
