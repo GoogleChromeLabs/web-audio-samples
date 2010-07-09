@@ -529,10 +529,7 @@ function schedule() {
         advanceNote();
     }
 
-    // drawAnalysis();
-
     setTimeout("schedule()", 20);
-
 }
 
 
@@ -598,7 +595,7 @@ function finishLoading() {
     startTime = context.currentTime + 0.160;
 
     // Start playing
-    setTimeout("schedule()", 10);
+    schedule();
 }
 
 function init() {
