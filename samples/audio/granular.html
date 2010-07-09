@@ -61,7 +61,6 @@ var mainMixerInput2;
 var dryMixer;
 var wetMixer;
 var convolver;
-var listener;
 
 var buffer = 0;
 var bufferLength = 58.0;
@@ -183,7 +182,6 @@ function scheduleGrain() {
         var wetMixerInput = wetMixer.createInput(source);
 
         panner.panningModel = AudioPannerNode.HRTF;
-        panner.listener = listener;
 
         panner.setPosition(x, y, z);
         wetMixerInput.gain.value = 0.5 * diffusionRandomization * r5;
@@ -230,8 +228,6 @@ function init() {
     convolver.connect(mainMixerInput2);
     mainMixer.connect(context.output);
 
-    listener = context.createListener();
-    
     mainMixer.outputGain.value = 0.5;
 
     load();

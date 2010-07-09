@@ -59,7 +59,6 @@ var buffer;
 var mixer;
 var convolver;
 var panner;
-var listener;
 var source;
 var dryMixerInput;
 var wetMixerInput;
@@ -249,9 +248,6 @@ function setSourceBuffer(buffer) {
      lowFilter.resonance.value = 5.0;
 
      convolver = context.createConvolver();
-
-     listener = context.createListener();
-     panner.listener = listener;
 
      // Connect audio processing graph
      source.connect(lowFilter);

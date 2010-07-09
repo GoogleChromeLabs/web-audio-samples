@@ -66,7 +66,6 @@ var mainMixerInput2;
 var dryMixer;
 var wetMixer;
 var convolver;
-var listener;
 
 var sampleRate = 44100.0;
 var nyquist = sampleRate * 0.5;
@@ -465,7 +464,6 @@ function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, res
         var filter = context.createLowPass2Filter(voice);
 
         panner.panningModel = panningModel;
-        panner.listener = listener;
 
         panner.setPosition(x, y, z);
         wetMixerInput.gain.value = sendGain;
@@ -615,9 +613,6 @@ function init() {
     wetMixer.connect(convolver);
     convolver.connect(mainMixerInput2);
     mainMixer.connect(context.output);
-
-    listener = context.createListener();
-
 
     loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
 

@@ -68,7 +68,6 @@ var context;
 var mixer;
 var convolver;
 var panner;
-var listener;
 var source;
 var dryMixerInput;
 var wetMixerInput;
@@ -272,7 +271,7 @@ function schedule() {
    gLastZ = z;
    
    panner.setVelocity(deltaX, deltaY, deltaZ);
-   listener.dopplerFactor = dopplerFactor;
+   context.listener.dopplerFactor = dopplerFactor;
    
    draw(x, y, z);
    
@@ -368,8 +367,6 @@ function addSliders() {
      panner = context.createPanner(source);
      convolver = context.createConvolver();
 
-     listener = context.createListener();
-     panner.listener = listener;
      mixer.outputGain.value = 2.0;
 
      // Connect audio processing graph

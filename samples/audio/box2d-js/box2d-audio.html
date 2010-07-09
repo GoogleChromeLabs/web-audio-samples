@@ -23,7 +23,6 @@
     var dryMixer;
     var wetMixer;
     var convolver;
-    var listener;
     
     var pingFileName = "../sounds/hyper-reality/filter-noise-2.aif";
     var pingBuffer = 0;
@@ -65,7 +64,6 @@
           var filter = context.createLowPass2Filter(ping);
           var panner = context.createPanner(ping);
           panner.panningModel = AudioPannerNode.HRTF;
-          panner.listener = listener;
           
           // Create inputs to dry/wet mixers
           var dryMixerInput = dryMixer.createInput(ping);
@@ -149,7 +147,6 @@
 
       xaudio = document.getElementById('myAudioTag');
       context = xaudio.context;
-      listener = context.createListener();
       
       convolver = context.createConvolver();
 
