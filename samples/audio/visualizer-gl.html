@@ -117,7 +117,7 @@ function initAudio() {
 
     // Connect audio processing graph
     source.connect(analyser);
-    analyser.connect(context.output);    
+    analyser.connect(context.destination);    
 
     loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
 

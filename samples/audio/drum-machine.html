@@ -612,7 +612,7 @@ function init() {
     dryMixer.connect(mainMixerInput1);
     wetMixer.connect(convolver);
     convolver.connect(mainMixerInput2);
-    mainMixer.connect(context.output);
+    mainMixer.connect(context.destination);
 
     loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
 

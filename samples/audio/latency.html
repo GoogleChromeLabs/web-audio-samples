@@ -71,7 +71,7 @@ function handleKeyDown(event) {
     var source = context.createBufferSource();
 
     source.buffer = hihatShort;
-    source.connect(context.output);
+    source.connect(context.destination);
     
     var currentTime = context.currentTime;
     var playTime = latency == 0.0 ? 0.0 : currentTime + latency;

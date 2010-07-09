@@ -367,7 +367,7 @@ function init() {
     source.connect(mixerInput1);  
     source.connect(convolver);
     convolver.connect(mixerInput2);
-    mixer.connect(context.output);
+    mixer.connect(context.destination);
 
     source.looping = true;
 

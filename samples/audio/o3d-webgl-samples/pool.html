@@ -347,7 +347,7 @@ function playSound(impactType, velocity, x, y) {
     filter.connect(sendGain);
     filter.connect(mainGain);
     sendGain.connect(convolver);
-    mainGain.connect(context.output);
+    mainGain.connect(context.destination);
     
     // // Randomize pitch          
     var r = Math.random();
@@ -1207,7 +1207,7 @@ function initAudio() {
     xaudio = document.getElementById('xaudio');
     context = xaudio.context;
     convolver = context.createConvolver();
-    convolver.connect(context.output);
+    convolver.connect(context.destination);
 
     info = document.getElementById('info');
 

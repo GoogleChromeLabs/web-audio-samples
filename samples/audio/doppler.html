@@ -374,7 +374,7 @@ function addSliders() {
      panner.connect(dryMixerInput);
      panner.connect(convolver);
      convolver.connect(wetMixerInput);
-     mixer.connect(context.output);
+     mixer.connect(context.destination);
      
      // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
      // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');

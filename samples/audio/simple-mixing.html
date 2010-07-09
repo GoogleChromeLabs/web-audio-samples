@@ -159,9 +159,9 @@ function init() {
   source1.connect(gain1);
   source2.connect(gain2);
   source3.connect(gain3);
-  gain1.connect(context.output);
-  gain2.connect(context.output);
-  gain3.connect(context.output);
+  gain1.connect(context.destination);
+  gain2.connect(context.destination);
+  gain3.connect(context.destination);
   
   addSliders();
 

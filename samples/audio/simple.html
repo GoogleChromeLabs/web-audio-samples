@@ -255,7 +255,7 @@ function setSourceBuffer(buffer) {
      panner.connect(dryMixerInput);
      panner.connect(convolver);
      convolver.connect(wetMixerInput);
-     mixer.connect(context.output);
+     mixer.connect(context.destination);
      
      bufferList = new Array(fileCount);
      for (var i = 0; i < fileCount; ++i) {
