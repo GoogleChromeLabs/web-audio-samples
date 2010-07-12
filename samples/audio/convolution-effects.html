@@ -55,7 +55,6 @@ Real-time Convolution Effects
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio = 0;
 var context = 0;
 var source = 0;
 var convolver = 0;
@@ -149,7 +148,7 @@ Asset.prototype.load = function(preset) {
     this.startedLoading = true;
         
     // Load asynchronously
-    var request = xaudio.createAudioRequest(this.url, false);
+    var request = context.createAudioRequest(this.url, false);
 
     var asset = this;
 
@@ -351,8 +350,8 @@ function initPresets() {
 }
 
 function init() {
-    xaudio = document.getElementById('myAudioTag');
-    context = xaudio.context;
+    context = new AudioContext();
+    
     convolver = context.createConvolver();
     source = context.createBufferSource();
     mixer = context.createMixer();
@@ -381,10 +380,6 @@ function init() {
 </head>
 
 <body>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
-
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>

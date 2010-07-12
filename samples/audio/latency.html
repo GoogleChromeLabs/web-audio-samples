@@ -53,7 +53,6 @@ Title
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio;
 var context;
 var buffer;
 var latency = 0.0;
@@ -92,7 +91,7 @@ function finishLoad() {
 
 function loadHihat(url) {
     // Load asynchronously
-    var request = xaudio.createAudioRequest(url, true);
+    var request = context.createAudioRequest(url, true);
 
     request.onload = function() { 
         hihatShort = request.buffer;
@@ -103,8 +102,7 @@ function loadHihat(url) {
 }
 
 function init() {
-    xaudio = document.getElementById('myAudioTag');
-    context = xaudio.context;
+    context = new AudioContext();
 
     loadHihat("sounds/drum-samples/hihat-short.aif");
 }
@@ -113,9 +111,6 @@ function init() {
 </head>
 
 <body>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>

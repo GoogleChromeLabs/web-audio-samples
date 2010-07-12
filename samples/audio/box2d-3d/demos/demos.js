@@ -19,7 +19,6 @@ var canvasLeft;
 
 // Audio stuff
 var gCount = 0;
-var xaudio = 0;
 
 var pingFileName = "../sounds/hyper-reality/filter-noise-3.aif";
 var pingBuffer = 0;

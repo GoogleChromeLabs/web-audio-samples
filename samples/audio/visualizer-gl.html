@@ -75,7 +75,6 @@ function output(str) {
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio;
 var context;
 var source;
 var analyser;
@@ -98,7 +97,7 @@ function init() {
 
 function loadAudioBuffer(url) {
     // Load asynchronously
-    var request = xaudio.createAudioRequest(url, true);
+    var request = context.createAudioRequest(url, true);
 
     request.onload = function() { 
         audioBuffer = request.buffer;
@@ -109,8 +108,7 @@ function loadAudioBuffer(url) {
 }
 
 function initAudio() {
-    xaudio = document.getElementById('myAudioTag');
-    context = xaudio.context;
+    context = new AudioContext();
     
     source = context.createBufferSource();
     analyser = context.createAnalyser(source);
@@ -145,9 +143,6 @@ function finishLoad() {
 </head>
 
 <body>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
 
 <!-- Canvas tag for WebGL output -->
 

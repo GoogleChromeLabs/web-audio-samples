@@ -63,7 +63,6 @@ var kMainSweepDistance = 30.0;
 
 var secondaryRange = kSecondaryRange;
 
-var xaudio;
 var context;
 var mixer;
 var convolver;
@@ -152,7 +151,7 @@ function highlightElement(object) {
 
 function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
+  var request = context.createAudioRequest(url, false);
   request.onload = function() { 
     convolver.buffer = request.buffer;
   }
@@ -163,7 +162,7 @@ function setReverbImpulseResponse(url) {
 
 function loadBufferAndPlay(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     source.buffer = request.buffer;
     // var currentTime = context.currentTime;
@@ -358,8 +357,8 @@ function addSliders() {
  * Start doppler demo
  */
  function init() {
-     xaudio = document.getElementById('myAudioTag');
-     context = xaudio.context;
+     context = new AudioContext();
+     
      source = context.createBufferSource();
      mixer = context.createMixer();
      dryMixerInput = mixer.createInput();
@@ -471,9 +470,6 @@ Crunched up Paper
 </div>
 
 </div>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
 
 <!-- Initial loading animation -->
 <div id="loading">

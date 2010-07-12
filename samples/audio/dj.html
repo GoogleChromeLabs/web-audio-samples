@@ -54,7 +54,6 @@ Title
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio;
 var context;
 var source1 = 0;
 var source2 = 0;
@@ -98,7 +97,7 @@ BufferLoader = function(source, url) {
 
 BufferLoader.prototype.load = function() {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(this.url_, false);
+  var request = context.createAudioRequest(this.url_, false);
   this.request_ = request;
 
   var bufferLoader = this;
@@ -172,17 +171,6 @@ function rightRhythmEffectHandler(event, ui) {
   wetMixerInput2.gain.value = value;
 }
 
-
-function loadImpulseResponse(url) {
-  // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
-  request.onload = function() { 
-    xaudio.impulseResponseBuffer = request.buffer;
-  }
-  
-  request.send();
-}
-
 function finishLoad() {
   // first, get rid of loading animation
   var loading = document.getElementById("loading");
@@ -199,8 +187,6 @@ function finishLoad() {
   configureSlider("leftRhythmEffect", 0.0, 0.0, 1.0, leftRhythmEffectHandler);
   configureSlider("rightRhythmEffect", 0.0, 0.0, 1.0, rightRhythmEffectHandler);
 
-  loadImpulseResponse("impulse-responses/filter-rhythm2.aif");
-  
   var now = context.currentTime;
   anchorTime = now + 0.040;
   
@@ -210,7 +196,7 @@ function finishLoad() {
 
 function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
+  var request = context.createAudioRequest(url, false);
   request.onload = function() { 
     convolver.buffer = request.buffer;
   }
@@ -220,7 +206,7 @@ function setReverbImpulseResponse(url) {
 
 function loadBufferForSource(source, url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, false);
+  var request = context.createAudioRequest(url, false);
   request.onload = function() {
     // Start playing the new buffer at exactly the next 4-beat boundary
     var currentTime = context.currentTime;
@@ -240,8 +226,8 @@ function loadBufferForSource(source, url) {
 
 function init() {
     // Initialize audio
-    xaudio = document.getElementById('myAudioTag');
-    context = xaudio.context;
+    context = new AudioContext();
+    
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();
 
@@ -304,9 +290,6 @@ function init() {
 </head>
 
 <body>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>

@@ -143,7 +143,6 @@ var g_queue = [
 
 // Audio stuff
 
-var xaudio = 0;
 var context = 0;
 var pingBuffer = 0;
 var info = 0;
@@ -172,7 +171,7 @@ function updateInfo() {
 
 function loadStickCueLight(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     stickCueLight = request.buffer;
   }
@@ -182,7 +181,7 @@ function loadStickCueLight(url) {
 
 function loadStickCueMedium(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     stickCueMedium = request.buffer;
   }
@@ -192,7 +191,7 @@ function loadStickCueMedium(url) {
 
 function loadStickCueHard(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     stickCueHard = request.buffer;
   }
@@ -203,7 +202,7 @@ function loadStickCueHard(url) {
 
 function loadBallPocket(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     ballPocket = request.buffer;
   }
@@ -213,7 +212,7 @@ function loadBallPocket(url) {
 
 function loadImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = xaudio.createAudioRequest(url, false);
+  var request = context.createAudioRequest(url, false);
   request.onload = function() { 
     convolver.buffer = request.buffer;
   }
@@ -224,7 +223,7 @@ function loadImpulseResponse(url) {
 
 function loadBallBallLight(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     ballBallLight = request.buffer;
   }
@@ -234,7 +233,7 @@ function loadBallBallLight(url) {
 
 function loadBallBallMedium(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     ballBallMedium = request.buffer;
   }
@@ -244,7 +243,7 @@ function loadBallBallMedium(url) {
 
 function loadBallBallHard(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     ballBallHard = request.buffer;
   }
@@ -256,7 +255,7 @@ function loadBallBallHard(url) {
 
 function loadMediumEdge(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     mediumEdge = request.buffer;
   }
@@ -266,7 +265,7 @@ function loadMediumEdge(url) {
 
 function loadHardEdge(url) {
   // Load asynchronously
-  var request = xaudio.createAudioRequest(url, true);
+  var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     hardEdge = request.buffer;
   }
@@ -1204,8 +1203,7 @@ function initClient() {
 
 function initAudio() {
     // Audio init
-    xaudio = document.getElementById('xaudio');
-    context = xaudio.context;
+    context = new AudioContext();
     convolver = context.createConvolver();
     convolver.connect(context.destination);
 
@@ -2488,9 +2486,6 @@ function keyPressed(event) {
 </textarea>
 <!-- End of effect -->
 </div>
-
-<!-- Start of xaudio -->
-<xaudio id="xaudio"></xaudio>
 
 <div id="info">
 </div>

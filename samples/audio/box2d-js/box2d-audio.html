@@ -15,7 +15,6 @@
 		<!-- box2djs -->
 
 <script>
-    var xaudio;
     var context;
     var mainMixer;
     var mainMixerInput1;
@@ -124,7 +123,7 @@
 
     function loadPing(url) {
       // Load asynchronously
-      var request = xaudio.createAudioRequest(url, true);
+      var request = context.createAudioRequest(url, true);
       request.onload = function() { 
         pingBuffer = request.buffer;
       }
@@ -134,7 +133,7 @@
 
     function loadImpulseResponse(url) {
       // Load impulse response asynchronously
-      var request = xaudio.createAudioRequest(url, false);
+      var request = context.createAudioRequest(url, false);
       request.onload = function() { 
         convolver.buffer = request.buffer;
       }
@@ -145,8 +144,7 @@
     function init() {
       prettyPrint();
 
-      xaudio = document.getElementById('myAudioTag');
-      context = xaudio.context;
+      context = new AudioContext();
       
       convolver = context.createConvolver();
 
@@ -267,9 +265,6 @@
   </head>
 <body>
     <canvas id="canvas" width='500' height='300' style="top:30px; left:20px;"></canvas>
-
-    <!-- Start of xaudio -->
-    <xaudio id="myAudioTag"></xaudio>
 
     <div id="info">0</div>
 </body>

@@ -53,7 +53,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 window.onload = init;
 
 // globals
-var xaudio = 0;
 var context = 0;
 var bufferLoader = 0;
 var source1;
@@ -83,7 +82,7 @@ BufferLoader.prototype.loadAllBuffers = function() {
 
 BufferLoader.prototype.loadBuffer = function(i) {
     // Load asynchronously
-    var request = xaudio.createAudioRequest(this.urlList[i], false);
+    var request = context.createAudioRequest(this.urlList[i], false);
     var bufferLoader = this;
     request.onload = function() {
         bufferLoader.bufferList[i] = request.buffer;
@@ -143,35 +142,34 @@ function addSliders() {
 }
 
 function init() {
-  xaudio = document.getElementById('myAudioTag');
-  context = xaudio.context;
-  
-  source1 = context.createBufferSource();
-  source2 = context.createBufferSource();
-  source3 = context.createBufferSource();
-  source1.looping = true;
-  source2.looping = true;
-  source3.looping = true;
+    context = new AudioContext();
 
-  gain1 = context.createGainNode();
-  gain2 = context.createGainNode();
-  gain3 = context.createGainNode();
-  source1.connect(gain1);
-  source2.connect(gain2);
-  source3.connect(gain3);
-  gain1.connect(context.destination);
-  gain2.connect(context.destination);
-  gain3.connect(context.destination);
-  
-  addSliders();
+    source1 = context.createBufferSource();
+    source2 = context.createBufferSource();
+    source3 = context.createBufferSource();
+    source1.looping = true;
+    source2.looping = true;
+    source3.looping = true;
 
-  bufferLoader = new BufferLoader(
-    "sounds/hyper-reality/human-voice.mp4",
-    "sounds/hyper-reality/br-jam-loop.aif",
-    "sounds/hyper-reality/laughter.aif");
+    gain1 = context.createGainNode();
+    gain2 = context.createGainNode();
+    gain3 = context.createGainNode();
+    source1.connect(gain1);
+    source2.connect(gain2);
+    source3.connect(gain3);
+    gain1.connect(context.destination);
+    gain2.connect(context.destination);
+    gain3.connect(context.destination);
 
-  // finishedLoading() will be called when we're done
-  bufferLoader.loadAllBuffers();
+    addSliders();
+
+    bufferLoader = new BufferLoader(
+        "sounds/hyper-reality/human-voice.mp4",
+        "sounds/hyper-reality/br-jam-loop.aif",
+        "sounds/hyper-reality/laughter.aif");
+
+    // finishedLoading() will be called when we're done
+    bufferLoader.loadAllBuffers();
 }
 
 </script>
@@ -185,10 +183,6 @@ Simple Mixing
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
-
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>

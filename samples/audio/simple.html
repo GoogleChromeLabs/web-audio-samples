@@ -53,7 +53,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // init() once the page has finished loading.
 window.onload = init;
 
-var xaudio;
 var context;
 var buffer;
 var mixer;
@@ -90,7 +89,7 @@ var kInitialReverbLevel = 0.6;
 
 function setReverbImpulseResponse(url) {
     // Load impulse response asynchronously
-    var request = xaudio.createAudioRequest(url, false);
+    var request = context.createAudioRequest(url, false);
     request.onload = function() { 
         convolver.buffer = request.buffer;
     }
@@ -107,7 +106,7 @@ function setAudioSource(i) {
     } else {
         // Load asynchronously
         var url = fileList[i];
-        var request = xaudio.createAudioRequest(url, true);
+        var request = context.createAudioRequest(url, true);
         request.onload = function() { 
             source.buffer = request.buffer;
             bufferList[i] = request.buffer;  // cache it
@@ -119,7 +118,7 @@ function setAudioSource(i) {
 
 function loadHihat(url) {
     // Load asynchronously
-    var request = xaudio.createAudioRequest(url, true);
+    var request = context.createAudioRequest(url, true);
     request.onload = function() { 
         hihatShort = request.buffer;
     }
@@ -224,7 +223,6 @@ function setSourceBuffer(buffer) {
      ctx2.arc(width/2, height/2 , 10, 0,Math.PI*2,true)
      ctx2.fill();
 
-     document.addEventListener("keydown", handleKeyDown, true);
      canvas.addEventListener("mousedown", handleMouseDown, true);
      canvas.addEventListener("mousemove", handleAzimuthMouseMove, true);
      canvas.addEventListener("mouseup", handleMouseUp, true);
@@ -235,8 +233,7 @@ function setSourceBuffer(buffer) {
 
 
      // Initialize audio
-     xaudio = document.getElementById('myAudioTag');
-     context = xaudio.context;
+     context = new AudioContext();
      source = context.createBufferSource();
      mixer = context.createMixer();
      dryMixerInput = mixer.createInput();
@@ -377,18 +374,6 @@ Projection.prototype.drawDot = function(c) {
     lastZ = z;    
 }
 
-function handleKeyDown(event) {
-    var voice = xaudio.getVoice();
-    if (voice) {
-        voice.buffer = hihatShort;
-        voice.panningModel = 0;  // passthrough panning
-        voice.setPosition(0, 0, -2.0);
-        voice.sendGain = 0.0;
-        voice.mainGain = 2.0;
-        voice.noteOn(0.0);
-    }
-}
-
 function handleMouseDown(event) {
     gIsMouseDown = true;
 }
@@ -427,12 +412,6 @@ function handleElevationMouseMove(event) {
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
-
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
-
-
 
 <br><br>
 <div style="position:relative; height:350px;">

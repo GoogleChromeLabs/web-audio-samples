@@ -58,7 +58,6 @@ var canvasContext;
 var canvasWidth = 0;
 var canvasHeight = 0;
 
-var xaudio;
 var context;
 var mainMixer;
 var mainMixerInput1;
@@ -144,7 +143,7 @@ function Kit(name) {
 
 Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
     // Load asynchronously
-    var request = xaudio.createAudioRequest(url, mixToMono);
+    var request = context.createAudioRequest(url, mixToMono);
 
     var kit = this;
 
@@ -379,68 +378,6 @@ var loopNumber = 0;
 var tempo = 115.0;
 var noteTime = 0.0;
 
-function drawAnalysis() {
-    // draw center
-    var width = canvas.width;
-    var height = canvas.height;
-
-    canvasContext.fillStyle = "rgb(150, 255, 150)";
-    canvasContext.lineWidth = 3;
-
-    var barHeight = height / 9.0;
-
-    var nbins = xaudio.realtimeAnalyser.frequencyLength;
-    var nbars = 9;
-
-    var infoString = "";
-
-    for (i = 0; i < nbars; ++i) {
-        var ii = i;
-
-        var decay = 0.45;  // starts at 37Hz (sample rate == 44.1KHz)
-        var bin = Math.pow(decay, (nbars-1) - ii) * (nbins-1);
-        bin = Math.floor(bin + 0.5);
-
-        if (bin < 1) bin = 1;
-
-
-        var gainGrowth = 2.2; // 1.4; // 1.3;
-        var gainScale = Math.pow(gainGrowth, ii);
-        var gainScaleDb = 20.0 * Math.log(gainScale) / Math.log(10.0);
-
-        var x = gainScaleDb + xaudio.realtimeAnalyser.frequencyBin(bin);
-
-
-        var minGain = 20.0;
-        var maxGain = 50.0;
-
-
-
-        x = (x - minGain) / (maxGain - minGain);
-
-        if (x < 0.0) x = 0.0;
-        if (x > 1.0) x = 1.0;
-
-        // x = Math.pow(x, 0.2);
-
-
-
-        // var x = 0.5;
-
-
-        var meterWidth = width * x;
-
-        canvasContext.fillStyle = "rgb(0, 0, 0)";
-        canvasContext.fillRect(0, ii*barHeight, meterWidth, barHeight);
-
-        canvasContext.fillStyle = "rgb(255, 255, 255)";
-        canvasContext.fillRect(meterWidth, ii*barHeight, width - meterWidth, barHeight);
-    }
-
-    var info = document.getElementById('info');
-    info.innerHTML = infoString;
-}
-
 function advanceNote() {
     // Advance time by a 16th note...
     var secondsPerBeat = 60.0 / tempo;
@@ -552,7 +489,7 @@ function drawDrumGrid() {
 
 function loadImpulseResponse(url) {
     // Load impulse response asynchronously
-    var request = xaudio.createAudioRequest(url, false);
+    var request = context.createAudioRequest(url, false);
     request.onload = function() { 
         convolver.buffer = request.buffer;
     }
@@ -597,8 +534,7 @@ function finishLoading() {
 }
 
 function init() {
-    xaudio = document.getElementById('myAudioTag');
-    context = xaudio.context;
+    context = new AudioContext();
 
     convolver = context.createConvolver();
 
@@ -753,9 +689,6 @@ function handleMouseMove(event) {
 
 <div id="info">
 </div>
-
-<!-- Start of xaudio -->
-<xaudio id="myAudioTag"></xaudio>
 
 <canvas id="canvasID" width="600" height="226" style="border: 2px inset blue;">
 </canvas>
