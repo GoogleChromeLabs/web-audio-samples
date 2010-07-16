@@ -60,15 +60,8 @@ var source2 = 0;
 var buffer;
 var convolver;
 var panner;
-var mainMixer;
-var mainMixerInput1;
-var mainMixerInput2;
-var dryMixer;
-var dryMixerInput1;
-var dryMixerInput2;
-var wetMixer;
-var wetMixerInput1;
-var wetMixerInput2;
+var wetGainNode1;
+var wetGainNode2;
 var lowFilter1;
 var lowFilter2;
 
@@ -160,7 +153,7 @@ function leftRhythmEffectHandler(event, ui) {
   var info = document.getElementById("leftRhythmEffect-value");
   info.innerHTML = "leftRhythmEffect = " + 100.0*value + "\%";
   
-  wetMixerInput1.gain.value = value;
+  wetGainNode1.gain.value = value;
 }
 
 function rightRhythmEffectHandler(event, ui) {
@@ -168,7 +161,7 @@ function rightRhythmEffectHandler(event, ui) {
   var info = document.getElementById("rightRhythmEffect-value");
   info.innerHTML = "rightRhythmEffect = " + 100.0*value + "\%";
   
-  wetMixerInput2.gain.value = value;
+  wetGainNode2.gain.value = value;
 }
 
 function finishLoad() {
@@ -228,21 +221,17 @@ function init() {
     // Initialize audio
     context = new AudioContext();
     
+    // Create sources
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();
 
-    mainMixer = context.createMixer();
-    mainMixerInput1 = mainMixer.createInput();
-    mainMixerInput2 = mainMixer.createInput();
+    // Create gain nodes to control the wet (effect) mix levels for left/right
+    wetGainNode1 = context.createGainNode();
+    wetGainNode2 = context.createGainNode();
+    wetGainNode1.gain.value = 0.0;
+    wetGainNode2.gain.value = 0.0;
 
-    dryMixer = context.createMixer();
-    dryMixerInput1 = dryMixer.createInput();
-    dryMixerInput2 = dryMixer.createInput();
-
-    wetMixer = context.createMixer();
-    wetMixerInput1 = wetMixer.createInput();
-    wetMixerInput2 = wetMixer.createInput();
-
+    // Create a lowpass resonant filter for both left and right
     lowFilter1 = context.createLowPass2Filter(source1);
     lowFilter2 = context.createLowPass2Filter(source2);
     lowFilter1.cutoff.value = 22050.0;
@@ -250,27 +239,27 @@ function init() {
     lowFilter1.resonance.value = 5.0;
     lowFilter2.resonance.value = 5.0;
 
+    // Create a convolver for a rhythm effect
     convolver = context.createConvolver();
 
-    // Connect audio processing graph
+    // Connect sources to filter
     source1.connect(lowFilter1);
     source2.connect(lowFilter2);
-    lowFilter1.connect(dryMixerInput1);
-    lowFilter1.connect(wetMixerInput1);
-    lowFilter2.connect(dryMixerInput2);
-    lowFilter2.connect(wetMixerInput2);
-    dryMixer.connect(mainMixerInput1);
-    wetMixer.connect(convolver);
-    convolver.connect(mainMixerInput2);
-    mainMixer.connect(context.destination);
 
+    // Connect dry mix
+    lowFilter1.connect(context.destination);
+    lowFilter2.connect(context.destination);
+
+    // Connect wet (effect) mix
+    lowFilter1.connect(wetGainNode1);
+    wetGainNode1.connect(convolver);
+    lowFilter2.connect(wetGainNode2);    
+    wetGainNode2.connect(convolver);
+    convolver.connect(context.destination);
+
+    // Start out with cross-fader at center position (equal-power crossfader)
     source1.gain.value = 0.707;
     source2.gain.value = 0.707;
-    
-    dryMixerInput1.gain.value = 1.0;
-    dryMixerInput2.gain.value = 1.0;
-    wetMixerInput1.gain.value = 0.0;
-    wetMixerInput2.gain.value = 0.0;
 
     source1.looping = true;
     source2.looping = true;

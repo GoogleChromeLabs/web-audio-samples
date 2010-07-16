@@ -59,8 +59,8 @@ var context = 0;
 var source = 0;
 var convolver = 0;
 var mixer = 0;
-var mixerInput1 = 0;
-var mixerInput2 = 0;
+var gainNode1 = 0;
+var gainNode2 = 0;
 
 // Source buffers
 var humanVoice = 0;
@@ -257,8 +257,8 @@ Preset.prototype.play = function() {
     source.buffer = this.sampleBuffer;
     convolver.buffer = this.impulseResponseBuffer;
 
-    mixerInput1.gain.value = this.mainGain;
-    mixerInput2.gain.value = this.sendGain;
+    gainNode1.gain.value = this.mainGain;
+    gainNode2.gain.value = this.sendGain;
 
     source.noteOn(0);
 }
@@ -283,8 +283,6 @@ function initPresets() {
     presetList = new Array();
     
     var n = 0;
-    
-    // n++
     
     presetList[n] = new Preset(n++, 'Spoken Word (unprocessed)', 0, 0, 0.35, 0.0);
     presetList[n] = new Preset(n++, 'Spoken Word (spreader)', 0, 17, 0.2, 0.5);
@@ -356,17 +354,17 @@ function init() {
     source = context.createBufferSource();
     mixer = context.createMixer();
 
-    mixerInput1 = mixer.createInput();
-    mixerInput2 = mixer.createInput();
+    gainNode1 = context.createGainNode();
+    gainNode2 = context.createGainNode();
+    gainNode1.gain.value = 1.0;
+    gainNode2.gain.value = 2.0;
 
-    mixerInput1.gain.value = 1.0;
-    mixerInput2.gain.value = 2.0;
-
-    // Connect up processing graph
-    source.connect(mixerInput1);  
+    source.connect(gainNode1);
+    gainNode1.connect(context.destination);
+    
     source.connect(convolver);
-    convolver.connect(mixerInput2);
-    mixer.connect(context.destination);
+    convolver.connect(gainNode2);
+    gainNode2.connect(context.destination);
 
     source.looping = true;
 

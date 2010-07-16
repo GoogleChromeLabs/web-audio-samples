@@ -59,16 +59,10 @@ var canvasWidth = 0;
 var canvasHeight = 0;
 
 var context;
-var mainMixer;
-var mainMixerInput1;
-var mainMixerInput2;
-var dryMixer;
-var wetMixer;
 var convolver;
 
 var sampleRate = 44100.0;
 var nyquist = sampleRate * 0.5;
-
 
 var startTime;
 var lastDrawTime = -1;
@@ -189,7 +183,6 @@ function cutoffSnareHandler(event, ui) {
 
     var info = document.getElementById("snare_cutoff-value");
     info.innerHTML = "snare_cutoff = " + snareCutoff + " Hz";
-
 }
 
 function cutoffHihatHandler(event, ui) {
@@ -237,7 +230,6 @@ function highlightElement(object) {
 
     object.style.backgroundColor = "green";
 }
-
 
 var rhythm1 = [
   1,
@@ -396,22 +388,32 @@ function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, res
         voice.buffer = buffer;
 
         var panner = context.createPanner(voice);
-        var dryMixerInput = dryMixer.createInput(voice);
-        var wetMixerInput = wetMixer.createInput(voice);
+        panner.panningModel = panningModel;
+        panner.setPosition(x, y, z);
+
         var filter = context.createLowPass2Filter(voice);
 
-        panner.panningModel = panningModel;
+        var dryGainNode = context.createGainNode(voice);
+        dryGainNode.gain.value = mainGain;
 
-        panner.setPosition(x, y, z);
-        wetMixerInput.gain.value = sendGain;
-        dryMixerInput.gain.value = mainGain;
+        var wetGainNode = context.createGainNode(voice);
+        wetGainNode.gain.value = sendGain;
+
         filter.cutoff.value = cutoff;
         filter.resonance.value = resonance;
 
+        // Connect through filter and panner
         voice.connect(filter);
         filter.connect(panner);
-        panner.connect(dryMixerInput);
-        panner.connect(wetMixerInput);
+
+        // Connect dry mix
+        panner.connect(dryGainNode);
+        dryGainNode.connect(context.destination);
+
+        // Connect wet mix
+        panner.connect(wetGainNode);
+        wetGainNode.connect(convolver);
+        convolver.connect(context.destination);
 
         voice.noteOn(noteTime);
     }
@@ -452,7 +454,6 @@ function schedule() {
             playNote(currentKit.tom3, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
-
         // Attempt to synchronize drawing time with sound
         if (noteTime != lastDrawTime) {
             lastDrawTime = noteTime;
@@ -466,7 +467,6 @@ function schedule() {
 
     setTimeout("schedule()", 20);
 }
-
 
 function drawDrumGrid() {
     // draw center
@@ -536,19 +536,8 @@ function finishLoading() {
 function init() {
     context = new AudioContext();
 
+    // Create convolver for reverb
     convolver = context.createConvolver();
-
-    mainMixer = context.createMixer();
-    dryMixer = context.createMixer();
-    wetMixer = context.createMixer();
-    mainMixerInput1 = mainMixer.createInput();
-    mainMixerInput2 = mainMixer.createInput();
-
-    // Connect up static processing graph - this basically includes the dry, wet, and main mixers
-    dryMixer.connect(mainMixerInput1);
-    wetMixer.connect(convolver);
-    convolver.connect(mainMixerInput2);
-    mainMixer.connect(context.destination);
 
     loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
 
@@ -595,12 +584,9 @@ function handleMouseDown(event) {
     var posx = event.clientX;
     var posy = event.clientY;
 
-
     var eventInfo = {event: event, element:canvas};
 
-
     var c = getRelativeCoordinates(eventInfo);
-
     var x = c.x;
     var y = c.y;
 
@@ -649,8 +635,6 @@ function drawNote(draw, xindex, yindex) {
 }
 
 function drawPlayhead(xindex) {
-    // xindex = rhythmIndex;
-
     var noteSize = canvasWidth / 16.0;
 
     var yindex = 0;

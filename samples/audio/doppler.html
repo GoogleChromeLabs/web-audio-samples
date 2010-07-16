@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 </title>
 
 
-<!-- JQuery stuff -->
+<!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 
 <link rel="stylesheet" type="text/css" href="style/simple.css" />
@@ -58,18 +58,18 @@ var kMainSpeed = 0.385;
 var kSecondarySpeed = 0.063;
 var kSecondaryRange = 1.0;
 var kTertiarySpeed = 0.02;
-var kReverbGain = 0.2;
+var kAmbientGain = 0.2;
 var kMainSweepDistance = 30.0;
 
 var secondaryRange = kSecondaryRange;
 
 var context;
-var mixer;
 var convolver;
 var panner;
 var source;
-var dryMixerInput;
-var wetMixerInput;
+var masterGainNode;
+var dryGainNode;
+var wetGainNode;
 var x = 0;
 var y = 0;
 var z = 0;
@@ -130,7 +130,6 @@ Lfo.prototype.getSinValue = function() {
   return s;
 }
 
-
 Lfo.prototype.max = function() {
   return this.max_;
 }
@@ -159,14 +158,11 @@ function setReverbImpulseResponse(url) {
   request.send();
 }
 
-
 function loadBufferAndPlay(url) {
   // Load asynchronously
   var request = context.createAudioRequest(url, true);
   request.onload = function() { 
     source.buffer = request.buffer;
-    // var currentTime = context.currentTime;
-    // source.noteOn(currentTime + 0.020);
     source.noteOn();
 
     // get rid of loading animation
@@ -214,15 +210,12 @@ function draw(x, y, z) {
     drawCircle(kRed, posx, posy, radius);
   }
 
-
   ctx.strokeRect(0,0, width, height);
 
   gLastPixelX = posx;
   gLastPixelY = posy;
   gLastRadius = radius + 2;
 }
-
-
 
 /**
  * "Animate" the doppler effect
@@ -235,10 +228,8 @@ function schedule() {
    
    var sinLfoValue = lfo.getSinValue();
    
-   
    var slowValue = secondaryRange * slowLfo.getSinValue();
    var tertiaryValue = tertiaryLfo.getSinValue();
-   
    
    if (mode == 0) { // left-right
      x = sinLfoValue;
@@ -279,7 +270,6 @@ function schedule() {
    tertiaryLfo.advance();
    setTimeout("schedule()", 20);
 }
-
 
 function mainSpeedHandler(event, ui) {
   var value = ui.value;
@@ -326,31 +316,26 @@ function dopplerFactorHandler(event, ui) {
    info.innerHTML = "dopplerFactor = " + dopplerFactor;
 }
 
-function reverbHandler(event, ui) {
+function ambienceHandler(event, ui) {
   var value = ui.value;
-  var info = document.getElementById("reverb-value");
-  info.innerHTML = "reverb = " + value;
+  var info = document.getElementById("ambience-value");
+  info.innerHTML = "ambience = " + value;
   
-  wetMixerInput.gain.value = 8.0 * value;
+  wetGainNode.gain.value = 8.0 * value;
 }
-
 
 function addSliders() {
   addSlider("mainSpeed");
   addSlider("secondarySpeed");
-  // addSlider("secondaryRange");
   addSlider("tertiarySpeed");
-  // addSlider("pitch");
   addSlider("dopplerFactor");
-  addSlider("reverb");
+  addSlider("ambience");
   
   configureSlider("mainSpeed", kMainSpeed, 0.05, 1.0, mainSpeedHandler);
   configureSlider("secondarySpeed", kSecondarySpeed, 0.01, 1.0, secondarySpeedHandler);
-  // configureSlider("secondaryRange", kSecondaryRange, 0.5, 4.0, secondaryRangeHandler);
   configureSlider("tertiarySpeed", kTertiarySpeed, 0.01, 1.0, tertiarySpeedHandler);
-  // configureSlider("pitch", -300, -2400.0, 2400.0, pitchHandler);
   configureSlider("dopplerFactor", 1.0, 0.0, 4.0, dopplerFactorHandler);
-  configureSlider("reverb", kReverbGain, 0.0, 0.5, reverbHandler);
+  configureSlider("ambience", kAmbientGain, 0.0, 0.5, ambienceHandler);
 }
 
 /**
@@ -360,28 +345,37 @@ function addSliders() {
      context = new AudioContext();
      
      source = context.createBufferSource();
-     mixer = context.createMixer();
-     dryMixerInput = mixer.createInput();
-     wetMixerInput = mixer.createInput();
+
+     masterGainNode = context.createGainNode();
+     dryGainNode = context.createGainNode();
+     wetGainNode = context.createGainNode();
+
      panner = context.createPanner(source);
      convolver = context.createConvolver();
 
-     mixer.outputGain.value = 2.0;
+     // Setup initial gains
+     masterGainNode.gain.value = 2.0;
+     dryGainNode.gain.value = 3.0;
+     wetGainNode.gain.value = kAmbientGain;
 
-     // Connect audio processing graph
+     // Connect dry mix
      source.connect(panner);
-     panner.connect(dryMixerInput);
+     panner.connect(dryGainNode);
+     dryGainNode.connect(masterGainNode);
+     
+     // Connect wet mix
      panner.connect(convolver);
-     convolver.connect(wetMixerInput);
-     mixer.connect(context.destination);
+     convolver.connect(wetGainNode);
+     wetGainNode.connect(masterGainNode);
+     
+     // Connect master gain
+     masterGainNode.connect(context.destination);
      
      // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
      // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');
      setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
 
      source.playbackRate.value = 0.75;
-     dryMixerInput.gain.value = 3.0;
-     wetMixerInput.gain.value = kReverbGain;
 
      x = 0;
      y = 0;
@@ -405,7 +399,7 @@ function addSliders() {
      addSliders();
 
      // Start moving the source
-     setTimeout("schedule()", 20);
+     schedule();
  }
 
 </script>
@@ -458,17 +452,12 @@ Refreshing Drink
 Cauldron
 </div>
 
-
-
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
 Crunched up Paper
 </div>
 
-
 </div>
-
 </div>
-
 </div>
 
 <!-- Initial loading animation -->
