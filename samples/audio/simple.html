@@ -55,12 +55,12 @@ window.onload = init;
 
 var context;
 var buffer;
-var mixer;
 var convolver;
 var panner;
 var source;
-var dryMixerInput;
-var wetMixerInput;
+var dryGainNode;
+var wetGainNode;
+
 var lowFilter;
 
 var gTopProjection = 0;
@@ -147,7 +147,7 @@ function reverbHandler(event, ui) {
     var info = document.getElementById("ambience-value");
     info.innerHTML = "ambience = " + value;
 
-    wetMixerInput.gain.value = value;
+    wetGainNode.gain.value = value;
 }
 
 function influenceHandler(event, ui) {
@@ -161,7 +161,7 @@ function mainGainHandler(event, ui) {
     var info = document.getElementById("mainGain-value");
     info.innerHTML = "main gain = " + value;
 
-    dryMixerInput.gain.value = value;
+    dryGainNode.gain.value = value;
 }
 
 function cutoffHandler(event, ui) {
@@ -231,13 +231,12 @@ function setSourceBuffer(buffer) {
      canvas2.addEventListener("mousemove", handleElevationMouseMove, true);
      canvas2.addEventListener("mouseup", handleMouseUp, true);
 
-
      // Initialize audio
      context = new AudioContext();
+
      source = context.createBufferSource();
-     mixer = context.createMixer();
-     dryMixerInput = mixer.createInput();
-     wetMixerInput = mixer.createInput();
+     dryGainNode = context.createGainNode();
+     wetGainNode = context.createGainNode();
      panner = context.createPanner(source);
 
      lowFilter = context.createLowPass2Filter(source);
@@ -249,10 +248,16 @@ function setSourceBuffer(buffer) {
      // Connect audio processing graph
      source.connect(lowFilter);
      lowFilter.connect(panner);
-     panner.connect(dryMixerInput);
+
+     // Connect dry mix
+     panner.connect(dryGainNode);
+     dryGainNode.connect(context.destination);
+     
+     // Connect wet mix
      panner.connect(convolver);
-     convolver.connect(wetMixerInput);
-     mixer.connect(context.destination);
+     convolver.connect(wetGainNode);
+     wetGainNode.connect(context.destination);
+     wetGainNode.gain.value = kInitialReverbLevel;
      
      bufferList = new Array(fileCount);
      for (var i = 0; i < fileCount; ++i) {
@@ -264,9 +269,6 @@ function setSourceBuffer(buffer) {
      setReverbImpulseResponse('impulse-responses/spatialized3.aif');
 
      source.playbackRate.value = 1.0;
-     wetMixerInput.gain.value = kInitialReverbLevel;
-
-     mixer.outputGain.value = 0.5; // reduce overall volume a little
 
      panner.setPosition(0, 0, -4.0);
      source.looping = true;
