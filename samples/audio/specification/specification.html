@@ -1737,11 +1737,11 @@ Mono down-mix:
 
 Stereo down-mix:
 
-    4 -> 2 : quad to mono
-        output.L = 0.5 * (input.L + input.R);
-        output.R = 0.5 * (input.SL + input.SR);
+    4 -> 2 : quad to stereo
+        output.L = 0.5 * (input.L + input.SL);
+        output.R = 0.5 * (input.R + input.SR);
 
-    5.1 -> 2 : 5.1 to mono
+    5.1 -> 2 : 5.1 to stereo
         ???
 
 </pre>
