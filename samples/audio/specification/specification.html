@@ -2161,6 +2161,25 @@ When combined with WebGL GLSL shaders, realtime analysis data can be presented. 
 
 <pre>
 ------------------------------------------------------------------------
+v1.0.14 | crogers@google.com | 2010-07-20 12:21:31 -0700 (Tue, 20 Jul 2010)
+
+* added change history section
+* added many more links from JavaScript class names (AudioContext, AudioNode, etc.) to their description section
+* added documentation for more classes:
+    AudioSourceNode
+    AudioDestinationNode
+* changed name of AudioElementSourceNode to MediaElementAudioSourceNode and refined description
+* tried to better organize order of classes
+* moved AudioDelayNode to more important status
+* added Channel Layouts section
+* added Channel up-mixing and down-mixing section, and added links to this section
+* changed name of AudioContext's createGain() method to createGainNode()
+* removed sampleRate attribute from AudioNode - now AudioContext sampleRate determines everything
+* added comment about AudioContext (basic implementation allows only one per document)
+* removed some old obsolete references to "ownership"
+* added (numberOfInputs == x : numberOfOutputs == y) to all AudioNode subclasses
+
+------------------------------------------------------------------------
 v1.0.13 | crogers@google.com | 2010-06-25 16:17:12 -0700 (Fri, 25 Jun 2010)
 
 change to new type names: WebGLFloatArray -> Float32Array
