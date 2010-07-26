@@ -337,9 +337,9 @@ function playSound(impactType, velocity, x, y) {
     var isQuiet = (gain < 0.5);
     
     // Setup send and main gains
-    var sendGain = context.createGainNode(voice);
-    var mainGain = context.createGainNode(voice);
-    var filter = context.createLowPass2Filter(voice);
+    var sendGain = context.createGainNode();
+    var mainGain = context.createGainNode();
+    var filter = context.createLowPass2Filter();
     sendGain.gain.value = sendScale;
     mainGain.gain.value = gain;
     voice.connect(filter);

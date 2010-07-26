@@ -232,8 +232,8 @@ function init() {
     wetGainNode2.gain.value = 0.0;
 
     // Create a lowpass resonant filter for both left and right
-    lowFilter1 = context.createLowPass2Filter(source1);
-    lowFilter2 = context.createLowPass2Filter(source2);
+    lowFilter1 = context.createLowPass2Filter();
+    lowFilter2 = context.createLowPass2Filter();
     lowFilter1.cutoff.value = 22050.0;
     lowFilter2.cutoff.value = 22050.0;
     lowFilter1.resonance.value = 5.0;

@@ -171,10 +171,10 @@ function scheduleGrain() {
 
         source.buffer = buffer;
 
-        var panner = context.createPanner(source);
+        var panner = context.createPanner();
 
-        var dryGainNode = context.createGainNode(source);
-        var wetGainNode = context.createGainNode(source);
+        var dryGainNode = context.createGainNode();
+        var wetGainNode = context.createGainNode();
         wetGainNode.gain.value = 0.5 * diffusionRandomization * r5;
         dryGainNode.gain.value = 1.0 - wetGainNode.gain.value;
 

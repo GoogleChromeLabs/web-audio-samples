@@ -387,20 +387,19 @@ function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, res
     if (voice) {
         voice.buffer = buffer;
 
-        var panner = context.createPanner(voice);
+        var panner = context.createPanner();
         panner.panningModel = panningModel;
         panner.setPosition(x, y, z);
 
-        var filter = context.createLowPass2Filter(voice);
-
-        var dryGainNode = context.createGainNode(voice);
-        dryGainNode.gain.value = mainGain;
-
-        var wetGainNode = context.createGainNode(voice);
-        wetGainNode.gain.value = sendGain;
-
+        var filter = context.createLowPass2Filter();
         filter.cutoff.value = cutoff;
         filter.resonance.value = resonance;
+
+        var dryGainNode = context.createGainNode();
+        dryGainNode.gain.value = mainGain;
+
+        var wetGainNode = context.createGainNode();
+        wetGainNode.gain.value = sendGain;
 
         // Connect through filter and panner
         voice.connect(filter);
@@ -413,7 +412,6 @@ function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, res
         // Connect wet mix
         panner.connect(wetGainNode);
         wetGainNode.connect(convolver);
-        convolver.connect(context.destination);
 
         voice.noteOn(noteTime);
     }
@@ -538,6 +536,7 @@ function init() {
 
     // Create convolver for reverb
     convolver = context.createConvolver();
+    convolver.connect(context.destination);
 
     loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
 

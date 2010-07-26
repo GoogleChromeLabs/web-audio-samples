@@ -55,15 +55,13 @@
           var isQuiet = (gain < 0.5);
           ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
           
-          var filter = context.createLowPass2Filter(ping);
-          var panner = context.createPanner(ping);
+          var filter = context.createLowPass2Filter();
+          var panner = context.createPanner();
           panner.panningModel = AudioPannerNode.HRTF;
           
           // Create inputs to dry/wet mixers
-          // var dryMixerInput = dryMixer.createInput(ping);
-          // var wetMixerInput = wetMixer.createInput(ping);
-          var dryGainNode = context.createGainNode(ping);
-          var wetGainNode = context.createGainNode(ping);
+          var dryGainNode = context.createGainNode();
+          var wetGainNode = context.createGainNode();
           wetGainNode.gain.value = gain < 0.125 ? 0.15 : 0.1;
           dryGainNode.gain.value = gain;  //isQuiet ? 0.0 : gain;
           

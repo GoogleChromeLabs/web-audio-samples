@@ -111,7 +111,7 @@ function initAudio() {
     context = new AudioContext();
     
     source = context.createBufferSource();
-    analyser = context.createAnalyser(source);
+    analyser = context.createAnalyser();
 
     // Connect audio processing graph
     source.connect(analyser);

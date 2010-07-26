@@ -237,9 +237,9 @@ function setSourceBuffer(buffer) {
      source = context.createBufferSource();
      dryGainNode = context.createGainNode();
      wetGainNode = context.createGainNode();
-     panner = context.createPanner(source);
+     panner = context.createPanner();
 
-     lowFilter = context.createLowPass2Filter(source);
+     lowFilter = context.createLowPass2Filter();
      lowFilter.cutoff.value = 22050.0;
      lowFilter.resonance.value = 5.0;
 
