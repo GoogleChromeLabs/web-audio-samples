@@ -206,7 +206,7 @@ function scheduleGrain() {
 function schedule() {
     var currentTime = context.currentTime;  
 
-    while (realTime < currentTime + 0.030) {
+    while (realTime < currentTime + 0.100) {
         scheduleGrain();
     }
 
