@@ -58,7 +58,6 @@ window.onload = init;
 var context = 0;
 var source = 0;
 var convolver = 0;
-var mixer = 0;
 var gainNode1 = 0;
 var gainNode2 = 0;
 
@@ -352,7 +351,6 @@ function init() {
     
     convolver = context.createConvolver();
     source = context.createBufferSource();
-    mixer = context.createMixer();
 
     gainNode1 = context.createGainNode();
     gainNode2 = context.createGainNode();

@@ -16,11 +16,6 @@
 
 <script>
     var context;
-    var mainMixer;
-    var mainMixerInput1;
-    var mainMixerInput2;
-    var dryMixer;
-    var wetMixer;
     var convolver;
     
     var pingFileName = "../sounds/hyper-reality/filter-noise-2.aif";
@@ -65,18 +60,20 @@
           panner.panningModel = AudioPannerNode.HRTF;
           
           // Create inputs to dry/wet mixers
-          var dryMixerInput = dryMixer.createInput(ping);
-          var wetMixerInput = wetMixer.createInput(ping);
-          if (!dryMixerInput || !wetMixerInput) alert("error creating mixer input...");
+          // var dryMixerInput = dryMixer.createInput(ping);
+          // var wetMixerInput = wetMixer.createInput(ping);
+          var dryGainNode = context.createGainNode(ping);
+          var wetGainNode = context.createGainNode(ping);
+          wetGainNode.gain.value = gain < 0.125 ? 0.15 : 0.1;
+          dryGainNode.gain.value = gain;  //isQuiet ? 0.0 : gain;
           
           ping.connect(filter);
           filter.connect(panner);
-          panner.connect(dryMixerInput);
-          panner.connect(wetMixerInput);
-          
-          // wetMixerInput.gain.value = gain < 0.125 ? 0.3 : 0.125;
-          wetMixerInput.gain.value = gain < 0.125 ? 0.15 : 0.1;
-          dryMixerInput.gain.value = gain;  //isQuiet ? 0.0 : gain;
+          panner.connect(dryGainNode);
+          dryGainNode.connect(context.destination);
+
+          panner.connect(wetGainNode);
+          wetGainNode.connect(convolver);
 
           // Randomize pitch          
           var r = Math.random();
@@ -101,7 +98,6 @@
           var posX = 10.0 * Math.sin(azimuth);
           var posZ = 10.0 * Math.cos(azimuth);
 
-
           var elevation = -0.5*Math.PI * (y - 250.0) / 150.0;
           if (elevation < -0.5*Math.PI) elevation = -0.5*Math.PI;
           if (elevation > 0.5*Math.PI) elevation = 0.5*Math.PI;
@@ -113,8 +109,6 @@
           var posY = scaleY * 10.0;
 
           panner.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
-
-          // var when = 0.020 * Math.random();
 
           ping.noteOn();
         }
@@ -147,21 +141,7 @@
       context = new AudioContext();
       
       convolver = context.createConvolver();
-
-      mainMixer = context.createMixer();
-      dryMixer = context.createMixer();
-      wetMixer = context.createMixer();
-      mainMixerInput1 = mainMixer.createInput();
-      mainMixerInput2 = mainMixer.createInput();
-
-      // Connect up static processing graph - this basically includes the dry, wet, and main mixers
-      dryMixer.connect(mainMixerInput1);
-      wetMixer.connect(convolver);
-      convolver.connect(mainMixerInput2);
-      mainMixer.connect(context.destination);
-      
-      // Change overall volume
-      mainMixer.outputGain.value = 1.5;
+      convolver.connect(context.destination);
 
       pingBuffer = 0;
       loadPing(pingFileName);
