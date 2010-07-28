@@ -74,6 +74,9 @@
 	     (as a unity-gain summing junction), mixers can be <a href="#MixerGainStructure-section">easily built</a> with AudioGainNodes. 
 	    </li> 
 
+	    <li>An <a class="dfnref" href="#DelayNode-section">DelayNode</a> interface, an AudioNode which applies a dynamically adjustable variable delay.
+	    </li> 
+
 	    <li>An <a class="dfnref" href="#AudioPannerNode-section">AudioPannerNode</a> interface, for spatializing / positioning audio in 3D space.
 	    </li> 
 
@@ -89,7 +92,12 @@
 	    <li>A <a class="dfnref" href="#RealtimeAnalyserNode-section">RealtimeAnalyserNode</a> interface, for use with music visualizers, or other visualization applications.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#dfn-AudioDelayNode">AudioDelayNode</a> interface, an AudioNode which applies a dynamically adjustable variable delay.
+	    <li>A <a class="dfnref" href="#AudioChannelSplitter-section">AudioChannelSplitter</a> interface,
+	     for accessing the individual channels of an audio stream in the routing graph.
+	    </li> 
+
+	    <li>A <a class="dfnref" href="#AudioChannelMerger-section">AudioChannelMerger</a> interface,
+	     for combining channels from multiple audio streams into a single audio stream.
 	    </li> 
 
 
@@ -223,26 +231,35 @@
           <li><a href="#AudioGainNode-section">
           10. The AudioGainNode Interface</a></li>
       
+          <li><a href="#DelayNode-section">
+          11. The DelayNode Interface</a></li>
+      
           <li><a href="#AudioBuffer-section">
-          11. The AudioBuffer Interface</a></li>
+          12. The AudioBuffer Interface</a></li>
 
           <li><a href="#AudioBufferSourceNode-section">
-          12. The AudioBufferSourceNode Interface</a></li>
+          13. The AudioBufferSourceNode Interface</a></li>
 
           <li><a href="#MediaElementAudioSourceNode-section">
-          13. The MediaElementAudioSourceNode Interface</a></li>
+          14. The MediaElementAudioSourceNode Interface</a></li>
 
           <li><a href="#AudioPannerNode-section">
-          14. The AudioPannerNode Interface</a></li>
+          15. The AudioPannerNode Interface</a></li>
 
           <li><a href="#AudioListener-section">
-          15. The AudioListener Interface</a></li>
+          16. The AudioListener Interface</a></li>
 
           <li><a href="#ConvolverNode-section">
-          16. The ConvolverNode Interface</a></li>
+          17. The ConvolverNode Interface</a></li>
 
           <li><a href="#RealtimeAnalyserNode-section">
-          17. The RealtimeAnalyserNode Interface</a></li>
+          18. The RealtimeAnalyserNode Interface</a></li>
+
+          <li><a href="#AudioChannelSplitter-section">
+          19. The AudioChannelSplitter Interface</a></li>
+
+          <li><a href="#AudioChannelMerger-section">
+          20. The AudioChannelMerger Interface</a></li>
 
 
 
@@ -252,49 +269,53 @@
 
       
           <li><a href="#AudioElementIntegration-section">
-          18. Integration with the <code>audio</code> and <code>video</code> element</a></li>
+          21. Integration with the <code>audio</code> and <code>video</code> element</a></li>
 
           <li><a href="#MixerGainStructure-section">
-          19. Mixer Gain Structure</a></li>
+          22. Mixer Gain Structure</a></li>
 
 
 
           <li><a href="#ChannelLayouts-section">
-          20. Channel Layouts</a></li>
+          23. Channel Layouts</a></li>
 
           <li><a href="#UpMix-section">
-          21. Channel up-mixing and down-mixing</a></li>
+          24. Channel up-mixing and down-mixing</a></li>
 
 
 
 
 
           <li><a href="#EventScheduling-section">
-          22. Event Scheduling</a></li>
+          25. Event Scheduling</a></li>
 
           <li><a href="#Spatialization-section">
-          23. Spatialization / Panning</a></li>
+          26. Spatialization / Panning</a></li>
 
           <li><a href="#Convolution-section">
-          24. Linear Effects using Convolution</a></li>
+          27. Linear Effects using Convolution</a></li>
 
           <li><a href="#JavaScriptProcessing-section">
-          25. JavaScript Synthesis and Processing</a></li>
+          28. JavaScript Synthesis and Processing</a></li>
 
           <li><a href="#RealtimeAnalysis-section">
-          26. Realtime Analysis</a></li>
+          29. Realtime Analysis</a></li>
 
           <li><a href="#Performance-section">
-          27. Performance Considerations</a></li>
+          30. Performance Considerations</a></li>
             
           <li><a href="#ExampleApplications-section">
-          28. Example Applications</a></li>
+          31. Example Applications</a></li>
       
           <li><a href="#SecurityConsiderations-section">
-          29. Security Considerations</a></li>
+          32. Security Considerations</a></li>
       
           <li><a href="#requirements">
-          30. Requirements and Use Cases</a></li>
+          33. Requirements and Use Cases</a></li>
+
+          <li><a href="#ChangeLog-section">
+          34. Change Log</a></li>
+      
 
           </li>
       
@@ -664,11 +685,14 @@ function playSound() {
         
         <span class="comment">// AudioNode creation </span>         
         AudioBufferSourceNode createBufferSource();
+        AudioGainNode createGainNode();
+        DelayNode createDelayNode();
         LowPass2FilterNode createLowPass2Filter();
         HighPass2FilterNode createHighPass2Filter();
         AudioPannerNode createPanner();
         ConvolverNode createConvolver();
-        AudioGainNode createGainNode();
+        AudioChannelSplitter createChannelSplitter();
+        AudioChannelMerger createChannelMerger();
         <span class="comment">// and so on... </span>         
 
     }
@@ -708,6 +732,16 @@ function playSound() {
     <dd>
     <p>Creates an <a href="#AudioBufferSourceNode-section"><code>AudioBufferSourceNode</code></a>.</p> 
     </dd>
+
+    <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
+    <dd>
+    <p>Creates an <a href="#AudioGainNode-section"><code>AudioGainNode</code></a>.</p> 
+    </dd>
+    
+    <dl><dt id="dfn-createDelayNode">The <code>createDelayNode</code> method</dt> 
+    <dd>
+    <p>Creates a <a href="#DelayNode-section"><code>DelayNode</code></a> representing a variable delay line.  The initial default delay time will be 0 seconds.</p> 
+    </dd>
     
     <dl><dt id="dfn-createLowPass2Filter">The <code>createLowPass2Filter</code> method</dt> 
     <dd>
@@ -718,7 +752,7 @@ function playSound() {
     <dd>
     <p>Creates a <a href="#HighPass2FilterNode-section"><code>HighPass2FilterNode</code></a> representing a two-pole resonant high-pass filter.</p> 
     </dd>
-    
+
     <dl><dt id="dfn-createPanner">The <code>createPanner</code> method</dt> 
     <dd>
     <p>Creates an <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a>.</p> 
@@ -728,11 +762,17 @@ function playSound() {
     <dd>
     <p>Creates a <a href="#ConvolverNode-section"><code>ConvolverNode</code></a>.</p> 
     </dd>
-    
-    <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
+
+    <dl><dt id="dfn-createChannelSplitter">The <code>createChannelSplitter</code> method</dt>
     <dd>
-    <p>Creates an <a href="#AudioGainNode-section"><code>AudioGainNode</code></a>.</p> 
+    <p>Creates an <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a> representing a channel splitter.</p> 
     </dd>
+    
+    <dl><dt id="dfn-createChannelMerger">The <code>createChannelMerger</code> method</dt>
+    <dd>
+    <p>Creates an <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a> representing a channel merger.</p> 
+    </dd>
+    
 
     </dd></dl> 
   </div> 
@@ -873,7 +913,7 @@ function playSound() {
 
     <h2>10. The AudioGainNode Interface</h2> 
     <p> 
-      This interface is an AudioNode with a single input and single output:
+      Changing the gain of an audio signal is a fundamental operation in audio applications.  This interface is an AudioNode with a single input and single output:
     </p>
     
     <pre>
@@ -882,7 +922,8 @@ function playSound() {
     </pre>
     
     <p>
-     which changes the gain of (scales) the incoming audio signal by a certain amount.  The default amount is 1.0 (no gain change).
+     which changes the gain of (scales) the incoming audio signal by a certain amount.
+       The default amount is 1.0 (no gain change).
      The <code>AudioGainNode</code> is one of the building blocks for creating <a href="#MixerGainStructure-section">mixers</a>.
      The implementation must make gain changes to the audio stream smoothly, without introducing noticeable clicks or glitches.  This process is called "de-zippering".
       
@@ -900,7 +941,43 @@ function playSound() {
     <div id="attributes-AudioGainNode" class="section"> 
     <h3>10.1. Attributes</h3> 
     <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>An AudioGain object representing the amount of gain to apply.  The default value
-    (<code>gain.value</code>) is 1.0 (no gain change). </p></dd></dl> 
+    (<code>gain.value</code>) is 1.0 (no gain change).  See <a href="#AudioGain-section"><code>AudioGain</code></a> for more information. </p></dd></dl> 
+    </div> 
+
+  </div> 
+
+
+  <div id="DelayNode-section" class="section"> 
+
+    <h2>11. The DelayNode Interface</h2> 
+    <p> 
+      A delay-line is a fundamental building block in audio applications.  This interface is an AudioNode with a single input and single output:
+    </p>
+    
+    <pre>
+    numberOfInputs == 1
+    numberOfOutputs == 1
+    </pre>
+    
+    <p>
+     which delays the incoming audio signal by a certain amount.  The default amount is 0.0 seconds (no delay).
+     When the delay time is changed, the implementation must make the transition smoothly,without introducing noticeable clicks or glitches to the audio stream.
+      
+    </p> 
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-DelayNode">DelayNode</dfn> : AudioNode {
+
+        AudioParam delayTime;
+
+    }
+    </code></pre></div></div> 
+
+
+    <div id="attributes-AudioGainNode" class="section"> 
+    <h3>11.1. Attributes</h3> 
+    <dl><dt id="dfn-delayTime"><code>delayTime</code></dt><dd><p>An AudioParam object representing the amount of delay (in seconds) to apply.  The default value
+    (<code>delayTime.value</code>) is 0.0 (no delay).  The minimum value is 0.0 and the maximum value is currently 1.0 (but this is arbitrary and could be increased).</p></dd></dl> 
     </div> 
 
   </div> 
@@ -916,7 +993,7 @@ function playSound() {
 
 
   <div id="AudioBuffer-section" class="section"> 
-    <h2>11. The AudioBuffer Interface</h2> 
+    <h2>12. The AudioBuffer Interface</h2> 
     <p> 
       This interface represents a memory-resident audio asset (for one-shot sounds and other short audio clips).  
       Its format is non-interleaved linear PCM with a nominal range of -1.0 -> +1.0.  It can contain one or more channels.
@@ -946,7 +1023,7 @@ function playSound() {
 
 
     <div id="attributes-AudioBuffer" class="section"> 
-    <h3>11.1. Attributes</h3> 
+    <h3>12.1. Attributes</h3> 
     <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The amount of gain to apply when using this buffer in any <code>AudioBufferSourceNode</code>.  The default value is 1.0. </p></dd></dl> 
     <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample-rate for the PCM audio data in samples per second.</p></dd></dl> 
     <dl><dt id="dfn-length"><code>length</code></dt><dd><p>Length of the PCM audio data in sample-frames.</p></dd></dl> 
@@ -955,7 +1032,7 @@ function playSound() {
     </div> 
 
     <div id="methodsandparams-AudioBuffer" class="section"> 
-    <h3>11.2. Methods and Parameters</h3> 
+    <h3>12.2. Methods and Parameters</h3> 
 
     <dl><dt id="dfn-getChannelData">The <code>getChannelData</code> method</dt> 
     <dd>
@@ -973,7 +1050,7 @@ function playSound() {
 
   <div id="AudioBufferSourceNode-section" class="section"> 
 
-    <h2>12. The AudioBufferSourceNode Interface</h2> 
+    <h2>13. The AudioBufferSourceNode Interface</h2> 
     <p> 
       This interface represents an audio source from an in-memory audio asset in an <code>AudioBuffer</code>.  It generally will be used for short audio assets 
       which require a high degree of scheduling flexibility (can playback in rhythmically perfect ways).      
@@ -1003,7 +1080,7 @@ function playSound() {
 
 
     <div id="attributes-AudioBufferSourceNode" class="section"> 
-    <h3>12.1. Attributes</h3> 
+    <h3>13.1. Attributes</h3> 
     <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>Represents the audio asset to be played. </p></dd></dl> 
     <dl><dt id="dfn-loop"><code>loop</code></dt><dd><p>Indicates if the audio data should play in a loop. </p></dd></dl> 
     </div> 
@@ -1012,7 +1089,7 @@ function playSound() {
 
 
   <div id="methodsandparams-AudioBufferSourceNode" class="section"> 
-  <h3>12.2. Methods and Parameters</h3> 
+  <h3>13.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-noteOn">The <code>noteOn</code> method</dt> 
   <dd>
   <p>Schedules a sound to playback at an exact time.</p> 
@@ -1054,7 +1131,7 @@ function playSound() {
 
   <div id="MediaElementAudioSourceNode-section" class="section"> 
 
-    <h2>13. The MediaElementAudioSourceNode Interface</h2> 
+    <h2>14. The MediaElementAudioSourceNode Interface</h2> 
     <p> 
       This interface represents an audio source from an <code>audio</code> or <code>video</code> element.  The element's <code>audioSource</code> attribute implements this.      
     </p>
@@ -1076,7 +1153,7 @@ function playSound() {
 
 
     <div id="attributes-MediaElementAudioSourceNode" class="section"> 
-    <h3>13.1. Attributes</h3> 
+    <h3>14.1. Attributes</h3> 
     <dl><dt id="dfn-playbackRate"><code>playbackRate</code></dt><dd><p>The speed at which to render the audio stream.  The default value is 1.0. </p></dd></dl> 
     </div> 
 
@@ -1091,7 +1168,7 @@ function playSound() {
 
   <div id="AudioPannerNode-section" class="section"> 
 
-    <h2>14. The AudioPannerNode Interface</h2> 
+    <h2>15. The AudioPannerNode Interface</h2> 
     <p> 
       This interface represents a processing node which <a href="#Spatialization-section">positions / spatializes</a> an incoming audio stream in three-dimensional space.
       The spatialization is in relation the the <a href="#AudioContext-section"><code>AudioContext</code></a>'s <a href="#AudioListener-section"><code>AudioListener</code></a> (<code>listener</code> attribute).      
@@ -1147,7 +1224,7 @@ function playSound() {
   </div> 
 
   <div id="attributes-AudioPannerNode" class="section"> 
-  <h3>14.1. Constants</h3> 
+  <h3>15.1. Constants</h3> 
 
   <dl><dt id="dfn-PASSTHROUGH"><code>PASSTHROUGH</code></dt><dd><p>An algorithm which passes the incoming audio unchanged to the output (no processing occurs). </p></dd></dl> 
   <dl><dt id="dfn-EQUALPOWER"><code>EQUALPOWER</code></dt><dd><p>A simple and efficient spatialization algorithm using equal-power panning. </p></dd></dl> 
@@ -1162,7 +1239,7 @@ function playSound() {
 
 
   <div id="attributes-AudioPannerNode" class="section"> 
-  <h3>14.2. Attributes</h3> 
+  <h3>15.2. Attributes</h3> 
   <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>Represents the <b>listener</b> whose position and orientation is used together with
   the panner's position and orientation to determine how the audio will be spatialized. </p></dd></dl> 
 
@@ -1187,7 +1264,7 @@ function playSound() {
   </div> 
 
 
-  <h3>14.3. Methods and Parameters</h3> 
+  <h3>15.3. Methods and Parameters</h3> 
   <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
   <dd>
   <p>Sets the position of the audio source relative to the <b>listener</b> attribute.  A 3D cartesian coordinate system is used.</p> 
@@ -1217,7 +1294,7 @@ function playSound() {
 
   <div id="AudioListener-section" class="section"> 
 
-    <h2>15. The AudioListener Interface</h2> 
+    <h2>16. The AudioListener Interface</h2> 
     <p> 
       This interface represents the position and orientation of the person listening to the audio scene.  All <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a>
       objects spatialize in relation to the AudioContext's <code>listener</code>.
@@ -1252,7 +1329,7 @@ function playSound() {
 
 
   <div id="attributes-AudioListener" class="section"> 
-  <h3>15.1. Attributes</h3> 
+  <h3>16.1. Attributes</h3> 
   <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>A linear gain used in conjunction with <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a> objects when spatializing. </p></dd></dl> 
 
   <dl><dt id="dfn-dopplerFactor"><code>dopplerFactor</code></dt><dd><p>A constant used to determine the amount of pitch shift to use when rendering a doppler effect. </p></dd></dl> 
@@ -1261,7 +1338,7 @@ function playSound() {
   </div> 
 
 
-  <h3>15.2. Methods and Parameters</h3> 
+  <h3>16.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
   <dd>
   <p>Sets the position of the listener in a 3D cartesian coordinate space.  <code>AudioPannerNode</code> objects use this position relative to individual audio sources for spatialization.</p> 
@@ -1293,7 +1370,7 @@ function playSound() {
 
   <div id="ConvolverNode-section" class="section"> 
 
-    <h2>16. The ConvolverNode Interface</h2> 
+    <h2>17. The ConvolverNode Interface</h2> 
     <p> 
       This interface represents a processing node which applies a <a href="#Convolution-section">linear convolution effect</a> given an impulse response.
     </p>
@@ -1320,7 +1397,7 @@ function playSound() {
 
 
   <div id="attributes-ConvolverNode" class="section"> 
-  <h3>16.1. Attributes</h3> 
+  <h3>17.1. Attributes</h3> 
   <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>A mono or multi-channel audio buffer containing the impulse response used by the convolver. </p></dd></dl> 
 
   </div> 
@@ -1330,7 +1407,7 @@ function playSound() {
 
   <div id="RealtimeAnalyserNode-section" class="section"> 
 
-    <h2>17. The RealtimeAnalyserNode Interface</h2> 
+    <h2>18. The RealtimeAnalyserNode Interface</h2> 
     <p> 
       This interface represents a node which is able to provide real-time frequency and time-domain <a href="#RealtimeAnalysis-section">analysis</a> information.
       The audio stream will be passed un-processed from input to output.    
@@ -1369,7 +1446,7 @@ function playSound() {
 
 
   <div id="attributes-ConvolverNode" class="section"> 
-  <h3>17.1. Attributes</h3> 
+  <h3>18.1. Attributes</h3> 
   <dl><dt id="dfn-fftSize"><code>fftSize</code></dt><dd><p>The size of the FFT used for frequency-domain analsis.  This must be a power of two. </p></dd></dl> 
   <dl><dt id="dfn-frequencyBinCount"><code>frequencyBinCount</code></dt><dd><p>Half the FFT size. </p></dd></dl> 
   <dl><dt id="dfn-minDecibels"><code>minDecibels</code></dt><dd><p> The minimum power value in the scaling range for the FFT analysis data 
@@ -1383,7 +1460,7 @@ function playSound() {
   </div> 
 
 
-  <h3>17.2. Methods and Parameters</h3> 
+  <h3>18.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-getFloatFrequencyData">The <code>getFloatFrequencyData</code> method</dt> 
   <dd>
   <p>Copies the current frequency data into the passed floating-point array.  If the array has fewer elements than the frequencyBinCount, the excess elements will be dropped.         
@@ -1414,8 +1491,94 @@ function playSound() {
 
 
 
+
+
+  <div id="AudioChannelSplitter-section" class="section"> 
+
+    <h2>19. The AudioChannelSplitter Interface</h2> 
+    <p>
+      The <code>AudioChannelSplitter</code> is for use in more advanced applications and would often be used in conjunction with
+       <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a>.
+    </p>
+
+    <p>
+      This interface represents an AudioNode for accessing the individual channels of an audio stream in the routing graph.
+      It has a single input, and a number of "active" outputs which equals the number of channels in the input audio stream.  For example, if a stereo
+      input is connected to an <code>AudioChannelSplitter</code> then the number of active outputs will be two (one from the left channel and one from the right).
+      There are always a total number of 6 outputs,
+      supporting up to 5.1 output (note: this upper limit of 6 is arbitrary and could be increased to support 7.2, and higher).  Any outputs which are not "active" will
+      output silence and would typically not be connected to anything.
+    </p>
+    
+    <p>
+    One application for <code>AudioChannelSplitter</code> is for doing "matrix mixing" where individual gain control of each channel is desired.
+    </p>
+    
+    <pre>
+    numberOfInputs == 1
+    numberOfOutputs == 6 // number of "active" (non-silent) outputs is determined by number of channels in the input
+    </pre>
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-AudioChannelSplitter">AudioChannelSplitter</dfn> : AudioNode {
+
+    };
+    </code></pre></div></div>
+
+  </div> 
+
+
+  <div id="AudioChannelMerger-section" class="section"> 
+
+    <h2>20. The AudioChannelMerger Interface</h2> 
+    <p>
+      The <code>AudioChannelMerger</code> is for use in more advanced applications and would often be used in conjunction with
+       <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a>.
+    </p>
+    
+    <p>
+      This interface represents an AudioNode for combining channels from multiple audio streams into a single audio stream.
+      It has 6 inputs, but not all of them need be connected.  There is a single output whose audio stream has a number of channels
+      equal to the sum of the numbers of channels of all the connected inputs.  For example, if an <code>AudioChannelMerger</code>
+      has two connected inputs (both stereo), then the output will be four channels, the first two from the first input and the
+      second two from the second input.  In another example with two connected inputs (both mono), the output will be two channels (stereo),
+      with the left channel coming from the first input and the right channel coming from the second input.
+    </p>
+    
+    <p>
+    Be aware that it is possible to connect an <code>AudioChannelMerger</code> in such a way that it outputs an audio stream with a large number of channels greater
+    than the maximum supported by the system (currently 6 channels for 5.1).  In this case, if the output is connected to anything else then an exception will
+    be thrown indicating an error condition.  Thus, the <code>AudioChannelMerger</code> should be used in situations where the numbers of input channels is well
+    understood.
+    </p>
+    
+    <pre>
+    numberOfInputs == 6  // number of connected inputs may be less than this
+    numberOfOutputs == 1
+    </pre>
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-AudioChannelMerger">AudioChannelMerger</dfn> : AudioNode {
+
+    };
+    </code></pre></div></div>
+
+  </div> 
+
+
+
+
+
+
+
+
+
+
+
     <div id="AudioElementIntegration-section" class="section"> 
-    <h2>18. Integration with the <code>audio</code> and <code>video</code> elements</h2> 
+    <h2>21. Integration with the <code>audio</code> and <code>video</code> elements</h2> 
 
   <p>
   It requires some thought to integrate cleanly with the existing media elements because they do not seem to have been designed with the idea of multiple
@@ -1465,7 +1628,7 @@ function playSound() {
 
 
   <div id="MixerGainStructure-section" class="section"> 
-  <h2>19. Mixer Gain Structure</h2> 
+  <h2>22. Mixer Gain Structure</h2> 
 
   <h3> Background</h3>
   <p>
@@ -1612,7 +1775,7 @@ function setupRoutingGraph() {
 
   <br><br>
   <div id="ChannelLayouts-section" class="section"> 
-  <h2>20. Channel Layouts</h2>
+  <h2>23. Channel Layouts</h2>
 
   <p>
   It's important to define the channel ordering (and define some abbreviations) for different layouts. 
@@ -1657,7 +1820,7 @@ function setupRoutingGraph() {
   </p>
 
   <div id="UpMix-section" class="section"> 
-  <h2>21. Channel up-mixing and down-mixing</h2>
+  <h2>24. Channel up-mixing and down-mixing</h2>
   
   For now, only considers cases for mono, stereo, quad, 5.1.  Later other channel layouts can be defined.
   <h3>Up Mixing</h3>
@@ -1754,7 +1917,7 @@ Stereo down-mix:
   </div>
 
   <div id="EventScheduling-section" class="section"> 
-  <h2>22. Event Scheduling</h2> 
+  <h2>25. Event Scheduling</h2> 
     Need more detail here, but for now:
     <ul>
   	<li> Audio events such as start/stop play and volume fades can be scheduled
@@ -1774,7 +1937,7 @@ Stereo down-mix:
 
 
 <div id="Spatialization-section" class="section"> 
-<h2>23. Spatialization / Panning </h2>
+<h2>26. Spatialization / Panning </h2>
 
 <h3> Background</h3>
 
@@ -1869,7 +2032,7 @@ pointing directly at the listener will be louder than if it is pointed off-axis.
 
 
 <div id="Convolution-section" class="section"> 
-<h2>24. Linear Effects using Convolution</h2>
+<h2>27. Linear Effects using Convolution</h2>
 
 <h3>Background</h3>
 <p>
@@ -1998,7 +2161,7 @@ Microphones: AKG 414s, Speaker: Mackie HR824
 
 
 <div id="JavaScriptProcessing-section" class="section"> 
-<h2>25. JavaScript Synthesis and Processing</h2>
+<h2>28. JavaScript Synthesis and Processing</h2>
 
 <p>
 The Mozilla project has conducted <a href="https://wiki.mozilla.org/Audio_Data_API">Experiments</a> to synthesize and process audio directly in JavaScript.
@@ -2019,7 +2182,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 
 
 <div id="RealtimeAnalysis-section" class="section"> 
-<h2>26. Realtime Analysis</h2>
+<h2>29. Realtime Analysis</h2>
 
 
 
@@ -2028,7 +2191,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 
 
 <div id="Performance-section" class="section"> 
-<h2>27. Performance Considerations</h2>
+<h2>30. Performance Considerations</h2>
 
 <h3>Latency: What it is and Why it's Important?</h3>
 
@@ -2192,7 +2355,7 @@ The problems are even more difficult with today's generation of mobile devices w
 
 
 <div id="ExampleApplications-section" class="section"> 
-<h2>28. Example Applications</h2> 
+<h2>31. Example Applications</h2> 
 
 <p>
 Here are some of the types of applications a web audio system should be able to support.
@@ -2250,18 +2413,18 @@ When combined with WebGL GLSL shaders, realtime analysis data can be presented. 
 
 
 <div id="SecurityConsiderations-section" class="section"> 
-<h2>29. Security Considerations</h2> 
+<h2>32. Security Considerations</h2> 
 <p> 
   This section is <em>informative.</em> 
 </p> 
 </div> 
 
 <div id="requirements" class="section"> 
-<h2>30. Requirements and Use Cases</h2> 
+<h2>33. Requirements and Use Cases</h2> 
 </div> 
 
 <div id="ChangeLog-section" class="section"> 
-<h2>31. Change Log</h2> 
+<h2>34. Change Log</h2> 
 
 <pre>
 ------------------------------------------------------------------------
