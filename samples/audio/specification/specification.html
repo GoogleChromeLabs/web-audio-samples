@@ -45,13 +45,14 @@
     </p> 
     
 	<ul> 
+        <li>An <a class="dfnref" href="#AudioContext-section">AudioContext</a> interface, which contains an audio signal graph representing connections betweens AudioNodes.
+        </li> 
+
 	    <li>An <a class="dfnref" href="#AudioNode-section">AudioNode</a> interface, which represents audio sources, audio outputs, and intermediate processing modules.
-	    AudioNodes can be dynamically connected together in a <a href="#ModularRouting-section">modular fashion</a>.
+	    AudioNodes can be dynamically connected together in a <a href="#ModularRouting-section">modular fashion</a>.  <code>AudioNodes</code> exist in the context
+	    of an <code>AudioContext</code>
 	    </li> 
 	    
-	    <li>An <a class="dfnref" href="#AudioContext-section">AudioContext</a> interface, which contains an audio signal graph representing connections betweens AudioNodes.
-	    </li> 
-
 	    <li>An <a class="dfnref" href="#AudioSourceNode-section">AudioSourceNode</a> interface, an abstract AudioNode subclass representing a node which generates audio.
 	    </li> 
 
@@ -100,13 +101,6 @@
 	     for combining channels from multiple audio streams into a single audio stream.
 	    </li> 
 
-
-        </ul> 
-        
-        Additionally, a more complex implementation can have the following:
-        
-        <ul> 
-
 	    <li>The following linear filters can be implemented efficiently as "biquad" filters (two poles, two zeroes).  Each would be a subclass of AudioNode, or
 	    there could simply be a BiquadFilterNode which could be configured in different ways:
 	    <ul>
@@ -122,6 +116,13 @@
 	    </ul>
 	    
 	    </li> 
+
+
+        </ul> 
+        
+        Additionally, a more complex implementation can have the following:
+        
+        <ul> 
 
 
 	    <li>An <a class="dfnref" href="#dfn-AudioCurve">AudioCurve</a> interface, for implementing high-resolution automation, including LFOs (low frequency oscillators),
@@ -200,21 +201,22 @@
           <li> <a href="#terminology">
           3. Terminology and Algorithms</a></li>
       
+          <li><a href="#AudioContext-section">
+          4. The AudioContext Interface</a></li>
+
           <li> <a href="#AudioNode-section">
-          4. The AudioNode Interface</a>
+          5. The AudioNode Interface</a>
           
           <ul>
               <li><a href="#attributes-AudioNode">
-              4.1. Attributes</a></li>
+              5.1. Attributes</a></li>
 
               <li><a href="#methodsandparams-AudioNode">
-              4.2. Methods and Parameters</a></li>
+              5.2. Methods and Parameters</a></li>
           </ul>
 
           </li>
       
-          <li><a href="#AudioContext-section">
-          5. The AudioContext Interface</a></li>
 
           <li><a href="#AudioSourceNode-section">
           6. The AudioSourceNode Interface</a></li>
@@ -601,9 +603,133 @@ function playSound() {
        implementation of these methods, provided
        the end result is the same.</p> 
       </div> 
+
+
+      <div id="AudioContext-section" class="section"> 
+        <h2>4. The AudioContext Interface</h2> 
+        <p> 
+          This interface represents a set of <a href="#AudioNode-section"><code>AudioNode</code></a> objects and their connections.
+            It allows for arbitrary routing of signals to the <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a>
+           (what the user ultimately hears).
+          Nodes are created from the context and are then <a href="#ModularRouting-section">connected</a> together.  In a basic implementation, only a single AudioContext
+          will be allowed per document.  An AudioContext is constructed as follows:
+        </p> 
+
+        <pre>
+        var context = new AudioContext();
+        </pre>
+
+        <br>
+
+        <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+        interface <dfn id="dfn-AudioContext">AudioContext</dfn> {
+
+            readonly attribute AudioDestinationNode destination;
+            readonly attribute float sampleRate;
+            readonly attribute float currentTime;
+            readonly attribute AudioListener listener;
+
+            AudioBuffer createBuffer(in unsigned long numberOfChannels, in unsigned long length, in float sampleRate);
+
+            <span class="comment">// AudioNode creation </span>         
+            AudioBufferSourceNode createBufferSource();
+            AudioGainNode createGainNode();
+            DelayNode createDelayNode();
+            LowPass2FilterNode createLowPass2Filter();
+            HighPass2FilterNode createHighPass2Filter();
+            AudioPannerNode createPanner();
+            ConvolverNode createConvolver();
+            AudioChannelSplitter createChannelSplitter();
+            AudioChannelMerger createChannelMerger();
+            <span class="comment">// and so on... </span>         
+
+        }
+        </code></pre></div></div> 
+
+
+        <div id="attributes-AudioContext" class="section">
+        <h3>4.1. Attributes</h3> 
+        <dl><dt id="dfn-destination"><code>destination</code></dt><dd><p>An <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a> with a single input representing the final destination for all audio
+         (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>destination</code>.</p></dd></dl> 
+         <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample rate (in sample-frames per second)
+          at which the AudioContext handles audio.
+         It is assumed that all AudioNodes in the context run at this rate.  In making this assumption, sample-rate converters or "varispeed" processors are not supported in real-time processing.</p></dd></dl> 
+         <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>This is a time in seconds which starts at zero when the context is created and increases in real-time.
+         All scheduled times are relative to it. This is not a "transport" time which can be started, paused, and re-positioned.
+         It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
+         on top of this (in JavaScript).  This time corresponds to an ever-increasing hardware timestamp.
+         </p></dd></dl> 
+        <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>An <a href="#AudioListener-section"><code>AudioListener</code></a> which is used for 3D <a href="#Spatialization-section">spatialization</a>.</p></dd></dl> 
+        </div> 
+
+        <div id="methodsandparams-AudioContext" class="section"> 
+        <h3>4.2. Methods and Parameters</h3> 
+
+        <dl><dt id="dfn-createBuffer">The <code>createBuffer</code> method</dt> 
+        <dd>
+        <p>Creates an AudioBuffer of the given size.  The audio data in the buffer will be zero-initialized (silent).</p> 
+
+        <p>The <dfn id="dfn-numberOfChannels">numberOfChannels</dfn> parameter determines how many channels the buffer will have. </p>
+        <p>The <dfn id="dfn-length">length</dfn> parameter determines the size of the buffer in sample-frames. </p>
+        <p>The <dfn id="dfn-sampleRate">sampleRate</dfn> parameter describes the sample-rate of the linear PCM audio data in the buffer in sample-frames per second. </p>
+
+        </dd>
+
+
+        <dl><dt id="dfn-createBufferSource">The <code>createBufferSource</code> method</dt> 
+        <dd>
+        <p>Creates an <a href="#AudioBufferSourceNode-section"><code>AudioBufferSourceNode</code></a>.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
+        <dd>
+        <p>Creates an <a href="#AudioGainNode-section"><code>AudioGainNode</code></a>.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createDelayNode">The <code>createDelayNode</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#DelayNode-section"><code>DelayNode</code></a> representing a variable delay line.  The initial default delay time will be 0 seconds.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createLowPass2Filter">The <code>createLowPass2Filter</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#LowPass2FilterNode-section"><code>LowPass2FilterNode</code></a> representing a two-pole resonant low-pass filter.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createHighPass2Filter">The <code>createHighPass2Filter</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#HighPass2FilterNode-section"><code>HighPass2FilterNode</code></a> representing a two-pole resonant high-pass filter.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createPanner">The <code>createPanner</code> method</dt> 
+        <dd>
+        <p>Creates an <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a>.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createConvolver">The <code>createConvolver</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#ConvolverNode-section"><code>ConvolverNode</code></a>.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createChannelSplitter">The <code>createChannelSplitter</code> method</dt>
+        <dd>
+        <p>Creates an <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a> representing a channel splitter.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createChannelMerger">The <code>createChannelMerger</code> method</dt>
+        <dd>
+        <p>Creates an <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a> representing a channel merger.</p> 
+        </dd>
+
+
+        </dd></dl> 
+      </div> 
+
+
  
     <div id="AudioNode-section" class="section"> 
-    <h2>4. The AudioNode Interface</h2> 
+    <h2>5. The AudioNode Interface</h2> 
     <p> 
       AudioNodes are the building blocks of an <a href="#AudioContext-section"><code>AudioContext</code></a>.
       This interface represents audio sources, the audio destination, and intermediate processing modules.
@@ -625,17 +751,17 @@ function playSound() {
         readonly attribute unsigned long numberOfOutputs;
 
     }
-    </code></pre></div></div> 
+    </code></pre></div></div>
 
 
     <div id="attributes-AudioNode" class="section"> 
-    <h3>4.1. Attributes</h3> 
+    <h3>5.1. Attributes</h3> 
     <dl><dt id="dfn-numberOfInputs"><code>numberOfInputs</code></dt><dd><p>The number of inputs feeding into the AudioNode.  This will be 0 for an AudioSourceNode.</p></dd></dl> 
     <dl><dt id="dfn-numberOfOutputs"><code>numberOfOutputs</code></dt><dd><p>The number of outputs coming out of the AudioNode.  This will be 0 for an AudioDestinationNode.</p></dd></dl> 
     </div>
     
     <div id="methodsandparams-AudioNode" class="section"> 
-    <h3>4.2. Methods and Parameters</h3> 
+    <h3>5.2. Methods and Parameters</h3> 
     <dl><dt id="dfn-connect">The <code>connect</code> method</dt> 
     <dd>
     <p>Connects the AudioNode to another AudioNode.</p> 
@@ -656,127 +782,6 @@ function playSound() {
 
 
 
-  <div id="AudioContext-section" class="section"> 
-    <h2>5. The AudioContext Interface</h2> 
-    <p> 
-      This interface represents a set of <a href="#AudioNode-section"><code>AudioNode</code></a> objects and their connections.
-        It allows for arbitrary routing of signals to the <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a>
-       (what the user ultimately hears).
-      Nodes are created from the context and are then <a href="#ModularRouting-section">connected</a> together.  In a basic implementation, only a single AudioContext
-      will be allowed per document.  An AudioContext is constructed as follows:
-    </p> 
-
-    <pre>
-    var context = new AudioContext();
-    </pre>
-    
-    <br>
-
-    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
-
-    interface <dfn id="dfn-AudioContext">AudioContext</dfn> {
-
-        readonly attribute AudioDestinationNode destination;
-        readonly attribute float sampleRate;
-        readonly attribute float currentTime;
-        readonly attribute AudioListener listener;
-
-        AudioBuffer createBuffer(in unsigned long numberOfChannels, in unsigned long length, in float sampleRate);
-        
-        <span class="comment">// AudioNode creation </span>         
-        AudioBufferSourceNode createBufferSource();
-        AudioGainNode createGainNode();
-        DelayNode createDelayNode();
-        LowPass2FilterNode createLowPass2Filter();
-        HighPass2FilterNode createHighPass2Filter();
-        AudioPannerNode createPanner();
-        ConvolverNode createConvolver();
-        AudioChannelSplitter createChannelSplitter();
-        AudioChannelMerger createChannelMerger();
-        <span class="comment">// and so on... </span>         
-
-    }
-    </code></pre></div></div> 
-
-
-    <div id="attributes-AudioContext" class="section">
-    <h3>5.1. Attributes</h3> 
-    <dl><dt id="dfn-destination"><code>destination</code></dt><dd><p>An <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a> with a single input representing the final destination for all audio
-     (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>destination</code>.</p></dd></dl> 
-     <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample rate (in sample-frames per second)
-      at which the AudioContext handles audio (all AudioNodes in the context).
-     It is assumed in this simplified model that sample-rate converters or "varispeed" processors are not supported in real-time processing.</p></dd></dl> 
-     <dl><dt id="dfn-currentTime"><code>currentTime</code></dt><dd><p>This is a time in seconds which starts at zero when the context is created and increases in real-time.
-     All scheduled times are relative to it. This is not a "transport" time which can be started, paused, and re-positioned.
-     It is always moving forward.  A GarageBand-like timeline transport system can be very easily built
-     on top of this (in JavaScript).  This time corresponds to an ever-increasing hardware timestamp.
-     </p></dd></dl> 
-    <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>An <a href="#AudioListener-section"><code>AudioListener</code></a> which is used for 3D <a href="#Spatialization-section">spatialization</a>.</p></dd></dl> 
-    </div> 
-
-    <div id="methodsandparams-AudioContext" class="section"> 
-    <h3>5.2. Methods and Parameters</h3> 
-
-    <dl><dt id="dfn-createBuffer">The <code>createBuffer</code> method</dt> 
-    <dd>
-    <p>Creates an AudioBuffer of the given size.  The audio data in the buffer will be zero-initialized (silent).</p> 
-
-    <p>The <dfn id="dfn-numberOfChannels">numberOfChannels</dfn> parameter determines how many channels the buffer will have. </p>
-    <p>The <dfn id="dfn-length">length</dfn> parameter determines the size of the buffer in sample-frames. </p>
-    <p>The <dfn id="dfn-sampleRate">sampleRate</dfn> parameter describes the sample-rate of the linear PCM audio data in the buffer in sample-frames per second. </p>
-
-    </dd>
-    
-
-    <dl><dt id="dfn-createBufferSource">The <code>createBufferSource</code> method</dt> 
-    <dd>
-    <p>Creates an <a href="#AudioBufferSourceNode-section"><code>AudioBufferSourceNode</code></a>.</p> 
-    </dd>
-
-    <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
-    <dd>
-    <p>Creates an <a href="#AudioGainNode-section"><code>AudioGainNode</code></a>.</p> 
-    </dd>
-    
-    <dl><dt id="dfn-createDelayNode">The <code>createDelayNode</code> method</dt> 
-    <dd>
-    <p>Creates a <a href="#DelayNode-section"><code>DelayNode</code></a> representing a variable delay line.  The initial default delay time will be 0 seconds.</p> 
-    </dd>
-    
-    <dl><dt id="dfn-createLowPass2Filter">The <code>createLowPass2Filter</code> method</dt> 
-    <dd>
-    <p>Creates a <a href="#LowPass2FilterNode-section"><code>LowPass2FilterNode</code></a> representing a two-pole resonant low-pass filter.</p> 
-    </dd>
-    
-    <dl><dt id="dfn-createHighPass2Filter">The <code>createHighPass2Filter</code> method</dt> 
-    <dd>
-    <p>Creates a <a href="#HighPass2FilterNode-section"><code>HighPass2FilterNode</code></a> representing a two-pole resonant high-pass filter.</p> 
-    </dd>
-
-    <dl><dt id="dfn-createPanner">The <code>createPanner</code> method</dt> 
-    <dd>
-    <p>Creates an <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a>.</p> 
-    </dd>
-    
-    <dl><dt id="dfn-createConvolver">The <code>createConvolver</code> method</dt> 
-    <dd>
-    <p>Creates a <a href="#ConvolverNode-section"><code>ConvolverNode</code></a>.</p> 
-    </dd>
-
-    <dl><dt id="dfn-createChannelSplitter">The <code>createChannelSplitter</code> method</dt>
-    <dd>
-    <p>Creates an <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a> representing a channel splitter.</p> 
-    </dd>
-    
-    <dl><dt id="dfn-createChannelMerger">The <code>createChannelMerger</code> method</dt>
-    <dd>
-    <p>Creates an <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a> representing a channel merger.</p> 
-    </dd>
-    
-
-    </dd></dl> 
-  </div> 
-  
 
 
     <div id="AudioSourceNode-section" class="section"> 
@@ -1483,7 +1488,7 @@ function playSound() {
   </dd>
 
     
-  </dd></dl> 
+  </dd></dl>  
 
 
 
@@ -1501,6 +1506,11 @@ function playSound() {
        <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a>.
     </p>
 
+    <pre>
+    numberOfInputs == 1
+    numberOfOutputs == 6 // number of "active" (non-silent) outputs is determined by number of channels in the input
+    </pre>
+
     <p>
       This interface represents an AudioNode for accessing the individual channels of an audio stream in the routing graph.
       It has a single input, and a number of "active" outputs which equals the number of channels in the input audio stream.  For example, if a stereo
@@ -1510,14 +1520,13 @@ function playSound() {
       output silence and would typically not be connected to anything.
     </p>
     
+    
+    <h3>Example:</h3>
+    <img src="channel-splitter.png"/>
+    
     <p>
     One application for <code>AudioChannelSplitter</code> is for doing "matrix mixing" where individual gain control of each channel is desired.
     </p>
-    
-    <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 6 // number of "active" (non-silent) outputs is determined by number of channels in the input
-    </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
 
@@ -1536,6 +1545,12 @@ function playSound() {
       The <code>AudioChannelMerger</code> is for use in more advanced applications and would often be used in conjunction with
        <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a>.
     </p>
+
+    <pre>
+    numberOfInputs == 6  // number of connected inputs may be less than this
+    numberOfOutputs == 1
+    </pre>
+    
     
     <p>
       This interface represents an AudioNode for combining channels from multiple audio streams into a single audio stream.
@@ -1545,6 +1560,11 @@ function playSound() {
       second two from the second input.  In another example with two connected inputs (both mono), the output will be two channels (stereo),
       with the left channel coming from the first input and the right channel coming from the second input.
     </p>
+
+
+    <h3>Example:</h3>
+    <img src="channel-splitter.png"/>
+    
     
     <p>
     Be aware that it is possible to connect an <code>AudioChannelMerger</code> in such a way that it outputs an audio stream with a large number of channels greater
@@ -1552,11 +1572,6 @@ function playSound() {
     be thrown indicating an error condition.  Thus, the <code>AudioChannelMerger</code> should be used in situations where the numbers of input channels is well
     understood.
     </p>
-    
-    <pre>
-    numberOfInputs == 6  // number of connected inputs may be less than this
-    numberOfOutputs == 1
-    </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
 
