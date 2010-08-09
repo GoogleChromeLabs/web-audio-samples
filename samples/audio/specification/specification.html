@@ -66,8 +66,6 @@
 	     an AudioNode subclass representing the final destination for all rendered audio.
 	    </li> 
 
-	    <li>An <a class="dfnref" href="#AudioParam-section">AudioParam</a> interface, for controlling an individual aspect of an AudioNode's functioning, such as volume.
-	    </li> 
 
 	    <li>An <a class="dfnref" href="#AudioBuffer-section">AudioBuffer</a> interface, for working with memory-resident audio assets.  These can represent one-shot sounds,
 	    or longer audio clips.
@@ -76,6 +74,16 @@
 	    <li>An <a class="dfnref" href="#AudioBufferSourceNode-section">AudioBufferSourceNode</a> interface, an AudioNode which generates audio from an AudioBuffer.
 	    </li> 
 
+	    <li>A <a class="dfnref" href="#JavaScriptAudioNode-section">JavaScriptAudioNode</a> interface, an AudioNode for generating or processing audio directly in JavaScript.
+	    </li> 
+
+	    <li>An <a class="dfnref" href="#AudioProcessingEvent-section">AudioProcessingEvent</a> interface, which is an event type used with
+	    <code>JavaScriptAudioNode</code> objects.
+	    </li> 
+
+
+	    <li>An <a class="dfnref" href="#AudioParam-section">AudioParam</a> interface, for controlling an individual aspect of an AudioNode's functioning, such as volume.
+	    </li> 
 
 	    <li>An <a class="dfnref" href="#AudioGainNode-section">AudioGainNode</a> interface, for explicit gain control.  Because inputs to AudioNodes support multiple connections
 	     (as a unity-gain summing junction), mixers can be <a href="#MixerGainStructure-section">easily built</a> with AudioGainNodes. 
@@ -207,122 +215,127 @@
           <li> <a href="#terminology">
           3. Terminology and Algorithms</a></li>
       
-          <li><a href="#AudioContext-section">
-          4. The AudioContext Interface</a></li>
-
-          <li> <a href="#AudioNode-section">
-          5. The AudioNode Interface</a>
-          
+          <li> <a href="#API-section">
+          4. The Audio API
           <ul>
-              <li><a href="#attributes-AudioNode">
-              5.1. Attributes</a></li>
+              <li><a href="#AudioContext-section">
+              4.1. The AudioContext Interface</a></li>
 
-              <li><a href="#methodsandparams-AudioNode">
-              5.2. Methods and Parameters</a></li>
+              <li> <a href="#AudioNode-section">
+              4.2 The AudioNode Interface</a>
+          
+              <ul>
+                  <li><a href="#attributes-AudioNode">
+                  4.2.1. Attributes</a></li>
+
+                  <li><a href="#methodsandparams-AudioNode">
+                  4.2.2. Methods and Parameters</a></li>
+              </ul>
+
+              </li>
+      
+
+              <li><a href="#AudioSourceNode-section">
+              4.3. The AudioSourceNode Interface</a></li>
+      
+              <li><a href="#AudioDestinationNode-section">
+              4.4. The AudioDestinationNode Interface</a></li>
+      
+              <li><a href="#AudioParam-section">
+              4.5. The AudioParam Interface</a></li>
+
+              <li><a href="#AudioGain-section">
+              4.6. The AudioGain Interface</a></li>
+
+              <li><a href="#AudioGainNode-section">
+              4.7. The AudioGainNode Interface</a></li>
+      
+              <li><a href="#DelayNode-section">
+              4.8. The DelayNode Interface</a></li>
+      
+              <li><a href="#AudioBuffer-section">
+              4.9. The AudioBuffer Interface</a></li>
+
+              <li><a href="#AudioBufferSourceNode-section">
+              4.10. The AudioBufferSourceNode Interface</a></li>
+
+              <li><a href="#MediaElementAudioSourceNode-section">
+              4.11. The MediaElementAudioSourceNode Interface</a></li>
+
+              <li><a href="#JavaScriptAudioNode-section">
+              4.12. The JavaScriptAudioNode Interface</a></li>
+
+              <li><a href="#AudioProcessingEvent-section">
+              4.13. The AudioProcessingEvent Interface</a></li>
+
+              <li><a href="#AudioPannerNode-section">
+              4.14. The AudioPannerNode Interface</a></li>
+
+              <li><a href="#AudioListener-section">
+              4.15. The AudioListener Interface</a></li>
+
+              <li><a href="#ConvolverNode-section">
+              4.16. The ConvolverNode Interface</a></li>
+
+              <li><a href="#RealtimeAnalyserNode-section">
+              4.17. The RealtimeAnalyserNode Interface</a></li>
+
+              <li><a href="#AudioChannelSplitter-section">
+              4.18. The AudioChannelSplitter Interface</a></li>
+
+              <li><a href="#AudioChannelMerger-section">
+              4.19. The AudioChannelMerger Interface</a></li>
           </ul>
 
           </li>
-      
-
-          <li><a href="#AudioSourceNode-section">
-          6. The AudioSourceNode Interface</a></li>
-      
-          <li><a href="#AudioDestinationNode-section">
-          7. The AudioDestinationNode Interface</a></li>
-      
-          <li><a href="#AudioParam-section">
-          8. The AudioParam Interface</a></li>
-
-          <li><a href="#AudioGain-section">
-          9. The AudioGain Interface</a></li>
-
-          <li><a href="#AudioGainNode-section">
-          10. The AudioGainNode Interface</a></li>
-      
-          <li><a href="#DelayNode-section">
-          11. The DelayNode Interface</a></li>
-      
-          <li><a href="#AudioBuffer-section">
-          12. The AudioBuffer Interface</a></li>
-
-          <li><a href="#AudioBufferSourceNode-section">
-          13. The AudioBufferSourceNode Interface</a></li>
-
-          <li><a href="#MediaElementAudioSourceNode-section">
-          14. The MediaElementAudioSourceNode Interface</a></li>
-
-          <li><a href="#AudioPannerNode-section">
-          15. The AudioPannerNode Interface</a></li>
-
-          <li><a href="#AudioListener-section">
-          16. The AudioListener Interface</a></li>
-
-          <li><a href="#ConvolverNode-section">
-          17. The ConvolverNode Interface</a></li>
-
-          <li><a href="#RealtimeAnalyserNode-section">
-          18. The RealtimeAnalyserNode Interface</a></li>
-
-          <li><a href="#AudioChannelSplitter-section">
-          19. The AudioChannelSplitter Interface</a></li>
-
-          <li><a href="#AudioChannelMerger-section">
-          20. The AudioChannelMerger Interface</a></li>
-
-
-
 
 
 
 
       
           <li><a href="#AudioElementIntegration-section">
-          21. Integration with the <code>audio</code> and <code>video</code> element</a></li>
+          5. Integration with the <code>audio</code> and <code>video</code> element</a></li>
 
           <li><a href="#MixerGainStructure-section">
-          22. Mixer Gain Structure</a></li>
+          6. Mixer Gain Structure</a></li>
 
 
 
           <li><a href="#ChannelLayouts-section">
-          23. Channel Layouts</a></li>
+          7. Channel Layouts</a></li>
 
           <li><a href="#UpMix-section">
-          24. Channel up-mixing and down-mixing</a></li>
-
-
-
-
+          8. Channel up-mixing and down-mixing</a></li>
 
           <li><a href="#EventScheduling-section">
-          25. Event Scheduling</a></li>
+          9. Event Scheduling</a></li>
 
           <li><a href="#Spatialization-section">
-          26. Spatialization / Panning</a></li>
+          10. Spatialization / Panning</a></li>
 
           <li><a href="#Convolution-section">
-          27. Linear Effects using Convolution</a></li>
+          11. Linear Effects using Convolution</a></li>
 
           <li><a href="#JavaScriptProcessing-section">
-          28. JavaScript Synthesis and Processing</a></li>
+          12. JavaScript Synthesis and Processing</a></li>
 
           <li><a href="#RealtimeAnalysis-section">
-          29. Realtime Analysis</a></li>
+          13. Realtime Analysis</a></li>
 
           <li><a href="#Performance-section">
-          30. Performance Considerations</a></li>
+          14. Performance Considerations</a></li>
             
           <li><a href="#ExampleApplications-section">
-          31. Example Applications</a></li>
+          15. Example Applications</a></li>
       
           <li><a href="#SecurityConsiderations-section">
-          32. Security Considerations</a></li>
+          16. Security Considerations</a></li>
       
           <li><a href="#requirements">
-          33. Requirements and Use Cases</a></li>
+          17. Requirements and Use Cases</a></li>
 
           <li><a href="#ChangeLog-section">
-          34. Change Log</a></li>
+          18. Change Log</a></li>
       
 
           </li>
@@ -610,9 +623,11 @@ function playSound() {
        the end result is the same.</p> 
       </div> 
 
-
+      <div id="API-section" class="section"> 
+        <h2>4. The Audio API</h2> 
+      </div>
       <div id="AudioContext-section" class="section"> 
-        <h2>4. The AudioContext Interface</h2> 
+        <h2>4.1. The AudioContext Interface</h2> 
         <p> 
           This interface represents a set of <a href="#AudioNode-section"><code>AudioNode</code></a> objects and their connections.
             It allows for arbitrary routing of signals to the <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a>
@@ -640,6 +655,7 @@ function playSound() {
 
             <span class="comment">// AudioNode creation </span>         
             AudioBufferSourceNode createBufferSource();
+            JavaScriptAudioNode createJavaScriptNode(in short bufferSize, in short numberOfInputs, in short numberOfOutputs);
             AudioGainNode createGainNode();
             DelayNode createDelayNode();
             LowPass2FilterNode createLowPass2Filter();
@@ -655,7 +671,7 @@ function playSound() {
 
 
         <div id="attributes-AudioContext" class="section">
-        <h3>4.1. Attributes</h3> 
+        <h3>4.1.1. Attributes</h3> 
         <dl><dt id="dfn-destination"><code>destination</code></dt><dd><p>An <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a> with a single input representing the final destination for all audio
          (to be rendered to the audio hardware).  All AudioNodes actively rendering audio will directly or indirectly connect to <code>destination</code>.</p></dd></dl> 
          <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample rate (in sample-frames per second)
@@ -670,7 +686,7 @@ function playSound() {
         </div> 
 
         <div id="methodsandparams-AudioContext" class="section"> 
-        <h3>4.2. Methods and Parameters</h3> 
+        <h3>4.1.2. Methods and Parameters</h3> 
 
         <dl><dt id="dfn-createBuffer">The <code>createBuffer</code> method</dt> 
         <dd>
@@ -683,9 +699,27 @@ function playSound() {
         </dd>
 
 
+
         <dl><dt id="dfn-createBufferSource">The <code>createBufferSource</code> method</dt> 
         <dd>
         <p>Creates an <a href="#AudioBufferSourceNode-section"><code>AudioBufferSourceNode</code></a>.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createJavaScriptNode">The <code>createJavaScriptNode</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#JavaScriptAudioNode"><code>JavaScriptAudioNode</code></a> for direct audio processing using JavaScript.</p> 
+
+        <p>The <dfn id="dfn-bufferSize">bufferSize</dfn> parameter determines the buffer size in units of sample-frames.  It must be one of the following values: 256, 512, 1024, 2048, 4096, 8192, 16384.
+        This value controls how frequently the <code>onaudioprocess</code> event handler is called and how many sample-frames need to be processed each call.
+        Lower values for <code>bufferSize</code> will result in a lower (better) <a href="#Latency-section">latency</a>.
+        Higher values will be necessary to avoid audio breakup and <a href="#Glitching-section">glitches</a>.
+        The value chosen must carefully balance between latency and audio quality. </p>
+        <p>The <dfn id="dfn-numberOfInputs">numberOfInputs</dfn> parameter determines the number of inputs. </p>
+        <p>The <dfn id="dfn-numberOfOutputs">numberOfOutputs</dfn> parameter determines the number of outputs. </p>
+        <p>
+        It is invalid for both 
+        <code>numberOfInputs</code> and <code>numberOfOutputs</code> to be zero.
+        </p>
         </dd>
 
         <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
@@ -735,7 +769,7 @@ function playSound() {
 
  
     <div id="AudioNode-section" class="section"> 
-    <h2>5. The AudioNode Interface</h2> 
+    <h2>4.2. The AudioNode Interface</h2> 
     <p> 
       AudioNodes are the building blocks of an <a href="#AudioContext-section"><code>AudioContext</code></a>.
       This interface represents audio sources, the audio destination, and intermediate processing modules.
@@ -761,13 +795,13 @@ function playSound() {
 
 
     <div id="attributes-AudioNode" class="section"> 
-    <h3>5.1. Attributes</h3> 
+    <h3>4.2.1. Attributes</h3> 
     <dl><dt id="dfn-numberOfInputs"><code>numberOfInputs</code></dt><dd><p>The number of inputs feeding into the AudioNode.  This will be 0 for an AudioSourceNode.</p></dd></dl> 
     <dl><dt id="dfn-numberOfOutputs"><code>numberOfOutputs</code></dt><dd><p>The number of outputs coming out of the AudioNode.  This will be 0 for an AudioDestinationNode.</p></dd></dl> 
     </div>
     
     <div id="methodsandparams-AudioNode" class="section"> 
-    <h3>5.2. Methods and Parameters</h3> 
+    <h3>4.2.2. Methods and Parameters</h3> 
     <dl><dt id="dfn-connect">The <code>connect</code> method</dt> 
     <dd>
     <p>Connects the AudioNode to another AudioNode.</p> 
@@ -791,13 +825,13 @@ function playSound() {
 
 
     <div id="AudioSourceNode-section" class="section"> 
-    <h2>6. The AudioSourceNode Interface</h2> 
+    <h2>4.3. The AudioSourceNode Interface</h2> 
     <p> 
       This is an abstract interface representing an audio source, an <a href="#AudioNode-section"><code>AudioNode</code></a> which has no inputs and a single output:
     </p>  
       <pre>
-      numberOfInputs == 0
-      numberOfOutputs == 1
+      numberOfInputs  : 0
+      numberOfOutputs : 1
       </pre>
 
       <p>
@@ -817,7 +851,7 @@ function playSound() {
 
 
     <div id="AudioDestinationNode-section" class="section"> 
-    <h2>7. The AudioDestinationNode Interface</h2> 
+    <h2>4.4. The AudioDestinationNode Interface</h2> 
     <p>
       This is an <a href="#AudioNode-section"><code>AudioNode</code></a> representing the final audio destination and is what the user will ultimately hear.
       It can be considered as an audio output device which is connected to speakers.
@@ -825,8 +859,8 @@ function playSound() {
       per AudioContext, provided through the <code>destination</code> attribute of <a href="#AudioContext-section"><code>AudioContext</code></a>.
     </p>  
       <pre>
-      numberOfInputs == 1
-      numberOfOutputs == 0
+      numberOfInputs  : 1
+      numberOfOutputs : 0
       </pre>
 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -839,13 +873,8 @@ function playSound() {
   </div> 
 
   
-
-
-
-  
-  
   <div id="AudioParam-section" class="section"> 
-    <h2>8. The AudioParam Interface</h2> 
+    <h2>4.5. The AudioParam Interface</h2> 
     <p> 
       This interface controls an individual aspect of an <a href="#AudioNode-section"><code>AudioNode</code></a>'s functioning, such as volume.
       
@@ -876,7 +905,7 @@ function playSound() {
 
 
     <div id="attributes-AudioParam" class="section"> 
-    <h3>8.1. Attributes</h3> 
+    <h3>4.5.1. Attributes</h3> 
     <dl><dt id="dfn-value"><code>value</code></dt><dd><p>The parameter's floating-point value.  If a value is set outside the allowable range described by
     <code>minValue</code> and <code>maxValue</code> an exception is thrown.   </p></dd></dl> 
     <dl><dt id="dfn-minValue"><code>minValue</code></dt><dd><p>Minimum value.  The <code>value</code> attribute must not be set lower than this value.</p></dd></dl> 
@@ -898,7 +927,7 @@ function playSound() {
 
 
   <div id="AudioGain-section" class="section"> 
-  <h3>9. AudioGain</h3> 
+  <h3>4.6. AudioGain</h3> 
 
   <p> 
     This interface is a particular type of <code>AudioParam</code> which specifically controls the gain (volume) of some aspect of the audio processing.
@@ -922,14 +951,14 @@ function playSound() {
 
   <div id="AudioGainNode-section" class="section"> 
 
-    <h2>10. The AudioGainNode Interface</h2> 
+    <h2>4.7. The AudioGainNode Interface</h2> 
     <p> 
       Changing the gain of an audio signal is a fundamental operation in audio applications.  This interface is an AudioNode with a single input and single output:
     </p>
     
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 1
+    numberOfInputs  : 1
+    numberOfOutputs : 1
     </pre>
     
     <p>
@@ -950,7 +979,7 @@ function playSound() {
 
 
     <div id="attributes-AudioGainNode" class="section"> 
-    <h3>10.1. Attributes</h3> 
+    <h3>4.7.1. Attributes</h3> 
     <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>An AudioGain object representing the amount of gain to apply.  The default value
     (<code>gain.value</code>) is 1.0 (no gain change).  See <a href="#AudioGain-section"><code>AudioGain</code></a> for more information. </p></dd></dl> 
     </div> 
@@ -960,14 +989,14 @@ function playSound() {
 
   <div id="DelayNode-section" class="section"> 
 
-    <h2>11. The DelayNode Interface</h2> 
+    <h2>4.8. The DelayNode Interface</h2> 
     <p> 
       A delay-line is a fundamental building block in audio applications.  This interface is an AudioNode with a single input and single output:
     </p>
     
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 1
+    numberOfInputs  : 1
+    numberOfOutputs : 1
     </pre>
     
     <p>
@@ -986,7 +1015,7 @@ function playSound() {
 
 
     <div id="attributes-AudioGainNode" class="section"> 
-    <h3>11.1. Attributes</h3> 
+    <h3>4.8.1. Attributes</h3> 
     <dl><dt id="dfn-delayTime"><code>delayTime</code></dt><dd><p>An AudioParam object representing the amount of delay (in seconds) to apply.  The default value
     (<code>delayTime.value</code>) is 0.0 (no delay).  The minimum value is 0.0 and the maximum value is currently 1.0 (but this is arbitrary and could be increased).</p></dd></dl> 
     </div> 
@@ -1004,7 +1033,7 @@ function playSound() {
 
 
   <div id="AudioBuffer-section" class="section"> 
-    <h2>12. The AudioBuffer Interface</h2> 
+    <h2>4.9. The AudioBuffer Interface</h2> 
     <p> 
       This interface represents a memory-resident audio asset (for one-shot sounds and other short audio clips).  
       Its format is non-interleaved linear PCM with a nominal range of -1.0 -> +1.0.  It can contain one or more channels.
@@ -1034,7 +1063,7 @@ function playSound() {
 
 
     <div id="attributes-AudioBuffer" class="section"> 
-    <h3>12.1. Attributes</h3> 
+    <h3>4.9.1. Attributes</h3> 
     <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The amount of gain to apply when using this buffer in any <code>AudioBufferSourceNode</code>.  The default value is 1.0. </p></dd></dl> 
     <dl><dt id="dfn-sampleRate"><code>sampleRate</code></dt><dd><p>The sample-rate for the PCM audio data in samples per second.</p></dd></dl> 
     <dl><dt id="dfn-length"><code>length</code></dt><dd><p>Length of the PCM audio data in sample-frames.</p></dd></dl> 
@@ -1043,7 +1072,7 @@ function playSound() {
     </div> 
 
     <div id="methodsandparams-AudioBuffer" class="section"> 
-    <h3>12.2. Methods and Parameters</h3> 
+    <h3>4.9.2. Methods and Parameters</h3> 
 
     <dl><dt id="dfn-getChannelData">The <code>getChannelData</code> method</dt> 
     <dd>
@@ -1061,15 +1090,15 @@ function playSound() {
 
   <div id="AudioBufferSourceNode-section" class="section"> 
 
-    <h2>13. The AudioBufferSourceNode Interface</h2> 
+    <h2>4.10. The AudioBufferSourceNode Interface</h2> 
     <p> 
       This interface represents an audio source from an in-memory audio asset in an <code>AudioBuffer</code>.  It generally will be used for short audio assets 
       which require a high degree of scheduling flexibility (can playback in rhythmically perfect ways).      
     </p>
     
     <pre>
-    numberOfInputs == 0
-    numberOfOutputs == 1
+    numberOfInputs  : 0
+    numberOfOutputs : 1
     </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -1091,7 +1120,7 @@ function playSound() {
 
 
     <div id="attributes-AudioBufferSourceNode" class="section"> 
-    <h3>13.1. Attributes</h3> 
+    <h3>4.10.1. Attributes</h3> 
     <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>Represents the audio asset to be played. </p></dd></dl> 
     <dl><dt id="dfn-loop"><code>loop</code></dt><dd><p>Indicates if the audio data should play in a loop. </p></dd></dl> 
     </div> 
@@ -1100,7 +1129,7 @@ function playSound() {
 
 
   <div id="methodsandparams-AudioBufferSourceNode" class="section"> 
-  <h3>13.2. Methods and Parameters</h3> 
+  <h3>4.10.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-noteOn">The <code>noteOn</code> method</dt> 
   <dd>
   <p>Schedules a sound to playback at an exact time.</p> 
@@ -1142,14 +1171,15 @@ function playSound() {
 
   <div id="MediaElementAudioSourceNode-section" class="section"> 
 
-    <h2>14. The MediaElementAudioSourceNode Interface</h2> 
+    <h2>4.11. The MediaElementAudioSourceNode Interface</h2> 
     <p> 
-      This interface represents an audio source from an <code>audio</code> or <code>video</code> element.  The element's <code>audioSource</code> attribute implements this.      
+      This interface represents an audio source from an <code>audio</code> or <code>video</code> element.
+        The element's <code>audioSource</code> attribute implements this.      
     </p>
     
     <pre>
-    numberOfInputs == 0
-    numberOfOutputs == 1
+    numberOfInputs  : 0
+    numberOfOutputs : 1
     </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -1164,7 +1194,7 @@ function playSound() {
 
 
     <div id="attributes-MediaElementAudioSourceNode" class="section"> 
-    <h3>14.1. Attributes</h3> 
+    <h3>4.11.1. Attributes</h3> 
     <dl><dt id="dfn-playbackRate"><code>playbackRate</code></dt><dd><p>The speed at which to render the audio stream.  The default value is 1.0. </p></dd></dl> 
     </div> 
 
@@ -1174,20 +1204,108 @@ function playSound() {
 
 
 
+  <div id="JavaScriptAudioNode-section" class="section"> 
+
+    <h2>4.12. The JavaScriptAudioNode Interface</h2> 
+    <p> 
+      This interface is an AudioNode which can generate, process, or analyse audio directly using JavaScript.
+      It can have a variable number of inputs and outputs, although it must have at least one input or output.
+      A basic implementation may choose not to support more than one input or output.
+    </p>
+    
+    <pre>
+    numberOfInputs  : 0 .. N
+    numberOfOutputs : 0 .. M
+    (either N > 0 or M > 0)
+    </pre>
+
+    <p>
+    The JavaScriptAudioNode is constructed with a <code>bufferSize</code> which must be one of the following values: 256, 512, 1024, 2048, 4096, 8192, 16384.
+    This value controls how frequently the <code>onaudioprocess</code> event handler is called and how many sample-frames need to be processed each call.
+    Lower numbers for <code>bufferSize</code> will result in a lower (better) <a href="#Latency-section">latency</a>.
+    Higher numbers will be necessary to avoid audio breakup and <a href="#Glitching-section">glitches</a>.
+    The value chosen must carefully balance between latency and audio quality.
+    <code>numberOfInputs</code> and <code>numberOfOutputs</code> determine the number of inputs and number of outputs.  It is invalid for both 
+    <code>numberOfInputs</code> and <code>numberOfOutputs</code> to be zero.
+    </p>
+    
+    <pre>
+    var node = context.createJavaScriptNode(bufferSize, numberOfInputs, numberOfOutputs);
+    </pre>
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-JavaScriptAudioNode">JavaScriptAudioNode</dfn> : AudioNode {
+
+        attribute EventListener onaudioprocess;
+        
+        readonly attribute long bufferSize;
+
+    }
+    </code></pre></div></div> 
+
+
+    <div id="attributes-MediaElementAudioSourceNode" class="section"> 
+    <h3>4.12.1. Attributes</h3> 
+    <dl><dt id="dfn-onaudioprocess"><code>onaudioprocess</code></dt><dd><p>An event listener which is called periodically for audio processing.
+    An event of type <a href="#AudioProcessingEvent-section"><code>AudioProcessingEvent</code></a> will be passed to the event handler. </p></dd></dl> 
+    <dl><dt id="dfn-bufferSize"><code>bufferSize</code></dt><dd><p>The size of the buffer (in sample-frames) which needs to be processed each time
+     <code>onprocessaudio</code> is called.  Legal values are (256, 512, 1024, 2048, 4096, 8192, 16384). </p></dd></dl> 
+    </div> 
+
+  </div> 
+
+
+
+
+  <div id="AudioProcessingEvent-section" class="section"> 
+
+    <h2>4.13. The AudioProcessingEvent Interface</h2> 
+    <p> 
+      This interface is a type of <code>Event</code> which is passed to the event handler used by
+       <a href="#JavaScriptAudioNode-section"><code>JavaScriptAudioNode</code></a>
+    </p>
+    
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-AudioProcessingEvent">AudioProcessingEvent</dfn> : Event {
+
+        JavaScriptAudioNode node;
+        readonly attribute sequence< AudioBuffer> inputBuffer;
+        readonly attribute sequence< AudioBuffer> outputBuffer; 
+
+    }
+    </code></pre></div></div> 
+
+
+    <div id="attributes-MediaElementAudioSourceNode" class="section"> 
+    <h3>4.13.1. Attributes</h3> 
+    <dl><dt id="dfn-node"><code>node</code></dt><dd><p>The <code>JavaScriptAudioNode</code> associated with this processing event.  </p></dd></dl> 
+
+    <dl><dt id="dfn-inputBuffer"><code>inputBuffer</code></dt><dd><p>An array of AudioBuffers (one per input) containing the input audio data.
+    The length of this array is equal to the number of inputs of the associated <code>JavaScriptAudioNode</code>.  </p></dd></dl> 
+    <dl><dt id="dfn-outputBuffer"><code>outputBuffer</code></dt><dd><p>An array of AudioBuffers (one per output) where the output audio data should be written.
+    The length of this array is equal to the number of outputs of the associated <code>JavaScriptAudioNode</code>. </p></dd></dl> 
+    </div> 
+
+  </div> 
+
+
 
 
 
   <div id="AudioPannerNode-section" class="section"> 
 
-    <h2>15. The AudioPannerNode Interface</h2> 
+    <h2>4.14. The AudioPannerNode Interface</h2> 
     <p> 
       This interface represents a processing node which <a href="#Spatialization-section">positions / spatializes</a> an incoming audio stream in three-dimensional space.
       The spatialization is in relation the the <a href="#AudioContext-section"><code>AudioContext</code></a>'s <a href="#AudioListener-section"><code>AudioListener</code></a> (<code>listener</code> attribute).      
     </p>
     
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 1
+    numberOfInputs  : 1
+    numberOfOutputs : 1
     </pre>
     
 
@@ -1235,7 +1353,7 @@ function playSound() {
   </div> 
 
   <div id="attributes-AudioPannerNode" class="section"> 
-  <h3>15.1. Constants</h3> 
+  <h3>4.14.1. Constants</h3> 
 
   <dl><dt id="dfn-PASSTHROUGH"><code>PASSTHROUGH</code></dt><dd><p>An algorithm which passes the incoming audio unchanged to the output (no processing occurs). </p></dd></dl> 
   <dl><dt id="dfn-EQUALPOWER"><code>EQUALPOWER</code></dt><dd><p>A simple and efficient spatialization algorithm using equal-power panning. </p></dd></dl> 
@@ -1250,7 +1368,7 @@ function playSound() {
 
 
   <div id="attributes-AudioPannerNode" class="section"> 
-  <h3>15.2. Attributes</h3> 
+  <h3>4.14.2. Attributes</h3> 
   <dl><dt id="dfn-listener"><code>listener</code></dt><dd><p>Represents the <b>listener</b> whose position and orientation is used together with
   the panner's position and orientation to determine how the audio will be spatialized. </p></dd></dl> 
 
@@ -1275,7 +1393,7 @@ function playSound() {
   </div> 
 
 
-  <h3>15.3. Methods and Parameters</h3> 
+  <h3>4.14.3. Methods and Parameters</h3> 
   <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
   <dd>
   <p>Sets the position of the audio source relative to the <b>listener</b> attribute.  A 3D cartesian coordinate system is used.</p> 
@@ -1305,7 +1423,7 @@ function playSound() {
 
   <div id="AudioListener-section" class="section"> 
 
-    <h2>16. The AudioListener Interface</h2> 
+    <h2>4.15. The AudioListener Interface</h2> 
     <p> 
       This interface represents the position and orientation of the person listening to the audio scene.  All <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a>
       objects spatialize in relation to the AudioContext's <code>listener</code>.
@@ -1340,7 +1458,7 @@ function playSound() {
 
 
   <div id="attributes-AudioListener" class="section"> 
-  <h3>16.1. Attributes</h3> 
+  <h3>4.15.1. Attributes</h3> 
   <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>A linear gain used in conjunction with <a href="#AudioPannerNode-section"><code>AudioPannerNode</code></a> objects when spatializing. </p></dd></dl> 
 
   <dl><dt id="dfn-dopplerFactor"><code>dopplerFactor</code></dt><dd><p>A constant used to determine the amount of pitch shift to use when rendering a doppler effect. </p></dd></dl> 
@@ -1349,7 +1467,7 @@ function playSound() {
   </div> 
 
 
-  <h3>16.2. Methods and Parameters</h3> 
+  <h3>4.15.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-setPosition">The <code>setPosition</code> method</dt> 
   <dd>
   <p>Sets the position of the listener in a 3D cartesian coordinate space.  <code>AudioPannerNode</code> objects use this position relative to individual audio sources for spatialization.</p> 
@@ -1381,14 +1499,14 @@ function playSound() {
 
   <div id="ConvolverNode-section" class="section"> 
 
-    <h2>17. The ConvolverNode Interface</h2> 
+    <h2>4.16. The ConvolverNode Interface</h2> 
     <p> 
       This interface represents a processing node which applies a <a href="#Convolution-section">linear convolution effect</a> given an impulse response.
     </p>
     
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 1
+    numberOfInputs  : 1
+    numberOfOutputs : 1
     </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -1408,7 +1526,7 @@ function playSound() {
 
 
   <div id="attributes-ConvolverNode" class="section"> 
-  <h3>17.1. Attributes</h3> 
+  <h3>4.16.1. Attributes</h3> 
   <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>A mono or multi-channel audio buffer containing the impulse response used by the convolver. </p></dd></dl> 
 
   </div> 
@@ -1418,7 +1536,7 @@ function playSound() {
 
   <div id="RealtimeAnalyserNode-section" class="section"> 
 
-    <h2>18. The RealtimeAnalyserNode Interface</h2> 
+    <h2>4.17. The RealtimeAnalyserNode Interface</h2> 
     <p> 
       This interface represents a node which is able to provide real-time frequency and time-domain <a href="#RealtimeAnalysis-section">analysis</a> information.
       The audio stream will be passed un-processed from input to output.    
@@ -1426,8 +1544,8 @@ function playSound() {
     </p>
     
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 1    <--- it has been suggested to have no outputs here - waiting for people's opinions
+    numberOfInputs  : 1
+    numberOfOutputs : 1    <--- it has been suggested to have no outputs here - waiting for people's opinions
     </pre>
     
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -1457,7 +1575,7 @@ function playSound() {
 
 
   <div id="attributes-ConvolverNode" class="section"> 
-  <h3>18.1. Attributes</h3> 
+  <h3>4.17.1. Attributes</h3> 
   <dl><dt id="dfn-fftSize"><code>fftSize</code></dt><dd><p>The size of the FFT used for frequency-domain analsis.  This must be a power of two. </p></dd></dl> 
   <dl><dt id="dfn-frequencyBinCount"><code>frequencyBinCount</code></dt><dd><p>Half the FFT size. </p></dd></dl> 
   <dl><dt id="dfn-minDecibels"><code>minDecibels</code></dt><dd><p> The minimum power value in the scaling range for the FFT analysis data 
@@ -1471,7 +1589,7 @@ function playSound() {
   </div> 
 
 
-  <h3>18.2. Methods and Parameters</h3> 
+  <h3>4.17.2. Methods and Parameters</h3> 
   <dl><dt id="dfn-getFloatFrequencyData">The <code>getFloatFrequencyData</code> method</dt> 
   <dd>
   <p>Copies the current frequency data into the passed floating-point array.  If the array has fewer elements than the frequencyBinCount, the excess elements will be dropped.         
@@ -1506,15 +1624,15 @@ function playSound() {
 
   <div id="AudioChannelSplitter-section" class="section"> 
 
-    <h2>19. The AudioChannelSplitter Interface</h2> 
+    <h2>4.18. The AudioChannelSplitter Interface</h2> 
     <p>
       The <code>AudioChannelSplitter</code> is for use in more advanced applications and would often be used in conjunction with
        <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a>.
     </p>
 
     <pre>
-    numberOfInputs == 1
-    numberOfOutputs == 6 // number of "active" (non-silent) outputs is determined by number of channels in the input
+    numberOfInputs  : 1
+    numberOfOutputs : 6 // number of "active" (non-silent) outputs is determined by number of channels in the input
     </pre>
 
     <p>
@@ -1546,15 +1664,15 @@ function playSound() {
 
   <div id="AudioChannelMerger-section" class="section"> 
 
-    <h2>20. The AudioChannelMerger Interface</h2> 
+    <h2>4.19. The AudioChannelMerger Interface</h2> 
     <p>
       The <code>AudioChannelMerger</code> is for use in more advanced applications and would often be used in conjunction with
        <a href="#AudioChannelSplitter-section"><code>AudioChannelSplitter</code></a>.
     </p>
 
     <pre>
-    numberOfInputs == 6  // number of connected inputs may be less than this
-    numberOfOutputs == 1
+    numberOfInputs  : 6  // number of connected inputs may be less than this
+    numberOfOutputs : 1
     </pre>
     
     
@@ -1599,7 +1717,7 @@ function playSound() {
 
 
     <div id="AudioElementIntegration-section" class="section"> 
-    <h2>21. Integration with the <code>audio</code> and <code>video</code> elements</h2> 
+    <h2>5. Integration with the <code>audio</code> and <code>video</code> elements</h2> 
 
   <p>
   It requires some thought to integrate cleanly with the existing media elements because they do not seem to have been designed with the idea of multiple
@@ -1649,7 +1767,7 @@ function playSound() {
 
 
   <div id="MixerGainStructure-section" class="section"> 
-  <h2>22. Mixer Gain Structure</h2> 
+  <h2>6. Mixer Gain Structure</h2> 
 
   <h3> Background</h3>
   <p>
@@ -1796,7 +1914,7 @@ function setupRoutingGraph() {
 
   <br><br>
   <div id="ChannelLayouts-section" class="section"> 
-  <h2>23. Channel Layouts</h2>
+  <h2>7. Channel Layouts</h2>
 
   <p>
   It's important to define the channel ordering (and define some abbreviations) for different layouts. 
@@ -1841,7 +1959,7 @@ function setupRoutingGraph() {
   </p>
 
   <div id="UpMix-section" class="section"> 
-  <h2>24. Channel up-mixing and down-mixing</h2>
+  <h2>8. Channel up-mixing and down-mixing</h2>
   
   For now, only considers cases for mono, stereo, quad, 5.1.  Later other channel layouts can be defined.
   <h3>Up Mixing</h3>
@@ -1938,7 +2056,7 @@ Stereo down-mix:
   </div>
 
   <div id="EventScheduling-section" class="section"> 
-  <h2>25. Event Scheduling</h2> 
+  <h2>9. Event Scheduling</h2> 
     Need more detail here, but for now:
     <ul>
   	<li> Audio events such as start/stop play and volume fades can be scheduled
@@ -1958,7 +2076,7 @@ Stereo down-mix:
 
 
 <div id="Spatialization-section" class="section"> 
-<h2>26. Spatialization / Panning </h2>
+<h2>10. Spatialization / Panning </h2>
 
 <h3> Background</h3>
 
@@ -2053,7 +2171,7 @@ pointing directly at the listener will be louder than if it is pointed off-axis.
 
 
 <div id="Convolution-section" class="section"> 
-<h2>27. Linear Effects using Convolution</h2>
+<h2>11. Linear Effects using Convolution</h2>
 
 <h3>Background</h3>
 <p>
@@ -2182,16 +2300,34 @@ Microphones: AKG 414s, Speaker: Mackie HR824
 
 
 <div id="JavaScriptProcessing-section" class="section"> 
-<h2>28. JavaScript Synthesis and Processing</h2>
+<h2>12. JavaScript Synthesis and Processing</h2>
 
 <p>
 The Mozilla project has conducted <a href="https://wiki.mozilla.org/Audio_Data_API">Experiments</a> to synthesize and process audio directly in JavaScript.
 This approach is interesting for a certain class of audio processing and they have produced a number of impressive demos.  This specification includes
-a means of synthesizing and processing directly using JavaScript by using special types of <a href="#AudioNode-section"><code>AudioNode</code></a> objects.
+a means of synthesizing and processing directly using JavaScript by using a special subtype of <a href="#AudioNode-section"><code>AudioNode</code></a>
+called <a href="#JavaScriptAudioNode-section"><code>JavaScriptAudioNode</code></a>.
 </p>
 
 <p>
-JavaScript has a variety of <a href="#Performance-section">performance issues</a> so it is not suitable for all types of audio processing.
+Here are some interesting examples where direct JavaScript processing can be useful:
+</p>
+
+<h3>Custom DSP Effects</h3>
+<p>
+Unusual and interesting custom audio processing can be done directly in JS.
+It's also a good test-bed for prototyping new algorithms. This is an extremely rich area.
+</p>
+
+<h3>Educational Applications</h3>
+<p>
+JS processing is ideal for illustrating concepts in computer music synthesis and processing,
+ such as showing the de-composition of a square wave into its harmonic components, FM synthesis techniques, etc.
+</p>
+
+<h3>JavaScript Performance</h3>
+<p>
+JavaScript has a variety of <a href="#JavaScriptPerformance-section">performance issues</a> so it is not suitable for all types of audio processing.
 The approach proposed in this document includes the ability to perform computationally intensive aspects of the audio processing (too expensive for JavaScript to compute in real-time) 
 such as multi-source 3D spatialization and convolution in optimized C++ code.  Both direct JavaScript processing and C++ optimized code can be combined due to the APIs
  <a href="#ModularRouting-section">modular approach</a>.
@@ -2203,7 +2339,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 
 
 <div id="RealtimeAnalysis-section" class="section"> 
-<h2>29. Realtime Analysis</h2>
+<h2>13. Realtime Analysis</h2>
 
 
 
@@ -2212,9 +2348,11 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 
 
 <div id="Performance-section" class="section"> 
-<h2>30. Performance Considerations</h2>
+<h2>14. Performance Considerations</h2>
 
-<h3>Latency: What it is and Why it's Important?</h3>
+<div id="Latency-section" class="section"> 
+<h3>14.1. Latency: What it is and Why it's Important</h3>
+</div>
 
 <img src="latency.png">
 
@@ -2228,7 +2366,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 
 
 <div id="Glitching-section" class="section">
-<h3>Audio Glitching:</h3>
+<h3>14.2. Audio Glitching</h3>
 </div>
 <p>
   Audio glitches are caused by an interruption of the normal continuous audio stream, resulting in loud clicks and pops.  It is considered to be
@@ -2238,7 +2376,7 @@ such as multi-source 3D spatialization and convolution in optimized C++ code.  B
 </p>
 
 
-<h3>Hardware Scalability:</h3>
+<h3>14.3. Hardware Scalability</h3>
 <p>
 The system should gracefully degrade to allow audio processing under resource constrained conditions without dropping audio frames.
 </p>
@@ -2262,7 +2400,7 @@ of the audio rendering.  For example, voice-dropping algorithms can be implement
 Here's a list of some techniques which can be used to limit CPU usage:
 </p>
 
-<h4>CPU monitoring</h4>
+<h4>14.3.1. CPU monitoring</h4>
 <p>
 In order to avoid audio breakup, CPU usage must remain below 100%.
 </p>
@@ -2278,7 +2416,7 @@ In cases where the measured CPU usage is near 100% (or whatever threshold is con
 <code>AudioNodes</code> into the rendering graph can trigger voice-dropping.
 </p>
 
-<h4>Voice Dropping</h4>
+<h4>14.3.2. Voice Dropping</h4>
 <p>
 	Voice-dropping is a technique which limits the number of voices (notes) playing at the same time to keep CPU usage within a reasonable range.
 	There can either be an upper threshold on the total number of voices allowed at any given time, or CPU usage can be dynamically monitored
@@ -2304,7 +2442,7 @@ In cases where the measured CPU usage is near 100% (or whatever threshold is con
 	<li> An AudioNode can have a <code>priority</code> attribute to help determine the relative importance of the voices.</li>
 </ul>
 
-<h4>Simplification of Effects Processing</h4>
+<h4>14.3.3. Simplification of Effects Processing</h4>
 
 <p>
 Most of the effects described in this document are relatively inexpensive and will likely be able to run even on the slower mobile devices.
@@ -2320,7 +2458,7 @@ In addition to the convolution effect.  The <a href="#AudioPannerNode-section"><
 if using the HRTF panning model.  For slower devices, a cheaper algorithm such as EQUALPOWER can be used to conserve compute resources.
 </p>
 
-<h4>Sample Rate</h4>
+<h4>14.3.4. Sample Rate</h4>
 <p>
 For very slow devices, it may be worth considering running the rendering at a lower sample-rate than normal.  For example, the sample-rate 
 can be reduced from 44.1KHz to 22.05KHz.  This decision must be made when the <code>AudioContext</code> is created, because changing the sample-rate on-the-fly can be difficult
@@ -2329,7 +2467,7 @@ to implement and will result in audible glitching when the transition is made.
 
 
 
-<h4>Preflighting</h4>
+<h4>14.3.5. Pre-flighting</h4>
 <p>
 It should be possible to invoke some kind of "pre-flighting" code (through JavaScript) to roughly determine the power of the machine.
 The JavaScript code can then use this information to scale back any more intensive processing it may normally run on a more powerful machine.
@@ -2340,17 +2478,19 @@ Also, the underlying implementation may be able to factor in this information in
 	TODO: add specification and more detail here
 </p>
 
-<h4>Authoring for different user agents</h4>
+<h4>14.3.6. Authoring for different user agents</h4>
 JavaScript code can use information about user-agent to scale back any more intensive processing it may normally run on a more powerful machine.
 
-<h4>Scalability of Direct JavaScript Synthesis / Processing</h4>
+<h4>14.3.7. Scalability of Direct JavaScript Synthesis / Processing</h4>
 <p>
 Any audio DSP / processing code done directly in JavaScript should also be concerned about scalability.  To the extent possible, the JavaScript
 code itself needs to monitor CPU usage and scale back any more ambitious processing when run on less powerful devices.  If it's an "all or nothing" type of processing, then user-agent check or pre-flighting should be done to avoid generating an audio stream with audio breakup.
 </p>
 
 
-<h3> JavaScript Issues with real-time Processing and Synthesis: </h3>
+<div id="JavaScriptPerformance-section" class="section"> 
+<h3>14.4. JavaScript Issues with real-time Processing and Synthesis: </h3>
+</div>
 
 While processing audio in JavaScript, it is extremely challenging to get reliable, glitch-free audio while achieving a reasonably low-latency,
 especially under heavy processor load.
@@ -2376,7 +2516,7 @@ The problems are even more difficult with today's generation of mobile devices w
 
 
 <div id="ExampleApplications-section" class="section"> 
-<h2>31. Example Applications</h2> 
+<h2>15. Example Applications</h2> 
 
 <p>
 Here are some of the types of applications a web audio system should be able to support.
@@ -2434,18 +2574,18 @@ When combined with WebGL GLSL shaders, realtime analysis data can be presented. 
 
 
 <div id="SecurityConsiderations-section" class="section"> 
-<h2>32. Security Considerations</h2> 
+<h2>16. Security Considerations</h2> 
 <p> 
   This section is <em>informative.</em> 
 </p> 
 </div> 
 
 <div id="requirements" class="section"> 
-<h2>33. Requirements and Use Cases</h2> 
+<h2>17. Requirements and Use Cases</h2> 
 </div> 
 
 <div id="ChangeLog-section" class="section"> 
-<h2>34. Change Log</h2> 
+<h2>18. Change Log</h2> 
 
 <pre>
 ------------------------------------------------------------------------
