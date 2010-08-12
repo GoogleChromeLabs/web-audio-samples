@@ -2556,52 +2556,91 @@ The problems are even more difficult with today's generation of mobile devices w
 <p class="norm">This section is informative.</p> 
 
 <p>
-Here are some of the types of applications a web audio system should be able to support.
-  (the <a href="http://chromium.googlecode.com/svn/trunk/samples/audio/index.html">demo</a> page has more examples)
+Please see the <a href="http://chromium.googlecode.com/svn/trunk/samples/audio/index.html">demo</a> page for working examples.	
 </p>
 
+<p>
+Here are some of the types of applications a web audio system should be able to support:
+</p>
 
-<h3>Beach Demo</h3>
+<h3>Basic Sound Playback</h3>
+<p>
+	Simple and <a href="#Latency-section"><strong>low-latency</strong></a> playback of sound effects in response to simple user actions such as mouse click, roll-over, key press.
+</p>
 
+<br>
+
+<h3>3D Environments and Games</h3>
+
+<img src="quake.png">
 <img src="beach-demo.png">
 
 <br><br>
+
+<p>
+An <a href="http://techcrunch.com/2010/04/01/google-html5-quake/">HTML5 version of Quake</a> has already been created.  Audio features such as 3D spatialization and convolution for room simulation could be used to great effect.
+</p>
+
+<p>
 3D environments with audio are common in games made for desktop applications and game consoles.
 Imagine a 3D island environment with spatialized audio, seagulls flying overhead, the waves crashing against the shore, the
 crackling of the fire, the creaking of the bridge, and the rustling of the trees in the wind.  The sounds can be positioned
 naturally as one moves through the scene.  Even going underwater, low-pass filters can be tweaked for just the right underwater sound.
+</p>
 
   <br><br>
 
-<h3>Game Physics</h3>
 
-<img src="box-2d.png">
+<img src="../images/box2d.png">
+<img src="../images/8-ball.png">
 
 <br><br>
+<p>
 <a href="http://www.box2d.org/">Box2D</a> is an interesting open-source library for 2D game physics.  It has various implementations, including one
 based on Canvas 2D.  Using a prototype implementation, dynamic sound effects have been added for each of the object collisions, taking into account the velocities vectors and
 positions to spatialize the sound events, and modulate audio effect parameters such as filter cutoff.
+</p>
 
-<h3>Drum Machine</h3>
+<p>
+A virtual pool game with multi-sampled sound effects has also been created.
+</p>
 
-<img src="drum-machine.png">
-
-<br><br>
-Applications requiring tight scheduling of audio events can be implemented.  They can be both educational and entertaining. 
 <br>
-(please excuse the primitive looking UI)
 
-<h3>Realtime Music Visualizer</h3>
-<img src="visualizer2-gl.png">
+<h3>Musical Applications</h3>
+
+<img src="garage-band.png">
+<img src="../images/drum-machine.png">
+<img src="../images/dj.png">
+
 <br><br>
-When combined with WebGL GLSL shaders, realtime analysis data can be presented.  These can be as advanced as any found in iTunes.
+Many music composition and production applications are possible.  Applications requiring tight scheduling of audio events can be implemented and can be both educational and entertaining.  Drum machines, digital DJ applications, and even timeline-based digital music production software with some of the features of <a href="http://en.wikipedia.org/wiki/GarageBand">GarageBand</a> can be written.
+<br>
+
+<br>
+
+<h3>Music Visualizers</h3>
+<img src="../images/music-visualizer.png">
+
+
+<br><br>
+When combined with WebGL GLSL shaders, realtime analysis data can be presented in entertaining ways.  These can be as advanced as any found in iTunes.
 <br><br>
 
 <h3>Educational Applications</h3>
+<img src="../images/javascript-processing.png">
+
 <p>
-    ... more info ...
+A variety of educational applications can be written, illustrating concepts in music theory and computer music synthesis and processing.
 </p>
-<br><br>
+<br>
+
+<h3>Artistic Audio Exploration</h3>
+
+<p>
+There are many creative possibilites for artistic sonic environments for installation pieces.
+</p>
+<br>
 
 </div>
 
