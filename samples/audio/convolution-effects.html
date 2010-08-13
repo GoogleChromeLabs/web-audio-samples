@@ -148,7 +148,8 @@ Asset.prototype.load = function(preset) {
         
     // Load asynchronously
     var request = context.createAudioRequest(this.url, false);
-
+    this.request = request;
+    
     var asset = this;
 
     request.onload = function() {
