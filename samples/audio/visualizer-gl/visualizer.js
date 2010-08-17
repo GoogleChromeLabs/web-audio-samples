@@ -217,7 +217,7 @@ AnalyserView.prototype.initByteBuffer = function() {
     var TEXTURE_HEIGHT = this.TEXTURE_HEIGHT;
     
     if (!this.freqByteData || this.freqByteData.length != analyser.frequencyBinCount) {
-        freqByteData = new WebGLUnsignedByteArray(analyser.frequencyBinCount);
+        freqByteData = new Uint8Array(analyser.frequencyBinCount);
         this.freqByteData = freqByteData;
         
         // (Re-)Allocate the texture object
@@ -234,7 +234,7 @@ AnalyserView.prototype.initByteBuffer = function() {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         // TODO(kbr): WebGL needs to properly clear out the texture when null is specified
-        var tmp = new WebGLUnsignedByteArray(freqByteData.length * TEXTURE_HEIGHT);
+        var tmp = new Uint8Array(freqByteData.length * TEXTURE_HEIGHT);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, freqByteData.length, TEXTURE_HEIGHT, 0, gl.ALPHA, gl.UNSIGNED_BYTE, tmp);
     }
 }
