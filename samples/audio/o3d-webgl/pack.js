@@ -212,7 +212,7 @@ o3d.Pack.prototype.createTexture2D =
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture.texture_);
     // TODO(petersont): remove this allocation once Firefox supports
     // passing null as argument to this form of texImage2D.
-    var t = new WebGLUnsignedByteArray(width * height * 4);
+    var t = new Uint8Array(width * height * 4);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height,
         0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, t);
   }
@@ -246,7 +246,7 @@ o3d.Pack.prototype.createTextureCUBE =
   this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, texture.texture_);
   // TODO(petersont): remove this allocation once Firefox supports
   // passing null as argument to this form of texImage2D.
-  var t = new WebGLUnsignedByteArray(edgeLength * edgeLength * 4);
+  var t = new Uint8Array(edgeLength * edgeLength * 4);
   for (var ii = 0; ii < 6; ++ii) {
     this.gl.texImage2D(this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + ii,
                        0, this.gl.RGBA, edgeLength, edgeLength, 0,
