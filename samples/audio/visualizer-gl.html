@@ -112,6 +112,7 @@ function initAudio() {
     
     source = context.createBufferSource();
     analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
 
     // Connect audio processing graph
     source.connect(analyser);
@@ -119,7 +120,6 @@ function initAudio() {
 
     loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
 
-    analyser.fftSize = 2048;
 }
 
 function draw() {

@@ -1,4 +1,8 @@
 // Waveform fragment shader
+#ifdef GL_ES
+precision mediump float;
+#endif
+
 varying vec2 texCoord;
 uniform sampler2D frequencyData;
 uniform vec4 foregroundColor;

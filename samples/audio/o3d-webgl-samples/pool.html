@@ -2357,6 +2357,10 @@ function keyPressed(event) {
 
 </textarea>
 <textarea id="pshader">
+#ifdef GL_ES
+  precision mediump float;
+#endif
+
   uniform vec3 lightWorldPosition;
   uniform vec3 eyeWorldPosition;
   uniform float factor;
