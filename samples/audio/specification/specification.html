@@ -724,6 +724,7 @@
 
         void connect(in AudioNode destination, in unsigned long output = 0, in unsigned long input = 0);
         void disconnect(in int output = 0);
+        readonly attribute AudioContext context;
         readonly attribute unsigned long numberOfInputs;
         readonly attribute unsigned long numberOfOutputs;
 
@@ -731,8 +732,9 @@
     </code></pre></div></div>
 
 
-    <div id="attributes-AudioNode" class="section"> 
+    <div id="attributes-AudioNode" class="section">
     <h3>4.2.1. Attributes</h3> 
+    <dl><dt id="dfn-context"><code>context</code></dt><dd><p>The AudioContext which owns this AudioNode.</p></dd></dl> 
     <dl><dt id="dfn-numberOfInputs"><code>numberOfInputs</code></dt><dd><p>The number of inputs feeding into the AudioNode.  This will be 0 for an AudioSourceNode.</p></dd></dl> 
     <dl><dt id="dfn-numberOfOutputs"><code>numberOfOutputs</code></dt><dd><p>The number of outputs coming out of the AudioNode.  This will be 0 for an AudioDestinationNode.</p></dd></dl> 
     </div>
