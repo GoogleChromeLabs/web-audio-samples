@@ -593,6 +593,7 @@
             <span class="comment">// AudioNode creation </span>         
             AudioBufferSourceNode createBufferSource();
             JavaScriptAudioNode createJavaScriptNode(in short bufferSize, in short numberOfInputs, in short numberOfOutputs);
+            RealtimeAnalyserNode createAnalyser();
             AudioGainNode createGainNode();
             DelayNode createDelayNode();
             LowPass2FilterNode createLowPass2Filter();
@@ -601,7 +602,6 @@
             ConvolverNode createConvolver();
             AudioChannelSplitter createChannelSplitter();
             AudioChannelMerger createChannelMerger();
-            <span class="comment">// and so on... </span>         
 
         }
         </code></pre></div></div> 
@@ -657,6 +657,11 @@
         It is invalid for both 
         <code>numberOfInputs</code> and <code>numberOfOutputs</code> to be zero.
         </p>
+        </dd>
+
+        <dl><dt id="dfn-createAnalyser">The <code>createAnalyser</code> method</dt> 
+        <dd>
+        <p>Creates a <a href="#RealtimeAnalyserNode-section"><code>RealtimeAnalyserNode</code></a>.</p> 
         </dd>
 
         <dl><dt id="dfn-createGainNode">The <code>createGainNode</code> method</dt> 
