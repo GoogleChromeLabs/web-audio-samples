@@ -63,11 +63,13 @@ var kSpeed = 0.05;
 var kPitch = 0.0;
 var kDiffusionRandomization = 0.2;
 var kPanningRandomization = 0.15;
+var kPitchRandomization = 0.0;
+var kTimeRandomization = 0.0;
 var kGrainSize = 0.090;
 
 var speed = 0.3333;
 var pitch = 1.0;
-var pitchRandomization = 1.0;
+var pitchRandomization = kPitchRandomization;
 var panningRandomization = kPanningRandomization;
 var diffusionRandomization = kDiffusionRandomization;
 var realTime = 0.0;
@@ -77,7 +79,7 @@ var grainDuration = kGrainSize;
 var grainSpacing = 0.5 * kGrainSize;
 
 function speedHandler(event, ui) {
-    var param = ui.value;
+    var param = parseFloat(ui.value);
 
     if (param < 0.0) {
         speed = 4.0 * param - 0.1;
@@ -90,7 +92,7 @@ function speedHandler(event, ui) {
 }
 
 function pitchHandler(event, ui) {
-    var cents = ui.value;
+    var cents = parseFloat(ui.value);
     pitch = cents;
 
     var info = document.getElementById("pitch-value");
@@ -98,7 +100,7 @@ function pitchHandler(event, ui) {
 }
 
 function pitchRandomizationHandler(event, ui) {
-    var cents = ui.value;
+    var cents = parseFloat(ui.value);
     pitchRandomization = cents;
 
     var info = document.getElementById("pitchRandomization-value");
@@ -106,28 +108,28 @@ function pitchRandomizationHandler(event, ui) {
 }
 
 function timeRandomizationHandler(event, ui) {
-    timeRandomization = ui.value;
+    timeRandomization = parseFloat(ui.value);
 
     var info = document.getElementById("timeRandomization-value");
     info.innerHTML = "timeRandomization = " + timeRandomization + " seconds";
 }
 
 function diffusionRandomizationHandler(event, ui) {
-    diffusionRandomization = ui.value;
+    diffusionRandomization = parseFloat(ui.value);
 
     var info = document.getElementById("diffusionRandomization-value");
     info.innerHTML = "diffusionRandomization = " + diffusionRandomization*100.0 + "%";
 }
 
 function panningRandomizationHandler(event, ui) {
-    panningRandomization = ui.value;
+    panningRandomization = parseFloat(ui.value);
 
     var info = document.getElementById("panningRandomization-value");
     info.innerHTML = "panningRandomization = " + panningRandomization*100.0 + "%";
 }
 
 function grainSizeHandler(event, ui) {
-    grainDuration = ui.value;
+    grainDuration = parseFloat(ui.value);
     grainSpacing = 0.25 * grainDuration;
 
     var info = document.getElementById("grainSize-value");
@@ -181,7 +183,7 @@ function scheduleGrain() {
     var totalPitch = pitch + r1 * pitchRandomization;
     var pitchRate = Math.pow(2.0, totalPitch / 1200.0);
     source.playbackRate.value = pitchRate;
-
+    
     // Connect dry mix
     panner.connect(dryGainNode);
     dryGainNode.connect(context.destination);
@@ -248,7 +250,11 @@ function init() {
 
     ui.value = kPitch;
     pitchHandler(0, ui);
+    
+    ui.value = kPitchRandomization;
     pitchRandomizationHandler(0, ui);
+    
+    ui.value = kTimeRandomization;
     timeRandomizationHandler(0, ui);
 
     ui.value = kDiffusionRandomization;
@@ -312,6 +318,8 @@ function finishLoading() {
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
+
+<div id="info"> </div>
 
 <!-- Initial loading animation -->
 <div id="loading">
