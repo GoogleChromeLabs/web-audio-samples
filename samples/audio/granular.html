@@ -57,7 +57,7 @@ var context;
 var convolver;
 
 var buffer = 0;
-var bufferLength = 58.0;
+var bufferDuration = 58.0;
 
 var kSpeed = 0.05;
 var kPitch = 0.0;
@@ -157,8 +157,6 @@ function scheduleGrain() {
     var panner = context.createPanner();
     source.connect(panner);
 
-    panner.panningModel = AudioPannerNode.HRTF;
-
     var distance = 2.0;
     var azimuth = Math.PI * panningRandomization * r3;
     var elevation = Math.PI * (0.25 + 0.75 * panningRandomization * r4);
@@ -172,6 +170,7 @@ function scheduleGrain() {
     y *= distance;
     z *= distance * scaleXZ;
 
+    panner.panningModel = AudioPannerNode.HRTF;
     panner.setPosition(x, y, z);
 
     var dryGainNode = context.createGainNode();
@@ -198,11 +197,13 @@ function scheduleGrain() {
     // Schedule sound grain
     source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
 
+    var lastGrainTime = grainTime;
+    
     // Update time params
     realTime += grainSpacing;
     grainTime += speed * grainSpacing;
-    if (grainTime > bufferLength) grainTime = 0.0;
-    if (grainTime < 0.0) grainTime += bufferLength; // backwards wrap-around
+    if (grainTime > bufferDuration) grainTime = 0.0;
+    if (grainTime < 0.0) grainTime += bufferDuration; // backwards wrap-around
 }
 
 function schedule() {
@@ -287,7 +288,7 @@ function loadHumanVoice(url) {
     var request = context.createAudioRequest(url, true);
     request.onload = function() {
         buffer = request.buffer;
-        bufferLength = buffer.length - 0.050;
+        bufferDuration = buffer.duration - 0.050;
 
         finishLoading();  // we have the voice, put up sliders and start playing...
     };
