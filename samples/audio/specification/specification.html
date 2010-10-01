@@ -1272,9 +1272,6 @@
 
     interface <dfn id="dfn-AudioPannerNode">AudioPannerNode</dfn> : AudioNode {
 
-        <span class="comment">// Panning is relative to this listener  </span>         
-        attribute AudioListener listener;
-
         <span class="comment">// Panning model </span>         
         const unsigned short PASSTHROUGH = 0;
         const unsigned short EQUALPOWER = 1;
@@ -1300,7 +1297,7 @@
         attribute float coneOuterAngle;
         attribute float coneOuterGain;
 
-        <span class="comment">// Dynamically calculated value </span>         
+        <span class="comment">// Dynamically calculated gain values </span>         
         readonly attribute AudioGain coneGain;
         readonly attribute AudioGain distanceGain;
 
