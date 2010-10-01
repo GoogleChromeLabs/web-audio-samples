@@ -1060,6 +1060,8 @@
         <span class="comment">// Many sources can share the same buffer  </span>   
         attribute AudioBuffer buffer;
 
+        readonly attribute AudioGain gain;
+        attribute AudioParam playbackRate; 
         attribute boolean loop;
 
         void noteOn(in float when);
@@ -1070,9 +1072,12 @@
     </code></pre></div></div>
 
 
+
     <div id="attributes-AudioBufferSourceNode" class="section"> 
     <h3>4.10.1. Attributes</h3> 
     <dl><dt id="dfn-buffer"><code>buffer</code></dt><dd><p>Represents the audio asset to be played. </p></dd></dl> 
+    <dl><dt id="dfn-gain"><code>gain</code></dt><dd><p>The default gain at which to play back the buffer.  The default gain.value is 1.0. </p></dd></dl> 
+    <dl><dt id="dfn-playbackRate"><code>playbackRate</code></dt><dd><p>The speed at which to render the audio stream.  The default playbackRate.value is 1.0. </p></dd></dl> 
     <dl><dt id="dfn-loop"><code>loop</code></dt><dd><p>Indicates if the audio data should play in a loop. </p></dd></dl> 
     </div> 
 
@@ -1137,23 +1142,10 @@
 
     interface <dfn id="dfn-MediaElementAudioSourceNode">MediaElementAudioSourceNode</dfn> : AudioSourceNode {
 
-        <span class="comment">// this would map to "playbackRate" attribute of &lt;audio&gt;  </span>       
-        attribute AudioParam playbackRate;
-
     }
     </code></pre></div></div> 
 
-
-    <div id="attributes-MediaElementAudioSourceNode" class="section"> 
-    <h3>4.11.1. Attributes</h3> 
-    <dl><dt id="dfn-playbackRate"><code>playbackRate</code></dt><dd><p>The speed at which to render the audio stream.  The default value is 1.0. </p></dd></dl> 
-    </div> 
-
   </div> 
-
-
-
-
 
   <div id="JavaScriptAudioNode-section" class="section"> 
 
