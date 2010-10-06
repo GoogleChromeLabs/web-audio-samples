@@ -1271,7 +1271,7 @@
         const unsigned short SOUNDFIELD = 3;
 
         <span class="comment">// Default for stereo is HRTF </span>
-        attribute long panningModel;
+        attribute unsigned short panningModel;
 
         <span class="comment">// Uses a 3D cartesian coordinate system </span>
         void setPosition(in float x, in float y, in float z);
@@ -1279,7 +1279,7 @@
         void setVelocity(in float x, in float y, in float z);
 
         <span class="comment">// Distance model and attributes </span>         
-        attribute short distanceModel;
+        attribute unsigned short distanceModel;
         attribute float refDistance;
         attribute float maxDistance;
         attribute float rolloffFactor;
