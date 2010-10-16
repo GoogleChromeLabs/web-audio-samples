@@ -384,37 +384,36 @@ function advanceNote() {
 
 function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, resonance, noteTime) {
     var voice = context.createBufferSource();
-    if (voice) {
-        voice.buffer = buffer;
+    voice.buffer = buffer;
 
-        var panner = context.createPanner();
-        panner.panningModel = panningModel;
-        panner.setPosition(x, y, z);
+    var panner = context.createPanner();
+    panner.panningModel = panningModel;
+    panner.setPosition(x, y, z);
 
-        var filter = context.createLowPass2Filter();
-        filter.cutoff.value = cutoff;
-        filter.resonance.value = resonance;
+    var filter = context.createLowPass2Filter();
+    filter.cutoff.value = cutoff;
+    filter.resonance.value = resonance;
 
-        var dryGainNode = context.createGainNode();
-        dryGainNode.gain.value = mainGain;
+    var dryGainNode = context.createGainNode();
+    dryGainNode.gain.value = mainGain;
 
-        var wetGainNode = context.createGainNode();
-        wetGainNode.gain.value = sendGain;
+    var wetGainNode = context.createGainNode();
+    wetGainNode.gain.value = sendGain;
 
-        // Connect through filter and panner
-        voice.connect(filter);
-        filter.connect(panner);
+    // Connect through filter and panner
+    voice.connect(filter);
+    filter.connect(panner);
 
-        // Connect dry mix
-        panner.connect(dryGainNode);
-        dryGainNode.connect(context.destination);
+    // Connect dry mix
+    panner.connect(dryGainNode);
+    dryGainNode.connect(context.destination);
 
-        // Connect wet mix
-        panner.connect(wetGainNode);
-        wetGainNode.connect(convolver);
+    // Connect wet mix
+    panner.connect(wetGainNode);
+    wetGainNode.connect(convolver);
 
-        voice.noteOn(noteTime);
-    }
+    voice.noteOn(noteTime);
+
 }
 
 function schedule() {
@@ -423,7 +422,7 @@ function schedule() {
 
     var resonance = 5.0;
 
-    while (noteTime < currentTime + 0.100) {
+    while (noteTime < currentTime + 0.200) {
         // Kick
         if (rhythm1[rhythmIndex] == 1) {
             playNote(currentKit.kickBuffer, AudioPannerNode.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
@@ -463,7 +462,7 @@ function schedule() {
         advanceNote();
     }
 
-    setTimeout("schedule()", 20);
+    setTimeout("schedule()", 0);
 }
 
 function drawDrumGrid() {
