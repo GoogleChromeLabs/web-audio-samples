@@ -1223,6 +1223,7 @@
     interface <dfn id="dfn-AudioProcessingEvent">AudioProcessingEvent</dfn> : Event {
 
         JavaScriptAudioNode node;
+        float playbackTime;
         readonly attribute sequence< AudioBuffer> inputBuffer;
         readonly attribute sequence< AudioBuffer> outputBuffer; 
 
@@ -1230,9 +1231,16 @@
     </code></pre></div></div> 
 
 
-    <div id="attributes-MediaElementAudioSourceNode" class="section"> 
+    <div id="attributes-AudioProcessingEvent" class="section"> 
     <h3>4.13.1. Attributes</h3> 
     <dl><dt id="dfn-node"><code>node</code></dt><dd><p>The <code>JavaScriptAudioNode</code> associated with this processing event.  </p></dd></dl> 
+
+    <dl><dt id="dfn-playbackTime"><code>playbackTime</code></dt><dd><p>The time when the audio will be played.
+      This time is in relation to the context's <code>currentTime</code> attribute.
+      <code>playbackTime</code> allows for very tight synchronization between processing directly in JavaScript with the other events in the context's
+      rendering graph.
+        </p></dd></dl> 
+
 
     <dl><dt id="dfn-inputBuffer"><code>inputBuffer</code></dt><dd><p>An array of AudioBuffers (one per input) containing the input audio data.
     The length of this array is equal to the number of inputs of the associated <code>JavaScriptAudioNode</code>.  </p></dd></dl> 
@@ -1241,8 +1249,6 @@
     </div> 
 
   </div> 
-
-
 
 
 
