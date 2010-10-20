@@ -454,9 +454,7 @@ function schedule() {
         // Attempt to synchronize drawing time with sound
         if (noteTime != lastDrawTime) {
             lastDrawTime = noteTime;
-            var timeoutTime = 1000 * (-0.020 +  noteTime - currentTime);
-            if (timeoutTime < 0) timeoutTime = 0;
-            setTimeout("drawPlayhead(" + rhythmIndex + ")", timeoutTime );
+            drawPlayhead(rhythmIndex);
         }
 
         advanceNote();
