@@ -1271,10 +1271,9 @@
     interface <dfn id="dfn-AudioPannerNode">AudioPannerNode</dfn> : AudioNode {
 
         <span class="comment">// Panning model </span>         
-        const unsigned short PASSTHROUGH = 0;
-        const unsigned short EQUALPOWER = 1;
-        const unsigned short HRTF = 2;
-        const unsigned short SOUNDFIELD = 3;
+        const unsigned short EQUALPOWER = 0;
+        const unsigned short HRTF = 1;
+        const unsigned short SOUNDFIELD = 2;
 
         <span class="comment">// Default for stereo is HRTF </span>
         attribute unsigned short panningModel;
@@ -1308,7 +1307,6 @@
   <div id="attributes-AudioPannerNode" class="section"> 
   <h3>4.14.1. Constants</h3> 
 
-  <dl><dt id="dfn-PASSTHROUGH"><code>PASSTHROUGH</code></dt><dd><p>An algorithm which passes the incoming audio unchanged to the output (no processing occurs). </p></dd></dl> 
   <dl><dt id="dfn-EQUALPOWER"><code>EQUALPOWER</code></dt><dd><p>A simple and efficient spatialization algorithm using equal-power panning. </p></dd></dl> 
   <dl><dt id="dfn-HRTF"><code>HRTF</code></dt><dd><p>A higher quality spatialization algorithm using a convolution with measured impulse responses from human subjects.
   This panning method renders stereo output. </p></dd></dl> 
