@@ -382,34 +382,39 @@ function advanceNote() {
     }
 }
 
-function playNote(buffer, panningModel, x, y, z, sendGain, mainGain, cutoff, resonance, noteTime) {
+function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, noteTime) {
+    // Create the note
     var voice = context.createBufferSource();
     voice.buffer = buffer;
 
-    var panner = context.createPanner();
-    panner.panningModel = panningModel;
-    panner.setPosition(x, y, z);
-
+    // Connect to filter
     var filter = context.createLowPass2Filter();
     filter.cutoff.value = cutoff;
     filter.resonance.value = resonance;
+    voice.connect(filter);
 
+    // Optionally, connect to a panner
+    var finalNode;
+    if (pan) {
+        var panner = context.createPanner();
+        panner.panningModel = AudioPannerNode.HRTF;
+        panner.setPosition(x, y, z);
+        filter.connect(panner);
+        finalNode = panner;
+    } else {
+        finalNode = filter;
+    }
+
+    // Connect to dry mix
     var dryGainNode = context.createGainNode();
     dryGainNode.gain.value = mainGain;
-
-    var wetGainNode = context.createGainNode();
-    wetGainNode.gain.value = sendGain;
-
-    // Connect through filter and panner
-    voice.connect(filter);
-    filter.connect(panner);
-
-    // Connect dry mix
-    panner.connect(dryGainNode);
+    finalNode.connect(dryGainNode);
     dryGainNode.connect(context.destination);
 
-    // Connect wet mix
-    panner.connect(wetGainNode);
+    // Connect to wet mix
+    var wetGainNode = context.createGainNode();
+    wetGainNode.gain.value = sendGain;
+    finalNode.connect(wetGainNode);
     wetGainNode.connect(convolver);
 
     voice.noteOn(noteTime);
@@ -425,30 +430,31 @@ function schedule() {
     while (noteTime < currentTime + 0.200) {
         // Kick
         if (rhythm1[rhythmIndex] == 1) {
-            playNote(currentKit.kickBuffer, AudioPannerNode.PASSTHROUGH, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
+            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
         }
 
         // Snare
         if (rhythm2[rhythmIndex] == 1) {
-            playNote(currentKit.snareBuffer, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
+            playNote(currentKit.snareBuffer, false, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
         }
 
         // Hihat
         if (rhythm3[rhythmIndex] == 1) {
-            playNote(currentKit.hihatBuffer, AudioPannerNode.HRTF, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
+            // Pan the hihat according to sequence position.
+            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
         }
 
         // Toms    
         if (rhythm4[rhythmIndex] == 1) {
-            playNote(currentKit.tom1, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom1, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
         if (rhythm5[rhythmIndex] == 1) {
-            playNote(currentKit.tom2, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom2, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
         if (rhythm6[rhythmIndex] == 1) {
-            playNote(currentKit.tom3, AudioPannerNode.PASSTHROUGH, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom3, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
         }
 
         // Attempt to synchronize drawing time with sound
