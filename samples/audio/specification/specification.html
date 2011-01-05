@@ -55,7 +55,7 @@
   <p>The <a href="#introduction">introductory</a> section covers the motivation behind this specification..</p> 
     <p> 
       This API is designed to be used in conjunction with other APIs and elements on the web platform,
-      notably: <a href="#XHR2" class="dfnref">XMLHttpRequest</a> (using the <code>responseBlob</code> attribute).
+      notably: <a href="#XHR2" class="dfnref">XMLHttpRequest</a> (using the <code>responseType</code> and <code>response</code> attributes).
       For games and interactive applications, it is anticipated to be used with the <code>canvas</code> and WebGL APIs for 2D and 3D graphics.      
     </p> 
  
@@ -577,6 +577,11 @@
         var context = new AudioContext();
         </pre>
 
+        <pre>
+        // For the prototype implementation in WebKit this will be:
+        var context = new webkitAudioContext();
+        </pre>
+
         <br>
 
         <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -589,6 +594,7 @@
             readonly attribute AudioListener listener;
 
             AudioBuffer createBuffer(in unsigned long numberOfChannels, in unsigned long length, in float sampleRate);
+            AudioBuffer createBuffer(in ArrayBuffer buffer, in boolean mixToMono);
 
             <span class="comment">// AudioNode creation </span>         
             AudioBufferSourceNode createBufferSource();
@@ -634,6 +640,20 @@
         <p>The <dfn id="dfn-sampleRate">sampleRate</dfn> parameter describes the sample-rate of the linear PCM audio data in the buffer in sample-frames per second. </p>
 
         </dd>
+
+
+        AudioBuffer createBuffer(in ArrayBuffer buffer, in boolean mixToMono);
+
+        <dl><dt id="dfn-createBuffer">The <code>createBuffer</code> from ArrayBuffer method</dt> 
+        <dd>
+        <p>Creates an AudioBuffer given the audio file data contained in the ArrayBuffer.  The ArrayBuffer can, for example, be loaded from an XMLHttpRequest 
+        with the new <code>responseType</code> and <code>response</code> attributes.</p>
+
+        <p>The <dfn id="dfn-buffer">buffer</dfn> parameter contains the audio file data (for example from a .wav file). </p>
+        <p>The <dfn id="dfn-mixToMono">mixToMono</dfn> parameter determines if a mixdown to mono will be performed.  Normally, this would not be set. </p>
+
+        </dd>
+
 
 
 
@@ -752,7 +772,11 @@
     <p>The <dfn id="dfn-destination">destination</dfn> parameter is the AudioNode to connect to.</p> 
     <p>The <dfn id="dfn-output">output</dfn> parameter is an index describing which output of the AudioNode from which to connect. An out-of-bound value throws an exception.</p>
     <p>The <dfn id="dfn-input">input</dfn> parameter is an index describing which input of the destination AudioNode to connect to.  An out-of-bound value throws an exception. </p>
-      
+    
+    <p>
+    It is possible to connect an AudioNode output to more than one input with multiple calls to connect().  Thus, "fanout" is supported.
+    </p>
+    
     </dd></dl> 
 
     <dl><dt id="dfn-disconnect">The <code>disconnect</code> method</dt> 
