@@ -57,7 +57,7 @@
           
           var filter = context.createLowPass2Filter();
           var panner = context.createPanner();
-          panner.panningModel = AudioPannerNode.HRTF;
+          panner.panningModel = webkitAudioPannerNode.HRTF;
           
           // Create inputs to dry/wet mixers
           var dryGainNode = context.createGainNode();
@@ -115,9 +115,12 @@
 
     function loadPing(url) {
       // Load asynchronously
-      var request = context.createAudioRequest(url, true);
+      var request = new XMLHttpRequest();
+      request.open("GET", url, true);
+      request.responseType = "arraybuffer";
+
       request.onload = function() { 
-        pingBuffer = request.buffer;
+        pingBuffer = context.createBuffer(request.response, true);
       }
 
       request.send();
@@ -125,9 +128,12 @@
 
     function loadImpulseResponse(url) {
       // Load impulse response asynchronously
-      var request = context.createAudioRequest(url, false);
+      var request = new XMLHttpRequest();
+      request.open("GET", url, true);
+      request.responseType = "arraybuffer";
+
       request.onload = function() { 
-        convolver.buffer = request.buffer;
+        convolver.buffer = context.createBuffer(request.response, false);
       }
 
       request.send();
@@ -136,7 +142,7 @@
     function init() {
       prettyPrint();
 
-      context = new AudioContext();
+      context = new webkitAudioContext();
       
       convolver = context.createConvolver();
       convolver.connect(context.destination);

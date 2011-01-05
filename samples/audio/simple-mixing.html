@@ -82,10 +82,14 @@ BufferLoader.prototype.loadAllBuffers = function() {
 
 BufferLoader.prototype.loadBuffer = function(i) {
     // Load asynchronously
-    var request = context.createAudioRequest(this.urlList[i], false);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", this.urlList[i], true);
+    request.responseType = "arraybuffer";
+
     var bufferLoader = this;
     request.onload = function() {
-        bufferLoader.bufferList[i] = request.buffer;
+        bufferLoader.bufferList[i] = context.createBuffer(request.response, false);
         bufferLoader.loadCount++;
         if (bufferLoader.loadCount == bufferLoader.bufferCount)
             finishedLoading();
@@ -142,7 +146,7 @@ function addSliders() {
 }
 
 function init() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
 
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();

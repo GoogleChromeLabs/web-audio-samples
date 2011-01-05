@@ -171,9 +171,11 @@ function updateInfo() {
 
 function loadStickCueLight(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueLight = request.buffer;
+    stickCueLight = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -181,9 +183,11 @@ function loadStickCueLight(url) {
 
 function loadStickCueMedium(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueMedium = request.buffer;
+    stickCueMedium = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -191,9 +195,11 @@ function loadStickCueMedium(url) {
 
 function loadStickCueHard(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueHard = request.buffer;
+    stickCueHard = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -202,9 +208,11 @@ function loadStickCueHard(url) {
 
 function loadBallPocket(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballPocket = request.buffer;
+    ballPocket = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -212,9 +220,11 @@ function loadBallPocket(url) {
 
 function loadImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = context.createAudioRequest(url, false);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    convolver.buffer = request.buffer;
+    convolver.buffer = context.createBuffer(request.response, false);
   }
   
   request.send();
@@ -223,9 +233,11 @@ function loadImpulseResponse(url) {
 
 function loadBallBallLight(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallLight = request.buffer;
+    ballBallLight = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -233,9 +245,11 @@ function loadBallBallLight(url) {
 
 function loadBallBallMedium(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallMedium = request.buffer;
+    ballBallMedium = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -243,9 +257,11 @@ function loadBallBallMedium(url) {
 
 function loadBallBallHard(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallHard = request.buffer;
+    ballBallHard = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -255,9 +271,11 @@ function loadBallBallHard(url) {
 
 function loadMediumEdge(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    mediumEdge = request.buffer;
+    mediumEdge = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -265,9 +283,11 @@ function loadMediumEdge(url) {
 
 function loadHardEdge(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    hardEdge = request.buffer;
+    hardEdge = context.createBuffer(request.response, true);
   }
 
   request.send();
@@ -1203,7 +1223,7 @@ function initClient() {
 
 function initAudio() {
     // Audio init
-    context = new AudioContext();
+    context = new webkitAudioContext();
     convolver = context.createConvolver();
     convolver.connect(context.destination);
 
@@ -1225,7 +1245,7 @@ function initAudio() {
     loadBallPocket("../sounds/pool-table/ball-pocket-balls.aif");
 
     // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');  
-    // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');  
+    // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.aif');
     loadImpulseResponse('../impulse-responses/house-impulses/cinema-hallway.aif');  
     // loadImpulseResponse('../impulse-responses/spatialized4.aif');
 }

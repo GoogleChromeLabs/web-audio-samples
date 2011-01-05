@@ -147,13 +147,17 @@ Asset.prototype.load = function(preset) {
     this.startedLoading = true;
         
     // Load asynchronously
-    var request = context.createAudioRequest(this.url, false);
+    var request = new XMLHttpRequest();
+    request.open("GET", this.url, true);
+    request.responseType = "arraybuffer";
+    // var request = context.createAudioRequest(this.url, false);
     this.request = request;
     
     var asset = this;
 
     request.onload = function() {
-        asset.buffer = request.buffer;
+        // asset.buffer = request.buffer;
+        asset.buffer = context.createBuffer(request.response, false);
         asset.loaded = true;
 
         // Tell all the presets that depend on us that we're ready
@@ -348,7 +352,7 @@ function initPresets() {
 }
 
 function init() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
     
     convolver = context.createConvolver();
     source = context.createBufferSource();

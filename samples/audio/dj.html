@@ -90,14 +90,16 @@ BufferLoader = function(source, url) {
 
 BufferLoader.prototype.load = function() {
   // Load asynchronously
-  var request = context.createAudioRequest(this.url_, false);
+  var request = new XMLHttpRequest();
+  request.open("GET", this.url_, true);
+  request.responseType = "arraybuffer";
   this.request_ = request;
 
   var bufferLoader = this;
   
   request.onload = function() { 
-    bufferLoader.buffer = request.buffer;
-    bufferLoader.source_.buffer = request.buffer;
+    bufferLoader.buffer = context.createBuffer(request.response, false);
+    bufferLoader.source_.buffer = bufferLoader.buffer;
 
     loadCount++;
     
@@ -189,9 +191,13 @@ function finishLoad() {
 
 function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = context.createAudioRequest(url, false);
+
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
   request.onload = function() { 
-    convolver.buffer = request.buffer;
+    convolver.buffer = context.createBuffer(request.response, false);
   }
   
   request.send();
@@ -199,7 +205,11 @@ function setReverbImpulseResponse(url) {
 
 function loadBufferForSource(source, url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, false);
+
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
   request.onload = function() {
     // Start playing the new buffer at exactly the next 4-beat boundary
     var currentTime = context.currentTime;
@@ -210,7 +220,8 @@ function loadBufferForSource(source, url) {
     var time = anchorTime + roundedUpDeltaTime;
     
     source.noteOff();
-    source.buffer = request.buffer;
+
+    source.buffer = context.createBuffer(request.response, false);
     source.noteOn(time);
   }
 
@@ -219,7 +230,7 @@ function loadBufferForSource(source, url) {
 
 function init() {
     // Initialize audio
-    context = new AudioContext();
+    context = new webkitAudioContext();
     
     // Create sources
     source1 = context.createBufferSource();

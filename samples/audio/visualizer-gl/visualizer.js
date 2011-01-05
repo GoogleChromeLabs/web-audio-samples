@@ -100,7 +100,8 @@ AnalyserView.prototype.initGL = function() {
     
     
     
-    var gl = create3DDebugContext(canvas.getContext("experimental-webgl"));
+    // var gl = create3DDebugContext(canvas.getContext("experimental-webgl"));
+    var gl = canvas.getContext("experimental-webgl");
     this.gl = gl;
     
     var cameraController = new CameraController(canvas);

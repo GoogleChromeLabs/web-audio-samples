@@ -97,10 +97,13 @@ function init() {
 
 function loadAudioBuffer(url) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, true);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        audioBuffer = request.buffer;
+        audioBuffer = context.createBuffer(request.response, true);
         finishLoad();  // add in the slider, etc. now that we've loaded the audio
     }
 
@@ -108,7 +111,7 @@ function loadAudioBuffer(url) {
 }
 
 function initAudio() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
     
     source = context.createBufferSource();
     analyser = context.createAnalyser();
@@ -116,10 +119,9 @@ function initAudio() {
 
     // Connect audio processing graph
     source.connect(analyser);
-    analyser.connect(context.destination);    
+    analyser.connect(context.destination);
 
     loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
-
 }
 
 function draw() {

@@ -170,7 +170,7 @@ function scheduleGrain() {
     y *= distance;
     z *= distance * scaleXZ;
 
-    panner.panningModel = AudioPannerNode.HRTF;
+    panner.panningModel = webkitAudioPannerNode.HRTF;
     panner.setPosition(x, y, z);
 
     var dryGainNode = context.createGainNode();
@@ -217,7 +217,7 @@ function schedule() {
 }
 
 function initAudio() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
     
     // Create a convolver for ambience
     convolver = context.createConvolver();
@@ -272,9 +272,13 @@ function load() {
 
 function loadImpulseResponse(url) {
     // Load impulse response asynchronously
-    var request = context.createAudioRequest(url, false);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
     request.onload = function() { 
-        convolver.buffer = request.buffer;
+        convolver.buffer = context.createBuffer(request.response, false);
     }
     request.onerror = function() { 
         alert("error loading reverb");
@@ -285,9 +289,13 @@ function loadImpulseResponse(url) {
 
 function loadHumanVoice(url) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, true);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
     request.onload = function() {
-        buffer = request.buffer;
+        buffer = context.createBuffer(request.response, true);
         bufferDuration = buffer.duration - 0.050;
 
         finishLoading();  // we have the voice, put up sliders and start playing...

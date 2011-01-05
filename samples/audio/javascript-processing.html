@@ -113,10 +113,13 @@ function pitchHandler(event, ui) {
 
 function loadSample(url) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, false);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        source.buffer = request.buffer;
+        source.buffer = context.createBuffer(request.response, false);
         source.looping = true;
         source.noteOn(0);
         
@@ -132,7 +135,7 @@ function draw() {
 }
 
 function initAudio() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
     source = context.createBufferSource();
 
     // This AudioNode will do the amplitude modulation effect directly in JavaScript

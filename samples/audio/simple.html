@@ -89,9 +89,12 @@ var kInitialReverbLevel = 0.6;
 
 function setReverbImpulseResponse(url) {
     // Load impulse response asynchronously
-    var request = context.createAudioRequest(url, false);
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
     request.onload = function() { 
-        convolver.buffer = request.buffer;
+        convolver.buffer = context.createBuffer(request.response, false);
     }
 
     request.send();
@@ -106,10 +109,16 @@ function setAudioSource(i) {
     } else {
         // Load asynchronously
         var url = fileList[i];
-        var request = context.createAudioRequest(url, true);
+
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+
         request.onload = function() { 
-            source.buffer = request.buffer;
-            bufferList[i] = request.buffer;  // cache it
+            var buffer = context.createBuffer(request.response, true);
+            
+            source.buffer = buffer;
+            bufferList[i] = buffer;  // cache it
         }
 
         request.send();
@@ -118,9 +127,13 @@ function setAudioSource(i) {
 
 function loadHihat(url) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, true);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
     request.onload = function() { 
-        hihatShort = request.buffer;
+        hihatShort = context.createBuffer(request.response, true);
     }
 
     request.send();
@@ -232,7 +245,7 @@ function setSourceBuffer(buffer) {
      canvas2.addEventListener("mouseup", handleMouseUp, true);
 
      // Initialize audio
-     context = new AudioContext();
+     context = new webkitAudioContext();
 
      source = context.createBufferSource();
      dryGainNode = context.createGainNode();

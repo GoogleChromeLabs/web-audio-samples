@@ -150,9 +150,11 @@ function highlightElement(object) {
 
 function setReverbImpulseResponse(url) {
   // Load impulse response asynchronously
-  var request = context.createAudioRequest(url, false);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
   request.onload = function() { 
-    convolver.buffer = request.buffer;
+    convolver.buffer = context.createBuffer(request.response, false);
   }
   
   request.send();
@@ -160,9 +162,12 @@ function setReverbImpulseResponse(url) {
 
 function loadBufferAndPlay(url) {
   // Load asynchronously
-  var request = context.createAudioRequest(url, true);
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
   request.onload = function() { 
-    source.buffer = request.buffer;
+    source.buffer = context.createBuffer(request.response, true);
     source.noteOn();
 
     // get rid of loading animation
@@ -342,7 +347,7 @@ function addSliders() {
  * Start doppler demo
  */
  function init() {
-     context = new AudioContext();
+     context = new webkitAudioContext();
      
      source = context.createBufferSource();
 

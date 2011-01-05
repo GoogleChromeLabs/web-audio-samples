@@ -137,18 +137,22 @@ function Kit(name) {
 
 Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, mixToMono);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
 
     var kit = this;
 
     request.onload = function() {
+        var buffer = context.createBuffer(request.response, mixToMono);
         switch (sampleID) {
-            case 0: kit.kickBuffer = request.buffer; break;
-            case 1: kit.snareBuffer = request.buffer; break;
-            case 2: kit.hihatBuffer = request.buffer; break;
-            case 3: kit.tom1 = request.buffer; break;
-            case 4: kit.tom2 = request.buffer; break;
-            case 5: kit.tom3 = request.buffer; break;
+            case 0: kit.kickBuffer = buffer; break;
+            case 1: kit.snareBuffer = buffer; break;
+            case 2: kit.hihatBuffer = buffer; break;
+            case 3: kit.tom1 = buffer; break;
+            case 4: kit.tom2 = buffer; break;
+            case 5: kit.tom3 = buffer; break;
         }
 
         kit.instrumentLoadCount++;
@@ -397,7 +401,7 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
     var finalNode;
     if (pan) {
         var panner = context.createPanner();
-        panner.panningModel = AudioPannerNode.HRTF;
+        panner.panningModel = webkitAudioPannerNode.HRTF;
         panner.setPosition(x, y, z);
         filter.connect(panner);
         finalNode = panner;
@@ -490,9 +494,12 @@ function drawDrumGrid() {
 
 function loadImpulseResponse(url) {
     // Load impulse response asynchronously
-    var request = context.createAudioRequest(url, false);
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
     request.onload = function() { 
-        convolver.buffer = request.buffer;
+      convolver.buffer = context.createBuffer(request.response, false);
     }
 
     request.send();
@@ -535,7 +542,7 @@ function finishLoading() {
 }
 
 function init() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
 
     // Create convolver for reverb
     convolver = context.createConvolver();

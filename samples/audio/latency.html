@@ -90,10 +90,13 @@ function finishLoad() {
 
 function loadHihat(url) {
     // Load asynchronously
-    var request = context.createAudioRequest(url, true);
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        hihatShort = request.buffer;
+        hihatShort = context.createBuffer(request.response, true);
         finishLoad();  // add in the slider, etc. now that we've loaded the audio
     }
 
@@ -101,7 +104,7 @@ function loadHihat(url) {
 }
 
 function init() {
-    context = new AudioContext();
+    context = new webkitAudioContext();
 
     loadHihat("sounds/drum-samples/hihat-short.aif");
 }
