@@ -376,8 +376,8 @@ function addSliders() {
      // Connect master gain
      masterGainNode.connect(context.destination);
      
-     // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.aif');
-     // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.aif');
+     // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav');
+     // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.wav');
      setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
 
      source.playbackRate.value = 0.75;
@@ -391,7 +391,7 @@ function addSliders() {
      source.looping = true;
 
      // Load up initial buffer
-     loadBufferAndPlay("sounds/hyper-reality/white-noise.aif");  
+     loadBufferAndPlay("sounds/hyper-reality/white-noise.wav");  
 
      lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
      slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
@@ -445,19 +445,19 @@ Up ... Down
 
 <br><br><br>
 
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/white-noise.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/white-noise.wav'); highlightElement(this);">
 White Noise
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/refreshing drink.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/refreshing-drink.wav'); highlightElement(this);">
 Refreshing Drink
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/cauldron.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/cauldron.wav'); highlightElement(this);">
 Cauldron
 </div>
 
-<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched up paper.aif'); highlightElement(this);">
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched-up-paper.wav'); highlightElement(this);">
 Crunched up Paper
 </div>
 

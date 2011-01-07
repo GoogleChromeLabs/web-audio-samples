@@ -75,39 +75,39 @@ var responseOffset = 4;
 var fileList = [
     "sounds/hyper-reality/human-voice.mp4",       // 0
     "sounds/hyper-reality/obama-oilspill.mp4",    // 1
-    "sounds/drum-samples/conga-rhythm.aif",       // 2
-    "sounds/hyper-reality/br-jam-loop.aif",       // 3
+    "sounds/drum-samples/conga-rhythm.wav",       // 2
+    "sounds/hyper-reality/br-jam-loop.wav",       // 3
 
     // impulse responses
-    "impulse-responses/spatialized5.aif",         // 0
-    "impulse-responses/cosmic-ping-long.aif",     // 1
-    "impulse-responses/filter-telephone.aif",     // 2
-    "impulse-responses/comb-saw2.aif",            // 3
-    "impulse-responses/filter-rhythm1.aif",       // 4
-    "impulse-responses/filter-rhythm3.aif",       // 5
-    "impulse-responses/comb-saw1.aif",            // 6
-    "impulse-responses/comb-saw2.aif",            // 7
-    "impulse-responses/matrix-reverb2.aif",       // 8
-    "impulse-responses/matrix-reverb3.aif",       // 9
-    "impulse-responses/spatialized4.aif",         // 10
+    "impulse-responses/spatialized5.wav",         // 0
+    "impulse-responses/cosmic-ping-long.wav",     // 1
+    "impulse-responses/filter-telephone.wav",     // 2
+    "impulse-responses/comb-saw2.wav",            // 3
+    "impulse-responses/filter-rhythm1.wav",       // 4
+    "impulse-responses/filter-rhythm3.wav",       // 5
+    "impulse-responses/comb-saw1.wav",            // 6
+    "impulse-responses/comb-saw2.wav",            // 7
+    "impulse-responses/matrix-reverb2.wav",       // 8
+    "impulse-responses/matrix-reverb3.wav",       // 9
+    "impulse-responses/spatialized4.wav",         // 10
 
-    "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.aif",          // 11
+    "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.wav",          // 11
 
-    "impulse-responses/diffusor3.aif",            // 12
-    "impulse-responses/matrix6-backwards.aif",    // 13
+    "impulse-responses/diffusor3.wav",            // 12
+    "impulse-responses/matrix6-backwards.wav",    // 13
     "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
-    "impulse-responses/wildecho.aif",             // 15
-    "impulse-responses/impulse-rhythm2.aif",      // 16
-    "impulse-responses/spreader50-65ms.aif",      // 17
-    "impulse-responses/feedback-spring.aif",      // 18
+    "impulse-responses/wildecho.wav",             // 15
+    "impulse-responses/impulse-rhythm2.wav",      // 16
+    "impulse-responses/spreader50-65ms.wav",      // 17
+    "impulse-responses/feedback-spring.wav",      // 18
 
-    "impulse-responses/house-impulses/kitchen.aif",                   // 19
-    "impulse-responses/house-impulses/kitchen-true-stereo.aif",       // 20
-    "impulse-responses/house-impulses/dining-living-true-stereo.aif", // 21
-    "impulse-responses/house-impulses/dining-far-kitchen.aif",        // 22
+    "impulse-responses/house-impulses/kitchen.wav",                   // 19
+    "impulse-responses/house-impulses/kitchen-true-stereo.wav",       // 20
+    "impulse-responses/house-impulses/dining-living-true-stereo.wav", // 21
+    "impulse-responses/house-impulses/dining-far-kitchen.wav",        // 22
 
-    "impulse-responses/house-impulses/living-bedroom-leveled.aif",    // 23
-    "impulse-responses/filter-lopass160.aif"                          // 24
+    "impulse-responses/house-impulses/living-bedroom-leveled.wav",    // 23
+    "impulse-responses/filter-lopass160.wav"                          // 24
 ];
 
 var assetList = 0;
@@ -150,7 +150,6 @@ Asset.prototype.load = function(preset) {
     var request = new XMLHttpRequest();
     request.open("GET", this.url, true);
     request.responseType = "arraybuffer";
-    // var request = context.createAudioRequest(this.url, false);
     this.request = request;
     
     var asset = this;

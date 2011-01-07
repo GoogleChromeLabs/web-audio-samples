@@ -113,12 +113,12 @@ function Kit(name) {
 
     var pathName = this.pathName();
 
-    var kickPath = pathName + "kick.aif";
-    var snarePath = pathName + "snare.aif";
-    var hihatPath = pathName + "hihat.aif";
-    var tom1Path = pathName + "tom1.aif";
-    var tom2Path = pathName + "tom2.aif";
-    var tom3Path = pathName + "tom3.aif";
+    var kickPath = pathName + "kick.wav";
+    var snarePath = pathName + "snare.wav";
+    var hihatPath = pathName + "hihat.wav";
+    var tom1Path = pathName + "tom1.wav";
+    var tom2Path = pathName + "tom2.wav";
+    var tom3Path = pathName + "tom3.wav";
 
     this.kickBuffer = 0;
     this.snareBuffer = 0;
@@ -548,7 +548,7 @@ function init() {
     convolver = context.createConvolver();
     convolver.connect(context.destination);
 
-    loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.aif');
+    loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.wav');
 
     // Initialize drum kits
     var numKits = kitNames.length;
