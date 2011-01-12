@@ -427,38 +427,43 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
 
 function schedule() {
     var currentTime = context.currentTime;
+
+    // The sequence starts at startTime, so normalize currentTime so that it's 0 at the start of the sequence.
     currentTime -= startTime;
 
     var resonance = 5.0;
 
     while (noteTime < currentTime + 0.200) {
+        // Convert noteTime to context time.
+        var contextPlayTime = noteTime + startTime;
+        
         // Kick
         if (rhythm1[rhythmIndex] == 1) {
-            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, noteTime);
+            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * reverbMix, 1.0, kickCutoff, resonance, contextPlayTime);
         }
 
         // Snare
         if (rhythm2[rhythmIndex] == 1) {
-            playNote(currentKit.snareBuffer, false, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, noteTime);
+            playNote(currentKit.snareBuffer, false, 0,0,-2, reverbMix, 0.6, snareCutoff, resonance, contextPlayTime);
         }
 
         // Hihat
         if (rhythm3[rhythmIndex] == 1) {
             // Pan the hihat according to sequence position.
-            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, noteTime);
+            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, reverbMix, 0.7, hihatCutoff, resonance, contextPlayTime);
         }
 
         // Toms    
         if (rhythm4[rhythmIndex] == 1) {
-            playNote(currentKit.tom1, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom1, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, contextPlayTime);
         }
 
         if (rhythm5[rhythmIndex] == 1) {
-            playNote(currentKit.tom2, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom2, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, contextPlayTime);
         }
 
         if (rhythm6[rhythmIndex] == 1) {
-            playNote(currentKit.tom3, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, noteTime);
+            playNote(currentKit.tom3, false, 0,0,-2, reverbMix, 0.6, nyquist, resonance, contextPlayTime);
         }
 
         // Attempt to synchronize drawing time with sound
