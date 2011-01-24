@@ -295,9 +295,8 @@ function loadHumanVoice(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() {
-        buffer = context.createBuffer(request.response, true);
+        buffer = context.createBuffer(request.response, false /*true*/);
         bufferDuration = buffer.duration - 0.050;
-
         finishLoading();  // we have the voice, put up sliders and start playing...
     };
 
