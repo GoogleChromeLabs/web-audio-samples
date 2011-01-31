@@ -39,8 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
 <body>
 <h2>Web Audio Examples</h2>
-<p>The Web Audio API introduces a variety of new audio features to the web platform. It can be used with the <code>canvas</code> and 
-	<code>WebGL</code> APIs for creating a new generation of games and interactive applications.
+<p>The Web Audio API introduces a variety of new audio features to the web platform. It can be used with the <code>canvas</code> 2D and 
+	<code>WebGL</code> 3D graphics APIs for creating a new generation of games and interactive applications.
   The API is capable of dynamically positioning/spatializing and mixing multiple sound sources in three-dimensional space.
    It has a powerful modular routing system, supporting effects, a convolution engine for room simulation, multiple sends, submixes, etc.
     Scheduled sound playback is provided for musical applications requiring a high degree of rhythmic precision.  Realtime analysis / visualizer support and direct JavaScript processing is also supported.</p> 
@@ -56,8 +56,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <h2>Getting Started</h2>
 
 <p>
-<em>*** These samples require a special version of Mac OS X Safari or Chrome *** </em>
+<em>*** These samples require a browser which supports the Web Audio API. *** </em>
 </p>
+
+<h4>Google Chrome</h4>
+
+<p>
+A Mac OS X build for Chrome is available <a href="bin/Chromium.31Jan2011.zip">here</a>.  When first running Chrome, the "Web Audio" feature must be enabled
+  by going to <code>about:flags</code>
+ (type "about:flags" in the link field), enabling "Web Audio", and finally clicking the restart button at the bottom of the page.
+</p>
+
+<p>
+Please also note that "Web Audio" has made its way into Chrome 10 beta channel, and is in Chrome 11 developer channel weekly releases.
+Windows and Linux version are almost ready.
+</p>
+
+<h4>Apple Safari</h4>
 
 <p>
 A build for Safari is available <a href="bin/WebKit-audio.05Jan2011.zip">here</a>.  For the best experience, don't forget to enable WebGL before running it, by typing the following command in "Terminal":
@@ -66,16 +81,6 @@ A build for Safari is available <a href="bin/WebKit-audio.05Jan2011.zip">here</a
 <pre>
 $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 </pre>
-
-
-
-
-<p>
-A build for Chrome will soon be available.
-</p>
-
-<p>For those with Xcode developer tools installed on their Macintosh, <a href="#how-to-build">build instructions</a> are available for the audio 
-<a href="https://svn.webkit.org/repository/webkit/branches/audio/">branch</a> of WebKit.
 
 <h2>Samples</h2> 
 <br> 
@@ -188,77 +193,6 @@ and sound source.<br>
 
 <br><br>
 
-<div id="how-to-build">
-<h2>How to Build and Run</h2>
-
-<p>
-The code currently works on Mac OS X, but is actively being ported to Windows.
-</p>
-
-<h3>Getting the Code</h3>
-
-<p>
-The audio branch can be checked out using:
-</p>
-
-<pre>
-svn co https://svn.webkit.org/repository/webkit/branches/audio WebKit
-</pre>
-
-<h3>Building and Running for Chrome</h3>
-
-<h4>Building</h4>
-<p>
-To build for Chrome, it's necessary to build against a specific revision of Chromium (matching where the audio branch was taken in WebKit).
-The Chromium subversion revision is 50686.
-The <code>WebKit</code> directory (<code>src/third_party/WebKit</code>) must be from the audio branch (see above <code>svn co</code> command).
-</p>
-
-<p>
-Much more detailed Chrome build instructions for the audio branch are <a href="chrome-build.html">here</a>.
-</p>
-
-<h4>Running</h4>
-<p>
-It is currently necessary to disable the sandbox in order to run the demos.  For example, to run your debug build of chromium:
-</p>
-
-<pre>
-$ /YourFullPath/Chromium/src/xcodebuild/Debug/Chromium.app/Contents/MacOS/Chromium --no-sandbox --enable-webgl
-</pre>
-
-<p>
-Optionally, for debugging purposes, you may wish to use the <code>--single-process</code> option.
-</p>
-
-<h3>Building for Safari</h3>
-
-<p>
-To build for Safari, go into the WebKit scripts directory (from the branch):
-</p>
-
-<pre>
-$ cd WebKit/WebKitTools/Scripts
-$ ./build-webkit --release
-</pre>
-
-<p>
-If you haven't yet done so, you can enable WebGL now (necessary for some of the demos):
-</p>
-
-<pre>
-$ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
-</pre>
-
-<p>
-After building, you can run in Safari:
-</p>
-
-<pre>
-$ ./run-safari --release
-</pre>
-
-</div>
 
  
 </body> 
