@@ -59,9 +59,10 @@ var canvasWidth = 0;
 var canvasHeight = 0;
 
 
-var gridColor = "rgb(192,192,192)";
+var curveColor = "rgb(192,192,192)";
 var playheadColor = "rgb(80, 100, 80)";
 var noteColor = "rgb(200,60,20)";
+var gridColor = "rgb(200,200,200)";
 
 var sampleRate = 44100.0;
 var nyquist = 0.5 * sampleRate;
@@ -103,7 +104,12 @@ function distance(x1, y1, x2, y2) {
 }
 
 function zeroPoleResponse(x, y, zeroPolePair) {
-    return distance(x, y, zeroPolePair.zero, 0) / distance(x, y, zeroPolePair.pole, 0);
+    // Gain compensation so 0dB @ 0Hz
+    var k1 = 1.0 / (1.0 - zeroPolePair.zero);
+	var k2 = 1.0 - zeroPolePair.pole;
+    var k = k1 * k2;
+	
+    return k * distance(x, y, zeroPolePair.zero, 0) / distance(x, y, zeroPolePair.pole, 0);
 }
 
 
@@ -125,7 +131,7 @@ function drawCurve() {
     var height = canvas.height;
 
     // canvasContext.strokeStyle = "rgb(150, 255, 150)";
-    canvasContext.strokeStyle = gridColor;
+    canvasContext.strokeStyle = curveColor;
     canvasContext.lineWidth = 3;
 
     canvasContext.moveTo(0, 0);
@@ -154,19 +160,37 @@ function drawCurve() {
     
     canvasContext.lineWidth = 1;
     
+    canvasContext.strokeStyle = gridColor;
+    
+    
+    
     // Draw frequency scale.
     for (var octave = 0; octave <= noctaves; octave++) {
         var x = octave * width / noctaves;
         
+        // canvasContext.strokeStyle = gridColor;
+        canvasContext.moveTo(x, 30);
+        canvasContext.lineTo(x, height);
+        canvasContext.stroke();
+
+
         var f = nyquist * Math.pow(2.0, octave - noctaves);
-        canvasContext.strokeText(f.toFixed(1), x, 100);
+        canvasContext.textAlign = "center";
+        canvasContext.strokeText(f.toFixed(0) + "Hz", x, 20);
     }
 
     // Draw 0dB line.
-    canvasContext.strokeStyle = noteColor;
+    // canvasContext.strokeStyle = noteColor;
     canvasContext.moveTo(0, 0.5 * height);
     canvasContext.lineTo(width, 0.5 * height);
     canvasContext.stroke();
+    
+    // Draw decibel scale.
+    
+    for (var db = -40.0; db < 40.0; db += 5) {
+        var y = (0.5 * height) - pixelsPerDb * db;
+        canvasContext.strokeText(db.toFixed(0) + "dB", width - 40, y);
+    }
 }
 
 function init() {
@@ -180,7 +204,7 @@ function init() {
     canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
     canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
 
-    var gain = 10; //0.22 * 20;
+    var gain = 0.22 * 20;
     var anchorFreq = 15000.0 / nyquist;
     var filterD = 0.9 + 1.1;
 
