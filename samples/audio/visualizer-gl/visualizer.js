@@ -50,6 +50,8 @@ AnalyserView = function(canvasElementID) {
     this.canvasElementID = canvasElementID;
     
     // NOTE: the default value of this needs to match the selected radio button
+
+    // This analysis type may be overriden later on if we discover we don't support the right shader features.
     this.analysisType = ANALYSISTYPE_3D_SONOGRAM;
 
     this.sonogram3DWidth = 256;
@@ -103,6 +105,10 @@ AnalyserView.prototype.initGL = function() {
     // var gl = create3DDebugContext(canvas.getContext("experimental-webgl"));
     var gl = canvas.getContext("experimental-webgl");
     this.gl = gl;
+    
+    // If we're missing this shader feature, then we can't do the 3D visualization.
+    if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) == 0 && this.analysisType == ANALYSISTYPE_3D_SONOGRAM)
+        this.analysisType = ANALYSISTYPE_FREQUENCY;
     
     var cameraController = new CameraController(canvas);
     this.cameraController = cameraController;
@@ -241,6 +247,10 @@ AnalyserView.prototype.initByteBuffer = function() {
 }
 
 AnalyserView.prototype.setAnalysisType = function(type) {
+    // Check for read textures in vertex shaders.
+    if (this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) == 0 && type == ANALYSISTYPE_3D_SONOGRAM)
+        return;
+
     this.analysisType = type;
 }
 
