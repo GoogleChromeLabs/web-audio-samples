@@ -78,6 +78,9 @@ var grainTime = 0.0;
 var grainDuration = kGrainSize;
 var grainSpacing = 0.5 * kGrainSize;
 
+var isSourceLoaded = false;
+var isImpulseResponseLoaded = false;
+
 function speedHandler(event, ui) {
     var param = parseFloat(ui.value);
 
@@ -279,6 +282,8 @@ function loadImpulseResponse(url) {
 
     request.onload = function() { 
         convolver.buffer = context.createBuffer(request.response, false);
+        isImpulseResponseLoaded = true;
+        finishLoading();
     }
     request.onerror = function() { 
         alert("error loading reverb");
@@ -297,6 +302,7 @@ function loadHumanVoice(url) {
     request.onload = function() {
         buffer = context.createBuffer(request.response, false /*true*/);
         bufferDuration = buffer.duration - 0.050;
+        isSourceLoaded = true;
         finishLoading();  // we have the voice, put up sliders and start playing...
     };
 
@@ -308,6 +314,9 @@ function loadHumanVoice(url) {
 }
 
 function finishLoading() {
+    if (!isSourceLoaded || !isImpulseResponseLoaded)
+        return;
+    
     // first, get rid of loading animation
     var loading = document.getElementById("loading");
     loading.innerHTML = "";
