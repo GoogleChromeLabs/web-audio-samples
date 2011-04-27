@@ -157,29 +157,29 @@ function scheduleGrain() {
     r4 = (r4 - 0.5) * 2.0;
 
     // Spatialization
-    // var panner = context.createPanner();
-    // source.connect(panner);
-    // 
-    // var distance = 2.0;
-    // var azimuth = Math.PI * panningRandomization * r3;
-    // var elevation = Math.PI * (0.25 + 0.75 * panningRandomization * r4);
-    // 
-    // var x = Math.sin(azimuth);
-    // var z = Math.cos(azimuth);
-    // var y = Math.sin(elevation);
-    // var scaleXZ = Math.cos(elevation);
-    // 
-    // x *= distance * scaleXZ;
-    // y *= distance;
-    // z *= distance * scaleXZ;
-    // 
-    // panner.panningModel = webkitAudioPannerNode.HRTF;
-    // panner.setPosition(x, y, z);
+    var panner = context.createPanner();
+    source.connect(panner);
+
+    var distance = 2.0;
+    var azimuth = Math.PI * panningRandomization * r3;
+    var elevation = Math.PI * (0.25 + 0.75 * panningRandomization * r4);
+
+    var x = Math.sin(azimuth);
+    var z = Math.cos(azimuth);
+    var y = Math.sin(elevation);
+    var scaleXZ = Math.cos(elevation);
+
+    x *= distance * scaleXZ;
+    y *= distance;
+    z *= distance * scaleXZ;
+
+    panner.panningModel = webkitAudioPannerNode.HRTF;
+    panner.setPosition(x, y, z);
 
     var dryGainNode = context.createGainNode();
-    // var wetGainNode = context.createGainNode();
-    // wetGainNode.gain.value = 0.5 * diffusionRandomization * r5;
-    dryGainNode.gain.value = 1.0; // - wetGainNode.gain.value;
+    var wetGainNode = context.createGainNode();
+    wetGainNode.gain.value = 0.5 * diffusionRandomization * r5;
+    dryGainNode.gain.value = 1.0 - wetGainNode.gain.value;
 
     // Pitch
     var totalPitch = pitch + r1 * pitchRandomization;
@@ -187,18 +187,18 @@ function scheduleGrain() {
     source.playbackRate.value = pitchRate;
     
     // Connect dry mix
-    source.connect(dryGainNode);
+    panner.connect(dryGainNode);
     dryGainNode.connect(context.destination);
     
     // Connect wet mix
-    // source.connect(wetGainNode);
-    // wetGainNode.connect(convolver);
+    panner.connect(wetGainNode);
+    wetGainNode.connect(convolver);
 
     // Time randomization
     var randomGrainOffset = r2 * timeRandomization;
 
     // Schedule sound grain
-    source.noteGrainOn(realTime + 1.0, grainTime + randomGrainOffset, grainDuration);
+    source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
 
     var lastGrainTime = grainTime;
     
@@ -223,8 +223,8 @@ function initAudio() {
     context = new webkitAudioContext();
     
     // Create a convolver for ambience
-    // convolver = context.createConvolver();
-    // convolver.connect(context.destination);
+    convolver = context.createConvolver();
+    convolver.connect(context.destination);
 
     load();
 }
@@ -269,7 +269,8 @@ function init() {
 }
 
 function load() {
-    loadImpulseResponse('impulse-responses/spatialized4.wav');
+    // loadImpulseResponse('impulse-responses/spatialized4.wav');
+    loadImpulseResponse('matrix-reverb5.wav');
     loadHumanVoice("sounds/hyper-reality/human-voice.mp4");
 }
 
@@ -281,7 +282,7 @@ function loadImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        // convolver.buffer = context.createBuffer(request.response, false);
+        convolver.buffer = context.createBuffer(request.response, false);
         isImpulseResponseLoaded = true;
         finishLoading();
     }
