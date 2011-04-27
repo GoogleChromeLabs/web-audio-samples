@@ -198,7 +198,7 @@ function scheduleGrain() {
     var randomGrainOffset = r2 * timeRandomization;
 
     // Schedule sound grain
-    source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
+    source.noteGrainOn(realTime + 1.0, grainTime + randomGrainOffset, grainDuration);
 
     var lastGrainTime = grainTime;
     
