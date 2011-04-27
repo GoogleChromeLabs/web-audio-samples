@@ -139,7 +139,7 @@ function initAudio() {
     source = context.createBufferSource();
 
     // This AudioNode will do the amplitude modulation effect directly in JavaScript
-    jsProcessor = context.createJavaScriptNode(2048);
+    jsProcessor = context.createJavaScriptNode(4096);
     jsProcessor.onaudioprocess = process;
 
     analyser = context.createAnalyser();
