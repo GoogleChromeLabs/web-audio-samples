@@ -107,7 +107,9 @@ AnalyserView.prototype.initGL = function() {
     this.gl = gl;
     
     // If we're missing this shader feature, then we can't do the 3D visualization.
-    if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) == 0 && this.analysisType == ANALYSISTYPE_3D_SONOGRAM)
+    this.has3DVisualizer = (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) > 0);
+    
+    if (!this.has3DVisualizer && this.analysisType == ANALYSISTYPE_3D_SONOGRAM)
         this.analysisType = ANALYSISTYPE_FREQUENCY;
     
     var cameraController = new CameraController(canvas);
@@ -216,7 +218,9 @@ AnalyserView.prototype.initGL = function() {
   this.frequencyShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/frequency-fragment.shader");
   this.waveformShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/waveform-fragment.shader");
   this.sonogramShader = o3djs.shader.loadFromURL(gl, "shaders/common-vertex.shader", "shaders/sonogram-fragment.shader");
-  this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "shaders/sonogram-vertex.shader", "shaders/sonogram-fragment.shader");
+
+  if (this.has3DVisualizer)
+    this.sonogram3DShader = o3djs.shader.loadFromURL(gl, "shaders/sonogram-vertex.shader", "shaders/sonogram-fragment.shader");
 }
 
 AnalyserView.prototype.initByteBuffer = function() {
@@ -248,7 +252,7 @@ AnalyserView.prototype.initByteBuffer = function() {
 
 AnalyserView.prototype.setAnalysisType = function(type) {
     // Check for read textures in vertex shaders.
-    if (this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) == 0 && type == ANALYSISTYPE_3D_SONOGRAM)
+    if (!this.has3DVisualizer && type == ANALYSISTYPE_3D_SONOGRAM)
         return;
 
     this.analysisType = type;
