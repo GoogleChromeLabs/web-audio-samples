@@ -205,11 +205,27 @@ var impulseResponseList = 0;
 function ImpulseResponse(url, index) {
     this.url = url;
     this.index = index;
+    this.startedLoading = false;
     this.loaded = false;
     this.buffer = 0;
 }
 
-ImpulseResponse.prototype.load = function() {     
+ImpulseResponse.prototype.loadNext = function() {
+    // Now that we're loaded, start loading the next impulse response in the list.
+    var nextIndex = this.index + 1;
+    if (nextIndex < impulseResponseList.length) {
+        impulseResponseList[nextIndex].load();
+    }
+}
+
+ImpulseResponse.prototype.load = function() {
+    if (this.startedLoading) {
+        // loadNext();
+        return;
+    }
+    
+    this.startedLoading = true;
+
     // Load asynchronously
     var request = new XMLHttpRequest();
     request.open("GET", this.url, true);
@@ -221,33 +237,50 @@ ImpulseResponse.prototype.load = function() {
     request.onload = function() {
         asset.buffer = context.createBuffer(request.response, false);
         asset.loaded = true;
-
-        // Now that we're loaded, start loading the next impulse response in the list.
-        var nextIndex = asset.index + 1;
-        if (nextIndex < impulseResponseList.length) {
-            impulseResponseList[nextIndex].load();
-        }        
+        
+        // asset.loadNext();
     }
 
     request.send();
 }
 
-function startLoadingImpulseResponses() {
+function startLoadingAssets() {
     impulseResponseList = new Array();
 
     for (i = 0; i < impulseResponseInfoList.length; i++) {
         impulseResponseList[i] = new ImpulseResponse(impulseResponseInfoList[i].url, i);
     }
     
-    impulseResponseList[1].load(); // start the loading process at 1 (0 == "No effect") - the completions happen asynchronously...
+    // Initialize drum kits
+    var numKits = kitName.length;
+    kits = new Array(numKits);
+    for (var i  = 0; i < numKits; i++) {
+        kits[i] = new Kit(kitName[i]);
+    }  
+    
+    // Start loading the assets used by the presets first, in order of the presets.
+    for (var presetIndex = 0; presetIndex < 5; ++presetIndex) {
+        kits[beatDemo[presetIndex].kitIndex].load();
+        impulseResponseList[beatDemo[presetIndex].effectIndex].load();
+    }
+    
+    // Then load the remaining assets.
+    // Note that any assets which have previously started loading will be skipped over.
+    for (var i  = 0; i < numKits; i++) {
+        kits[i].load();
+    }  
+
+    for (i = 0; i < impulseResponseInfoList.length; i++) {
+        impulseResponseList[i].load();
+    }
 }
 
 function init() {
     // FIXME:
-    // Please note: it can take awhile for all the impulse responses to load.
-    // So if an effect is chosen before its impulse response has loaded then nothing will happen.
-    startLoadingImpulseResponses();
-    
+    // Please note: assets load asynchronously so we really need to have loading animations on the preset buttons
+    // until they're ready to go...
+    startLoadingAssets();
+
     context = new webkitAudioContext();
 
     var finalMixNode;
@@ -275,12 +308,6 @@ function init() {
     convolver = context.createConvolver();
     convolver.connect(effectLevelNode);
 
-    // Initialize drum kits
-    var numKits = kitName.length;
-    kits = new Array(numKits);
-    for (var i  = 0; i < numKits; i++) {
-        kits[i] = new Kit(kitName[i]);
-    }  
 
     var elKitCombo = document.getElementById('kitcombo');
     elKitCombo.addEventListener("mousedown", handleKitComboMouseDown, true);
@@ -390,6 +417,23 @@ function Kit(name) {
         return pathName;
     };
 
+    this.kickBuffer = 0;
+    this.snareBuffer = 0;
+    this.hihatBuffer = 0;
+
+    this.instrumentCount = kNumInstruments;
+    this.instrumentLoadCount = 0;
+    
+    this.startedLoading = false;
+    this.isLoaded = false;
+}
+
+Kit.prototype.load = function() {
+    if (this.startedLoading)
+        return;
+        
+    this.startedLoading = true;
+        
     var pathName = this.pathName();
 
     var kickPath = pathName + "kick.wav";
@@ -398,13 +442,6 @@ function Kit(name) {
     var tom1Path = pathName + "tom1.wav";
     var tom2Path = pathName + "tom2.wav";
     var tom3Path = pathName + "tom3.wav";
-
-    this.kickBuffer = 0;
-    this.snareBuffer = 0;
-    this.hihatBuffer = 0;
-
-    this.instrumentCount = kNumInstruments;
-    this.instrumentLoadCount = 0;
 
     this.loadSample(0, kickPath, false);
     this.loadSample(1, snarePath, false);
@@ -435,12 +472,14 @@ Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
         }
 
         kit.instrumentLoadCount++;
-        if (kit.instrumentLoadCount == kit.instrumentCount) finishLoading();
+        if (kit.instrumentLoadCount == kit.instrumentCount) {
+            this.isLoaded = true;
+            finishLoading();
+        }
     }
 
     request.send();
 }
-
 
 function advanceNote() {
     // Advance time by a 16th note...
