@@ -260,8 +260,8 @@ function startLoadingAssets() {
     
     // Start loading the assets used by the presets first, in order of the presets.
     for (var presetIndex = 0; presetIndex < 5; ++presetIndex) {
-        kits[beatDemo[presetIndex].kitIndex].load();
         impulseResponseList[beatDemo[presetIndex].effectIndex].load();
+        kits[beatDemo[presetIndex].kitIndex].load();
     }
     
     // Then load the remaining assets.
