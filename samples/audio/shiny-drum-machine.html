@@ -304,6 +304,19 @@ function showDemoAvailable(demoIndex /* zero-based */) {
     var demoName = "demo" + n;
     var demo = document.getElementById(demoName);
     demo.src = url;
+    
+    // Autoplay demo 2 as soon as it's loaded...
+    if (demoIndex == 1) {
+        showPlayAvailable();
+		loadBeat(beatDemo[1]);
+		handlePlay();
+    }
+}
+
+// This gets rid of the loading spinner on the play button.
+function showPlayAvailable() {
+    var play = document.getElementById("play");
+    play.src = "images/btn_play.png";
 }
 
 function init() {
@@ -1317,7 +1330,7 @@ function drawPlayhead(xindex) {
 	
 	<section class='container active' id='tools'>
 		<span class='label' id='beatlabel'>Beat</span>
-		<img id='play' src='images/btn_play.png'>
+		<img id='play' src='images/loading.gif' width='80' height='33'>
 		<img id='stop' src='images/btn_stop.png'>
 		<img id='save' src='images/btn_save.png'><img id='load' src='images/btn_load.png'><img id='reset' src='images/btn_reset.png'>
 		<span id='demos_container'>
@@ -1327,7 +1340,7 @@ function drawPlayhead(xindex) {
 	</section>
 	
     <!-- Preload demo buttons -->
-	<img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload">
+	<img class="preload" src='images/btn_play.png'>
     <img class="preload" src='images/btn_demo1.png'>
     <img class="preload" src='images/btn_demo2.png'>
     <img class="preload" src='images/btn_demo3.png'>
