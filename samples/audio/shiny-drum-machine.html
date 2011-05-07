@@ -295,16 +295,34 @@ function startLoadingAssets() {
     currentKit = kits[kInitialKitIndex];
 }
 
-// This gets rid of the loading spinner in each of the demo buttons.
-function showDemoAvailable(demoIndex /* zero-based */) {
+function demoButtonURL(demoIndex) {
     var n = demoIndex + 1;
     var demoName = "demo" + n;
     var url = "images/btn_" + demoName + ".png";
+    return url;
+}
+
+function preloadDemoButtons() {
+    for (var i = 0; i < beatDemo.length; ++i) {
+        var url = demoButtonURL(i);
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.send();
+    }
+}
+
+// This gets rid of the loading spinner in each of the demo buttons.
+function showDemoAvailable(demoIndex /* zero-based */) {
+    var url = demoButtonURL(demoIndex);
+    var n = demoIndex + 1;
+    var demoName = "demo" + n;
     var demo = document.getElementById(demoName);
     demo.src = url;
 }
 
 function init() {
+    preloadDemoButtons();
+    
     // Let the beat demos know when all of their assets have been loaded.
     for (var i = 0; i < beatDemo.length; ++i) {
         beatDemo[i].index = i;
