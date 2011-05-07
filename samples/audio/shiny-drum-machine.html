@@ -206,7 +206,7 @@ function ImpulseResponse(url, index) {
     this.url = url;
     this.index = index;
     this.startedLoading = false;
-    this.isLoaded = false;
+    this.isLoaded_ = false;
     this.buffer = 0;
     
     this.demoIndex = -1; // no demo
@@ -217,7 +217,7 @@ ImpulseResponse.prototype.setDemoIndex = function(index) {
 }
 
 ImpulseResponse.prototype.isLoaded = function() {
-    return this.isLoaded;
+    return this.isLoaded_;
 }
 
 ImpulseResponse.prototype.load = function() {
@@ -237,7 +237,7 @@ ImpulseResponse.prototype.load = function() {
 
     request.onload = function() {
         asset.buffer = context.createBuffer(request.response, false);
-        asset.isLoaded = true;
+        asset.isLoaded_ = true;
         
         if (asset.demoIndex != -1) {
             beatDemo[asset.demoIndex].setEffectLoaded();
