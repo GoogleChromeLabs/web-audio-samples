@@ -270,7 +270,8 @@ function startLoadingAssets() {
         kits[i].load();
     }  
 
-    for (i = 0; i < impulseResponseInfoList.length; i++) {
+    // Start at 1 to skip "No Effect"
+    for (i = 1; i < impulseResponseInfoList.length; i++) {
         impulseResponseList[i].load();
     }
     
