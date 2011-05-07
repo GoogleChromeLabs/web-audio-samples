@@ -302,15 +302,6 @@ function demoButtonURL(demoIndex) {
     return url;
 }
 
-function preloadDemoButtons() {
-    for (var i = 0; i < beatDemo.length; ++i) {
-        var url = demoButtonURL(i);
-        var request = new XMLHttpRequest();
-        request.open("GET", url, true);
-        request.send();
-    }
-}
-
 // This gets rid of the loading spinner in each of the demo buttons.
 function showDemoAvailable(demoIndex /* zero-based */) {
     var url = demoButtonURL(demoIndex);
@@ -321,8 +312,6 @@ function showDemoAvailable(demoIndex /* zero-based */) {
 }
 
 function init() {
-    preloadDemoButtons();
-    
     // Let the beat demos know when all of their assets have been loaded.
     for (var i = 0; i < beatDemo.length; ++i) {
         beatDemo[i].index = i;
@@ -1331,6 +1320,14 @@ function drawPlayhead(xindex) {
             <img id='demo1' src='images/loading.gif' width='44' height='33'><img id='demo2' src='images/loading.gif' width='44' height='33'><img id='demo3' src='images/loading.gif' width='44' height='33'><img id='demo4' src='images/loading.gif' width='44' height='33'><img id='demo5' src='images/loading.gif' width='45' height='33'>
 		</span>
 	</section>
+	
+    <!-- Preload demo buttons -->
+	<img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload">>
+    <img class="preload" src='images/btn_demo1.png'>
+    <img class="preload" src='images/btn_demo2.png'>
+    <img class="preload" src='images/btn_demo3.png'>
+    <img class="preload" src='images/btn_demo4.png'>
+    <img class="preload" src='images/btn_demo5.png'>
 	
 	<div class='container' id='save_container'>
 		<h3>

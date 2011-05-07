@@ -263,3 +263,7 @@ body {
 #load_ok, #load_cancel {
 	margin: 0 3px;
 }
+
+img.preload { display: none; }
+
+
