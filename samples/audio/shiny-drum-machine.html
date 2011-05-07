@@ -206,27 +206,22 @@ function ImpulseResponse(url, index) {
     this.url = url;
     this.index = index;
     this.startedLoading = false;
-    this.loaded = false;
+    this.isLoaded = false;
     this.buffer = 0;
     
     this.demoIndex = -1; // no demo
-}
-
-ImpulseResponse.prototype.loadNext = function() {
-    // Now that we're loaded, start loading the next impulse response in the list.
-    var nextIndex = this.index + 1;
-    if (nextIndex < impulseResponseList.length) {
-        impulseResponseList[nextIndex].load();
-    }
 }
 
 ImpulseResponse.prototype.setDemoIndex = function(index) {
     this.demoIndex = index;
 }
 
+ImpulseResponse.prototype.isLoaded = function() {
+    return this.isLoaded;
+}
+
 ImpulseResponse.prototype.load = function() {
     if (this.startedLoading) {
-        // loadNext();
         return;
     }
     
@@ -242,7 +237,7 @@ ImpulseResponse.prototype.load = function() {
 
     request.onload = function() {
         asset.buffer = context.createBuffer(request.response, false);
-        asset.loaded = true;
+        asset.isLoaded = true;
         
         if (asset.demoIndex != -1) {
             beatDemo[asset.demoIndex].setEffectLoaded();
@@ -961,6 +956,11 @@ function handleEffectMouseDown(event) {
 }
 
 function setEffect(index) {
+  if (!impulseResponseList[index].isLoaded()) {
+      alert('Sorry, this effect is still loading.  Try again in a few seconds :)');
+      return;
+  }
+      
   theBeat.effectIndex = index;
   effectDryMix = impulseResponseInfoList[index].dryMix;
   effectWetMix = impulseResponseInfoList[index].wetMix;            
@@ -1327,7 +1327,7 @@ function drawPlayhead(xindex) {
 	</section>
 	
     <!-- Preload demo buttons -->
-	<img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload">>
+	<img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload"><img src='images/loading.gif' class="preload">
     <img class="preload" src='images/btn_demo1.png'>
     <img class="preload" src='images/btn_demo2.png'>
     <img class="preload" src='images/btn_demo3.png'>
