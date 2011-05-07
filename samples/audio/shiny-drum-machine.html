@@ -273,6 +273,9 @@ function startLoadingAssets() {
     for (i = 0; i < impulseResponseInfoList.length; i++) {
         impulseResponseList[i].load();
     }
+    
+    // Setup initial drumkit
+    currentKit = kits[kInitialKitIndex];
 }
 
 function init() {
@@ -600,8 +603,6 @@ function finishLoading() {
 
     isLoaded = true;
 
-    // Setup initial drumkit
-    currentKit = kits[kInitialKitIndex];
  		document.getElementById('kitname').innerHTML = kitNamePretty[kInitialKitIndex];
 
     // Setup initial effect (No effect)
