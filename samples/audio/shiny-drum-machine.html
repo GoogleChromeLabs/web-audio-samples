@@ -208,6 +208,8 @@ function ImpulseResponse(url, index) {
     this.startedLoading = false;
     this.loaded = false;
     this.buffer = 0;
+    
+    this.demoIndex = -1; // no demo
 }
 
 ImpulseResponse.prototype.loadNext = function() {
@@ -216,6 +218,10 @@ ImpulseResponse.prototype.loadNext = function() {
     if (nextIndex < impulseResponseList.length) {
         impulseResponseList[nextIndex].load();
     }
+}
+
+ImpulseResponse.prototype.setDemoIndex = function(index) {
+    this.demoIndex = index;
 }
 
 ImpulseResponse.prototype.load = function() {
@@ -238,7 +244,9 @@ ImpulseResponse.prototype.load = function() {
         asset.buffer = context.createBuffer(request.response, false);
         asset.loaded = true;
         
-        // asset.loadNext();
+        if (asset.demoIndex != -1) {
+            beatDemo[asset.demoIndex].setEffectLoaded();
+        }
     }
 
     request.send();
@@ -259,9 +267,17 @@ function startLoadingAssets() {
     }  
     
     // Start loading the assets used by the presets first, in order of the presets.
-    for (var presetIndex = 0; presetIndex < 5; ++presetIndex) {
-        impulseResponseList[beatDemo[presetIndex].effectIndex].load();
-        kits[beatDemo[presetIndex].kitIndex].load();
+    for (var demoIndex = 0; demoIndex < 5; ++demoIndex) {
+        var effect = impulseResponseList[beatDemo[demoIndex].effectIndex];
+        var kit = kits[beatDemo[demoIndex].kitIndex];
+        
+        // These effects and kits will keep track of a particular demo, so we can change
+        // the loading status in the UI.
+        effect.setDemoIndex(demoIndex);
+        kit.setDemoIndex(demoIndex);
+        
+        effect.load();
+        kit.load();
     }
     
     // Then load the remaining assets.
@@ -279,7 +295,44 @@ function startLoadingAssets() {
     currentKit = kits[kInitialKitIndex];
 }
 
+// This gets rid of the loading spinner in each of the demo buttons.
+function showDemoAvailable(demoIndex /* zero-based */) {
+    var n = demoIndex + 1;
+    var demoName = "demo" + n;
+    var url = "images/btn_" + demoName + ".png";
+    var demo = document.getElementById(demoName);
+    demo.src = url;
+}
+
 function init() {
+    // Let the beat demos know when all of their assets have been loaded.
+    for (var i = 0; i < beatDemo.length; ++i) {
+        beatDemo[i].index = i;
+        beatDemo[i].isKitLoaded = false;
+        beatDemo[i].isEffectLoaded = false;
+
+        beatDemo[i].setKitLoaded = function() {
+            this.isKitLoaded = true;
+            this.checkIsLoaded();
+        };
+
+        beatDemo[i].setEffectLoaded = function() {
+            this.isEffectLoaded = true;
+            this.checkIsLoaded();
+        };
+
+        beatDemo[i].checkIsLoaded = function() {
+            if (this.isLoaded()) {
+                showDemoAvailable(this.index); 
+            }
+        };
+
+        beatDemo[i].isLoaded = function() {
+            return this.isKitLoaded && this.isEffectLoaded;
+        };
+    }
+    
+    
     // FIXME:
     // Please note: assets load asynchronously so we really need to have loading animations on the preset buttons
     // until they're ready to go...
@@ -430,6 +483,12 @@ function Kit(name) {
     
     this.startedLoading = false;
     this.isLoaded = false;
+    
+    this.demoIndex = -1;
+}
+
+Kit.prototype.setDemoIndex = function(index) {
+    this.demoIndex = index;
 }
 
 Kit.prototype.load = function() {
@@ -477,7 +536,12 @@ Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
 
         kit.instrumentLoadCount++;
         if (kit.instrumentLoadCount == kit.instrumentCount) {
-            this.isLoaded = true;
+            kit.isLoaded = true;
+
+            if (kit.demoIndex != -1) {
+                beatDemo[kit.demoIndex].setKitLoaded();
+            }
+
             finishLoading();
         }
     }
@@ -1246,7 +1310,7 @@ function drawPlayhead(xindex) {
 		<img id='save' src='images/btn_save.png'><img id='load' src='images/btn_load.png'><img id='reset' src='images/btn_reset.png'>
 		<span id='demos_container'>
 			<span class='label' id='demolabel'>Demo</span>
-			<img id='demo1' src='images/btn_demo1.png'><img id='demo2' src='images/btn_demo2.png'><img id='demo3' src='images/btn_demo3.png'><img id='demo4' src='images/btn_demo4.png'><img id='demo5' src='images/btn_demo5.png'>
+            <img id='demo1' src='images/loading.gif' width='44' height='33'><img id='demo2' src='images/loading.gif' width='44' height='33'><img id='demo3' src='images/loading.gif' width='44' height='33'><img id='demo4' src='images/loading.gif' width='44' height='33'><img id='demo5' src='images/loading.gif' width='45' height='33'>
 		</span>
 	</section>
 	
