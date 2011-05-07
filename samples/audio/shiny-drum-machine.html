@@ -313,6 +313,7 @@ function showDemoAvailable(demoIndex /* zero-based */) {
 
 function init() {
     // Let the beat demos know when all of their assets have been loaded.
+    // Add some new methods to support this.
     for (var i = 0; i < beatDemo.length; ++i) {
         beatDemo[i].index = i;
         beatDemo[i].isKitLoaded = false;
@@ -1097,6 +1098,10 @@ function handleReset(event) {
 }
 
 function loadBeat(beat) {
+    // Check that assets are loaded.
+    if (!beat.isLoaded())
+        return;
+        
 	handleStop();
 	
 	theBeat = cloneBeat(beat);
