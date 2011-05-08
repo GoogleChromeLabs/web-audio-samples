@@ -61,10 +61,6 @@ var effectWetMix = 1.0;
 
 var timeoutId;
 
-var sampleRate = 44100.0;
-var nyquist = sampleRate * 0.5;
-var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
-
 var startTime;
 var lastDrawTime = -1;
 
@@ -73,7 +69,6 @@ var kits;
 var kNumInstruments = 6;
 var kInitialKitIndex = 10;
 var kMaxSwing = .08;
-var kResonance = 5.0;
 
 var currentKit;
 
@@ -109,7 +104,6 @@ function cloneBeat(source) {
     
     return beat;
 }
-
 
 // theBeat is the object representing the current beat/groove
 // ... it is saved/loaded via JSON
@@ -168,15 +162,96 @@ var kitNamePretty = [
     "The Cheebacabra 2"
     ];
 
+function Kit(name) {
+    this.name = name;
+
+    this.pathName = function() {
+        var pathName = "sounds/drum-samples/" + this.name + "/";
+        return pathName;
+    };
+
+    this.kickBuffer = 0;
+    this.snareBuffer = 0;
+    this.hihatBuffer = 0;
+
+    this.instrumentCount = kNumInstruments;
+    this.instrumentLoadCount = 0;
+    
+    this.startedLoading = false;
+    this.isLoaded = false;
+    
+    this.demoIndex = -1;
+}
+
+Kit.prototype.setDemoIndex = function(index) {
+    this.demoIndex = index;
+}
+
+Kit.prototype.load = function() {
+    if (this.startedLoading)
+        return;
+        
+    this.startedLoading = true;
+        
+    var pathName = this.pathName();
+
+    var kickPath = pathName + "kick.wav";
+    var snarePath = pathName + "snare.wav";
+    var hihatPath = pathName + "hihat.wav";
+    var tom1Path = pathName + "tom1.wav";
+    var tom2Path = pathName + "tom2.wav";
+    var tom3Path = pathName + "tom3.wav";
+
+    this.loadSample(0, kickPath, false);
+    this.loadSample(1, snarePath, false);
+    this.loadSample(2, hihatPath, true);  // we're panning only the hihat
+    this.loadSample(3, tom1Path, false);
+    this.loadSample(4, tom2Path, false);
+    this.loadSample(5, tom3Path, false);
+}
+
+Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    var kit = this;
+
+    request.onload = function() {
+        var buffer = context.createBuffer(request.response, mixToMono);
+        switch (sampleID) {
+            case 0: kit.kickBuffer = buffer; break;
+            case 1: kit.snareBuffer = buffer; break;
+            case 2: kit.hihatBuffer = buffer; break;
+            case 3: kit.tom1 = buffer; break;
+            case 4: kit.tom2 = buffer; break;
+            case 5: kit.tom3 = buffer; break;
+        }
+
+        kit.instrumentLoadCount++;
+        if (kit.instrumentLoadCount == kit.instrumentCount) {
+            kit.isLoaded = true;
+
+            if (kit.demoIndex != -1) {
+                beatDemo[kit.demoIndex].setKitLoaded();
+            }
+        }
+    }
+
+    request.send();
+}
+
 var impulseResponseInfoList = [
-    // impulse responses
+    // Impulse responses - each one represents a unique linear effect.
     {"name":"No Effect", "url":"undefined", "dryMix":1, "wetMix":0},
     {"name":"Spreader 1", "url":"impulse-responses/spreader50-65ms.wav",        "dryMix":0.8, "wetMix":1.4},
     {"name":"Spreader 2", "url":"impulse-responses/noise-spreader1.wav",        "dryMix":1, "wetMix":1},
     {"name":"Spring Reverb", "url":"impulse-responses/feedback-spring.wav",     "dryMix":1, "wetMix":1},
     {"name":"Space Oddity", "url":"impulse-responses/filter-rhythm3.wav",       "dryMix":1, "wetMix":0.7},
-    {"name":"Reverse", "url":"impulse-responses/spatialized5.wav",          "dryMix":1, "wetMix":1},
-    {"name":"Huge Reverse", "url":"impulse-responses/matrix6-backwards.wav",       "dryMix":0, "wetMix":0.7},
+    {"name":"Reverse", "url":"impulse-responses/spatialized5.wav",              "dryMix":1, "wetMix":1},
+    {"name":"Huge Reverse", "url":"impulse-responses/matrix6-backwards.wav",    "dryMix":0, "wetMix":0.7},
     {"name":"Telephone Filter", "url":"impulse-responses/filter-telephone.wav", "dryMix":0, "wetMix":1.2},
     {"name":"Lopass Filter", "url":"impulse-responses/filter-lopass160.wav",    "dryMix":0, "wetMix":0.5},
     {"name":"Hipass Filter", "url":"impulse-responses/filter-hipass5000.wav",   "dryMix":0, "wetMix":4.0},
@@ -194,7 +269,7 @@ var impulseResponseInfoList = [
     {"name":"Backslap", "url":"impulse-responses/backslap1.wav",                "dryMix":1, "wetMix":1},
     {"name":"Warehouse", "url":"impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.wav", "dryMix":1, "wetMix":1},
     {"name":"Diffusor", "url":"impulse-responses/diffusor3.wav",                "dryMix":1, "wetMix":1},
-    {"name":"Binaural Hall", "url":"impulse-responses/bin_dfeq/s2_r4_bd.wav",        "dryMix":1, "wetMix":0.5},
+    {"name":"Binaural Hall", "url":"impulse-responses/bin_dfeq/s2_r4_bd.wav",   "dryMix":1, "wetMix":0.5},
     {"name":"Huge", "url":"impulse-responses/matrix-reverb6.wav",               "dryMix":1, "wetMix":0.7},
 ]
 
@@ -345,11 +420,7 @@ function init() {
             return this.isKitLoaded && this.isEffectLoaded;
         };
     }
-    
-    
-    // FIXME:
-    // Please note: assets load asynchronously so we really need to have loading animations on the preset buttons
-    // until they're ready to go...
+        
     startLoadingAssets();
 
     context = new webkitAudioContext();
@@ -393,7 +464,7 @@ function init() {
 }
 
 function initControls() {
-        // Initialize note buttons
+    // Initialize note buttons
     initButtons();
     makeKitList();
     makeEffectList();
@@ -480,87 +551,6 @@ function makeKitList() {
     }
 }
 
-function Kit(name) {
-    this.name = name;
-
-    this.pathName = function() {
-        var pathName = "sounds/drum-samples/" + this.name + "/";
-        return pathName;
-    };
-
-    this.kickBuffer = 0;
-    this.snareBuffer = 0;
-    this.hihatBuffer = 0;
-
-    this.instrumentCount = kNumInstruments;
-    this.instrumentLoadCount = 0;
-    
-    this.startedLoading = false;
-    this.isLoaded = false;
-    
-    this.demoIndex = -1;
-}
-
-Kit.prototype.setDemoIndex = function(index) {
-    this.demoIndex = index;
-}
-
-Kit.prototype.load = function() {
-    if (this.startedLoading)
-        return;
-        
-    this.startedLoading = true;
-        
-    var pathName = this.pathName();
-
-    var kickPath = pathName + "kick.wav";
-    var snarePath = pathName + "snare.wav";
-    var hihatPath = pathName + "hihat.wav";
-    var tom1Path = pathName + "tom1.wav";
-    var tom2Path = pathName + "tom2.wav";
-    var tom3Path = pathName + "tom3.wav";
-
-    this.loadSample(0, kickPath, false);
-    this.loadSample(1, snarePath, false);
-    this.loadSample(2, hihatPath, true);  // we're panning only the hihat
-    this.loadSample(3, tom1Path, false);
-    this.loadSample(4, tom2Path, false);
-    this.loadSample(5, tom3Path, false);
-}
-
-Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
-    // Load asynchronously
-
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    var kit = this;
-
-    request.onload = function() {
-        var buffer = context.createBuffer(request.response, mixToMono);
-        switch (sampleID) {
-            case 0: kit.kickBuffer = buffer; break;
-            case 1: kit.snareBuffer = buffer; break;
-            case 2: kit.hihatBuffer = buffer; break;
-            case 3: kit.tom1 = buffer; break;
-            case 4: kit.tom2 = buffer; break;
-            case 5: kit.tom3 = buffer; break;
-        }
-
-        kit.instrumentLoadCount++;
-        if (kit.instrumentLoadCount == kit.instrumentCount) {
-            kit.isLoaded = true;
-
-            if (kit.demoIndex != -1) {
-                beatDemo[kit.demoIndex].setKitLoaded();
-            }
-        }
-    }
-
-    request.send();
-}
-
 function advanceNote() {
     // Advance time by a 16th note...
     var secondsPerBeat = 60.0 / theBeat.tempo;
@@ -578,11 +568,11 @@ function advanceNote() {
     }
 }
 
-function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, noteTime) {
+function playNote(buffer, pan, x, y, z, sendGain, mainGain, playbackRate, noteTime) {
     // Create the note
     var voice = context.createBufferSource();
     voice.buffer = buffer;
-    voice.playbackRate.value = cutoff;
+    voice.playbackRate.value = playbackRate;
 
     // Optionally, connect to a panner
     var finalNode;
@@ -623,31 +613,31 @@ function schedule() {
         
         // Kick
         if (theBeat.rhythm1[rhythmIndex]) {
-            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, kickPitch, kResonance, contextPlayTime);
+            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, kickPitch, contextPlayTime);
         }
 
         // Snare
         if (theBeat.rhythm2[rhythmIndex]) {
-            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, snarePitch, kResonance, contextPlayTime);
+            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, snarePitch, contextPlayTime);
         }
 
         // Hihat
         if (theBeat.rhythm3[rhythmIndex]) {
             // Pan the hihat according to sequence position.
-            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, hihatPitch, kResonance, contextPlayTime);
+            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, hihatPitch, contextPlayTime);
         }
 
         // Toms    
         if (theBeat.rhythm4[rhythmIndex]) {
-            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, tom1Pitch, kResonance, contextPlayTime);
+            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, tom1Pitch, contextPlayTime);
         }
 
         if (theBeat.rhythm5[rhythmIndex]) {
-            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, tom2Pitch, kResonance, contextPlayTime);
+            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, tom2Pitch, contextPlayTime);
         }
 
         if (theBeat.rhythm6[rhythmIndex]) {
-            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, tom3Pitch, kResonance, contextPlayTime);
+            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, tom3Pitch, contextPlayTime);
         }
 
         
@@ -748,11 +738,7 @@ function handleMouseUp() {
 }
 
 function sliderSetValue(slider, value) {
-    var v2;
-    
     var pitchRate = Math.pow(2.0, 2.0 * (value - 0.5));
-    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
-    var cutoff = v2*nyquist;
     
     switch(slider) {
     case 'effect_thumb':
@@ -837,28 +823,28 @@ function handleButtonMouseDown(event) {
     if (note) {
         switch(instrumentIndex) {
         case 0:  // Kick
-          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, kickPitch, kResonance, 0);
+          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, kickPitch, 0);
           break;
 
         case 1:  // Snare
-          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, snarePitch, kResonance, 0);
+          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, snarePitch, 0);
           break;
 
         case 2:  // Hihat
           // Pan the hihat according to sequence position.
-          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, hihatPitch, kResonance, 0);
+          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, hihatPitch, 0);
           break;
 
         case 3:  // Tom 1   
-          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom1Pitch, kResonance, 0);
+          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom1Pitch, 0);
           break;
 
         case 4:  // Tom 2   
-          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom2Pitch, kResonance, 0);
+          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom2Pitch, 0);
           break;
 
         case 5:  // Tom 3   
-          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom3Pitch, kResonance, 0);
+          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom3Pitch, 0);
           break;
         }
     }
