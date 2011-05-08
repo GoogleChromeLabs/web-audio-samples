@@ -977,25 +977,28 @@ function setEffectLevel() {
 
 
 function handleDemoMouseDown(event) {
+    var loaded = false;
+    
 	switch(event.target.id) {
 		case 'demo1':
-			loadBeat(beatDemo[0]);	
+			loaded = loadBeat(beatDemo[0]);	
 			break;
 		case 'demo2':
-			loadBeat(beatDemo[1]);	
+			loaded = loadBeat(beatDemo[1]);	
 			break;
 		case 'demo3':
-			loadBeat(beatDemo[2]);	
+			loaded = loadBeat(beatDemo[2]);	
 			break;
 		case 'demo4':
-			loadBeat(beatDemo[3]);	
+			loaded = loadBeat(beatDemo[3]);	
 			break;
 		case 'demo5':
-			loadBeat(beatDemo[4]);	
+			loaded = loadBeat(beatDemo[4]);	
 			break;
 	}
 	
-	handlePlay();
+	if (loaded)
+	    handlePlay();
 }
 
 function handlePlay(event) {
@@ -1090,7 +1093,7 @@ function handleReset(event) {
 function loadBeat(beat) {
     // Check that assets are loaded.
     if (!beat.isLoaded())
-        return;
+        return false;
         
 	handleStop();
 	
@@ -1109,6 +1112,8 @@ function loadBeat(beat) {
 	sliderSetValue('swing_thumb', theBeat.swingFactor);
 
 	updateControls();
+	
+    return true;
 }
 
 function updateControls() {
