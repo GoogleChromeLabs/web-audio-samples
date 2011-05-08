@@ -68,8 +68,6 @@ var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
 var startTime;
 var lastDrawTime = -1;
 
-var isLoaded = false;
-
 var kits;
 
 var kNumInstruments = 6;
@@ -557,8 +555,6 @@ Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
             if (kit.demoIndex != -1) {
                 beatDemo[kit.demoIndex].setKitLoaded();
             }
-
-            finishLoading();
         }
     }
 
@@ -673,23 +669,6 @@ function schedule() {
 
     timeoutId = setTimeout("schedule()", 0);
 }
-
-
-// Called when all audio assets are finished loading
-function finishLoading() {
-    kitCount++;
-    if (kitCount < kitName.length) return;
-
-    if (isLoaded) return;
-
-    isLoaded = true;
-
- 		document.getElementById('kitname').innerHTML = kitNamePretty[kInitialKitIndex];
-
-    // Setup initial effect (No effect)
- 		document.getElementById('effectname').innerHTML = impulseResponseInfoList[0].name;
-}
-
 
 function tempoIncrease() {
 	theBeat.tempo = Math.min(kMaxTempo, theBeat.tempo+4);
