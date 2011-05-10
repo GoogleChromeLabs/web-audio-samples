@@ -916,7 +916,7 @@ function handleEffectMouseDown(event) {
 }
 
 function setEffect(index) {
-    if (!impulseResponseList[index].isLoaded()) {
+    if (index > 0 && !impulseResponseList[index].isLoaded()) {
         alert('Sorry, this effect is still loading.  Try again in a few seconds :)');
         return;
     }
@@ -1060,7 +1060,7 @@ function handleReset(event) {
 
 function loadBeat(beat) {
     // Check that assets are loaded.
-    if (!beat.isLoaded())
+    if (beat != beatReset && !beat.isLoaded())
         return false;
 
     handleStop();
