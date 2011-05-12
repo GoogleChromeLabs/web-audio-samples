@@ -1,0 +1,308 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+
+var curveColor = "rgb(192,192,192)";
+var playheadColor = "rgb(80, 100, 80)";
+var noteColor = "rgb(200,60,20)";
+var gridColor = "rgb(200,200,200)";
+
+var sampleRate = 44100.0;
+var nyquist = 0.5 * sampleRate;
+
+var stageGain = 0.22 * 20.0;
+var anchorFreq = 15000.0 / nyquist;
+var filterD = 0.9 + 1.1;
+
+var zeroPolePair1 = new Object();
+var zeroPolePair2 = new Object();
+var zeroPolePair3 = new Object();
+var zeroPolePair4 = new Object();
+
+function cutoffKickHandler(event, ui) {
+    var value = ui.value;
+    var noctaves = Math.log(nyquist / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    kickCutoff = v2*nyquist;
+
+    var info = document.getElementById("kick_cutoff-value");
+    info.innerHTML = "kick_cutoff = " + kickCutoff + " Hz";
+}
+
+function calculateStageParams(gain, frequency /* 0 -> 1 */, zeroPolePair) {
+	var gk = 1.0 - gain / 20.0;
+	var f1 = frequency * gk;
+	var f2 = frequency / gk;
+	zeroPolePair.zero = Math.exp(-f1 * Math.PI);
+	zeroPolePair.pole = Math.exp(-f2 * Math.PI);
+}
+
+function calculateAllParams(stageGain, anchorFreq, filterD) {
+	calculateStageParams(stageGain, anchorFreq, zeroPolePair1 );
+	calculateStageParams(stageGain, anchorFreq / filterD, zeroPolePair2 );
+	calculateStageParams(stageGain, anchorFreq / (filterD * filterD), zeroPolePair3 );
+	calculateStageParams(stageGain, anchorFreq / (filterD * filterD * filterD), zeroPolePair4 );
+}
+
+function distance(x1, y1, x2, y2) {
+    var xd = x1 - x2;
+    var yd = y1 - y2;
+    return Math.sqrt(xd*xd + yd*yd);
+}
+
+function zeroPoleResponse(x, y, zeroPolePair) {
+    // Gain compensation so 0dB @ 0Hz
+    var k1 = 1.0 / (1.0 - zeroPolePair.zero);
+	var k2 = 1.0 - zeroPolePair.pole;
+    var k = k1 * k2;
+	
+    return k * distance(x, y, zeroPolePair.zero, 0) / distance(x, y, zeroPolePair.pole, 0);
+}
+
+
+function magResponse(theta) {
+    var x = Math.cos(theta);
+    var y = Math.sin(theta);
+    
+    var response1 = zeroPoleResponse(x, y, zeroPolePair1);
+    var response2 = zeroPoleResponse(x, y, zeroPolePair2);
+    var response3 = zeroPoleResponse(x, y, zeroPolePair3);
+    var response4 = zeroPoleResponse(x, y, zeroPolePair4);
+    
+    return response1 * response2 * response3 * response4;
+}
+
+function drawCurve() {
+    calculateAllParams(stageGain, anchorFreq, filterD);
+    
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
+
+    // canvasContext.strokeStyle = "rgb(150, 255, 150)";
+
+    canvasContext.fillStyle = "rgb(0, 0, 0)";
+    canvasContext.fillRect(0, 0, width, height);
+
+
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.lineWidth = 3;
+
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+
+    var pixelsPerDb = (0.5 * height) / 40.0;
+    
+    var noctaves = 8;
+    
+    for (var i = 0; i < width; ++i) {
+        var f = i / width;
+        
+        // Convert to log frequency scale (octaves).
+        f = Math.pow(2.0, noctaves * (f - 1.0));
+        
+        var theta = Math.PI * f;
+        
+        var response = magResponse(theta);
+        var dbResponse = 20.0 * Math.log(response)/Math.LN10;
+        
+        var x = i;
+        var y = (0.5 * height) - pixelsPerDb * dbResponse;
+        
+        canvasContext.lineTo(x, y);
+    }
+    canvasContext.stroke();
+    
+    canvasContext.beginPath();
+    
+    canvasContext.lineWidth = 1;
+    
+    canvasContext.strokeStyle = gridColor;
+    
+    
+    
+    // Draw frequency scale.
+    for (var octave = 0; octave <= noctaves; octave++) {
+        var x = octave * width / noctaves;
+        
+        // canvasContext.strokeStyle = gridColor;
+        canvasContext.moveTo(x, 30);
+        canvasContext.lineTo(x, height);
+        canvasContext.stroke();
+
+
+        var f = nyquist * Math.pow(2.0, octave - noctaves);
+        canvasContext.textAlign = "center";
+        canvasContext.strokeText(f.toFixed(0) + "Hz", x, 20);
+    }
+
+    // Draw 0dB line.
+    // canvasContext.strokeStyle = noteColor;
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0.5 * height);
+    canvasContext.lineTo(width, 0.5 * height);
+    canvasContext.stroke();
+    
+    // Draw decibel scale.
+    
+    for (var db = -40.0; db < 40.0; db += 5) {
+        var y = (0.5 * height) - pixelsPerDb * db;
+        canvasContext.strokeText(db.toFixed(0) + "dB", width - 40, y);
+    }
+}
+
+function stageGainHandler(event, ui) {
+  stageGain = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("stageGain-value");
+  info.innerHTML = "stageGain = " + stageGain;
+}
+
+function anchorFreqHandler(event, ui) {
+  anchorFreq = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("anchorFreq-value");
+  info.innerHTML = "anchorFreq = " + anchorFreq;
+}
+
+function stageRatioHandle(event, ui) {
+  filterD = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("stageRatio-value");
+  info.innerHTML = "stageRatio = " + filterD;
+}
+
+
+function init() {
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    canvas.addEventListener("mousedown", handleMouseDown, true);
+    canvas.addEventListener("mousemove", handleMouseMove, true);
+    canvas.addEventListener("mouseup", handleMouseUp, true);
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+    
+    
+    addSlider("stageGain");
+    addSlider("anchorFreq");
+    addSlider("stageRatio");
+    configureSlider("stageGain", stageGain, 0.0, 10.0, stageGainHandler);
+    configureSlider("anchorFreq", anchorFreq, 0.0, 1.0, anchorFreqHandler);
+    configureSlider("stageRatio", filterD, 1.0, 3.0, stageRatioHandle);
+        
+    calculateAllParams(stageGain, anchorFreq, filterD);
+    
+    drawCurve();
+}
+
+var gIsMouseDown = false;
+var gLastX = 0;
+var gLastY = 0;
+
+function handleMouseDown(event) {
+    gIsMouseDown = true;
+
+    var posx = event.clientX;
+    var posy = event.clientY;
+
+    var eventInfo = {event: event, element:canvas};
+
+    var c = getRelativeCoordinates(eventInfo);
+    var x = c.x;
+    var y = c.y;
+}
+
+function handleMouseUp(event) {
+    gIsMouseDown = false;
+}
+
+function handleMouseMove(event) {
+    if (gIsMouseDown) {
+    }
+}
+
+</script>
+</head>
+
+<body>
+
+
+<div id="info">
+</div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<br><br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<div id="kits">
+</div>
+
+</body>
+</html>
