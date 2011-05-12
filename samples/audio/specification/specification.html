@@ -195,6 +195,9 @@
 
               <li><a href="#AudioChannelMerger-section">
               4.19. The AudioChannelMerger Interface</a></li>
+
+              <li><a href="#DynamicsCompressorNode-section">
+              4.20. The DynamicsCompressorNode Interface</a></li>
           </ul>
 
           </li>
@@ -328,14 +331,13 @@
         		<li> Extreme comb filter effects </li>
           </ul> 
           
-          
+          <li> Dynamics compression for overall control and sweetening of the mix </li>
           <li> Efficient <a href="#RealtimeAnalysis-section">real-time time-domain and frequency analysis / music visualizer support</a></li>
           <li> Efficient biquad filters for lowpass, highpass, and other common filters. </li>
       </ul>
 
       In addition these features can be supported:
       <ul>
-          <li> Dynamics compression for overall control and sweetening of the mix </li>
           <li> A Waveshaping effect for distortion and other non-linear effects</li>
           <li> Automation of audio parameters for envelopes, fade-ins / fade-outs, granular effects, etc. </li>
       </ul>
@@ -610,6 +612,7 @@
             ConvolverNode createConvolver();
             AudioChannelSplitter createChannelSplitter();
             AudioChannelMerger createChannelMerger();
+            DynamicsCompressorNode createDynamicsCompressor();
 
         }
         </code></pre></div></div> 
@@ -724,6 +727,11 @@
         <dl><dt id="dfn-createChannelMerger">The <code>createChannelMerger</code> method</dt>
         <dd>
         <p>Creates an <a href="#AudioChannelMerger-section"><code>AudioChannelMerger</code></a> representing a channel merger.</p> 
+        </dd>
+
+        <dl><dt id="dfn-createDynamicsCompressor">The <code>createDynamicsCompressor</code> method</dt>
+        <dd>
+        <p>Creates a <a href="#DynamicsCompressorNode-section"><code>DynamicsCompressorNode</code></a>.</p> 
         </dd>
 
 
@@ -1682,13 +1690,33 @@
   </div> 
 
 
+  <div id="DynamicsCompressorNode-section" class="section"> 
 
+    <h2>4.20. The DynamicsCompressorNode Interface</h2> 
+    <p> 
+      DynamicsCompressorNode is an AudioNode processor implementing a dynamics compression effect.
+    </p>
+    
+    <p>
+    Dynamics compression is very commonly used in musical production and game audio.  It lowers the volume
+    of the loudest parts of the signal and raises the volume of the softest parts.  Overall, a louder, richer, and fuller sound can be achieved.
+    </p>
+    
+    <pre>
+    numberOfInputs  : 1
+    numberOfOutputs : 1
+    </pre>
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
 
+    interface <dfn id="dfn-DynamicsCompressorNode">DynamicsCompressorNode</dfn> : AudioNode {
 
+        // a few attributes such as threshold, attack, and release should be defined here.
 
+    }
+    </code></pre></div></div> 
 
-
-
+  </div> 
 
 
     <div id="AudioElementIntegration-section" class="section"> 
@@ -1824,7 +1852,7 @@ var g3_2 = 0;
 function setupRoutingGraph() {
     context = new AudioContext();
 
-    compressor = context.createCompressor();
+    compressor = context.createDynamicsCompressor();
 
     <span class="comment">// Send1 effect </span>
     reverb = context.createConvolver();
@@ -1940,7 +1968,7 @@ function setupRoutingGraph() {
 	function setupAudioContext() {
 	    context = new AudioContext();
 
-	    compressor = context.createCompressor();
+	    compressor = context.createDynamicsCompressor();
 	    gainNode1 = context.createGainNode();
 
 	    streamingAudio = document.getElementById('audioTagID');
