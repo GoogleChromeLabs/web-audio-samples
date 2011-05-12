@@ -58,7 +58,6 @@ var canvasContext;
 var canvasWidth = 0;
 var canvasHeight = 0;
 
-
 var curveColor = "rgb(192,192,192)";
 var playheadColor = "rgb(80, 100, 80)";
 var noteColor = "rgb(200,60,20)";
@@ -66,6 +65,10 @@ var gridColor = "rgb(200,200,200)";
 
 var sampleRate = 44100.0;
 var nyquist = 0.5 * sampleRate;
+
+var stageGain = 0.22 * 20.0;
+var anchorFreq = 15000.0 / nyquist;
+var filterD = 0.9 + 1.1;
 
 var zeroPolePair1 = new Object();
 var zeroPolePair2 = new Object();
@@ -90,11 +93,11 @@ function calculateStageParams(gain, frequency /* 0 -> 1 */, zeroPolePair) {
 	zeroPolePair.pole = Math.exp(-f2 * Math.PI);
 }
 
-function calculateAllParams(gain, anchorFreq, filterD) {
-	calculateStageParams(gain, anchorFreq, zeroPolePair1 );
-	calculateStageParams(gain, anchorFreq / filterD, zeroPolePair2 );
-	calculateStageParams(gain, anchorFreq / (filterD * filterD), zeroPolePair3 );
-	calculateStageParams(gain, anchorFreq / (filterD * filterD * filterD), zeroPolePair4 );
+function calculateAllParams(stageGain, anchorFreq, filterD) {
+	calculateStageParams(stageGain, anchorFreq, zeroPolePair1 );
+	calculateStageParams(stageGain, anchorFreq / filterD, zeroPolePair2 );
+	calculateStageParams(stageGain, anchorFreq / (filterD * filterD), zeroPolePair3 );
+	calculateStageParams(stageGain, anchorFreq / (filterD * filterD * filterD), zeroPolePair4 );
 }
 
 function distance(x1, y1, x2, y2) {
@@ -126,14 +129,22 @@ function magResponse(theta) {
 }
 
 function drawCurve() {
+    calculateAllParams(stageGain, anchorFreq, filterD);
+    
     // draw center
     var width = canvas.width;
     var height = canvas.height;
 
     // canvasContext.strokeStyle = "rgb(150, 255, 150)";
+
+    canvasContext.fillStyle = "rgb(0, 0, 0)";
+    canvasContext.fillRect(0, 0, width, height);
+
+
     canvasContext.strokeStyle = curveColor;
     canvasContext.lineWidth = 3;
 
+    canvasContext.beginPath();
     canvasContext.moveTo(0, 0);
 
     var pixelsPerDb = (0.5 * height) / 40.0;
@@ -158,6 +169,8 @@ function drawCurve() {
     }
     canvasContext.stroke();
     
+    canvasContext.beginPath();
+    
     canvasContext.lineWidth = 1;
     
     canvasContext.strokeStyle = gridColor;
@@ -181,6 +194,7 @@ function drawCurve() {
 
     // Draw 0dB line.
     // canvasContext.strokeStyle = noteColor;
+    canvasContext.beginPath();
     canvasContext.moveTo(0, 0.5 * height);
     canvasContext.lineTo(width, 0.5 * height);
     canvasContext.stroke();
@@ -193,6 +207,31 @@ function drawCurve() {
     }
 }
 
+function stageGainHandler(event, ui) {
+  stageGain = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("stageGain-value");
+  info.innerHTML = "stageGain = " + stageGain;
+}
+
+function anchorFreqHandler(event, ui) {
+  anchorFreq = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("anchorFreq-value");
+  info.innerHTML = "anchorFreq = " + anchorFreq;
+}
+
+function stageRatioHandle(event, ui) {
+  filterD = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("stageRatio-value");
+  info.innerHTML = "stageRatio = " + filterD;
+}
+
+
 function init() {
     canvas = document.getElementById('canvasID');
     canvasContext = canvas.getContext('2d');
@@ -203,12 +242,16 @@ function init() {
 
     canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
     canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
-
-    var gain = 0.22 * 20;
-    var anchorFreq = 15000.0 / nyquist;
-    var filterD = 0.9 + 1.1;
-
-    calculateAllParams(gain, anchorFreq, filterD);
+    
+    
+    addSlider("stageGain");
+    addSlider("anchorFreq");
+    addSlider("stageRatio");
+    configureSlider("stageGain", stageGain, 0.0, 10.0, stageGainHandler);
+    configureSlider("anchorFreq", anchorFreq, 0.0, 1.0, anchorFreqHandler);
+    configureSlider("stageRatio", filterD, 1.0, 3.0, stageRatioHandle);
+        
+    calculateAllParams(stageGain, anchorFreq, filterD);
     
     drawCurve();
 }
