@@ -144,6 +144,7 @@ var g_queue = [
 // Audio stuff
 
 var context = 0;
+var compressor = 0;
 var pingBuffer = 0;
 var info = 0;
 
@@ -366,7 +367,7 @@ function playSound(impactType, velocity, x, y) {
     filter.connect(sendGain);
     filter.connect(mainGain);
     sendGain.connect(convolver);
-    mainGain.connect(context.destination);
+    mainGain.connect(compressor);
     
     // // Randomize pitch          
     var r = Math.random();
@@ -1224,8 +1225,18 @@ function initClient() {
 function initAudio() {
     // Audio init
     context = new webkitAudioContext();
+    
+    // Create compressor to sweeten overall mix
+    if (context.createDynamicsCompressor) {
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(context.destination);
+    } else {
+        // we don't really have a compressor, just connect to destination...
+        compressor = context.destination;
+    }
+
     convolver = context.createConvolver();
-    convolver.connect(context.destination);
+    convolver.connect(compressor);
 
     info = document.getElementById('info');
 
@@ -1787,6 +1798,23 @@ function setBarScale(t) {
   g_barScaling.localMatrix = g_math.matrix4.scaling([1, t, 1]);
 }
 
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
 
 function onrender(event) {
   g_clock += event.elapsedTime;
@@ -1834,11 +1862,15 @@ function onrender(event) {
   updateContext();
 }
 
+function doAnimation() {
+    g_client.render();
+    requestAnimationFrame(doAnimation);
+}
 
 function setRenderCallback() {
   g_client.setRenderCallback(onrender);
+  doAnimation();
 }
-
 
 function initPhysics() {
   g_physics = new pool.Physics();
