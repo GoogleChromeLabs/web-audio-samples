@@ -103,12 +103,13 @@ o3d.Renderer.renderClients = function() {
 };
 
 
+
 /**
  * Sets a timer to traverse the rendergraph every sixtieth of a second.
  */
 o3d.Renderer.installRenderInterval = function() {
-  o3d.Renderer.render_callback_interval_ = setInterval(
-      "o3d.Renderer.renderClients()", 1000.0 / 60.0);
+  // o3d.Renderer.render_callback_interval_ = setInterval(
+  //     "o3d.Renderer.renderClients()", 1000.0 / 60.0);
 };
 
 
