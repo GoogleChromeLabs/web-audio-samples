@@ -17,6 +17,7 @@
 <script>
     var context;
     var convolver;
+    var compressor;
     
     var pingFileName = "../sounds/hyper-reality/filter-noise-2.wav";
     var pingBuffer = 0;
@@ -55,7 +56,11 @@
           var isQuiet = (gain < 0.5);
           ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
           
-          var filter = context.createLowPass2Filter();
+          var hasBiquadFilter = context.createBiquadFilter;
+          
+          // Use biquad filter API if available.
+          var filter = hasBiquadFilter ? context.createBiquadFilter() : context.createLowPass2Filter();
+          
           var panner = context.createPanner();
           panner.panningModel = webkitAudioPannerNode.HRTF;
           
@@ -68,7 +73,7 @@
           ping.connect(filter);
           filter.connect(panner);
           panner.connect(dryGainNode);
-          dryGainNode.connect(context.destination);
+          dryGainNode.connect(compressor);
 
           panner.connect(wetGainNode);
           wetGainNode.connect(convolver);
@@ -86,8 +91,14 @@
 
           var sampleRate = 44100.0;
           var nyquist = sampleRate * 0.5;
-          filter.cutoff.value = v2 * nyquist;
-          filter.resonance.value = 10.0 /*5.0*/;
+
+          if (hasBiquadFilter) {
+              filter.frequency.value = v2 * nyquist;
+              filter.Q.value = 10.0; // this is actually resonance in dB
+          } else {
+              filter.cutoff.value = v2 * nyquist;
+              filter.resonance.value = 10.0 /*5.0*/;
+          }
 
           var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
           if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
@@ -144,8 +155,17 @@
 
       context = new webkitAudioContext();
       
+      if (context.createDynamicsCompressor) {
+          // Create dynamics compressor to sweeten the overall mix.
+          compressor = context.createDynamicsCompressor();
+          compressor.connect(context.destination);
+      } else {
+          // Compressor is not available on this implementation - bypass and simply point to destination.
+          compressor = context.destination;
+      }
+      
       convolver = context.createConvolver();
-      convolver.connect(context.destination);
+      convolver.connect(compressor);
 
       pingBuffer = 0;
       loadPing(pingFileName);
