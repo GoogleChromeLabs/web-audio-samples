@@ -60,6 +60,8 @@ var canvasHeight = 0;
 
 var context;
 var convolver;
+var compressor;
+var masterGainNode;
 
 var sampleRate = 44100.0;
 var nyquist = sampleRate * 0.5;
@@ -392,9 +394,17 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
     voice.buffer = buffer;
 
     // Connect to filter
-    var filter = context.createLowPass2Filter();
-    filter.cutoff.value = cutoff;
-    filter.resonance.value = resonance;
+    var hasBiquadFilter = context.createBiquadFilter;    
+    var filter = hasBiquadFilter ? context.createBiquadFilter() : context.createLowPass2Filter();
+
+    if (hasBiquadFilter) {
+        filter.frequency.value = cutoff;
+        filter.Q.value = resonance; // this is actually resonance in dB
+    } else {
+        filter.cutoff.value = cutoff;
+        filter.resonance.value = resonance;
+    }
+
     voice.connect(filter);
 
     // Optionally, connect to a panner
@@ -413,7 +423,7 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
     var dryGainNode = context.createGainNode();
     dryGainNode.gain.value = mainGain;
     finalNode.connect(dryGainNode);
-    dryGainNode.connect(context.destination);
+    dryGainNode.connect(compressor);
 
     // Connect to wet mix
     var wetGainNode = context.createGainNode();
@@ -503,8 +513,12 @@ function loadImpulseResponse(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-      convolver.buffer = context.createBuffer(request.response, false);
+    request.onload = function() {
+      try {
+        convolver.buffer = context.createBuffer(request.response, false);
+      } catch(e) {
+        alert('error decoding file data: ' + url);
+      }
     }
 
     request.send();
@@ -548,12 +562,29 @@ function finishLoading() {
 
 function init() {
     context = new webkitAudioContext();
+    
+    var audioBuffer = context.createBuffer(1, 1024, 44100.0);
+
+    // Create master gain control.
+    masterGainNode = context.createGainNode();
+    masterGainNode.gain.value = 0.7;
+    masterGainNode.connect(context.destination);
+    
+    // Create compressor to sweeten overall mix
+    if (context.createDynamicsCompressor) {
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(masterGainNode);
+    } else {
+        compressor = masterGainNode;
+    }
 
     // Create convolver for reverb
     convolver = context.createConvolver();
-    convolver.connect(context.destination);
+    convolver.connect(compressor);
+    
 
     loadImpulseResponse('impulse-responses/house-impulses/living-kitchen-leveled.wav');
+    // loadImpulseResponse('test.html');
 
     // Initialize drum kits
     var numKits = kitNames.length;
