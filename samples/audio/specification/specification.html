@@ -1922,7 +1922,7 @@ sourceNode.connect(filterNode);
 var context = 0;
 var compressor = 0;
 var reverb = 0;
-var chorus = 0;
+var delay = 0;
 var s1 = 0;
 var s2 = 0;
 
@@ -1946,7 +1946,7 @@ function setupRoutingGraph() {
     <span class="comment">// Convolver impulse response may be set here or later </span>
 
     <span class="comment">// Send2 effect </span>
-    chorus = context.createChorus();
+    delay = context.createDelayNode();
 
     <span class="comment">// Connect final compressor to final destination </span>
     compressor.connect(context.destination);
@@ -1957,7 +1957,7 @@ function setupRoutingGraph() {
     s1.connect(compressor);
     
     s2 = context.createGainNode();
-    chorus.connect(s2);
+    delay.connect(s2);
     s2.connect(compressor);
 
     <span class="comment">// Create a couple of sources </span>
@@ -1975,7 +1975,7 @@ function setupRoutingGraph() {
     source1.connect(g3_1);
     g1_1.connect(compressor);
     g2_1.connect(reverb);
-    g3_1.connect(chorus);
+    g3_1.connect(delay);
 
     <span class="comment">// Connect source2 </span>
     g1_2 = context.createGainNode();
@@ -1986,7 +1986,7 @@ function setupRoutingGraph() {
     source2.connect(g3_2);
     g1_2.connect(compressor);
     g2_2.connect(reverb);
-    g3_2.connect(chorus);
+    g3_2.connect(delay);
 
     <span class="comment">// We now have explicit control over all the volumes g1_1, g2_1, ..., s1, s2 </span>
     g2_1.gain.value = 0.2; <span class="comment"> // For example, set source1 reverb gain </span>
