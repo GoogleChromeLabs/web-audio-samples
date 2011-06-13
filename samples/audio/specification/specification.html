@@ -849,8 +849,9 @@
   <div id="AudioParam-section" class="section"> 
     <h2>4.5. The AudioParam Interface</h2> 
     <p> 
-      This interface controls an individual aspect of an <a href="#AudioNode-section"><code>AudioNode</code></a>'s functioning, such as volume.
-      
+      AudioParam is a parameter controlling an individual aspect of an <a href="#AudioNode-section"><code>AudioNode</code></a>'s functioning, such as volume.
+      The parameter can be set immediately to a particular value using the "value" attribute.  Additionally, value changes can be scheduled to happen at very precise times,
+      for envelopes, volume fades, LFOs, filter sweeps, grain windows, etc.  In this way, arbitrary timeline-based automation curves can be set on any AudioParam.
       
     </p> 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -868,10 +869,20 @@
         
         readonly attribute short units;
 
-        <span class="comment">// An advanced implementation could include automation: </span>         
-        <span class="comment">// Can be piecewise linear, or sample-accurate buffer for envelopes, </span>         
-        <span class="comment">// volume fade-outs, LFOs, grain windows, etc. </span>         
-        AudioCurve automation;
+        <span class="comment">// Parameter automation. </span>
+        void setValueAtTime(in float value, in float time);
+        void linearRampToValueAtTime(in float value, in float time);
+        void exponentialRampToValueAtTime(in float value, in float time);
+
+        <span class="comment">// Exponentially approach the target value with a rate having the given time constant. </span>
+        void setTargetValueAtTime(in float targetValue, in float time, in float timeConstant);
+
+        <span class="comment">// Sets an array of arbitrary parameter values starting at time for the given duration. </span>
+        <span class="comment">// The number of values will be scaled to fit into the desired duration. </span>
+        void setValueCurveAtTime(in Float32Array values, in float time, in float duration);
+        
+        <span class="comment">// Cancels all scheduled parameter changes with times greater than or equal to startTime. </span>
+        void cancelScheduledValues(in float startTime);
 
     }
     </code></pre></div></div> 
@@ -886,17 +897,66 @@
     <dl><dt id="dfn-defaultValue"><code>defaultValue</code></dt><dd><p>Initial value for the value attribute</p></dd></dl> 
     <dl><dt id="dfn-name"><code>name</code></dt><dd><p>The name of the parameter.</p></dd></dl> 
     <dl><dt id="dfn-units"><code>units</code></dt><dd><p>Represents the type of value (seconds, decibels, cents, etc.).</p></dd></dl> 
-    <dl><dt id="dfn-automation"><code>automation</code></dt><dd><p>An AudioCurve which can automate the parameter value over time.</p></dd></dl> 
     </div> 
 
 
+      <div id="methodsandparams-AudioParam" class="section"> 
+      <h3>4.5.2. Methods and Parameters</h3> 
+      <dl><dt id="dfn-setValueAtTime">The <code>setValueAtTime</code> method</dt>
+      <dd>
+      <p>Schedules a parameter value change at the given time (relative to the AudioContext .currentTime).</p> 
+      <p>The <dfn id="dfn-value">value</dfn> parameter is the value the parameter will change to at the given time.</p> 
+      <p>The <dfn id="dfn-time">time</dfn> parameter is the time (relative to the AudioContext .currentTime).</p>
+      </dd></dl> 
+
+      <dl><dt id="dfn-linearRampToValueAtTime">The <code>linearRampToValueAtTime</code> method</dt>
+      <dd>
+      <p>Schedules a linear continuous change in parameter value from the previous scheduled parameter value to the given value.</p> 
+      <p>The <dfn id="dfn-value">value</dfn> parameter is the value the parameter will linearly ramp to at the given time.</p> 
+      <p>The <dfn id="dfn-time">time</dfn> parameter is the time (relative to the AudioContext .currentTime).</p>
+      </dd></dl> 
+
+      <dl><dt id="dfn-exponentialRampToValueAtTime">The <code>exponentialRampToValueAtTime</code> method</dt>
+      <dd>
+      <p>Schedules an exponential continuous change in parameter value from the previous scheduled parameter value to the given value.
+      Parameters representing filter frequencies and playback rate are best changed exponentially because of the way humans perceive sound.
+      </p> 
+      <p>The <dfn id="dfn-value">value</dfn> parameter is the value the parameter will exponentially ramp to at the given time.</p> 
+      <p>The <dfn id="dfn-time">time</dfn> parameter is the time (relative to the AudioContext .currentTime).</p>
+      </dd></dl> 
+
+      <dl><dt id="dfn-setTargetValueAtTime">The <code>setTargetValueAtTime</code> method</dt>
+      <dd>
+      <p>Start exponentially approaching the target value at the given time with a rate having the given time constant.
+      Among other uses, this is useful for implementing the "decay" and "release" portions of an ADSR envelope.
+      Please note that the parameter value does not immediately change to the target value at the given time, but instead gradually changes to the target value.</p> 
+      <p>The <dfn id="dfn-targetValue">targetValue</dfn> parameter is the value the parameter will *start* changing to at the given time.</p> 
+      <p>The <dfn id="dfn-time">time</dfn> parameter is the time (relative to the AudioContext .currentTime).</p>
+      <p>The <dfn id="dfn-timeConstant">timeConstant</dfn> parameter is the time-constant value of first-order filter (exponential) approach to the target value.
+      The larger this value is, the slower the transition will be.</p>
+      </dd></dl>
+
+      <dl><dt id="dfn-setValueCurveAtTime">The <code>setValueCurveAtTime</code> method</dt>
+      <dd>
+      <p>
+      Sets an array of arbitrary parameter values starting at the given time for the given duration.
+      The number of values will be scaled to fit into the desired duration.
+      </p> 
+      <p>The <dfn id="dfn-values">values</dfn> parameter is a Float32Array representing a parameter value curve.
+      These values will apply starting at the given time and lasting for the given duration.
+      </p> 
+      <p>The <dfn id="dfn-time">time</dfn> parameter is the starting time for the curve values (relative to the AudioContext .currentTime).</p>
+      <p>The <dfn id="dfn-duration">duration</dfn> parameter is the time-constant value of first-order filter (exponential) approach to the target value.</p>
+      </dd></dl> 
+
+      <dl><dt id="dfn-cancelScheduledValues">The <code>cancelScheduledValues</code> method</dt>
+      <dd>
+      <p>Cancels all scheduled parameter changes with times greater than or equal to startTime.</p> 
+      <p>The <dfn id="dfn-startTime">startTime</dfn> parameter is the starting time at and after which any previously scheduled parameter changes will be cancelled.</p>
+      </dd></dl> 
+
+    </div> 
   </div> 
-
-
-
-
-
-
 
 
   <div id="AudioGain-section" class="section"> 
