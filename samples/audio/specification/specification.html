@@ -599,8 +599,7 @@
             RealtimeAnalyserNode createAnalyser();
             AudioGainNode createGainNode();
             DelayNode createDelayNode();
-            LowPass2FilterNode createLowPass2Filter();
-            HighPass2FilterNode createHighPass2Filter();
+            BiquadFilterNode createBiquadFilter();
             AudioPannerNode createPanner();
             ConvolverNode createConvolver();
             AudioChannelSplitter createChannelSplitter();
@@ -692,14 +691,10 @@
         <p>Creates a <a href="#DelayNode-section"><code>DelayNode</code></a> representing a variable delay line.  The initial default delay time will be 0 seconds.</p> 
         </dd>
 
-        <dl><dt id="dfn-createLowPass2Filter">The <code>createLowPass2Filter</code> method</dt> 
+        <dl><dt id="dfn-createBiquadFilter">The <code>createBiquadFilter</code> method</dt> 
         <dd>
-        <p>Creates a <a href="#LowPass2FilterNode-section"><code>LowPass2FilterNode</code></a> representing a two-pole resonant low-pass filter.</p> 
-        </dd>
-
-        <dl><dt id="dfn-createHighPass2Filter">The <code>createHighPass2Filter</code> method</dt> 
-        <dd>
-        <p>Creates a <a href="#HighPass2FilterNode-section"><code>HighPass2FilterNode</code></a> representing a two-pole resonant high-pass filter.</p> 
+        <p>Creates a <a href="#BiquadFilterNode-section"><code>BiquadFilterNode</code></a> representing a second order filter which can be configured
+        as one of several common filter types.</p> 
         </dd>
 
         <dl><dt id="dfn-createPanner">The <code>createPanner</code> method</dt> 
