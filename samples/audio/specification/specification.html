@@ -1305,7 +1305,7 @@
     interface <dfn id="dfn-AudioProcessingEvent">AudioProcessingEvent</dfn> : Event {
 
         JavaScriptAudioNode node;
-        float playbackTime;
+        readonly attribute float playbackTime;
         readonly attribute sequence< AudioBuffer> inputBuffer;
         readonly attribute sequence< AudioBuffer> outputBuffer; 
 
