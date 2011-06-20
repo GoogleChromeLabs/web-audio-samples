@@ -1179,21 +1179,19 @@
 
   <dl><dt id="dfn-noteGrainOn">The <code>noteGrainOn</code> method</dt> 
   <dd>
-  <p>Schedules a portion of a sound to playback at an exact time.  A "grain window" will be applied to the portion of the sound within the buffer,
-    smoothly fading in and out.</p> 
+  <p>Schedules a portion of a sound to playback at an exact time.</p> 
   <p>The <dfn id="dfn-when">when</dfn> parameter describes at what time (in seconds) the sound should start playing.
   This time is relative to the <b>currentTime</b> attribute of the AudioContext.  If 0 is passed in for this value or if the
   value is less than <b>currentTime</b>, then the sound will start playing immediately.
   </p> 
 
-  <p>The <dfn id="dfn-grainOffset">grainOffset</dfn> parameter describes the offset in the buffer (in seconds) for the portion to be played.  </p> 
+  <p>The <dfn id="dfn-grainOffset">grainOffset</dfn> parameter describes the offset in the buffer (in seconds) for the portion to be played.</p> 
   <p>The <dfn id="dfn-grainDuration">grainDuration</dfn> parameter describes the duration of the portion (in seconds) to be played.  </p>
   </dd>
 
   <dl><dt id="dfn-noteOff">The <code>noteOff</code> method</dt> 
   <dd>
-  <p>Schedules a sound to stop playback at an exact time.  In an advanced implementation, the sound may not stop playing back immediately but
-    would instead enter the "release" portion of its envelope.</p> 
+  <p>Schedules a sound to stop playback at an exact time.</p> 
   <p>The <dfn id="dfn-when">when</dfn> parameter describes at what time (in seconds) the sound should stop playing.
   This time is relative to the <b>currentTime</b> attribute of the AudioContext.  If 0 is passed in for this value or if the
   value is less than <b>currentTime</b>, then the sound will stop playing immediately.
