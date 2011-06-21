@@ -55,6 +55,7 @@ window.onload = init;
 
 var context;
 var convolver;
+var compressor;
 
 var buffer = 0;
 var bufferDuration = 58.0;
@@ -188,7 +189,7 @@ function scheduleGrain() {
     
     // Connect dry mix
     panner.connect(dryGainNode);
-    dryGainNode.connect(context.destination);
+    dryGainNode.connect(compressor);
     
     // Connect wet mix
     panner.connect(wetGainNode);
@@ -222,9 +223,18 @@ function schedule() {
 function initAudio() {
     context = new webkitAudioContext();
     
+    if (context.createDynamicsCompressor) {
+        // Create dynamics compressor to sweeten the overall mix.
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(context.destination);
+    } else {
+        // Compressor is not available on this implementation - bypass and simply point to destination.
+        compressor = context.destination;
+    }
+    
     // Create a convolver for ambience
     convolver = context.createConvolver();
-    convolver.connect(context.destination);
+    convolver.connect(compressor);
 
     load();
 }
