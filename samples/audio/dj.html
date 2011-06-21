@@ -223,10 +223,28 @@ function loadBufferForSource(source, url) {
     var roundedUpDeltaTime = (60.0 / tempo) * roundedUpDeltaBeat;
     var time = anchorTime + roundedUpDeltaTime;
     
-    source.noteOff();
+    // Stop the current loop (when it gets to the next 4-beat boundary).
+    source.noteOff(time);
+    
+    // Create a new source.
+    var newSource = context.createBufferSource();
+    if (source == source1)
+        newSource.connect(source1Gain);
+    else if (source == source2)
+        newSource.connect(source2Gain);
 
-    source.buffer = context.createBuffer(request.response, false);
-    source.noteOn(time);
+    // Assign the buffer to the new source.
+    newSource.buffer = context.createBuffer(request.response, false);
+
+    // Start playing exactly on the next 4-beat boundary with looping.
+    newSource.looping = true;
+    newSource.noteOn(time);
+    
+    // This new source will replace the existing source.
+    if (source == source1)
+        source1 = newSource;
+    else if (source == source2)
+        source2 = newSource;
   }
 
   request.send();  
