@@ -57,8 +57,11 @@ window.onload = init;
 var context;
 var source1 = 0;
 var source2 = 0;
+var source1Gain = 0;
+var source2Gain = 0;
 var buffer;
 var convolver;
+var compressor;
 var panner;
 var wetGainNode1;
 var wetGainNode2;
@@ -115,8 +118,8 @@ function crossfadeHandler(event, ui) {
   var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
   var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
   
-  source1.gain.value = gain1;
-  source2.gain.value = gain2;
+  source1Gain.gain.value = gain1;
+  source2Gain.gain.value = gain2;
   
   var info = document.getElementById("crossfade-value");
   info.innerHTML = "crossfade = " + x;
@@ -152,6 +155,7 @@ function rightFilterHandler(event, ui) {
 
 function leftRhythmEffectHandler(event, ui) {
   var value = ui.value;
+
   var info = document.getElementById("leftRhythmEffect-value");
   info.innerHTML = "leftRhythmEffect = " + 100.0*value + "\%";
   
@@ -232,9 +236,22 @@ function init() {
     // Initialize audio
     context = new webkitAudioContext();
     
+    if (context.createDynamicsCompressor) {
+        // Create dynamics compressor to sweeten the overall mix.
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(context.destination);
+    } else {
+        // Compressor is not available on this implementation - bypass and simply point to destination.
+        compressor = context.destination;
+    }
+       
     // Create sources
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();
+    
+    // Create gain nodes to control the volume for the two sources.
+    source1Gain = context.createGainNode();
+    source2Gain = context.createGainNode();
 
     // Create gain nodes to control the wet (effect) mix levels for left/right
     wetGainNode1 = context.createGainNode();
@@ -253,24 +270,26 @@ function init() {
     // Create a convolver for a rhythm effect
     convolver = context.createConvolver();
 
-    // Connect sources to filter
-    source1.connect(lowFilter1);
-    source2.connect(lowFilter2);
+    // Connect sources to gain and filter nodes.
+    source1.connect(source1Gain);
+    source2.connect(source2Gain);
+    source1Gain.connect(lowFilter1);
+    source2Gain.connect(lowFilter2);
 
     // Connect dry mix
-    lowFilter1.connect(context.destination);
-    lowFilter2.connect(context.destination);
+    lowFilter1.connect(compressor);
+    lowFilter2.connect(compressor);
 
     // Connect wet (effect) mix
     lowFilter1.connect(wetGainNode1);
     wetGainNode1.connect(convolver);
     lowFilter2.connect(wetGainNode2);    
     wetGainNode2.connect(convolver);
-    convolver.connect(context.destination);
+    convolver.connect(compressor);
 
     // Start out with cross-fader at center position (equal-power crossfader)
-    source1.gain.value = 0.707;
-    source2.gain.value = 0.707;
+    source1Gain.gain.value = 0.707;
+    source2Gain.gain.value = 0.707;
 
     source1.looping = true;
     source2.looping = true;
