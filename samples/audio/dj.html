@@ -217,6 +217,11 @@ function loadBufferForSource(source, url) {
   request.onload = function() {
     // Start playing the new buffer at exactly the next 4-beat boundary
     var currentTime = context.currentTime;
+
+    // Add 120ms slop since we don't want to schedule too soon into the future.
+    // This will potentially cause us to wait 4 more beats, if we're almost exactly at the next 4-beat transition.
+    currentTime += 0.120;
+
     var delta = currentTime - anchorTime;
     var deltaBeat = (tempo / 60.0) * delta;
     var roundedUpDeltaBeat = 4.0 + 4.0 * Math.floor(deltaBeat / 4.0);
