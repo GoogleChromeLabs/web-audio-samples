@@ -498,13 +498,6 @@
     <li>A <a class="dfnref" href="#dfn-DynamicsProcessorNode">DynamicsProcessorNode</a> interface, an AudioNode for dynamic-shaping (compressor / expander) effects.
     </li> 
 
-      </ul> 
-      
-      Additionally, a more complex implementation can have the following:
-      
-      <ul> 
-
-
 
     <li>A <a class="dfnref" href="#dfn-WaveShaperNode">WaveShaperNode</a> interface, an AudioNode which applies a non-linear waveshaping effect for distortion and other more subtle
     warming effects.
@@ -566,8 +559,8 @@
           This interface represents a set of <a href="#AudioNode-section"><code>AudioNode</code></a> objects and their connections.
             It allows for arbitrary routing of signals to the <a href="#AudioDestinationNode-section"><code>AudioDestinationNode</code></a>
            (what the user ultimately hears).
-          Nodes are created from the context and are then <a href="#ModularRouting-section">connected</a> together.  In a basic implementation, only a single AudioContext
-          will be allowed per document.  An AudioContext is constructed as follows:
+          Nodes are created from the context and are then <a href="#ModularRouting-section">connected</a> together.  In most use cases, only a single AudioContext
+          is used per document.  An AudioContext is constructed as follows:
         </p> 
 
         <pre>
@@ -575,7 +568,7 @@
         </pre>
 
         <pre>
-        // For the prototype implementation in WebKit this will be:
+        // For implementation WebKit this will be:
         var context = new webkitAudioContext();
         </pre>
 
@@ -1034,7 +1027,7 @@
     
     <p>
      which delays the incoming audio signal by a certain amount.  The default amount is 0.0 seconds (no delay).
-     When the delay time is changed, the implementation must make the transition smoothly,without introducing noticeable clicks or glitches to the audio stream.
+     When the delay time is changed, the implementation must make the transition smoothly, without introducing noticeable clicks or glitches to the audio stream.
       
     </p> 
     <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
@@ -2095,7 +2088,6 @@ function setupRoutingGraph() {
 
   <p>
   It's important to define the channel ordering (and define some abbreviations) for different layouts. 
-  A simple implementation could consider only handling mono and stereo audio sources.
   </p>
 
   <p>
@@ -2296,7 +2288,8 @@ The following algorithms can be implemented:
   <br>
 <li> <a href="http://en.wikipedia.org/wiki/Head-related_transfer_function">HRTF</a> panning (stereo only)
   <p>
-    This requires a set of HRTF impulse responses recorded at a variety of azimuths and elevations.  There are a small number of open/free impulse responses available.  The implementation requires a highly optimized convolution function.  It is somewhat more costly than "equal-power", but provides a more spatialized sound.
+    This requires a set of HRTF impulse responses recorded at a variety of azimuths and elevations.  There are a small number of open/free impulse responses available.
+    The implementation requires a highly optimized convolution function.  It is somewhat more costly than "equal-power", but provides a more spatialized sound.
   </p>
   <img src="HRTF_panner.png">
 
@@ -2306,11 +2299,6 @@ The following algorithms can be implemented:
       the channels can be passed unchanged.
     </p>
 
-    <li> Matrix Mix
-      <p>
-        This is a lower-level approach to panning a source, and would ignore the source/listener positions.  Instead, an M x N "gain matrix" is used to explicitly set
-        the mix levels from an N channel source to a M channel output.  This would be an advanced feature, not necessary in an initial implementation.
-      </p>
 </ul>
 
 
@@ -2744,7 +2732,7 @@ naturally as one moves through the scene.  Even going underwater, low-pass filte
 <br><br>
 <p>
 <a href="http://www.box2d.org/">Box2D</a> is an interesting open-source library for 2D game physics.  It has various implementations, including one
-based on Canvas 2D.  Using a prototype implementation, dynamic sound effects have been added for each of the object collisions, taking into account the velocities vectors and
+based on Canvas 2D.  A demo has been created with dynamic sound effects for each of the object collisions, taking into account the velocities vectors and
 positions to spatialize the sound events, and modulate audio effect parameters such as filter cutoff.
 </p>
 
