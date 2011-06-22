@@ -82,6 +82,9 @@ var grainSpacing = 0.5 * kGrainSize;
 var isSourceLoaded = false;
 var isImpulseResponseLoaded = false;
 
+var applyGrainWindow = false;
+var grainWindow;
+
 function speedHandler(event, ui) {
     var param = parseFloat(ui.value);
 
@@ -146,7 +149,7 @@ function scheduleGrain() {
         
     var source = context.createBufferSource();
     source.buffer = buffer;
-
+    
     var r = Math.random();
     var r2 = Math.random();
     var r3 = Math.random();
@@ -159,7 +162,16 @@ function scheduleGrain() {
 
     // Spatialization
     var panner = context.createPanner();
-    source.connect(panner);
+
+    var grainWindowNode;
+    if (applyGrainWindow) {
+        // Create a gain node with a special "grain window" shaping curve.
+        grainWindowNode = context.createGainNode();
+        source.connect(grainWindowNode);
+        grainWindowNode.connect(panner);
+    } else {
+        source.connect(panner);
+    }    
 
     var distance = 2.0;
     var azimuth = Math.PI * panningRandomization * r3;
@@ -201,6 +213,13 @@ function scheduleGrain() {
     // Schedule sound grain
     source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
 
+    // Schedule the grain window.
+    // This applies a time-varying gain change for smooth fade-in / fade-out.
+    if (applyGrainWindow) {
+        grainWindowNode.gain.value = 0.0; // make default value 0
+        grainWindowNode.gain.setValueCurveAtTime(grainWindow, realTime, grainDuration + 0.001);
+    }
+
     var lastGrainTime = grainTime;
     
     // Update time params
@@ -222,7 +241,26 @@ function schedule() {
 
 function initAudio() {
     context = new webkitAudioContext();
-    
+
+    // This check is a hack and will only be needed temporarily.
+    // The reason is that the noteGrainOn() method used to (in older builds) apply a hard-coded amplitude window.
+    // The newer and more flexible approach is that noteGrainOn() simply plays a portion of an AudioBuffer,
+    // without any gain scaling.  Then we can apply a gain scaling (which is desired in this example)
+    // by using an AudioGainNode.
+    // We check the existence of the decodeAudioData() only because this is the time when the change in noteGrainOn()
+    // behavior happened -- yucky, but only temporary since it can be removed in a few weeks when all builds have the new behavior.
+    if (context.decodeAudioData) {
+        applyGrainWindow = true;
+        // Create a granular synthesis "grain window"
+        // Each small audio snippet will have a smooth fade-in / fade-out according to this shape.
+        var grainWindowLength = 16384;
+        grainWindow = new Float32Array(grainWindowLength);
+        for (var i = 0; i < grainWindowLength; ++i)
+            grainWindow[i] = Math.sin(Math.PI * i / grainWindowLength);
+    } else {
+        applyGrainWindow = false;
+    }
+
     if (context.createDynamicsCompressor) {
         // Create dynamics compressor to sweeten the overall mix.
         compressor = context.createDynamicsCompressor();
