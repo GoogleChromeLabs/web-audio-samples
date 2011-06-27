@@ -67,6 +67,7 @@ var wetGainNode1;
 var wetGainNode2;
 var lowFilter1;
 var lowFilter2;
+var preCompressorGain;
 
 var bufferLoader1 = 0;
 var bufferLoader2 = 0;
@@ -275,6 +276,12 @@ function init() {
     // Create gain nodes to control the volume for the two sources.
     source1Gain = context.createGainNode();
     source2Gain = context.createGainNode();
+    
+    // Create pre-compressor gain node.
+    preCompressorGain = context.createGainNode();
+    preCompressorGain.gain.value = 0.8;
+    
+    preCompressorGain.connect(compressor);
 
     // Create gain nodes to control the wet (effect) mix levels for left/right
     wetGainNode1 = context.createGainNode();
@@ -300,15 +307,15 @@ function init() {
     source2Gain.connect(lowFilter2);
 
     // Connect dry mix
-    lowFilter1.connect(compressor);
-    lowFilter2.connect(compressor);
+    lowFilter1.connect(preCompressorGain);
+    lowFilter2.connect(preCompressorGain);
 
     // Connect wet (effect) mix
     lowFilter1.connect(wetGainNode1);
     wetGainNode1.connect(convolver);
     lowFilter2.connect(wetGainNode2);    
     wetGainNode2.connect(convolver);
-    convolver.connect(compressor);
+    convolver.connect(preCompressorGain);
 
     // Start out with cross-fader at center position (equal-power crossfader)
     source1Gain.gain.value = 0.707;
@@ -365,6 +372,27 @@ break28
 break29
 </div>
 
+
+
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/coolloop7.wav'); highlightElement(this);">
+Cool Loop 7
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/ominous.wav'); highlightElement(this);">
+Ominous
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source1, 'sounds/drum-samples/loops/organ-echo-chords.wav'); highlightElement(this);">
+Organ Echo Chords
+</div>
+
+
+
+
+
+
+
 </div>
 
 <div style="position:absolute; top:0; left:400px; width:200px;">
@@ -388,6 +416,21 @@ break28
 <div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/break29.wav'); highlightElement(this);">
 break29
 </div>
+
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/coolloop7.wav'); highlightElement(this);">
+Cool Loop 7
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/ominous.wav'); highlightElement(this);">
+Ominous
+</div>
+
+<div class='bigList' onmousedown="loadBufferForSource(source2, 'sounds/drum-samples/loops/organ-echo-chords.wav'); highlightElement(this);">
+Organ Echo Chords
+</div>
+
+
 
 </div>
 
