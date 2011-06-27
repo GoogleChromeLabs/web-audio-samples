@@ -68,6 +68,7 @@ var wetGainNode2;
 var lowFilter1;
 var lowFilter2;
 var preCompressorGain;
+var postCompressorGain;
 
 var bufferLoader1 = 0;
 var bufferLoader2 = 0;
@@ -260,13 +261,20 @@ function init() {
     // Initialize audio
     context = new webkitAudioContext();
     
+
+    // Create post-compressor gain node.
+    postCompressorGain = context.createGainNode();
+    postCompressorGain.gain.value = 1.4;
+
+    postCompressorGain.connect(context.destination);
+
     if (context.createDynamicsCompressor) {
         // Create dynamics compressor to sweeten the overall mix.
         compressor = context.createDynamicsCompressor();
-        compressor.connect(context.destination);
+        compressor.connect(postCompressorGain);
     } else {
         // Compressor is not available on this implementation - bypass and simply point to destination.
-        compressor = context.destination;
+        compressor = postCompressorGain;
     }
        
     // Create sources
@@ -279,7 +287,8 @@ function init() {
     
     // Create pre-compressor gain node.
     preCompressorGain = context.createGainNode();
-    preCompressorGain.gain.value = 0.8;
+    preCompressorGain.gain.value = 0.6;
+    
     
     preCompressorGain.connect(compressor);
 
