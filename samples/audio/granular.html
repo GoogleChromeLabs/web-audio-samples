@@ -216,8 +216,9 @@ function scheduleGrain() {
     // Schedule the grain window.
     // This applies a time-varying gain change for smooth fade-in / fade-out.
     if (applyGrainWindow) {
+        var windowDuration = grainDuration / pitchRate;
         grainWindowNode.gain.value = 0.0; // make default value 0
-        grainWindowNode.gain.setValueCurveAtTime(grainWindow, realTime, grainDuration + 0.001);
+        grainWindowNode.gain.setValueCurveAtTime(grainWindow, realTime, windowDuration);
     }
 
     var lastGrainTime = grainTime;
