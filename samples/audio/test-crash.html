@@ -51,7 +51,7 @@ Title
 
 // Events
 // init() once the page has finished loading.
-window.onload = init;
+// window.onload = init;
 
 
 new webkitAudioContext();
@@ -65,7 +65,7 @@ function heapCorrupt() {
           window._hca.push(s.substr(s.length - 1) + 'B');
   for (var i = 0; i < window._hca.length; i += 2)
       delete window._hca[i];
-  try { gc(); } catch(e) {};
+  try { gc(); } catch(e) {};  
 }
 
 function init() {
