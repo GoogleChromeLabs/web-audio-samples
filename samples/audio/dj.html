@@ -194,6 +194,8 @@ function finishLoad() {
   
   source1.noteOn(anchorTime);
   source2.noteOn(anchorTime);
+
+  draw();
 }
 
 function setReverbImpulseResponse(url) {
@@ -398,8 +400,6 @@ function init() {
 
     bufferLoader1.load();
     bufferLoader2.load();
-    
-    draw();
 }
 
 </script>
