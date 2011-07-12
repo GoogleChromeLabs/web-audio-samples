@@ -74,6 +74,7 @@ var bufferLoader1 = 0;
 var bufferLoader2 = 0;
 var loadCount = 0;
 var tempo = 120.0;  // hardcoded for now
+var anchorTime = 0;
 
 function highlightElement(object) {
   if (hilightedElement) hilightedElement.style.backgroundColor = "white";
@@ -257,6 +258,61 @@ function loadBufferForSource(source, url) {
   request.send();  
 }
 
+
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
+function draw() {
+    var canvas = document.getElementById("loop");
+    var ctx = canvas.getContext('2d');
+
+    var width = canvas.width;
+    var height = canvas.height;
+
+    // Draw background.
+
+    var backgroundColor = "rgb(60,40,40)";
+    var loopColor = "rgb(200,150,150)";
+
+
+    // ctx.fillStyle = backgroundColor;
+    ctx.clearRect(0,0, width, height);
+
+    // Draw body of knob.
+    ctx.fillStyle = loopColor;
+    var knobRadius = 0.95 * height / 2;
+
+    // Calculate 4/4 beat position.
+    var time = context.currentTime - anchorTime;
+    var beat = (tempo / 60.0) * time;
+    var roundedBeat = 4.0 * Math.floor(beat / 4.0);
+    var wrappedBeat = beat - roundedBeat;
+    var angle = (wrappedBeat/4) * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height / 2);
+    ctx.arc(width / 2, height / 2 , knobRadius, 0, angle, false);
+    ctx.fill();
+
+    window.requestAnimationFrame(draw);
+}
+
 function init() {
     // Initialize audio
     context = new webkitAudioContext();
@@ -342,12 +398,17 @@ function init() {
 
     bufferLoader1.load();
     bufferLoader2.load();
+    
+    draw();
 }
 
 </script>
 </head>
 
 <body>
+
+<canvas id="loop" width="50" height="50"">
+</canvas>
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
