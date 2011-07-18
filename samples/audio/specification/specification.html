@@ -202,6 +202,9 @@
               <li><a href="#BiquadFilterNode-section">
               4.21. The BiquadFilterNode Interface</a></li>
 
+              <li><a href="#WaveShaperNode-section">
+              4.22. The WaveShaperNode Interface</a></li>
+
           </ul>
 
           </li>
@@ -340,10 +343,7 @@
           <li> Dynamics compression for overall control and sweetening of the mix </li>
           <li> Efficient <a href="#RealtimeAnalysis-section">real-time time-domain and frequency analysis / music visualizer support</a></li>
           <li> Efficient biquad filters for lowpass, highpass, and other common filters. </li>
-      </ul>
 
-      In addition these features can be supported:
-      <ul>
           <li> A Waveshaping effect for distortion and other non-linear effects</li>
       </ul>
       
@@ -1801,6 +1801,53 @@
     </code></pre></div></div> 
 
   </div> 
+
+
+  <div id="WaveShaperNode-section" class="section"> 
+
+    <h2>4.22. The WaveShaperNode Interface</h2> 
+    <p> 
+      WaveShaperNode is an AudioNode processor implementing non-linear distortion effects.
+    </p>
+    
+    <p>
+    Non-linear waveshaping distortion is commonly used for both subtle non-linear warming, or more obvious distortion effects.  Arbitrary non-linear shaping curves
+    may be specified.
+    </p>
+    
+    <pre>
+    numberOfInputs  : 1
+    numberOfOutputs : 1
+    </pre>
+    
+    <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code"> 
+
+    interface <dfn id="dfn-WaveShaperNode">WaveShaperNode</dfn> : AudioNode {
+
+        attribute Float32Array curve;
+
+    }
+    </code></pre></div></div> 
+
+
+    <div id="attributes-ConvolverNode" class="section"> 
+    <h3>4.22.1. Attributes</h3> 
+    <dl><dt id="dfn-curve"><code>curve</code></dt><dd><p>The shaping curve used for the waveshaping effect.  The input signal is nominally within
+    the range -1 -> +1.  Each input sample within this range will index into the shaping curve with a signal level of
+     zero corresponding to the center value of the curve array.  Any sample value less than -1 will correspond to the first value in the curve array.
+     Any sample value less greater than +1 will correspond to the last value in the curve array.
+      </p></dd></dl> 
+
+    </div> 
+
+
+
+
+  </div> 
+
+
+
+
 
     <div id="AudioElementIntegration-section" class="section"> 
     <h2>5. Integration with the <code>audio</code> and <code>video</code> elements</h2> 
