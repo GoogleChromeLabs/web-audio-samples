@@ -19,8 +19,13 @@ var context;
 var bufferLoader;
 
 function init() {
-    context = new webkitAudioContext();
-
+    try {
+        context = new webkitAudioContext();
+    }
+    catch(e) {
+        alert("Web Audio API is not supported in this browser");
+    }
+    
     // Start loading the drum kit.
     bufferLoader = new BufferLoader(
         context,

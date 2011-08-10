@@ -34,7 +34,7 @@ var context = new webkitAudioContext();
 function playSound() {
     var source = context.createBufferSource();  // creates a sound source
     source.buffer = dogBarkingBuffer;           // tell the source which sound to play
-    source.connect(context.destination);        // connect the source to the context's destination (the speaker)
+    source.connect(context.destination);        // connect the source to the context's destination (the speakers)
     source.noteOn(0);                           // play the source now
 }
 
