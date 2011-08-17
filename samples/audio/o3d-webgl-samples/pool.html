@@ -388,6 +388,7 @@ function playSound(impactType, velocity, x, y) {
     var nyquist = sampleRate * 0.5;
 
     if (hasBiquadFilter) {
+        filter.type = 0; // lowpass
         filter.frequency.value = v2 * nyquist;
         filter.Q.value = 0.0; // this is actually resonance in dB
     } else {
