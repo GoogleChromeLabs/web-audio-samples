@@ -1,3 +1,19 @@
+function getElementCoordinates(element, event) {
+    var c = getAbsolutePosition(element);
+    c.x = event.x - c.x;
+    c.y = event.y - c.y;
+    
+    var position = c;
+    
+    // This isn't the best, should abstract better.
+    if (isNaN(c.y)) {
+        var eventInfo = {event:event, element:element};
+        position = getRelativeCoordinates(eventInfo);
+    }    
+    
+    return position;
+}
+
 function getAbsolutePosition(element) {
   var r = { x: element.offsetLeft, y: element.offsetTop };
   if (element.offsetParent) {

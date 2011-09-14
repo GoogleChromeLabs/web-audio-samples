@@ -36,7 +36,8 @@ var UNITS = {
     "seconds": 3,
     "indexed": 4,
     "percent": 5,
-    "generic": 6,
+    "bpm": 6,
+    "generic": 7,
 };
 
 function KnobView(name, value, minValue, maxValue, units, precision, useLogScale, onchange) {
@@ -73,11 +74,16 @@ KnobView.prototype.attach = function() {
     var view = this;
     canvas.addEventListener("mousedown", 
         function(event) {
-            var eventInfo = {event: event, element:view.canvas};
-            var position = getRelativeCoordinates(eventInfo);
+            // var eventInfo = {event: event, element:view.canvas};
+            // var position = getRelativeCoordinates(eventInfo);
+
+            var position = getElementCoordinates(view, event);
+
             currentView = view;
             view.isDragging = true;
             view.startPosition = position;
+            view.startPreValue = view.valueToPre(view.value);
+            
             view.mouseDown(position);
         },
         true
@@ -87,17 +93,19 @@ KnobView.prototype.attach = function() {
     document.addEventListener("mousemove", 
         function(event) {
             if (currentView && currentView == view) {
-                var c = getAbsolutePosition(currentView.canvas);
-                c.x = event.x - c.x;
-                c.y = event.y - c.y;
-                
-                var position = c;
-                
-                // This isn't the best, should abstract better.
-                if (isNaN(c.y)) {
-                    var eventInfo = {event: event, element:currentView.canvas};
-                    position = getRelativeCoordinates(eventInfo);
-                }
+                var position = getElementCoordinates(currentView.canvas, event);
+
+                // var c = getAbsolutePosition(currentView.canvas);
+                // c.x = event.x - c.x;
+                // c.y = event.y - c.y;
+                // 
+                // var position = c;
+                // 
+                // // This isn't the best, should abstract better.
+                // if (isNaN(c.y)) {
+                //     var eventInfo = {event: event, element:currentView.canvas};
+                //     position = getRelativeCoordinates(eventInfo);
+                // }
 
                 currentView.mouseMove(position);
             }
@@ -108,8 +116,12 @@ KnobView.prototype.attach = function() {
     document.addEventListener("mouseup",
         function(event) {
             if (currentView && currentView == view) {
-                var eventInfo = {event: event, element:currentView.canvas};
-                var position = getRelativeCoordinates(eventInfo);
+                view.isDragging = false;
+                // var eventInfo = {event: event, element:currentView.canvas};
+                // var position = getRelativeCoordinates(eventInfo);
+
+                var position = getElementCoordinates(currentView.canvas, event);
+
                 currentView.mouseUp(position);
                 currentView = 0;
             }
@@ -152,7 +164,6 @@ KnobView.prototype.draw = function() {
     // Draw background.
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0,0, width, height);
-    // ctx.fill();
     
     // Draw body of knob.
     ctx.fillStyle = this.knobColor;
@@ -210,6 +221,8 @@ KnobView.prototype.draw = function() {
         s += " sec"; break;
         case UNITS.percent:
         s += "%"; break;
+        case UNITS.bpm:
+        s += " bpm"; break;
         case UNITS.generic:
     }
     
@@ -229,28 +242,24 @@ KnobView.prototype.mouseMove = function(position) {
 
 KnobView.prototype.mouseDrag = function(position) {
     var deltay = position.y - this.startPosition.y;
-    var range = 100;
-    var k = 1 + -deltay / range;
+    var range = 200;
+
+    // Offset from original value
+    var k = this.startPreValue + -deltay / range;
     if (k < 0) k = 0;
-    if (k > 2) k = 2;
-    k *= 0.5;
+    if (k > 1) k = 1;
     
-    // this.value = this.minValue + k * (this.maxValue - this.minValue);
     this.preValue = k;
     this.value = this.preToValue(k);
     
     if (this.units == UNITS.indexed)
         this.value = Math.floor(this.value);
 
-
-    // window.console.log("view: " + this.name + " y: " + position.y);
-
     this.onchange(this.value);
     this.draw();
 }
 
 KnobView.prototype.mouseUp = function(position) {
-    this.isDragging = false;
 }
 
 function installViews(views, parentDiv) {

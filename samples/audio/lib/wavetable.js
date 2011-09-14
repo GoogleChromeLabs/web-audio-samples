@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-var kDefaultNumberOfResampleRanges = 9;
+var kDefaultNumberOfResampleRanges = 11;
 
 function WaveTable(name, context) {
     this.name = name;
@@ -198,6 +198,8 @@ WaveTable.prototype.createBuffers = function() {
 	//
 	
 	this.buffers = new Array();
+	
+	var finalScale = 1.0;
 
 	for (var j = 0; j < this.numberOfResampleRanges; ++j) {
         var n = this.waveTableSize;
@@ -239,10 +241,24 @@ WaveTable.prototype.createBuffers = function() {
         // Create mono AudioBuffer.
         var buffer = this.context.createBuffer(1, data.length, this.sampleRate);
         
+        // For the first resample range, find max value and compute scale.
+        if (j == 0) {
+            var max = 0;
+            for (var i = 0; i < data.length; ++i) {
+                var x = Math.abs(data[i]);
+                if (x > max)
+                    max = x;
+            }
+            if (max > 0)
+                finalScale = 1.0 / max;
+
+            window.console.log("finalScale = " + finalScale);
+        }
+        
         // Copy data to the buffer.
         var p = buffer.getChannelData(0);
         for (var i = 0; i < data.length; ++i) {
-            p[i] = data[i];
+            p[i] = finalScale * data[i];
         }
 
 		this.buffers[j] = buffer;
