@@ -1,0 +1,862 @@
+<!--
+Copyright 2011, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/fft.js"></script>
+<script type="text/javascript" src="lib/bpm-delay.js"></script>
+<script type="text/javascript" src="lib/waveshaper.js"></script>
+<script type="text/javascript" src="lib/wavetable.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var arp = true;
+
+var context;
+var compressor;
+var convolver;
+var bpmDelay;
+var delayFeedback;
+var delayDry;
+var delayWet;
+var convolverDry;
+var convolverWet;
+var waveshaper;
+var subsonicFilter;
+
+var loader;
+var startTime;
+
+var cutoff = 0.2;
+var resonance = 12;
+var envAmount = 0.4;
+var width = 0.6;
+var detune1 = 4.5;
+var detune2 = -2.5;
+var octave = 0;
+var waveTable;
+var volume = 1;
+var filterAttack = 0.056;
+var filterDecay = 0.991;
+var ampAttack = 0.056;
+var ampDecay = 0.100;
+var playDoubleOctave = false;
+
+var views;
+var sequenceView;
+
+var isShiftDown = false;
+var isAltDown = false;
+
+var monophonicNote;
+var playMonophonic = true;
+
+function onDocumentKeyDown( event ) {
+    switch( event.keyCode ) {
+
+        case 16:
+            isShiftDown = true;
+            break;
+        case 18:
+            isAltDown = true;
+            break;
+    }
+}
+
+function onDocumentKeyUp( event ) {
+    switch( event.keyCode ) {
+        case 16:
+            isShiftDown = false;
+            break;
+        case 18:
+            isAltDown = false;
+            break;
+    }
+}
+
+
+
+function WaveTableLoader() {
+    this.waveNames = [
+        "01_Saw",
+        "02_Triangle",
+        "03_Square",
+        "04_Noise",
+        "05_Pulse",
+        "06_Warm_Saw",
+        "07_Warm_Triangle",
+        "08_Warm_Square",
+        "09_Dropped_Saw",
+        "10_Dropped_Square",
+        "11_TB303_Square",
+        "Bass",
+        "Bass_Amp360",
+        "Bass_Fuzz",
+        "Bass_Fuzz_ 2",
+        "Bass_Sub_Dub",
+        "Bass_Sub_Dub_2",
+        "Brass",
+        "Brit_Blues",
+        "Brit_Blues_Driven",
+        "Buzzy_1",
+        "Buzzy_2",
+        "Celeste",
+        "Chorus_Strings",
+        "Dissonant Piano",
+        "Dissonant_1",
+        "Dissonant_2",
+        "Dyna_EP_Bright",
+        "Dyna_EP_Med",
+        "Ethnic_33",
+        "Full_1",
+        "Full_2",
+        "Guitar_Fuzz",
+        "Harsh",
+        "Mkl_Hard",
+        "Organ_2",
+        "Organ_3",
+        "Phoneme_ah",
+        "Phoneme_bah",
+        "Phoneme_ee",
+        "Phoneme_o",
+        "Phoneme_ooh",
+        "Phoneme_pop_ahhhs",
+        "Piano",
+        "Putney_Wavering",
+        "Throaty",
+        "Trombone",
+        "Twelve String Guitar 1",
+        "Twelve_OpTines",
+        "Wurlitzer",
+        "Wurlitzer_2",
+    ];
+}
+
+WaveTableLoader.prototype.load = function(finishedCallback) {
+    var loader = this;
+
+    loader.finishedCallback = finishedCallback;
+    loader.loadedCount = 0;
+    loader.waveList = new Array();
+
+    var waveList = document.getElementById("waveList");
+    
+    var s = "";
+    
+    for (var i = 0; i < loader.waveNames.length; ++i) {
+        var name = loader.waveNames[i];
+        loader.waveList[i] = new WaveTable(name, context);
+        loader.waveList[i].load(function(waveTable) {
+            loader.loadedCount++;
+            if (loader.loadedCount == loader.waveList.length)
+                loader.finishedCallback();
+        }
+        );
+
+        s += addWaveTableUI(name);
+    }
+    
+    waveList.innerHTML = s;
+}
+
+WaveTableLoader.prototype.getTable = function(name) {
+    for (var i = 0; i < this.waveNames.length; ++i) {
+        if (name == this.waveNames[i]) {
+            return this.waveList[i];
+        }
+    }
+}
+
+function highlightElement(object) {
+    if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+    hilightedElement = object;
+
+    object.style.backgroundColor = "green";
+}
+
+function addWaveTableUI(tableName) {
+    var s = '<div class="smallList"';
+
+    var command = "waveTable = loader.getTable('" + tableName + "'); highlightElement(this);";
+
+    s += " onmousedown=\"" + command + "\"";
+
+    s += '>';
+
+    s += tableName;
+    s += '</div>';
+
+    return s;    
+}
+
+// function playNoteDoubleOctave(wave, semitone, octave, time) {
+//     playNote(wave, semitone, octave, time);
+//     playNote(wave, 12 + semitone, octave, time);
+// }
+// 
+var rhythm = [
+  12,
+  12,
+  12,
+  -1,
+
+  15,
+  19,
+  24,
+  -1,
+
+  24,
+  -1,
+  26,
+  -1,
+
+  0,
+  -1,
+  3,
+  -1
+];
+
+var minor = [
+    0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58
+];
+
+
+var loopLength = 16; //16;
+var rhythmIndex = 0;
+var loopNumber = 0;
+var tempo = 105.0;
+var noteTime = 0.0;
+
+function SequenceView(divName) {
+    this.name = divName;
+    this.numberOfNotes = loopLength;
+    this.numSemitones = 60;
+    this.backgroundColor = "rgb(60,40,40)";
+    this.noteColor = "rgb(200,150,150)";
+    this.gridColor = "rgb(255,255,255)";
+
+    this.canvas = document.getElementById(divName);
+    this.ctx = this.canvas.getContext('2d');
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
+
+    var view = this;
+    var canvas = this.canvas;
+    
+    canvas.addEventListener("mousedown", 
+        function(event) {
+            var eventInfo = {event: event, element:view.canvas};
+            var position = getRelativeCoordinates(eventInfo);
+            currentView = view;
+            view.isDragging = true;
+            view.startPosition = position;
+            view.mouseDown(position);
+        },
+        true
+    );
+    
+    // Note: document handles mouseup and mousemove events.
+    document.addEventListener("mousemove", 
+        function(event) {
+            if (currentView && currentView == view) {
+                var c = getAbsolutePosition(currentView.canvas);
+                c.x = event.x - c.x;
+                c.y = event.y - c.y;
+                
+                var position = c;
+                
+                // This isn't the best, should abstract better.
+                if (isNaN(c.y)) {
+                    var eventInfo = {event: event, element:currentView.canvas};
+                    position = getRelativeCoordinates(eventInfo);
+                }
+
+                currentView.mouseMove(position);
+            }
+        },
+        true
+    );
+
+    document.addEventListener("mouseup",
+        function(event) {
+            if (currentView && currentView == view) {
+                view.isDragging = false;
+                var eventInfo = {event: event, element:currentView.canvas};
+                var position = getRelativeCoordinates(eventInfo);
+                currentView.mouseUp(position);
+                currentView = 0;
+            }
+        },
+        true
+    );
+    
+    this.draw();
+}
+
+SequenceView.prototype.draw = function() {
+    var ctx = this.ctx;
+    var width = this.width;
+    var height = this.height;
+
+    // Draw background.
+    ctx.fillStyle = this.backgroundColor;
+    ctx.fillRect(0,0, width, height);
+
+    // Draw grid.
+    var n = this.numberOfNotes;
+    ctx.strokeStyle = this.gridColor;
+    ctx.lineWidth = 1;
+    for (var i = 0; i < n; ++i) {
+        var x = i * width / n;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+
+    // Draw notes.
+    var noteWidth = width / n;
+    var numSemitones = this.numSemitones;
+    var noteHeight = height / numSemitones;
+    for (var i = 0; i < n; ++i) {
+        if (rhythm[i] != -1) {
+            var x = i * width / n;
+            var y = -noteHeight + height - rhythm[i]*noteHeight;
+            ctx.fillStyle = this.noteColor;
+            ctx.fillRect(x, y, noteWidth, noteHeight);
+        }
+    }
+}
+
+SequenceView.prototype.mouseDown = function(position) {
+    var width = this.width;
+    var height = this.height;
+    var n = this.numberOfNotes;
+    var noteWidth = width / n;
+    var numSemitones = this.numSemitones;
+    var noteHeight = height / numSemitones;
+    var ri = Math.floor(position.x / noteWidth);
+    var note = Math.floor( (height - position.y) / noteHeight);
+    if (ri >= 0 && ri < n && note >= 0) {
+        if (isAltDown)
+            rhythm[ri] = -1;
+        else
+            rhythm[ri] = note;
+
+        this.draw();
+    }
+}
+
+SequenceView.prototype.mouseMove = function(position) {
+    if (this.isDragging) {
+        this.mouseDrag(position);
+    }
+}
+
+SequenceView.prototype.mouseDrag = function(position) {
+}
+
+SequenceView.prototype.mouseUp = function(position) {
+}
+
+function advanceNote() {
+    // Advance time by a 16th note...
+    var secondsPerBeat = 60.0 / tempo;
+    noteTime += 0.25 * secondsPerBeat;
+
+    rhythmIndex++;
+    if (rhythmIndex == loopLength) {
+        rhythmIndex = 0;
+        loopNumber++
+    }
+}
+
+function schedule() {
+    var currentTime = context.currentTime;
+
+    // The sequence starts at startTime, so normalize currentTime so that it's 0 at the start of the sequence.
+    currentTime -= startTime;
+
+    while (noteTime < currentTime + 0.040 /*0.120*/) {
+        // Convert noteTime to context time.
+        var contextPlayTime = noteTime + startTime;
+        
+        if (rhythm[rhythmIndex] != -1) {
+            var noteNumber = rhythm[rhythmIndex];
+            if (arp) {
+                
+                var minor = [0, 3, 7, 10];
+                var octave = Math.floor(noteNumber / 4);
+                var i = noteNumber % 4;
+                noteNumber = minor[i] + 12 * octave;
+            }
+
+            if (playMonophonic) {
+                monophonicNote.play(waveTable, noteNumber, octave, contextPlayTime);
+            } else {
+                var note = new Note(false);
+                note.play(waveTable, noteNumber, octave, contextPlayTime);
+            }
+
+
+            // if (playDoubleOctave)
+            //     playNoteDoubleOctave(waveTable, rhythm[rhythmIndex], octave, contextPlayTime);
+            // else
+            //     playNote(waveTable, rhythm[rhythmIndex], octave, contextPlayTime);
+        
+        }
+
+        advanceNote();
+    }
+
+    setTimeout("schedule()", 0);
+}
+
+function Note(isMonophonic) {
+    this.isMonophonic = isMonophonic;
+    
+    // Create oscillators, panners, amplitude, and filter envelopes.    
+    
+    var osc1 = context.createBufferSource();
+    osc1.looping = true;
+
+    var osc1Octave = context.createBufferSource();
+    osc1Octave.looping = true;
+
+    var osc2 = context.createBufferSource();
+    osc2.looping = true;
+
+    var osc2Octave = context.createBufferSource();
+    osc2Octave.looping = true;
+    
+    var panner1 = context.createPanner();
+    panner1.panningModel = webkitAudioPannerNode.EQUALPOWER;
+
+    var panner2 = context.createPanner();
+    panner2.panningModel = webkitAudioPannerNode.EQUALPOWER;
+
+    // Amplitude envelope
+    var ampEnvelope = context.createGainNode();
+    ampEnvelope.gain.value = 0.0; // default value
+
+    // Filter
+    var filter = context.createBiquadFilter();
+    filter.type = 0;
+    filter.gain.value = 0.0; // default value
+
+    // Create note volume.
+    var noteVolume = context.createGainNode();
+    noteVolume.gain.value = 0; // start out silent until told otherwise
+
+    // Make connections
+    
+    // oscillators --> panners.
+    osc1.connect(panner1);
+    osc1Octave.connect(panner1);
+    osc2.connect(panner2);
+    osc2Octave.connect(panner2);
+
+    // panners --> amplitude envelope
+    panner1.connect(ampEnvelope);
+    panner2.connect(ampEnvelope);
+
+    // amplitude envelope --> filter envelope
+    ampEnvelope.connect(filter);
+
+    // filter envelope --> master dry volume
+    filter.connect(noteVolume);
+
+
+    // master dry volume -> subsonic filter -> compressor
+    noteVolume.connect(subsonicFilter);
+    subsonicFilter.connect(delayDry);
+    subsonicFilter.connect(bpmDelay.delay);
+
+    // Connect to reverb dry/wet
+    subsonicFilter.connect(convolverDry);
+    subsonicFilter.connect(convolverWet);
+
+    // Keep oscillators playing at all times if monophonic.
+    if (this.isMonophonic) {
+        osc1.noteOn(0);
+        osc2.noteOn(0);
+        osc1Octave.noteOn(0);
+        osc2Octave.noteOn(0);
+    }
+    
+    // Keep track of all the nodes.
+    this.osc1 = osc1;
+    this.osc2 = osc2;
+    this.osc1Octave = osc1Octave;
+    this.osc2Octave = osc2Octave;
+    this.panner1 = panner1;
+    this.panner2 = panner2;
+    this.ampEnvelope = ampEnvelope;
+    this.filter = filter;
+    this.noteVolume = noteVolume;
+    
+    this.wave = 0;
+}
+
+
+Note.prototype.setFilterValues = function() {
+    var time = this.time;
+    var filter = this.filter;
+    var pitchFrequency = this.pitchFrequency;
+    
+    filter.frequency.cancelScheduledValues(0);
+
+    filter.type = 0; // Lowpass
+    filter.Q.value = resonance; // !!FIXME: should be Q
+
+    var nyquist = 0.5 * context.sampleRate;
+
+    var cutoffCents = 9600 * cutoff;
+    var cutoffRate = Math.pow(2, cutoffCents / 1200.0);
+    var startFrequency = cutoffRate * pitchFrequency;
+    if (startFrequency > nyquist)
+        startFrequency = nyquist;
+
+    var envAmountCents = 7200 * envAmount;
+    var envAmountRate = Math.pow(2, envAmountCents / 1200.0);
+    var envAmountFrequency = startFrequency * envAmountRate;
+    if (envAmountFrequency > nyquist)
+        envAmountFrequency = nyquist;
+
+    if (!this.isMonophonic) {
+        filter.frequency.value = startFrequency;
+        filter.frequency.setValueAtTime(startFrequency, time);
+    } else {
+        // filter.frequency.setValueAtTime(filter.frequency.value, time); // !! not correct
+    }
+
+    filter.frequency.setTargetValueAtTime(envAmountFrequency, time, filterAttack);
+    filter.frequency.setTargetValueAtTime(startFrequency, time + filterAttack, filterDecay);
+}
+
+var firstTime = true;
+
+Note.prototype.play = function(wave, semitone, octave, time) {
+    this.time = time;
+    
+    if (wave != this.wave || !this.isMonophonic) {
+        this.wave = wave;
+        firstTime = true;
+    }
+    
+    // Get local copies.
+    var osc1 = this.osc1;
+    var osc2 = this.osc2;
+    var osc1Octave = this.osc1Octave;
+    var osc2Octave = this.osc2Octave;
+    var panner1 = this.panner1;
+    var panner2 = this.panner2;
+    var ampEnvelope = this.ampEnvelope;
+    var filter = this.filter;
+    var noteVolume = this.noteVolume;
+
+    // Set oscillator pitches.
+    
+    var pitchFrequency = 20.0 /*440.0*/ * Math.pow(2.0, semitone / 12.0);
+    this.pitchFrequency = pitchFrequency;
+    
+    var pitchRate = pitchFrequency * wave.getRateScale();
+
+    var rate1 = pitchRate * Math.pow(2.0, -detune1/1200);
+    var buffer1 = wave.getWaveDataForPitch(rate1);
+    if (firstTime) osc1.buffer = buffer1;
+
+    osc1.playbackRate.value = rate1;
+
+
+    var rate2 = pitchRate * Math.pow(2.0, octave - detune2/1200);
+    var buffer2 = wave.getWaveDataForPitch(rate2);
+    if (firstTime) osc1Octave.buffer = buffer2;
+    osc1Octave.playbackRate.value = rate2;
+
+    if (firstTime) osc2.buffer = buffer1;
+    osc2.playbackRate.value = pitchRate * Math.pow(2.0, +detune1/1200); // max one semi-tone
+
+    if (firstTime) osc2Octave.buffer = buffer2;
+    osc2Octave.playbackRate.value = pitchRate * Math.pow(2.0, octave + detune2/1200); // max one semi-tone
+    
+    // Set panning amount for width spreading.
+    
+    // pan maximum from -90 -> +90 degrees
+    var x = Math.sin(0.5*Math.PI * width);
+    var z = -Math.cos(0.5*Math.PI * width);
+    panner1.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner1.setPosition(-x, 0, z);
+
+    panner2.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner2.setPosition(x, 0, z);
+
+    // Amplitude envelope
+    ampEnvelope.gain.cancelScheduledValues(0);
+
+    if (!this.isMonophonic)
+        ampEnvelope.gain.setValueAtTime(0.0, time);
+    else {
+        // ampEnvelope.gain.setValueAtTime(ampEnvelope.gain.value, time); // !! not correct
+    }
+    
+    // Amplitude attack
+    var ampAttackTime = time + ampAttack;
+    
+    // Amplitude decay
+    ampEnvelope.gain.setTargetValueAtTime(1, time, ampAttack);
+    ampEnvelope.gain.setTargetValueAtTime(0, ampAttackTime, ampDecay);
+
+    // Filter
+    this.setFilterValues();
+
+    // Set note volume.
+    noteVolume.gain.value = 0.1 * volume*volume; // use x^2 volume curve for now
+
+    // Trigger note if polyphonic, otherwise oscillators are running all the time for monophonic.
+    if (!this.isMonophonic) {
+        var ampDecayAdjust = 8*ampDecay; // time-constant adjusting... 
+        if (ampDecayAdjust < 0.100) ampDecayAdjust = 0.100;
+        if (ampDecayAdjust > 4) ampDecayAdjust = 4;
+        var offTime = ampAttackTime + ampDecayAdjust;
+
+        osc1.noteOn(time);
+        osc2.noteOn(time);
+        osc1.noteOff(offTime);
+        osc2.noteOff(offTime);
+
+        osc1Octave.noteOn(time);
+        osc2Octave.noteOn(time);
+        osc1Octave.noteOff(offTime);
+        osc2Octave.noteOff(offTime);
+    } else {
+        firstTime = false;
+    }
+}
+
+function setTempo(x) {
+    tempo = x;
+    bpmDelay.setTempo(tempo);
+}
+
+function setDelayDryWet(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    delayDry.gain.value = gain1;
+    delayWet.gain.value = gain2;
+}
+
+function setReverbDryWet(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    convolverDry.gain.value = gain1;
+    convolverWet.gain.value = gain2;
+}
+
+function loadImpulseResponse(url) {
+    // Load impulse response asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        convolver.buffer = context.createBuffer(request.response, false);
+        isImpulseResponseLoaded = true;
+        // finishLoading();
+    }
+    request.onerror = function() { 
+        alert("error loading reverb");
+    }
+
+    request.send();
+}
+
+
+function init() {
+    document.addEventListener('keydown', onDocumentKeyDown, false);
+    document.addEventListener('keyup', onDocumentKeyUp, false);
+    
+    context = new webkitAudioContext();
+        
+    if (context.createDynamicsCompressor) {
+        subsonicFilter = context.createBiquadFilter();
+        subsonicFilter.type = 1; // hipass
+        subsonicFilter.frequency.value = 10;
+        
+        // Create dynamics compressor to sweeten the overall mix.
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(context.destination);
+    } else {
+        // Compressor is not available on this implementation - bypass and simply point to destination.
+        compressor = context.destination;
+    }
+
+    convolver = context.createConvolver();
+    // loadImpulseResponse('impulse-responses/matrix-reverb6.wav');
+    loadImpulseResponse('impulse-responses/spatialized4.wav');
+
+    convolverDry = context.createGainNode();
+    convolverWet = context.createGainNode();
+    setReverbDryWet(0.2);
+    
+    convolverDry.connect(compressor);
+    convolverWet.connect(convolver);
+    convolver.connect(compressor);
+    
+    // BPM delay through waveshaper feedback loop
+    bpmDelay = new BpmDelay(context);    
+    
+    delayFeedback = context.createGainNode();
+    delayDry = context.createGainNode();
+    delayWet = context.createGainNode();
+    delayFeedback.gain.value = 0.5;
+    delayDry.gain.value = 0.5;
+    delayWet.gain.value = 0.5;
+    
+    delayDry.connect(compressor);
+    bpmDelay.delay.connect(delayWet);
+    delayWet.connect(compressor);
+
+    bpmDelay.delay.connect(delayFeedback);
+    waveshaper = new WaveShaper(context);
+    delayFeedback.connect(waveshaper.waveshaper);
+    waveshaper.waveshaper.connect(bpmDelay.delay);
+
+
+    loader = new WaveTableLoader();
+    loader.load(start);
+    
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("cutoff", cutoff, 0.0, 1.0, UNITS.generic, 1, false, function(value) { cutoff = value; } );
+    views[j++] = new KnobView("resonance", resonance, 0, 40 /*20*/, UNITS.decibels, 1, false, function(value) { resonance = value; } );
+    views[j++] = new KnobView("envAmount", envAmount, 0, 1, UNITS.generic, 2, false, function(value) { envAmount = value; } );
+    views[j++] = new KnobView("filterAttack", filterAttack, 0.004, 0.200, UNITS.seconds, 3, false, function(value) { filterAttack = value; } );
+    views[j++] = new KnobView("filterDecay", filterDecay, 0.004, 0.300, UNITS.seconds, 3, false, function(value) { filterDecay = value; } );
+    views[j++] = new KnobView("ampAttack", ampAttack, 0.005, 0.300, UNITS.seconds, 3, true, function(value) { ampAttack = value; } );
+    views[j++] = new KnobView("ampDecay", ampDecay, 0.001, 5.0, UNITS.seconds, 3, true, function(value) { ampDecay = value; } );
+    views[j++] = new KnobView("width", width, 0.0, 1.0, UNITS.generic, 1, false, function(value) { width = value; } );
+    views[j++] = new KnobView("detune1", detune1, -50, 50, UNITS.cents, 1, false, function(value) { detune1 = value; } );
+    views[j++] = new KnobView("detune2", detune2, -50, 50, UNITS.cents, 1, false, function(value) { detune2 = value; } );
+    views[j++] = new KnobView("osc2 octave", octave, 0, 4, UNITS.indexed, 0, false, function(value) { octave = value; } );
+    views[j++] = new KnobView("tempo", tempo, 50.0, 240.0, UNITS.bpm, 1, false, function(value) { setTempo(value); } );
+    views[j++] = new KnobView("subsonic cutoff", 10, 5, 2000, UNITS.hertz, 0, true, function(value) { subsonicFilter.frequency.value = value; } );
+    views[j++] = new KnobView("reverb dry/wet", 20, 0, 100, UNITS.percent, 1, false, function(value) { setReverbDryWet(0.01 * value); } );
+    views[j++] = new KnobView("delay dry/wet", 50, 0, 100, UNITS.percent, 1, false, function(value) { setDelayDryWet(0.01 * value); } );
+    views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { delayFeedback.gain.value = 0.01 * value; } );
+    views[j++] = new KnobView("volume", volume, 0.0, 1.0, UNITS.generic, 1, false, function(value) { volume = value; } );
+    
+    installViews(views, controls);
+    
+    sequenceView = new SequenceView("sequenceView");
+    
+    monophonicNote = new Note(true);
+}
+
+function start() {
+    startTime = context.currentTime + 0.160;
+    
+    waveTable = loader.getTable("01_Saw");
+    schedule();
+}
+
+</script>
+</head>
+
+<body>
+
+<div style="position:relative; height:410px;">
+    <!-- Knobs -->
+    <div style="position:absolute; top:0; left:0; width:300px;">
+        <div id="controls" style="position:relative; width:300px; height:300px;">
+        </div>
+    </div>
+
+    <div style="position:absolute; top:0; left:320px; width:300px;">
+        <canvas id="sequenceView" width="400px" height="300px"></canvas>
+    </div>
+
+</div>
+
+<input type="checkbox" onclick="playDoubleOctave = !playDoubleOctave;">
+    double octave
+</input>
+
+<select onchange="bpmDelay.setDelayValue(this.value);">
+    <option>32nd note</option>
+    <option>16th note triplet</option>
+    <option>dotted 32nd note</option>
+    <option>16th note</option>
+    <option>8th note triplet</option>
+    <option>dotted 16th note</option>
+    <option>8th note</option>
+    <option>quarter note triplet</option>
+    <option>dotted eighth note</option>
+    <option>quarter note</option>
+</select>
+
+
+<br><br>
+
+
+<div id="info"> </div>
+
+<div id="waveList">
+
+</div>
+
+</body>
+</html>
