@@ -436,9 +436,9 @@ function schedule() {
             if (arp) {
                 
                 var minor = [0, 3, 7, 10];
-                var octave = Math.floor(noteNumber / 4);
+                var arpOctave = Math.floor(noteNumber / 4);
                 var i = noteNumber % 4;
-                noteNumber = minor[i] + 12 * octave;
+                noteNumber = minor[i] + 12 * arpOctave;
             }
 
             if (playMonophonic) {
