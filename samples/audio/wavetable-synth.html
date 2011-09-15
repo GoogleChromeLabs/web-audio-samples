@@ -69,7 +69,8 @@ var delayDry;
 var delayWet;
 var convolverDry;
 var convolverWet;
-var waveshaper;
+var grungeWaveShaper;
+var delayWaveShaper;
 var subsonicFilter;
 
 var loader;
@@ -89,6 +90,7 @@ var filterDecay = 0.991;
 var ampAttack = 0.056;
 var ampDecay = 0.100;
 var playDoubleOctave = false;
+var grungeDrive = 1;
 
 var views;
 var sequenceView;
@@ -511,18 +513,20 @@ function Note(isMonophonic) {
     // amplitude envelope --> filter envelope
     ampEnvelope.connect(filter);
 
-    // filter envelope --> master dry volume
+    // filter envelope --> note volume
     filter.connect(noteVolume);
 
-
-    // master dry volume -> subsonic filter -> compressor
+    // note volume -> subsonic filter -> compressor
     noteVolume.connect(subsonicFilter);
-    subsonicFilter.connect(delayDry);
-    subsonicFilter.connect(bpmDelay.delay);
+    // subsonicFilter.connect(delayDry);
+    // subsonicFilter.connect(bpmDelay.delay);
+    // 
+    // // Connect to reverb dry/wet
+    // subsonicFilter.connect(convolverDry);
+    // subsonicFilter.connect(convolverWet);
 
-    // Connect to reverb dry/wet
-    subsonicFilter.connect(convolverDry);
-    subsonicFilter.connect(convolverWet);
+    subsonicFilter.connect(grungeWaveShaper.input);
+
 
     // Keep oscillators playing at all times if monophonic.
     if (this.isMonophonic) {
@@ -545,7 +549,6 @@ function Note(isMonophonic) {
     
     this.wave = 0;
 }
-
 
 Note.prototype.setFilterValues = function() {
     var time = this.time;
@@ -754,7 +757,7 @@ function init() {
     convolverWet.connect(convolver);
     convolver.connect(compressor);
     
-    // BPM delay through waveshaper feedback loop
+    // BPM delay through delayWaveShaper feedback loop
     bpmDelay = new BpmDelay(context);    
     
     delayFeedback = context.createGainNode();
@@ -769,9 +772,23 @@ function init() {
     delayWet.connect(compressor);
 
     bpmDelay.delay.connect(delayFeedback);
-    waveshaper = new WaveShaper(context);
-    delayFeedback.connect(waveshaper.waveshaper);
-    waveshaper.waveshaper.connect(bpmDelay.delay);
+    delayWaveShaper = new WaveShaper(context);
+    delayFeedback.connect(delayWaveShaper.input);
+    delayWaveShaper.output.connect(bpmDelay.delay);
+
+    grungeWaveShaper = new WaveShaper(context);
+
+    // Connect to delay dry/wet
+    grungeWaveShaper.output.connect(delayDry);
+    grungeWaveShaper.output.connect(bpmDelay.delay);
+
+    // Connect to reverb dry/wet
+    grungeWaveShaper.output.connect(convolverDry);
+    grungeWaveShaper.output.connect(convolverWet);
+
+
+
+
 
 
     loader = new WaveTableLoader();
@@ -797,6 +814,8 @@ function init() {
     views[j++] = new KnobView("reverb dry/wet", 20, 0, 100, UNITS.percent, 1, false, function(value) { setReverbDryWet(0.01 * value); } );
     views[j++] = new KnobView("delay dry/wet", 50, 0, 100, UNITS.percent, 1, false, function(value) { setDelayDryWet(0.01 * value); } );
     views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { delayFeedback.gain.value = 0.01 * value; } );
+    views[j++] = new KnobView("delay grunge", 0, -10, 30, UNITS.decibels, 1, false, function(value) { delayWaveShaper.setDrive(Math.pow(10, 0.05*value)); } );
+    views[j++] = new KnobView("main grunge", 0, -10, 60, UNITS.decibels, 1, false, function(value) { grungeWaveShaper.setDrive(Math.pow(10, 0.05*value)); } );
     views[j++] = new KnobView("volume", volume, 0.0, 1.0, UNITS.generic, 1, false, function(value) { volume = value; } );
     
     installViews(views, controls);
@@ -818,7 +837,7 @@ function start() {
 
 <body>
 
-<div style="position:relative; height:410px;">
+<div style="position:relative; height:480px;">
     <!-- Knobs -->
     <div style="position:absolute; top:0; left:0; width:300px;">
         <div id="controls" style="position:relative; width:300px; height:300px;">
