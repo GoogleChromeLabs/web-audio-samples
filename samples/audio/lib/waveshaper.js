@@ -73,10 +73,20 @@ function generateColortouchCurve(curve) {
 function WaveShaper(context) {
     this.context = context;
     var waveshaper = context.createWaveShaper();
+    var preGain = context.createGainNode();
+    var postGain = context.createGainNode();
+    preGain.connect(waveshaper);
+    waveshaper.connect(postGain);
+    this.input = preGain;
+    this.output = postGain;
     
     var curve = new Float32Array(65536); // FIXME: share across instances
     generateColortouchCurve(curve);
     waveshaper.curve = curve;
+}
 
-    this.waveshaper = waveshaper;
+WaveShaper.prototype.setDrive = function(drive) {
+    this.input.gain.value = drive;
+    var postDrive = Math.pow(1 / drive, 0.6);
+    this.output.gain.value = postDrive;
 }
