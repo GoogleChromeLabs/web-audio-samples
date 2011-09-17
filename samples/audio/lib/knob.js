@@ -207,7 +207,7 @@ KnobView.prototype.draw = function() {
     ctx.fillText(this.name, textPosition, textVerticalPosition);
 
     // Draw value.
-    var valuePosition = width - 50; //2*knobRadius + knobOffset + 300;
+    var valuePosition = width - 30; //2*knobRadius + knobOffset + 300;
     var s = this.value.toFixed(this.precision);
     
     switch (this.units) {
@@ -269,7 +269,7 @@ function installViews(views, parentDiv) {
         
         var s = "<canvas id=\"";
         s += view.name; // FIXME: namespace...
-        s += "\" width=\"300\" height=\"24\"> </canvas>";
+        s += "\" width=\"260\" height=\"24\"> </canvas>";
 
         ss += s;
     }
