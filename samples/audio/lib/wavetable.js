@@ -235,25 +235,26 @@ WaveTable.prototype.createBuffers = function() {
 		// Clear any DC-offset
 		realP[0] = 0.0;
 
+        // For the first resample range, find power and compute scale.
+        if (j == 0) {
+            var power = 0;
+            for (var i = 1; i < halfSize; ++i) {
+                x = realP[i];
+                y = imagP[i];
+                power += x * x + y * y;
+            }
+            power = Math.sqrt(power) / fftSize;
+            
+            finalScale = 0.5 / power;
+
+            // window.console.log("power = " + power);
+        }
+
 		// Great, now do inverse FFT into our wavetable...
         var data = frame.inverse();
 
         // Create mono AudioBuffer.
         var buffer = this.context.createBuffer(1, data.length, this.sampleRate);
-        
-        // For the first resample range, find max value and compute scale.
-        if (j == 0) {
-            var max = 0;
-            for (var i = 0; i < data.length; ++i) {
-                var x = Math.abs(data[i]);
-                if (x > max)
-                    max = x;
-            }
-            if (max > 0)
-                finalScale = 1.0 / max;
-
-            window.console.log("finalScale = " + finalScale);
-        }
         
         // Copy data to the buffer.
         var p = buffer.getChannelData(0);
