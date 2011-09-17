@@ -54,24 +54,12 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
-// Events
-// init() once the page has finished loading.
 window.onload = init;
 
 var arp = true;
 
 var context;
-var compressor;
-var convolver;
-var bpmDelay;
-var delayFeedback;
-var delayDry;
-var delayWet;
-var convolverDry;
-var convolverWet;
-var grungeWaveShaper;
-var delayWaveShaper;
-var subsonicFilter;
+var staticAudioRouting;
 
 var loader;
 var startTime;
@@ -111,6 +99,8 @@ function onDocumentKeyDown( event ) {
             isAltDown = true;
             break;
     }
+    
+    window.console.log(rhythm);
 }
 
 function onDocumentKeyUp( event ) {
@@ -124,7 +114,10 @@ function onDocumentKeyUp( event ) {
     }
 }
 
-
+function loadWaveTables() {
+    loader = new WaveTableLoader();
+    loader.load(start);        
+}
 
 function WaveTableLoader() {
     this.waveNames = [
@@ -244,27 +237,29 @@ function addWaveTableUI(tableName) {
 //     playNote(wave, 12 + semitone, octave, time);
 // }
 // 
-var rhythm = [
-  12,
-  12,
-  12,
-  -1,
+// var rhythm = [
+//   7,
+//   7,
+//   7,
+//   -1,
+// 
+//   8,
+//   13,
+//   17,
+//   -1,
+// 
+//   21,
+//   -1,
+//   25,
+//   -1,
+// 
+//   0,
+//   -1,
+//   3,
+//   -1
+// ];
 
-  15,
-  19,
-  24,
-  -1,
-
-  24,
-  -1,
-  26,
-  -1,
-
-  0,
-  -1,
-  3,
-  -1
-];
+var rhythm = [4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1];
 
 var minor = [
     0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58
@@ -274,7 +269,7 @@ var minor = [
 var loopLength = 16; //16;
 var rhythmIndex = 0;
 var loopNumber = 0;
-var tempo = 105.0;
+var tempo = 85.0;
 var noteTime = 0.0;
 
 function SequenceView(divName) {
@@ -444,16 +439,16 @@ function schedule() {
             if (playMonophonic) {
                 monophonicNote.play(waveTable, noteNumber, octave, contextPlayTime);
             } else {
-                var note = new Note(false);
+                var note = new Note(staticAudioRouting, false);
                 note.play(waveTable, noteNumber, octave, contextPlayTime);
+
+                if (playDoubleOctave) {
+                    var note2 = new Note(staticAudioRouting, false);
+                    note2.play(waveTable, noteNumber + 12, octave, contextPlayTime);
+                }
+
             }
 
-
-            // if (playDoubleOctave)
-            //     playNoteDoubleOctave(waveTable, rhythm[rhythmIndex], octave, contextPlayTime);
-            // else
-            //     playNote(waveTable, rhythm[rhythmIndex], octave, contextPlayTime);
-        
         }
 
         advanceNote();
@@ -462,7 +457,8 @@ function schedule() {
     setTimeout("schedule()", 0);
 }
 
-function Note(isMonophonic) {
+function Note(staticAudioRouting, isMonophonic) {
+    this.staticAudioRouting = staticAudioRouting;
     this.isMonophonic = isMonophonic;
     
     // Create oscillators, panners, amplitude, and filter envelopes.    
@@ -516,17 +512,8 @@ function Note(isMonophonic) {
     // filter envelope --> note volume
     filter.connect(noteVolume);
 
-    // note volume -> subsonic filter -> compressor
-    noteVolume.connect(subsonicFilter);
-    // subsonicFilter.connect(delayDry);
-    // subsonicFilter.connect(bpmDelay.delay);
-    // 
-    // // Connect to reverb dry/wet
-    // subsonicFilter.connect(convolverDry);
-    // subsonicFilter.connect(convolverWet);
-
-    subsonicFilter.connect(grungeWaveShaper.input);
-
+    // note volume -> subsonic filter
+    noteVolume.connect(this.staticAudioRouting.subsonicFilter /*subsonicFilter*/);
 
     // Keep oscillators playing at all times if monophonic.
     if (this.isMonophonic) {
@@ -690,23 +677,8 @@ function setTempo(x) {
     bpmDelay.setTempo(tempo);
 }
 
-function setDelayDryWet(x) {
-    // Equal-power cross-fade dry -> wet
-    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
-    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
-    delayDry.gain.value = gain1;
-    delayWet.gain.value = gain2;
-}
 
-function setReverbDryWet(x) {
-    // Equal-power cross-fade dry -> wet
-    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
-    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
-    convolverDry.gain.value = gain1;
-    convolverWet.gain.value = gain2;
-}
-
-function loadImpulseResponse(url) {
+function loadImpulseResponse(url, convolver) {
     // Load impulse response asynchronously
 
     var request = new XMLHttpRequest();
@@ -725,54 +697,40 @@ function loadImpulseResponse(url) {
     request.send();
 }
 
+function StaticAudioRouting() {
+    // Create dynamics compressor to sweeten the overall mix.
+    var compressor = context.createDynamicsCompressor();
+    compressor.connect(context.destination);
 
-function init() {
-    document.addEventListener('keydown', onDocumentKeyDown, false);
-    document.addEventListener('keyup', onDocumentKeyUp, false);
-    
-    context = new webkitAudioContext();
-        
-    if (context.createDynamicsCompressor) {
-        subsonicFilter = context.createBiquadFilter();
-        subsonicFilter.type = 1; // hipass
-        subsonicFilter.frequency.value = 10;
-        
-        // Create dynamics compressor to sweeten the overall mix.
-        compressor = context.createDynamicsCompressor();
-        compressor.connect(context.destination);
-    } else {
-        // Compressor is not available on this implementation - bypass and simply point to destination.
-        compressor = context.destination;
-    }
+    var convolver = context.createConvolver();
+    loadImpulseResponse('impulse-responses/matrix-reverb6.wav', convolver);
+    // loadImpulseResponse('impulse-responses/spatialized4.wav', convolver);
 
-    convolver = context.createConvolver();
-    // loadImpulseResponse('impulse-responses/matrix-reverb6.wav');
-    loadImpulseResponse('impulse-responses/spatialized4.wav');
+    var convolverDry = context.createGainNode();
+    var convolverWet = context.createGainNode();
 
-    convolverDry = context.createGainNode();
-    convolverWet = context.createGainNode();
-    setReverbDryWet(0.2);
-    
     convolverDry.connect(compressor);
     convolverWet.connect(convolver);
     convolver.connect(compressor);
-    
+
     // BPM delay through delayWaveShaper feedback loop
-    bpmDelay = new BpmDelay(context);    
-    
-    delayFeedback = context.createGainNode();
-    delayDry = context.createGainNode();
-    delayWet = context.createGainNode();
+    bpmDelay = new BpmDelay(context);
+
+    var delayFeedback = context.createGainNode();
+    var delayDry = context.createGainNode();
+    var delayWet = context.createGainNode();
+
     delayFeedback.gain.value = 0.5;
     delayDry.gain.value = 0.5;
     delayWet.gain.value = 0.5;
-    
+
     delayDry.connect(compressor);
     bpmDelay.delay.connect(delayWet);
     delayWet.connect(compressor);
 
     bpmDelay.delay.connect(delayFeedback);
     delayWaveShaper = new WaveShaper(context);
+    
     delayFeedback.connect(delayWaveShaper.input);
     delayWaveShaper.output.connect(bpmDelay.delay);
 
@@ -786,14 +744,70 @@ function init() {
     grungeWaveShaper.output.connect(convolverDry);
     grungeWaveShaper.output.connect(convolverWet);
 
-
-
-
-
-
-    loader = new WaveTableLoader();
-    loader.load(start);
+    var subsonicFilter = context.createBiquadFilter();
     
+    subsonicFilter.type = 1; // hipass
+    subsonicFilter.frequency.value = 10;
+
+    subsonicFilter.connect(grungeWaveShaper.input);
+    
+    this.compressor = compressor;
+    this.convolver = convolver;
+    this.convolverDry = convolverDry;
+    this.convolverWet = convolverWet;
+    this.bpmDelay = bpmDelay;
+    this.delayFeedback = delayFeedback;
+    this.delayDry = delayDry;
+    this.delayWet = delayWet;
+    this.delayWaveShaper = delayWaveShaper;
+    this.grungeWaveShaper = grungeWaveShaper;
+    this.subsonicFilter = subsonicFilter;
+
+    this.setReverbDryWet(0.2);
+}
+
+StaticAudioRouting.prototype.setDelayDryWet = function(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    this.delayDry.gain.value = gain1;
+    this.delayWet.gain.value = gain2;
+}
+
+StaticAudioRouting.prototype.setReverbDryWet = function(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    this.convolverDry.gain.value = gain1;
+    this.convolverWet.gain.value = gain2;
+}
+
+StaticAudioRouting.prototype.setDelayFeedback = function(x) {
+    this.delayFeedback.gain.value = x;
+}
+
+StaticAudioRouting.prototype.setDelayGrunge = function(driveDb) {
+    this.delayWaveShaper.setDrive(Math.pow(10, 0.05*driveDb));
+}
+
+StaticAudioRouting.prototype.setMainGrunge = function(driveDb) {
+    this.grungeWaveShaper.setDrive(Math.pow(10, 0.05*driveDb));
+}
+
+function init() {
+    context = new webkitAudioContext();
+    staticAudioRouting = new StaticAudioRouting();
+    monophonicNote = new Note(staticAudioRouting, true);
+
+    loadWaveTables();
+    
+    document.addEventListener('keydown', onDocumentKeyDown, false);
+    document.addEventListener('keyup', onDocumentKeyUp, false);
+
+    addUI();
+}
+
+function addUI() {
     var controls = document.getElementById("controls");
     views = new Array();
     
@@ -811,25 +825,40 @@ function init() {
     views[j++] = new KnobView("osc2 octave", octave, 0, 4, UNITS.indexed, 0, false, function(value) { octave = value; } );
     views[j++] = new KnobView("tempo", tempo, 50.0, 240.0, UNITS.bpm, 1, false, function(value) { setTempo(value); } );
     views[j++] = new KnobView("subsonic cutoff", 10, 5, 2000, UNITS.hertz, 0, true, function(value) { subsonicFilter.frequency.value = value; } );
-    views[j++] = new KnobView("reverb dry/wet", 20, 0, 100, UNITS.percent, 1, false, function(value) { setReverbDryWet(0.01 * value); } );
-    views[j++] = new KnobView("delay dry/wet", 50, 0, 100, UNITS.percent, 1, false, function(value) { setDelayDryWet(0.01 * value); } );
-    views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { delayFeedback.gain.value = 0.01 * value; } );
-    views[j++] = new KnobView("delay grunge", 0, -10, 30, UNITS.decibels, 1, false, function(value) { delayWaveShaper.setDrive(Math.pow(10, 0.05*value)); } );
-    views[j++] = new KnobView("main grunge", 0, -10, 60, UNITS.decibels, 1, false, function(value) { grungeWaveShaper.setDrive(Math.pow(10, 0.05*value)); } );
+    views[j++] = new KnobView("reverb dry/wet", 20, 0, 100, UNITS.percent, 1, false, function(value) { staticAudioRouting.setReverbDryWet(0.01 * value); } );
+    views[j++] = new KnobView("delay dry/wet", 50, 0, 100, UNITS.percent, 1, false, function(value) { staticAudioRouting.setDelayDryWet(0.01 * value); } );
+    views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { staticAudioRouting.setDelayFeedback(0.01 * value); } );
+    views[j++] = new KnobView("delay grunge", 0, -10, 30, UNITS.decibels, 1, false, function(value) { staticAudioRouting.setDelayGrunge(value); } );
+    views[j++] = new KnobView("main grunge", 0, -15, 50, UNITS.decibels, 1, false, function(value) { staticAudioRouting.setMainGrunge(value); } );
     views[j++] = new KnobView("volume", volume, 0.0, 1.0, UNITS.generic, 1, false, function(value) { volume = value; } );
     
     installViews(views, controls);
     
     sequenceView = new SequenceView("sequenceView");
     
-    monophonicNote = new Note(true);
+    bpmDelay.setDelayValue("quarter note");
+    
+    var bpmDelayMenu = document.getElementById("bpmDelayMenu");
+    var menuText = '<select onchange="bpmDelay.setDelayValue(this.value);">'
+        menuText += '<option>32nd note</option>'
+        menuText += '<option>16th note triplet</option>'
+        menuText += '<option>dotted 32nd note</option>'
+        menuText += '<option>16th note</option>'
+        menuText += '<option>8th note triplet</option>'
+        menuText += '<option>dotted 16th note</option>'
+        menuText += '<option>8th note</option>'
+        menuText += '<option>quarter note triplet</option>'
+        menuText += '<option>dotted eighth note</option>'
+        menuText += '<option selected>quarter note</option>'
+        menuText += '</select>';
+    bpmDelayMenu.innerHTML = menuText;
 }
 
 function start() {
     startTime = context.currentTime + 0.160;
     
-    waveTable = loader.getTable("01_Saw");
-    schedule();
+    waveTable = loader.getTable("Celeste");
+    schedule();    
 }
 
 </script>
@@ -837,42 +866,41 @@ function start() {
 
 <body>
 
+<h3>
+option-click (or alt-click) to delete note
+</h3>
+
 <div style="position:relative; height:480px;">
     <!-- Knobs -->
     <div style="position:absolute; top:0; left:0; width:300px;">
-        <div id="controls" style="position:relative; width:300px; height:300px;">
+        <div id="controls" style="position:relative; width:300px; height:480px;">
         </div>
     </div>
 
-    <div style="position:absolute; top:0; left:320px; width:300px;">
+    <div style="position:absolute; top:0; left:280px; width:300px;">
         <canvas id="sequenceView" width="400px" height="300px"></canvas>
     </div>
-
+    
 </div>
 
+<!--
 <input type="checkbox" onclick="playDoubleOctave = !playDoubleOctave;">
     double octave
 </input>
+-->
 
-<select onchange="bpmDelay.setDelayValue(this.value);">
-    <option>32nd note</option>
-    <option>16th note triplet</option>
-    <option>dotted 32nd note</option>
-    <option>16th note</option>
-    <option>8th note triplet</option>
-    <option>dotted 16th note</option>
-    <option>8th note</option>
-    <option>quarter note triplet</option>
-    <option>dotted eighth note</option>
-    <option>quarter note</option>
-</select>
+<input type="checkbox" onclick="playMonophonic = !playMonophonic;">
+    polyphonic
+</input>
 
+<div id="bpmDelayMenu">
+</div>
 
-<br><br>
 
 
 <div id="info"> </div>
 
+<h3>Wave Tables</h3>
 <div id="waveList">
 
 </div>
