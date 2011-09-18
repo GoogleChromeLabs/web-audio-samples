@@ -71,7 +71,11 @@ var width = 0.6;
 var detune1 = 4.5;
 var detune2 = -2.5;
 var octave = 0;
+
+var defaultWaveTableName = "Celeste";
 var waveTable;
+var waveTable2;
+
 var volume = 1;
 var filterAttack = 0.056;
 var filterDecay = 0.991;
@@ -182,10 +186,6 @@ WaveTableLoader.prototype.load = function(finishedCallback) {
     loader.loadedCount = 0;
     loader.waveList = new Array();
 
-    var waveList = document.getElementById("waveList");
-    
-    var s = "";
-    
     for (var i = 0; i < loader.waveNames.length; ++i) {
         var name = loader.waveNames[i];
         loader.waveList[i] = new WaveTable(name, context);
@@ -196,11 +196,26 @@ WaveTableLoader.prototype.load = function(finishedCallback) {
         }
         );
 
-        s += addWaveTableUI(name);
     }
-    
-    waveList.innerHTML = s;
 }
+
+WaveTableLoader.prototype.makeWavePopup = function(popupName) {
+    var waveList = document.getElementById(popupName);
+        
+    var numWaves = this.waveNames.length;
+    
+    for (var i = 0; i < numWaves; i++) {
+        var item = document.createElement('option');
+        item.innerHTML = this.waveNames[i];
+                
+        if (this.waveNames[i] == defaultWaveTableName)
+            item.selected = "selected";
+
+        waveList.appendChild(item);
+    }
+}
+
+
 
 WaveTableLoader.prototype.getTable = function(name) {
     for (var i = 0; i < this.waveNames.length; ++i) {
@@ -217,57 +232,29 @@ function highlightElement(object) {
     object.style.backgroundColor = "green";
 }
 
-function addWaveTableUI(tableName) {
-    var s = '<div class="smallList"';
+if ( !window.requestAnimationFrame ) {
+    window.requestAnimationFrame = ( function() {
 
-    var command = "waveTable = loader.getTable('" + tableName + "'); highlightElement(this);";
+    return window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
 
-    s += " onmousedown=\"" + command + "\"";
+    window.setTimeout( callback, 1000 / 60 );
+};
 
-    s += '>';
-
-    s += tableName;
-    s += '</div>';
-
-    return s;    
+} )();
 }
-
-// function playNoteDoubleOctave(wave, semitone, octave, time) {
-//     playNote(wave, semitone, octave, time);
-//     playNote(wave, 12 + semitone, octave, time);
-// }
-// 
-// var rhythm = [
-//   7,
-//   7,
-//   7,
-//   -1,
-// 
-//   8,
-//   13,
-//   17,
-//   -1,
-// 
-//   21,
-//   -1,
-//   25,
-//   -1,
-// 
-//   0,
-//   -1,
-//   3,
-//   -1
-// ];
 
 var rhythm = [4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1];
 
-var minor = [
-    0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58
-];
+var minor = [0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58];
 
 
-var loopLength = 16; //16;
+var loopLength = 16;
 var rhythmIndex = 0;
+var lastRhythmIndex = -1;
 var loopNumber = 0;
 var tempo = 85.0;
 var noteTime = 0.0;
@@ -279,7 +266,8 @@ function SequenceView(divName) {
     this.backgroundColor = "rgb(60,40,40)";
     this.noteColor = "rgb(200,150,150)";
     this.gridColor = "rgb(255,255,255)";
-
+    this.playheadColor = "rgb(255,255,224)";
+    
     this.canvas = document.getElementById(divName);
     this.ctx = this.canvas.getContext('2d');
     this.width = this.canvas.width;
@@ -336,6 +324,8 @@ function SequenceView(divName) {
     );
     
     this.draw();
+
+    this.drawPlayhead();
 }
 
 SequenceView.prototype.draw = function() {
@@ -373,6 +363,42 @@ SequenceView.prototype.draw = function() {
     }
 }
 
+
+SequenceView.prototype.drawPlayhead = function() {
+    var ctx = this.ctx;
+    var width = this.width;
+    var height = this.height;
+    var n = this.numberOfNotes;
+
+    var noteWidth = width / n;
+    var numSemitones = this.numSemitones;
+    var noteHeight = height / numSemitones;
+
+    if (lastRhythmIndex != this.lastDrawnRhythmIndex) {
+        // Erase last playhead
+        var x = this.lastDrawnRhythmIndex * width / n;
+        var y = 0;
+        ctx.fillStyle = this.backgroundColor;
+        ctx.fillRect(x, y, noteWidth, noteHeight);
+
+        // Draw new playhead
+        var x = lastRhythmIndex * width / n;
+        var y = 0;
+        ctx.fillStyle = this.playheadColor;
+        ctx.fillRect(x, y, noteWidth, noteHeight);
+        
+        this.lastDrawnRhythmIndex = lastRhythmIndex;
+    }    
+
+    var view = this;
+    function ddd() {
+        view.drawPlayhead();
+    }
+    
+    window.requestAnimationFrame(ddd);
+}
+
+
 SequenceView.prototype.mouseDown = function(position) {
     var width = this.width;
     var height = this.height;
@@ -409,6 +435,8 @@ function advanceNote() {
     var secondsPerBeat = 60.0 / tempo;
     noteTime += 0.25 * secondsPerBeat;
 
+    lastRhythmIndex = rhythmIndex;
+    
     rhythmIndex++;
     if (rhythmIndex == loopLength) {
         rhythmIndex = 0;
@@ -437,14 +465,14 @@ function schedule() {
             }
 
             if (playMonophonic) {
-                monophonicNote.play(waveTable, noteNumber, octave, contextPlayTime);
+                monophonicNote.play(waveTable, waveTable2, noteNumber, octave, contextPlayTime);
             } else {
                 var note = new Note(staticAudioRouting, false);
-                note.play(waveTable, noteNumber, octave, contextPlayTime);
+                note.play(waveTable, waveTable2, noteNumber, octave, contextPlayTime);
 
                 if (playDoubleOctave) {
                     var note2 = new Note(staticAudioRouting, false);
-                    note2.play(waveTable, noteNumber + 12, octave, contextPlayTime);
+                    note2.play(waveTable, waveTable2, noteNumber + 12, octave, contextPlayTime);
                 }
 
             }
@@ -535,6 +563,7 @@ function Note(staticAudioRouting, isMonophonic) {
     this.noteVolume = noteVolume;
     
     this.wave = 0;
+    this.wave2 = 0;
 }
 
 Note.prototype.setFilterValues = function() {
@@ -574,11 +603,12 @@ Note.prototype.setFilterValues = function() {
 
 var firstTime = true;
 
-Note.prototype.play = function(wave, semitone, octave, time) {
+Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     this.time = time;
     
-    if (wave != this.wave || !this.isMonophonic) {
+    if (wave != this.wave || wave2 != this.wave2 || !this.isMonophonic) {
         this.wave = wave;
+        this.wave2 = wave2;
         firstTime = true;
     }
     
@@ -608,7 +638,7 @@ Note.prototype.play = function(wave, semitone, octave, time) {
 
 
     var rate2 = pitchRate * Math.pow(2.0, octave - detune2/1200);
-    var buffer2 = wave.getWaveDataForPitch(rate2);
+    var buffer2 = wave2.getWaveDataForPitch(rate2);
     if (firstTime) osc1Octave.buffer = buffer2;
     osc1Octave.playbackRate.value = rate2;
 
@@ -688,7 +718,6 @@ function loadImpulseResponse(url, convolver) {
     request.onload = function() { 
         convolver.buffer = context.createBuffer(request.response, false);
         isImpulseResponseLoaded = true;
-        // finishLoading();
     }
     request.onerror = function() { 
         alert("error loading reverb");
@@ -807,6 +836,18 @@ function init() {
     addUI();
 }
 
+function setWaveTable1(name) {
+    waveTable = loader.getTable(name);
+
+    // For now, set both wavetables to the same value.
+    waveTable2 = loader.getTable(name);
+}    
+
+function setWaveTable2(name) {
+    waveTable2 = loader.getTable(name);
+}    
+
+
 function addUI() {
     var controls = document.getElementById("controls");
     views = new Array();
@@ -839,7 +880,7 @@ function addUI() {
     bpmDelay.setDelayValue("quarter note");
     
     var bpmDelayMenu = document.getElementById("bpmDelayMenu");
-    var menuText = '<select onchange="bpmDelay.setDelayValue(this.value);">'
+    var menuText = 'Delay: <select onchange="bpmDelay.setDelayValue(this.value);">'
         menuText += '<option>32nd note</option>'
         menuText += '<option>16th note triplet</option>'
         menuText += '<option>dotted 32nd note</option>'
@@ -852,12 +893,16 @@ function addUI() {
         menuText += '<option selected>quarter note</option>'
         menuText += '</select>';
     bpmDelayMenu.innerHTML = menuText;
+
+    loader.makeWavePopup("wavePopup1");
+    // loader.makeWavePopup("wavePopup2");
 }
 
 function start() {
     startTime = context.currentTime + 0.160;
     
-    waveTable = loader.getTable("Celeste");
+    waveTable = loader.getTable(defaultWaveTableName);
+    waveTable2 = loader.getTable(defaultWaveTableName);
     schedule();    
 }
 
@@ -886,9 +931,6 @@ function start() {
 </input>
 -->
 
-<input type="checkbox" onclick="playMonophonic = !playMonophonic;">
-    polyphonic
-</input>
 
 <div id="bpmDelayMenu">
 </div>
@@ -897,10 +939,23 @@ function start() {
 
 <div id="info"> </div>
 
+
+
+Wave:
+<select id="wavePopup1" onchange="setWaveTable1(this.value);">
+</select>
+<br>
+
+<input type="checkbox" onclick="playMonophonic = !playMonophonic;">
+    polyphonic
+</input>
+
+
+<!--
 <h3>Wave Tables</h3>
 <div id="waveList">
-
 </div>
+-->
 
 </body>
 </html>
