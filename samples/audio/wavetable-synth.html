@@ -85,6 +85,7 @@ var playDoubleOctave = false;
 var grungeDrive = 1;
 
 var views;
+var sequence;
 var sequenceView;
 
 var isShiftDown = false;
@@ -104,7 +105,7 @@ function onDocumentKeyDown( event ) {
             break;
     }
     
-    window.console.log(rhythm);
+    window.console.log(sequence.rhythm);
 }
 
 function onDocumentKeyUp( event ) {
@@ -116,6 +117,21 @@ function onDocumentKeyUp( event ) {
             isAltDown = false;
             break;
     }
+}
+
+if ( !window.requestAnimationFrame ) {
+    window.requestAnimationFrame = ( function() {
+
+    return window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+    window.setTimeout( callback, 1000 / 60 );
+};
+
+} )();
 }
 
 function loadWaveTables() {
@@ -215,21 +231,12 @@ WaveTableLoader.prototype.makeWavePopup = function(popupName) {
     }
 }
 
-
-
 WaveTableLoader.prototype.getTable = function(name) {
     for (var i = 0; i < this.waveNames.length; ++i) {
         if (name == this.waveNames[i]) {
             return this.waveList[i];
         }
     }
-}
-
-function highlightElement(object) {
-    if (hilightedElement) hilightedElement.style.backgroundColor = "white";
-    hilightedElement = object;
-
-    object.style.backgroundColor = "green";
 }
 
 if ( !window.requestAnimationFrame ) {
@@ -247,21 +254,10 @@ if ( !window.requestAnimationFrame ) {
 } )();
 }
 
-var rhythm = [4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1];
-
-var minor = [0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58];
-
-
-var loopLength = 16;
-var rhythmIndex = 0;
-var lastRhythmIndex = -1;
-var loopNumber = 0;
-var tempo = 85.0;
-var noteTime = 0.0;
-
-function SequenceView(divName) {
+function SequenceView(sequence, divName) {
+    this.sequence = sequence;
     this.name = divName;
-    this.numberOfNotes = loopLength;
+    this.numberOfNotes = sequence.loopLength;
     this.numSemitones = 60;
     this.backgroundColor = "rgb(60,40,40)";
     this.noteColor = "rgb(200,150,150)";
@@ -354,9 +350,9 @@ SequenceView.prototype.draw = function() {
     var numSemitones = this.numSemitones;
     var noteHeight = height / numSemitones;
     for (var i = 0; i < n; ++i) {
-        if (rhythm[i] != -1) {
+        if (sequence.rhythm[i] != -1) {
             var x = i * width / n;
-            var y = -noteHeight + height - rhythm[i]*noteHeight;
+            var y = -noteHeight + height - sequence.rhythm[i]*noteHeight;
             ctx.fillStyle = this.noteColor;
             ctx.fillRect(x, y, noteWidth, noteHeight);
         }
@@ -374,7 +370,7 @@ SequenceView.prototype.drawPlayhead = function() {
     var numSemitones = this.numSemitones;
     var noteHeight = height / numSemitones;
 
-    if (lastRhythmIndex != this.lastDrawnRhythmIndex) {
+    if (this.sequence.lastRhythmIndex != this.lastDrawnRhythmIndex) {
         // Erase last playhead
         var x = this.lastDrawnRhythmIndex * width / n;
         var y = 0;
@@ -382,20 +378,20 @@ SequenceView.prototype.drawPlayhead = function() {
         ctx.fillRect(x, y, noteWidth, noteHeight);
 
         // Draw new playhead
-        var x = lastRhythmIndex * width / n;
+        var x = this.sequence.lastRhythmIndex * width / n;
         var y = 0;
         ctx.fillStyle = this.playheadColor;
         ctx.fillRect(x, y, noteWidth, noteHeight);
         
-        this.lastDrawnRhythmIndex = lastRhythmIndex;
+        this.lastDrawnRhythmIndex = this.sequence.lastRhythmIndex;
     }    
 
     var view = this;
-    function ddd() {
+    function requestDispatch() {
         view.drawPlayhead();
     }
     
-    window.requestAnimationFrame(ddd);
+    window.requestAnimationFrame(requestDispatch);
 }
 
 
@@ -410,9 +406,9 @@ SequenceView.prototype.mouseDown = function(position) {
     var note = Math.floor( (height - position.y) / noteHeight);
     if (ri >= 0 && ri < n && note >= 0) {
         if (isAltDown)
-            rhythm[ri] = -1;
+            sequence.rhythm[ri] = -1;
         else
-            rhythm[ri] = note;
+            sequence.rhythm[ri] = note;
 
         this.draw();
     }
@@ -430,32 +426,52 @@ SequenceView.prototype.mouseDrag = function(position) {
 SequenceView.prototype.mouseUp = function(position) {
 }
 
-function advanceNote() {
+
+
+var tempo = 85.0;
+
+
+function Sequence() {
+    this.loopLength = 16;
+    this.rhythmIndex = 0;
+    this.lastRhythmIndex = -1;
+    this.loopNumber = 0;
+    this.noteTime = 0.0;
+
+    this.rhythm = [4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1];
+    // this.minor = [0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39, 43, 46, 48, 51, 55, 58];
+}
+
+Sequence.prototype.advanceNote = function() {
     // Advance time by a 16th note...
     var secondsPerBeat = 60.0 / tempo;
-    noteTime += 0.25 * secondsPerBeat;
+    this.noteTime += 0.25 * secondsPerBeat;
 
-    lastRhythmIndex = rhythmIndex;
+    this.lastRhythmIndex = this.rhythmIndex;
     
-    rhythmIndex++;
-    if (rhythmIndex == loopLength) {
-        rhythmIndex = 0;
-        loopNumber++
+    this.rhythmIndex++;
+    if (this.rhythmIndex == this.loopLength) {
+        this.rhythmIndex = 0;
+        this.loopNumber++
     }
 }
 
-function schedule() {
+function ddd() {
+    sequence.schedule();
+}
+
+Sequence.prototype.schedule = function() {
     var currentTime = context.currentTime;
 
     // The sequence starts at startTime, so normalize currentTime so that it's 0 at the start of the sequence.
     currentTime -= startTime;
 
-    while (noteTime < currentTime + 0.040 /*0.120*/) {
+    while (this.noteTime < currentTime + 0.040 /*0.120*/) {
         // Convert noteTime to context time.
-        var contextPlayTime = noteTime + startTime;
+        var contextPlayTime = this.noteTime + startTime;
         
-        if (rhythm[rhythmIndex] != -1) {
-            var noteNumber = rhythm[rhythmIndex];
+        if (this.rhythm[this.rhythmIndex] != -1) {
+            var noteNumber = this.rhythm[this.rhythmIndex];
             if (arp) {
                 
                 var minor = [0, 3, 7, 10];
@@ -479,10 +495,10 @@ function schedule() {
 
         }
 
-        advanceNote();
+        this.advanceNote();
     }
-
-    setTimeout("schedule()", 0);
+    
+    setTimeout("ddd()", 0);
 }
 
 function Note(staticAudioRouting, isMonophonic) {
@@ -833,6 +849,8 @@ function init() {
     document.addEventListener('keydown', onDocumentKeyDown, false);
     document.addEventListener('keyup', onDocumentKeyUp, false);
 
+    sequence = new Sequence();
+
     addUI();
 }
 
@@ -875,7 +893,7 @@ function addUI() {
     
     installViews(views, controls);
     
-    sequenceView = new SequenceView("sequenceView");
+    sequenceView = new SequenceView(sequence, "sequenceView");
     
     bpmDelay.setDelayValue("quarter note");
     
@@ -899,11 +917,15 @@ function addUI() {
 }
 
 function start() {
+    // first, get rid of loading animation
+    var loading = document.getElementById("loading");
+    loading.innerHTML = "";
+
     startTime = context.currentTime + 0.160;
     
     waveTable = loader.getTable(defaultWaveTableName);
     waveTable2 = loader.getTable(defaultWaveTableName);
-    schedule();    
+    sequence.schedule();    
 }
 
 </script>
@@ -949,6 +971,11 @@ Wave:
 <input type="checkbox" onclick="playMonophonic = !playMonophonic;">
     polyphonic
 </input>
+
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif" width="200" height="200">
+</div>
 
 
 <!--
