@@ -1,0 +1,233 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<!--
+<link rel="stylesheet" type="text/css" href = "simple.css" />
+-->
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+
+
+
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+o3djs.require('o3djs.shader');
+
+function output(str) {
+    console.log(str);
+}
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var source;
+var filterNode;
+var gainNode;
+var analyser;
+var buffer;
+var audioBuffer;
+
+var analyserView1;
+var analyserView2;
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+    // analyserView2 = new AnalyserView("view2");
+
+    initAudio();
+    analyserView1.initByteBuffer();
+    // analyserView2.initByteBuffer();
+    
+    // analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);
+}
+
+function loadAudioBuffer(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        audioBuffer = context.createBuffer(request.response, false /*true*/);
+        finishLoad();  // add in the slider, etc. now that we've loaded the audio
+    }
+
+    request.send();
+}
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    window.requestAnimationFrame(draw);
+    var info = document.getElementById("info");
+    info.innerHTML = filterNode.frequency.value;
+}
+
+function initAudio() {
+    context = new webkitAudioContext();
+    
+    source = context.createBufferSource();
+    // filterNode = context.createHighPass2Filter();
+    // filterNode.resonance.value = 5.0;
+    filterNode = context.createBiquadFilter();
+    filterNode.type = 6; //BiquadFilterNode.HIGHPASS;
+
+    // alert("filterNode.gain = " + filterNode.gain + " : filterNode.Q = " + filterNode.Q);
+    filterNode.gain.value = 10;
+    filterNode.Q.value = 1;
+        
+    gainNode = context.createGainNode();
+    
+    analyser = context.createAnalyser();
+    analyser.fftSize = 4096; //2048;
+
+    // Connect audio processing graph
+    source.connect(filterNode);
+    filterNode.connect(gainNode);
+    gainNode.connect(analyser);
+    analyser.connect(context.destination);
+
+    // loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    loadAudioBuffer("sounds/tones/pinkgood.wav");
+}
+
+function finishLoad() {
+    source.buffer = audioBuffer;
+    source.looping = true;
+
+    source.noteOn(0.0);
+    
+    var startTime = context.currentTime;
+
+    filterNode.frequency.setValueAtTime(200.0, startTime);
+    // filterNode.frequency.setValueAtTime(400.0, startTime + 1);
+    // filterNode.frequency.setValueAtTime(800.0, startTime + 2);
+
+    var period = 2;
+    for (var i = 0; i < 100; ++i) {
+        filterNode.frequency.exponentialRampToValueAtTime(200.0, startTime + i*period);
+        filterNode.frequency.exponentialRampToValueAtTime(10000.0, startTime + i*period + 0.5*period);
+    }
+    
+    // filterNode.frequency.setValueAtTime(20000.0,               startTime + 0.5);
+    // filterNode.frequency.setTargetValueAtTime(200.0,           startTime + 0.6, 0.125);
+    // filterNode.frequency.setTargetValueAtTime(20000.0,         startTime + 2.0, 0.125);
+    // filterNode.frequency.exponentialRampToValueAtTime(400.0,   startTime + 3.0);
+
+    // gainNode.gain.setValueAtTime(1.0, startTime + 0.5);
+    // gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 2.5);
+    // gainNode.gain.exponentialRampToValueAtTime(1, startTime + 3.5);
+    // 
+    window.requestAnimationFrame(draw);
+}
+
+</script>
+
+</head>
+
+<body>
+
+<!-- Canvas tag for WebGL output -->
+
+<!--
+<canvas id="view1" width="1280px" height="800px"></canvas>
+<canvas id="view2" width="1280px" height="800px"></canvas>
+-->
+
+<canvas id="view1" width="1280px" height="800px"></canvas>
+
+<!--
+<canvas id="view2" width="640px" height="400px"></canvas>
+-->
+
+<!-- Sliders and other controls will be added here -->
+<div id="info"> </div>
+
+<div id="controls"> </div>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+</body>
+</html>
