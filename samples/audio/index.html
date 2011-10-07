@@ -76,15 +76,18 @@ Canary builds are nightly builds which are not very well tested and can be unsta
 <br><br>
 
 <img src="assets/safari.png" width=64px/>
+<h4> Mac OS X</h4>
 
 <p>
-A Mac OS X build for Apple Safari is available <a href="bin/WebKit-audio.05Jan2011.zip">here</a>.  It's a slightly out-of-date
-build and <em>does not yet work in Lion</em>.
-For the best experience, don't forget to enable WebGL before running it, by typing the following command in "Terminal":
+Web Audio is available in Apple Safari <a href="http://nightly.webkit.org/">nightly builds</a>.
+Before running, it must be enabled by going into the "Terminal" application and typing:
 </p>
 
 <pre>
 $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
+$ defaults write com.apple.Safari WebKitWebAudioEnabled -bool YES
+$ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2WebAudioEnabled -bool YES
+$ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2WebGLEnabled -bool YES
 </pre>
 
 <h2>Samples</h2> 
@@ -143,13 +146,8 @@ $ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
 <td style="width: 60px;"> 
 <div style="display: block; text-align: left;"><a href="visualizer-gl.html" imageanchor="1"><img src="images/visualizer2-gl.png" border="1"></a></div> 
 </td> 
-<td style="width: 300px;"><a href="visualizer-gl.html"><b>Realtime Analyser.</b></a> Here's another example of a visualizer using WebGL.  This requires
-that WebGL be activated.  At the command-line you must type:
-<br>
-<br>
-<pre>
-$ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
-</pre>
+<td style="width: 300px;"><a href="visualizer-gl.html"><b>Realtime Analyser.</b></a> is a visualizer using WebGL.
+
 
 </td> 
 </tr> 
