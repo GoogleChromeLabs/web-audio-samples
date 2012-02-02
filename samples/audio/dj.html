@@ -118,8 +118,9 @@ BufferLoader.prototype.load = function() {
 
 function crossfadeHandler(event, ui) {
   var x = ui.value;
-  var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
-  var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+  // equal-power cross-fade
+  var gain1 = Math.cos(x * 0.5*Math.PI);
+  var gain2 = Math.cos((1.0-x) * 0.5*Math.PI);
   
   source1Gain.gain.value = gain1;
   source2Gain.gain.value = gain2;
@@ -139,7 +140,7 @@ function leftFilterHandler(event, ui) {
   var info = document.getElementById("leftFilter-value");
   info.innerHTML = "leftFilter = " + cutoff + " Hz";
 
-  lowFilter1.cutoff.value = cutoff;
+  lowFilter1.frequency.value = cutoff;
 }
 
 function rightFilterHandler(event, ui) {
@@ -153,7 +154,7 @@ function rightFilterHandler(event, ui) {
   var info = document.getElementById("rightFilter-value");
   info.innerHTML = "rightFilter = " + cutoff + " Hz";
 
-  lowFilter2.cutoff.value = cutoff;
+  lowFilter2.frequency.value = cutoff;
 }
 
 function leftRhythmEffectHandler(event, ui) {
@@ -357,12 +358,12 @@ function init() {
     wetGainNode2.gain.value = 0.0;
 
     // Create a lowpass resonant filter for both left and right
-    lowFilter1 = context.createLowPass2Filter();
-    lowFilter2 = context.createLowPass2Filter();
-    lowFilter1.cutoff.value = 22050.0;
-    lowFilter2.cutoff.value = 22050.0;
-    lowFilter1.resonance.value = 5.0;
-    lowFilter2.resonance.value = 5.0;
+    lowFilter1 = context.createBiquadFilter();
+    lowFilter2 = context.createBiquadFilter();
+    lowFilter1.frequency.value = 22050.0;
+    lowFilter2.frequency.value = 22050.0;
+    lowFilter1.Q.value = 5.0; // in decibels
+    lowFilter2.Q.value = 5.0; // in decibels
 
     // Create a convolver for a rhythm effect
     convolver = context.createConvolver();
