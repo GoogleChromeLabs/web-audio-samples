@@ -61,6 +61,7 @@ var canvasHeight = 0;
 var backgroundColor = "rgb(0, 0, 0)";
 var curveColor = "rgb(192,192,192)";
 var gridColor = "rgb(200,200,200)";
+var thresholdColor = "rgb(75,25,25)";
 
 var sampleRate = 44100.0;
 var nyquist = 0.5 * sampleRate;
@@ -100,92 +101,128 @@ function dBToYPixel(db) {
     return y;
 }
 
-function dBToLinear(db) {
+function decibelsToLinear(db) {
     return Math.pow(10.0, 0.05 * db);
 }
 
-function linearToDb(x) {
+function linearToDecibels(x) {
     return 20.0 * Math.log(x) / Math.LN10;
 }
 
+
+var m_ratio;
+var m_slope;
+var m_linearThreshold;
+var m_thresholdDb;
+var m_headroomDb;
+var m_kneeThreshold;
+var m_kneeThresholdDb;
+var m_ykneeThresholdDb;    
+
+// Approximate 1st derivative with input and output expressed in dB.
+// This slope is equal to the inverse of the compression "ratio".
+// In other words, a compression ratio of 20 would be a slope of 1/20.
 function slopeAt(x, k) {
+    if (x < m_linearThreshold)
+        return 1;
+        
     var x2 = x * 1.001;
 
-    var xDb = linearToDb(x);
-    var x2Db = linearToDb(x2);
+    var xDb = linearToDecibels(x);
+    var x2Db = linearToDecibels(x2);
 
-    var yDb = linearToDb(1.0 - Math.exp(-k * x));
-    var y2Db = linearToDb(1.0 - Math.exp(-k * x2)); // 1st derivative approx
-    
+    var yDb = linearToDecibels(saturateBasic(x, k));
+    var y2Db = linearToDecibels(saturateBasic(x2, k));
+
     var m = (y2Db - yDb) / (x2Db - xDb);
-    // console.log("m = " + m + " : x = " + x);
 
     return m;
 }
 
-function xAtSlope(slope, k) {
+function kAtSlope(slope) {
     // Start estimate half-way above threshold.
-    var xDb = threshold + 0.5 * headroom;
-    var x = dBToLinear(xDb);
-    
-    var min_x = 0.0000001;
-    var max_x = 100;
-    var m = 1;
-    
+    var xDb = m_thresholdDb + m_headroomDb;
+    var x = decibelsToLinear(xDb);
+
+    var minK = 1;
+    var maxK = 10000;
+    var k = 5;
+
     // Approximate.
     for (var i = 0; i < 15; ++i) {
         m = slopeAt(x, k);
-                
+        
+        // console.log("slope = " + slope + " : m = " + m + " : k = " + k);
+
         if (m < slope) {
-            // We're too saturated - x is too high.
-            max_x = x;
-            x = Math.sqrt(min_x * max_x);
+            // k is too high.
+            maxK = k;
+            k = Math.sqrt(minK * maxK);
         } else {
-            // We're not far enough into the curve.
-            min_x = x;
-            x = Math.sqrt(min_x * max_x);
+            // k is not high enough.
+            minK = k;
+            k = Math.sqrt(minK * maxK);
         }
     }
-    
-    return x;
+
+    return k;
 }
 
-function e4(x, k)
+// Exponential saturation curve.
+function saturateBasic(x, k)
 {
-    var y = 1.0 - Math.exp(-k * x);
+    if (x < m_linearThreshold)
+        return x;
+    
+    return m_linearThreshold + (1 - Math.exp(-k * (x  - m_linearThreshold))) / k;
+}
 
-    if (x > kneeThreshold) {
-        var ysoftDb = linearToDb(y);
-        
-        var xDb = linearToDb(x);
-
-
-        var ykneeThreshold = 1.0 - Math.exp(-k * kneeThreshold);
-
-        var ykneeThresholdDb = linearToDb(ykneeThreshold);
-        
-        var m = 1 / ratio;
-        var yDb = ykneeThresholdDb + m * (xDb - kneeThresholdDb);        
-
-        y = Math.pow(10.0, 0.05 * yDb);
+function saturate(x, k)
+{
+    var y;
+    
+    if (x < m_kneeThreshold) {
+        y = saturateBasic(x, k);
+    } else {
+        var xDb = linearToDecibels(x);
+        var yDb = m_ykneeThresholdDb + m_slope * (xDb - m_kneeThresholdDb);
+    
+        y = decibelsToLinear(yDb);
     }
-
+    
     return y;
 }
 
-function shape(x) {    
-    var linearThreshold = dBToLinear(threshold);
-    var linearHeadroom = dBToLinear(headroom);
-    
-    var maximum = 1.05 * linearHeadroom * linearThreshold;
-    var kk = (maximum - linearThreshold);
-    
-    var shapedInput = x < linearThreshold ? x : linearThreshold + kk * e4(x - linearThreshold, 1.0 / kk);
-    
-    return shapedInput;
-}
-
 function drawCurve() {
+    // Update curve state.
+    var dbThreshold = threshold;
+    var dbHeadroom = headroom;
+    var linearThreshold = decibelsToLinear(dbThreshold);
+    var linearHeadroom = decibelsToLinear(dbHeadroom);
+    
+    m_linearThreshold = linearThreshold;
+    m_thresholdDb = dbThreshold;
+    m_headroomDb = dbHeadroom;
+
+
+    // Makeup gain.
+    var maximum = 1.05 * linearHeadroom * linearThreshold;
+
+    // Compute knee threshold.
+    m_ratio = ratio;
+    m_slope = 1 / m_ratio;
+
+    var k = kAtSlope(1 / m_ratio);
+    // console.log("k = " + k);
+
+    m_kneeThresholdDb = dbThreshold + headroom;
+    m_kneeThreshold = decibelsToLinear(m_kneeThresholdDb);
+    
+    m_ykneeThresholdDb = linearToDecibels(saturateBasic(m_kneeThreshold, k));
+
+    
+    
+    
     var info = document.getElementById("info");
     
     
@@ -222,8 +259,20 @@ function drawCurve() {
     canvasContext.moveTo(dBToXPixel(0), 0);
     canvasContext.lineTo(dBToXPixel(0), height);
     canvasContext.stroke();
-    
 
+    // Draw threshold input line
+    canvasContext.strokeStyle = thresholdColor;
+    canvasContext.beginPath();
+    canvasContext.moveTo(dBToXPixel(dbThreshold), 0);
+    canvasContext.lineTo(dBToXPixel(dbThreshold), height);
+    canvasContext.stroke();
+    
+    // Draw knee input line
+    canvasContext.strokeStyle = thresholdColor;
+    canvasContext.beginPath();
+    canvasContext.moveTo(dBToXPixel(m_kneeThresholdDb), 0);
+    canvasContext.lineTo(dBToXPixel(m_kneeThresholdDb), height);
+    canvasContext.stroke();
 
     canvasContext.strokeStyle = curveColor;
     canvasContext.lineWidth = 3;
@@ -236,23 +285,24 @@ function drawCurve() {
     var noctaves = 8;
     
  
-    // Compute knee threshold.
-    var linearThreshold = dBToLinear(threshold);
-    var linearHeadroom = dBToLinear(headroom);
-    var maximum = 1.05 * linearHeadroom * linearThreshold;
-    var kk = (maximum - linearThreshold);
-    kneeThreshold = xAtSlope(1 / ratio, 1 / kk);
-    kneeThresholdDb = linearToDb(kneeThreshold);
-    
-    console.log("kneeThreshold = " + kneeThreshold);
-
-    
+    // // Compute knee threshold.
+    // var linearThreshold = decibelsToLinear(threshold);
+    // var linearHeadroom = decibelsToLinear(headroom);
+    // var maximum = 1.05 * linearHeadroom * linearThreshold;
+    // var kk = (maximum - linearThreshold);
+    // kneeThreshold = xAtSlope(1 / ratio, 1 / kk);
+    // kneeThresholdDb = linearToDecibels(kneeThreshold);
+    // 
+    // console.log("kneeThreshold = " + kneeThreshold);
+    // 
+    // 
     
     for (var x = 0; x < width; ++x) {
         var inputDb = xpixelToDb(x);
-        var inputLinear = dBToLinear(inputDb);
-        var outputLinear = shape(inputLinear);
-        var outputDb = linearToDb(outputLinear);
+        var inputLinear = decibelsToLinear(inputDb);
+        // var outputLinear = shape(inputLinear);
+        var outputLinear = saturate(inputLinear, k);
+        var outputDb = linearToDecibels(outputLinear);
         var y = dBToYPixel(outputDb);
                 
         canvasContext.lineTo(x, y);
@@ -298,7 +348,7 @@ function init() {
     addSlider("ratio");
     configureSlider("threshold", threshold, -36.0, 0, thresholdHandler);
     configureSlider("headroom", headroom, 0.0, 30.0, headroomHandler);
-    configureSlider("ratio", ratio, 1, 10, ratioHandler);
+    configureSlider("ratio", ratio, 1, 50, ratioHandler);
         
     drawCurve();
 }
