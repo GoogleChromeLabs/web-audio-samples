@@ -69,6 +69,10 @@ var nyquist = 0.5 * sampleRate;
 var threshold = 60.0 * (0.6 - 1.0);
 var knee = 0.7 * 30.0;
 var ratio = 4;
+var makeupGain = 0;
+
+
+
 var kneeThreshold = 1; // computed at draw time
 var kneeThresholdDb;
 
@@ -290,6 +294,10 @@ function drawCurve() {
         // var outputLinear = shape(inputLinear);
         var outputLinear = saturate(inputLinear, k);
         var outputDb = linearToDecibels(outputLinear);
+        
+        // Add makeup gain.
+        outputDb += makeupGain;
+        
         var y = dBToYPixel(outputDb);
                 
         canvasContext.lineTo(x, y);
@@ -304,7 +312,7 @@ function thresholdHandler(event, ui) {
   drawCurve();
   
   var info = document.getElementById("threshold-value");
-  info.innerHTML = "threshold = " + threshold;
+  info.innerHTML = "threshold = " + threshold + " dB";
 }
 
 function kneeHandler(event, ui) {
@@ -312,7 +320,7 @@ function kneeHandler(event, ui) {
   drawCurve();
   
   var info = document.getElementById("knee-value");
-  info.innerHTML = "knee = " + knee;
+  info.innerHTML = "knee = " + knee  + " dB";
 }
 
 function ratioHandler(event, ui) {
@@ -321,6 +329,14 @@ function ratioHandler(event, ui) {
   
   var info = document.getElementById("ratio-value");
   info.innerHTML = "ratio = " + ratio;
+}
+
+function makeupGainHandler(event, ui) {
+  makeupGain = parseFloat(ui.value);
+  drawCurve();
+  
+  var info = document.getElementById("makeupGain-value");
+  info.innerHTML = "makeupGain = " + makeupGain  + " dB";
 }
 
 function init() {
@@ -333,9 +349,11 @@ function init() {
     addSlider("threshold");
     addSlider("knee");
     addSlider("ratio");
+    addSlider("makeupGain");
     configureSlider("threshold", threshold, -36.0, 0, thresholdHandler);
     configureSlider("knee", knee, 0.0, 30.0, kneeHandler);
     configureSlider("ratio", ratio, 1, 50, ratioHandler);
+    configureSlider("makeupGain", makeupGain, 0, 20, makeupGainHandler);
         
     drawCurve();
 }
