@@ -68,7 +68,7 @@ var nyquist = 0.5 * sampleRate;
 
 var threshold = 60.0 * (0.6 - 1.0);
 var knee = 0.7 * 30.0;
-var ratio = 4;
+var ratio = 12;
 var makeupGain = 0;
 
 
@@ -144,11 +144,10 @@ function slopeAt(x, k) {
 }
 
 function kAtSlope(slope) {
-    // Start estimate half-way above threshold.
     var xDb = m_thresholdDb + m_kneeDb;
     var x = decibelsToLinear(xDb);
 
-    var minK = 1;
+    var minK = 0.1;
     var maxK = 10000;
     var k = 5;
 
@@ -351,7 +350,7 @@ function init() {
     addSlider("ratio");
     addSlider("makeupGain");
     configureSlider("threshold", threshold, -36.0, 0, thresholdHandler);
-    configureSlider("knee", knee, 0.0, 30.0, kneeHandler);
+    configureSlider("knee", knee, 0.0, 40.0, kneeHandler);
     configureSlider("ratio", ratio, 1, 50, ratioHandler);
     configureSlider("makeupGain", makeupGain, 0, 20, makeupGainHandler);
         
