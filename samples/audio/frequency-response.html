@@ -1,0 +1,276 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var filter;
+var frequency = 2000;
+var resonance = 5;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+
+var curveColor = "rgb(192,192,192)";
+var playheadColor = "rgb(80, 100, 80)";
+var gridColor = "rgb(100,100,100)";
+
+var dbScale = 60;
+var pixelsPerDb;
+var width;
+var height;
+
+function dbToY(db) {
+    var y = (0.5 * height) - pixelsPerDb * db;
+    return y;
+}
+
+function drawCurve() {
+    // draw center
+    width = canvas.width;
+    height = canvas.height;
+
+    canvasContext.fillStyle = "rgb(0, 0, 0)";
+    canvasContext.fillRect(0, 0, width, height);
+
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.lineWidth = 3;
+
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+
+    pixelsPerDb = (0.5 * height) / dbScale;
+    
+    var noctaves = 11;
+    
+    var frequencyHz = new Float32Array(width);
+    var magResponse = new Float32Array(width);
+    var phaseResponse = new Float32Array(width);
+    var nyquist = 0.5 * context.sampleRate;
+    // First get response.
+    for (var i = 0; i < width; ++i) {
+        var f = i / width;
+        
+        // Convert to log frequency scale (octaves).
+        f = nyquist * Math.pow(2.0, noctaves * (f - 1.0));
+        
+        frequencyHz[i] = f;
+    }
+
+    filter.getFrequencyResponse(frequencyHz, magResponse, phaseResponse);
+
+    
+    for (var i = 0; i < width; ++i) {
+        var f = magResponse[i];
+        var response = magResponse[i];
+        var dbResponse = 20.0 * Math.log(response) / Math.LN10;
+dbResponse *= 2; // simulate two chained Biquads (for 4-pole lowpass)
+        
+        var x = i;
+        var y = dbToY(dbResponse);
+        
+        canvasContext.lineTo(x, y);
+    }
+    canvasContext.stroke();
+    
+    canvasContext.beginPath();
+    
+    canvasContext.lineWidth = 1;
+    
+    canvasContext.strokeStyle = gridColor;
+    
+    
+    
+    // Draw frequency scale.
+    for (var octave = 0; octave <= noctaves; octave++) {
+        var x = octave * width / noctaves;
+        
+        canvasContext.strokeStyle = gridColor;
+        canvasContext.moveTo(x, 30);
+        canvasContext.lineTo(x, height);
+        canvasContext.stroke();
+
+        var f = nyquist * Math.pow(2.0, octave - noctaves);
+        canvasContext.textAlign = "center";
+        canvasContext.strokeStyle = curveColor;
+        canvasContext.strokeText(f.toFixed(0) + "Hz", x, 20);
+    }
+
+    // Draw 0dB line.
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0.5 * height);
+    canvasContext.lineTo(width, 0.5 * height);
+    canvasContext.stroke();
+    
+    // Draw decibel scale.
+    
+    for (var db = -dbScale; db < dbScale; db += 5) {
+        var y = dbToY(db);
+        canvasContext.strokeStyle = curveColor;
+        canvasContext.strokeText(db.toFixed(0) + "dB", width - 40, y);
+
+        canvasContext.strokeStyle = gridColor;
+        canvasContext.beginPath();
+        canvasContext.moveTo(0, y);
+        canvasContext.lineTo(width, y);
+        canvasContext.stroke();
+    }
+}
+
+function frequencyHandler(event, ui) {
+  var value = ui.value;
+  var nyquist = context.sampleRate * 0.5;
+  var noctaves = Math.log(nyquist / 10.0) / Math.LN2;
+  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+  var cutoff = v2*nyquist;
+  
+  var info = document.getElementById("frequency-value");
+  info.innerHTML = "frequency = " + cutoff + " Hz";
+
+  filter.frequency.value = cutoff;
+  drawCurve();
+}
+
+function resonanceHandler(event, ui) {
+  var value = ui.value;
+
+  var info = document.getElementById("resonance-value");
+  info.innerHTML = "resonance = " + value + " dB";
+  
+  filter.Q.value = value; // !! Q value not same as resonance...
+  drawCurve();
+}
+
+
+function initAudio() {
+    context = new webkitAudioContext();
+    filter = context.createBiquadFilter();
+    filter.Q.value = 5;
+    filter.frequency.value = 2000;
+    filter.connect(context.destination);
+}
+
+function init() {
+    initAudio();
+    
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    canvas.addEventListener("mousedown", handleMouseDown, true);
+    canvas.addEventListener("mousemove", handleMouseMove, true);
+    canvas.addEventListener("mouseup", handleMouseUp, true);
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+    
+    
+    addSlider("frequency");
+    addSlider("resonance");
+    configureSlider("frequency", frequency, 0, 1, frequencyHandler);
+    configureSlider("resonance", resonance, 0, 20, resonanceHandler);
+        
+    drawCurve();
+}
+
+var gIsMouseDown = false;
+var gLastX = 0;
+var gLastY = 0;
+
+function handleMouseDown(event) {
+    gIsMouseDown = true;
+
+    var posx = event.clientX;
+    var posy = event.clientY;
+
+    var eventInfo = {event: event, element:canvas};
+
+    var c = getRelativeCoordinates(eventInfo);
+    var x = c.x;
+    var y = c.y;
+}
+
+function handleMouseUp(event) {
+    gIsMouseDown = false;
+}
+
+function handleMouseMove(event) {
+    if (gIsMouseDown) {
+    }
+}
+
+</script>
+</head>
+
+<body>
+
+
+<div id="info">
+</div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<br><br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<div id="kits">
+</div>
+
+</body>
+</html>
