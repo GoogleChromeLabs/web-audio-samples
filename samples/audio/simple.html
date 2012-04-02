@@ -189,7 +189,7 @@ function cutoffHandler(event, ui) {
 
     info.innerHTML = "cutoff = " + frequency + " hz";
 
-    lowFilter.cutoff.value = frequency;
+    lowFilter.frequency.value = frequency;
 }
 
 function addSliders() {
@@ -252,9 +252,9 @@ function setSourceBuffer(buffer) {
      wetGainNode = context.createGainNode();
      panner = context.createPanner();
 
-     lowFilter = context.createLowPass2Filter();
-     lowFilter.cutoff.value = 22050.0;
-     lowFilter.resonance.value = 5.0;
+     lowFilter = context.createBiquadFilter();
+     lowFilter.frequency.value = 22050.0;
+     lowFilter.Q.value = 5.0;
 
      convolver = context.createConvolver();
 
