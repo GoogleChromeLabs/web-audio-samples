@@ -79,6 +79,8 @@ var width;
 var height;
 
 var Q = 1;
+var resonance = 5;
+var offsetResonance = 0.5;
 
 //************************************************************************************
 
@@ -373,12 +375,36 @@ function frequencyHandler(event, ui) {
 
 function resonanceHandler(event, ui) {
   var value = parseFloat(ui.value);
+  resonance = value;
 
   var info = document.getElementById("resonance-value");
   info.innerHTML = "resonance = " + value + " dB";
   
-  filter.Q.value = value; // !! Q value not same as resonance...
-  filter2.Q.value = value + 6; // !! Q value not same as resonance...
+  var blend1 = offsetResonance;
+  var blend2 = 1-offsetResonance;
+  blend1 = Math.pow(blend1, 1.5);
+  blend2 = Math.pow(blend2, 1.5);
+  filter.Q.value = blend1*resonance; // !! Q value not same as resonance...
+  filter2.Q.value = blend2*resonance;
+
+  drawCurve();
+}
+
+function offsetHandler(event, ui) {
+    var value = parseFloat(ui.value);
+
+  var info = document.getElementById("offset-value");
+  info.innerHTML = "offset = " + value + " dB";
+  
+  offsetResonance = value;
+
+  var blend1 = offsetResonance;
+  var blend2 = 1-offsetResonance;
+  blend1 = Math.pow(blend1, 1.4);
+  blend2 = Math.pow(blend2, 1.4);
+  filter.Q.value = blend1*resonance; // !! Q value not same as resonance...
+  filter2.Q.value = blend2*resonance;
+
   drawCurve();
 }
 
@@ -391,6 +417,7 @@ function QHandler(event, ui) {
   Q = value;
   drawCurve();
 }
+
 
 
 function initAudio() {
@@ -423,9 +450,11 @@ function init() {
     addSlider("frequency");
     addSlider("resonance");
     addSlider("Q");
+    addSlider("offset");
     configureSlider("frequency", frequency, 0, 1, frequencyHandler);
     configureSlider("resonance", resonance, 0, 20, resonanceHandler);
     configureSlider("Q", Q, 0, 20, QHandler);
+    configureSlider("offset", offsetResonance, 0, 0.5, offsetHandler);
         
     drawCurve();
 }
