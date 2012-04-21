@@ -71,20 +71,20 @@ function ToneEditorView(context, name) {
     this.partials = new Float32Array(this.numPartials);
     this.positions = new Float32Array(this.numPartials);
     this.kDecibelRange = 80.0;
-    
+
+    // Initialize to just a few partials.
     var p = this.partials;
-    for (var i = 1; i < this.numPartials; ++i) {
-        p[i] = 1;
-    }
-    
+    p[1] = 1;
+    p[2] = 0.5;
+    p[3] = 0.1;
+
     var wavetable = context.createWaveTable(this.partials, this.partials);
     osc.setWaveTable(wavetable);
-    
-    
+
     this.backgroundColor = "rgb(60,40,40)";
     this.curveColor = "rgb(255,0,0)";
     this.textColor = "rgb(255,255,255)";
-    
+
     this.attach();
 }
 
@@ -95,25 +95,25 @@ ToneEditorView.prototype.attach = function() {
 
     var ctx = canvas.getContext('2d');
     this.ctx = ctx;
-    
+
     this.width = canvas.width;
     this.height = canvas.height;
 
     var view = this;
-    canvas.addEventListener("mousedown", 
+    canvas.addEventListener("mousedown",
         function(event) {
             var position = getElementCoordinates(view, event);
 
             currentView = view;
             view.isDragging = true;
-            view.startPosition = position;            
+            view.startPosition = position;
             view.mouseDown(position);
         },
         true
     );
-    
+
     // Note: document handles mouseup and mousemove events.
-    document.addEventListener("mousemove", 
+    document.addEventListener("mousemove",
         function(event) {
             if (currentView && currentView == view) {
                 var position = getElementCoordinates(currentView.canvas, event);
@@ -135,7 +135,7 @@ ToneEditorView.prototype.attach = function() {
         true
     );
 
-    this.draw();    
+    this.draw();
 }
 
 ToneEditorView.prototype.draw = function() {
@@ -147,41 +147,41 @@ ToneEditorView.prototype.draw = function() {
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0,0, width, height);
 
-	var kXScale = 0.8 * width;
-	var kXOffset = 10.0;
+    var kXScale = 0.8 * width;
+    var kXOffset = 10.0;
 
-	var p = this.partials;
-	var n = this.numPartials;
+    var p = this.partials;
+    var n = this.numPartials;
 
-	var m = Math.log(n) / Math.LN2;
+    var m = Math.log(n) / Math.LN2;
 
-	var positions = this.positions;
+    var positions = this.positions;
 
     ctx.strokeStyle = this.curveColor;
 
     var kDecibelRange = this.kDecibelRange;
-    
-	for (var i = 1; i < n; i++) {
-		var x = (Math.log(i) / Math.LN2) / m;
 
-		x *= kXScale;
-		x += kXOffset;
+    for (var i = 1; i < n; i++) {
+        var x = (Math.log(i) / Math.LN2) / m;
 
-		positions[i] = x;
+        x *= kXScale;
+        x += kXOffset;
 
-		var dB = p[i] == 0.0 ? -200.0 : 20.0 * Math.log(p[i]) / Math.LN10;
-		var y = height * (-dB / kDecibelRange);
+        positions[i] = x;
+
+        var dB = p[i] == 0.0 ? -200.0 : 20.0 * Math.log(p[i]) / Math.LN10;
+        var y = height * (-dB / kDecibelRange);
 
         ctx.beginPath();
-		ctx.moveTo(x, y);
-		ctx.lineTo(x, height);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, height);
         ctx.stroke();
-	}
+    }
 }
 
 ToneEditorView.prototype.mouseDown = function(position) {
     this.mLastMouseX = -1.0;
-    gainNode.gain.setTargetValueAtTime(0, 0, 0.010);
+    gainNode.gain.setTargetValueAtTime(0.5, 0, 0.010);
 }
 
 ToneEditorView.prototype.mouseMove = function(position) {
@@ -197,28 +197,28 @@ ToneEditorView.prototype.mouseDrag = function(position) {
     var height = this.height;
     var kDecibelRange = this.kDecibelRange;
     var mLastMouseX = this.mLastMouseX;
-    
+
     var x = hitPt.x;
     var y = (height - hitPt.y) / height;
     if (y < 0.0)
         y = 0.0;
-    
+
     // now convert y to decibels
     if (y == 0.0)
         y = -200.0;
     else
         y = -kDecibelRange * (1.0 - y);
-    
+
     if (mLastMouseX == -1.0)
         mLastMouseX = x;
-    
+
     var x1 = x < mLastMouseX ? x : mLastMouseX;
     var x2 = x > mLastMouseX ? x : mLastMouseX;
-    
-	var p = this.partials;
-	var n = this.numPartials;
+
+    var p = this.partials;
+    var n = this.numPartials;
     var positions = this.positions;
-    
+
     for (var i = 1; i < n; i++) {
         var posX = positions[i];
 
@@ -232,13 +232,13 @@ ToneEditorView.prototype.mouseDrag = function(position) {
             p[i] = k;
         }
     }
-    
+
     this.mLastMouseX = hitPt.x;
-    
+
     this.partials[0] = 0;
     var wavetable = context.createWaveTable(this.partials, this.partials);
     osc.setWaveTable(wavetable);
-        
+
     this.draw();
 }
 
@@ -253,18 +253,18 @@ function init() {
     gainNode = context.createGainNode();
     osc.connect(gainNode);
     gainNode.connect(context.destination);
-    
+
     editorView = new ToneEditorView(context, "tone-editor");
     editorView.draw();
-    
+
     var controls = document.getElementById("controls");
     views = new Array();
-    
+
     var j = 0;
     views[j++] = new KnobView("pitch", 40, 10, 24000, UNITS.hertz, 0, true, function(value) { osc.frequency.value = value; } );
-    
+
     installViews(views, controls);
-    
+
 }
 
 </script>
