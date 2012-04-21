@@ -1,0 +1,282 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+var currentView = 0; // FIXME: global...
+var context;
+var osc;
+var gainNode;
+var wavetable;
+var editorView;
+
+var views;
+
+window.onload = init;
+
+
+function ToneEditorView(context, name) {
+    this.context = context;
+    this.name = name;
+
+    this.numPartials = 4096;
+    this.partials = new Float32Array(this.numPartials);
+    this.positions = new Float32Array(this.numPartials);
+    this.kDecibelRange = 80.0;
+    
+    var p = this.partials;
+    for (var i = 1; i < this.numPartials; ++i) {
+        p[i] = 1;
+    }
+    
+    var wavetable = context.createWaveTable(this.partials, this.partials);
+    osc.setWaveTable(wavetable);
+    
+    
+    this.backgroundColor = "rgb(60,40,40)";
+    this.curveColor = "rgb(255,0,0)";
+    this.textColor = "rgb(255,255,255)";
+    
+    this.attach();
+}
+
+ToneEditorView.prototype.attach = function() {
+    // Create the canvas
+    var canvas = document.getElementById(this.name);
+    this.canvas = canvas;
+
+    var ctx = canvas.getContext('2d');
+    this.ctx = ctx;
+    
+    this.width = canvas.width;
+    this.height = canvas.height;
+
+    var view = this;
+    canvas.addEventListener("mousedown", 
+        function(event) {
+            var position = getElementCoordinates(view, event);
+
+            currentView = view;
+            view.isDragging = true;
+            view.startPosition = position;            
+            view.mouseDown(position);
+        },
+        true
+    );
+    
+    // Note: document handles mouseup and mousemove events.
+    document.addEventListener("mousemove", 
+        function(event) {
+            if (currentView && currentView == view) {
+                var position = getElementCoordinates(currentView.canvas, event);
+                currentView.mouseMove(position);
+            }
+        },
+        true
+    );
+
+    document.addEventListener("mouseup",
+        function(event) {
+            if (currentView && currentView == view) {
+                view.isDragging = false;
+                var position = getElementCoordinates(currentView.canvas, event);
+                currentView.mouseUp(position);
+                currentView = 0;
+            }
+        },
+        true
+    );
+
+    this.draw();    
+}
+
+ToneEditorView.prototype.draw = function() {
+    var ctx = this.ctx;
+    var width = this.width;
+    var height = this.height;
+
+    // Draw background.
+    ctx.fillStyle = this.backgroundColor;
+    ctx.fillRect(0,0, width, height);
+
+	var kXScale = 0.8 * width;
+	var kXOffset = 10.0;
+
+	var p = this.partials;
+	var n = this.numPartials;
+
+	var m = Math.log(n) / Math.LN2;
+
+	var positions = this.positions;
+
+    ctx.strokeStyle = this.curveColor;
+
+    var kDecibelRange = this.kDecibelRange;
+    
+	for (var i = 1; i < n; i++) {
+		var x = (Math.log(i) / Math.LN2) / m;
+
+		x *= kXScale;
+		x += kXOffset;
+
+		positions[i] = x;
+
+		var dB = p[i] == 0.0 ? -200.0 : 20.0 * Math.log(p[i]) / Math.LN10;
+		var y = height * (-dB / kDecibelRange);
+
+        ctx.beginPath();
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, height);
+        ctx.stroke();
+	}
+}
+
+ToneEditorView.prototype.mouseDown = function(position) {
+    this.mLastMouseX = -1.0;
+    gainNode.gain.setTargetValueAtTime(0, 0, 0.010);
+}
+
+ToneEditorView.prototype.mouseMove = function(position) {
+    if (this.isDragging) {
+        this.mouseDrag(position);
+    }
+}
+
+ToneEditorView.prototype.mouseDrag = function(position) {
+    var hitPt = position;
+    var ctx = this.ctx;
+    var width = this.width;
+    var height = this.height;
+    var kDecibelRange = this.kDecibelRange;
+    var mLastMouseX = this.mLastMouseX;
+    
+    var x = hitPt.x;
+    var y = (height - hitPt.y) / height;
+    if (y < 0.0)
+        y = 0.0;
+    
+    // now convert y to decibels
+    if (y == 0.0)
+        y = -200.0;
+    else
+        y = -kDecibelRange * (1.0 - y);
+    
+    if (mLastMouseX == -1.0)
+        mLastMouseX = x;
+    
+    var x1 = x < mLastMouseX ? x : mLastMouseX;
+    var x2 = x > mLastMouseX ? x : mLastMouseX;
+    
+	var p = this.partials;
+	var n = this.numPartials;
+    var positions = this.positions;
+    
+    for (var i = 1; i < n; i++) {
+        var posX = positions[i];
+
+        var kk = Math.log(i) / Math.LN2;
+        // bool isPowerOfTwo = (kk == Math.floor(kk));
+        // if (!isPowerOfTwo && inMouse.IsOptionPressed())
+        //     continue;
+
+        if (posX >= x1 && posX <= x2) {
+            var k = Math.pow(10.0, 0.05 * y);
+            p[i] = k;
+        }
+    }
+    
+    this.mLastMouseX = hitPt.x;
+    
+    this.partials[0] = 0;
+    var wavetable = context.createWaveTable(this.partials, this.partials);
+    osc.setWaveTable(wavetable);
+        
+    this.draw();
+}
+
+ToneEditorView.prototype.mouseUp = function(position) {
+    gainNode.gain.setTargetValueAtTime(1, 0, 0.010);
+}
+
+function init() {
+    context = new webkitAudioContext();
+    osc = context.createOscillator();
+    osc.frequency.value = 40;
+    gainNode = context.createGainNode();
+    osc.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    editorView = new ToneEditorView(context, "tone-editor");
+    editorView.draw();
+    
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("pitch", 40, 10, 24000, UNITS.hertz, 0, true, function(value) { osc.frequency.value = value; } );
+    
+    installViews(views, controls);
+    
+}
+
+</script>
+</head>
+
+<body>
+
+<canvas id="tone-editor" width="1280px" height="800px"></canvas>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+
+</html>
