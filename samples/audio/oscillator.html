@@ -76,17 +76,13 @@ var buffer;
 var audioBuffer;
 
 
-
-
-
-
-
 var context;
 var wavetable;
 var osc1;
 var osc2;
 var osc3;
 var gainNode;
+var resonanceGainNode;
 var filter;
 var filter2;
 var views;
@@ -148,10 +144,13 @@ function draw() {
     analyserView1.doFrequencyAnalysis();
     
     var t = 0; //context.currentTime;
-    var maxDetune = 10; //1200;
-    var d1 = (2*Math.random() - 1) * 0.5*maxDetune;
-    var d2 = (2*Math.random() - 1) * 0.5*maxDetune;
-    var d3 = (2*Math.random() - 1) * 0.5*maxDetune;
+    var maxDetune = 50; //1200;
+    // var d1 = (2*Math.random() - 1) * 0.5*maxDetune;
+    // var d2 = (2*Math.random() - 1) * 0.5*maxDetune;
+    // var d3 = (2*Math.random() - 1) * 0.5*maxDetune;
+    var d1 = 0;
+    var d2 = 0;
+    var d3 = 0;
     var k = 1;
     
     if (snapToDetune > 0) {
@@ -171,25 +170,66 @@ function draw() {
 var FREQ1 = 32;
 var FREQ2 = 32;
 var FREQ3 = 64;
+var resonance = 5;
+
+var noiseSource1;
+var noiseSource2;
+var noiseSource3;
+
+function createNoiseBuffer() {
+    var n =  5 * context.sampleRate;
+    var buffer = context.createBuffer(1, n, context.sampleRate);
+    var p = buffer.getChannelData(0);
+    
+    for (var i = 0; i < n; ++i) {
+        p[i] = (2*Math.random() - 1);
+    }
+
+    return buffer;
+}
+
+function createRandomPitchSource() {
+    var noiseBuffer = createNoiseBuffer();
+    var noiseSource = context.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+    
+    var cutoff = 40;
+    var noiseLowpass = context.createBiquadFilter();
+    noiseLowpass.frequency.value = cutoff;
+    noiseLowpass.frequency.Q = 0;
+    
+    var noiseGain = context.createGainNode();
+    noiseGain.gain.value = 50;
+        
+    noiseSource.connect(noiseLowpass);
+    noiseLowpass.connect(noiseGain);
+    noiseSource.noteOn(0);
+    
+    return noiseGain;
+}
+
 
 function initAudio() {
     context = new webkitAudioContext();
+            
     osc1 = context.createOscillator();
     osc1.type = osc1.SINE;
-
-    // var coeffA = new Float32Array([0, 1, 0.5]);
-    // var coeffB = new Float32Array([0, 0, 0]);
-    // var wavetable = context.createWaveTable(coeffA, coeffB);
-    // osc1.setWaveTable(wavetable);
-
-
-
-
+    
     osc2 = context.createOscillator();
     osc3 = context.createOscillator();
     osc1.frequency.value = FREQ1;
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
+
+
+    noiseSource1 = createRandomPitchSource();
+    noiseSource2 = createRandomPitchSource();
+    noiseSource3 = createRandomPitchSource();
+    noiseSource1.connect(osc1.detune);
+    noiseSource2.connect(osc2.detune);
+    noiseSource3.connect(osc3.detune);
+
     
     // 
     analyser = context.createAnalyser();
@@ -198,20 +238,23 @@ function initAudio() {
     
     gainNode = context.createGainNode();
     gainNode.gain.value = 0.25;
+
+    resonanceGainNode = context.createGainNode();
     
-    var resonance = 10;
+    
     filter = context.createBiquadFilter();
     filter.Q.value = resonance ;
     filter.frequency.value = 24000;
 
     filter2 = context.createBiquadFilter();
-    filter2.Q.value = resonance ;
+    filter2.Q.value = resonance;
     filter2.frequency.value = 24000;
 
     filter.connect(filter2);
     filter2.connect(gainNode);
 
-    gainNode.connect(analyser);
+    gainNode.connect(resonanceGainNode);
+    resonanceGainNode.connect(analyser);
 
     
     
@@ -247,11 +290,29 @@ function initAudio() {
     views[j++] = new KnobView("pitch2", FREQ2, 10, 24000, UNITS.hertz, 0, true, function(value) { osc2.frequency.value = value; } );
     views[j++] = new KnobView("pitch3", FREQ3, 10, 24000, UNITS.hertz, 0, true, function(value) { osc3.frequency.value = value; } );
     views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { detune = value; snapToDetune = 20; } );
-    views[j++] = new KnobView("filter", 440, 20, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
+    views[j++] = new KnobView("filter", 440, 30, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
+    views[j++] = new KnobView("resonance", resonance, 0, 40, UNITS.decibels, 0, false, function(value) {
+        filter.Q.value = value;
+        filter2.Q.value = value - 6;
+        
+        // Resonance gain compensation.
+        var gain = Math.pow(10, -value * 0.05);
+        resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
+    } );
+
+    views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) {
+        noiseSource1.gain.value = value * 15;
+        noiseSource2.gain.value = value * 15;
+        noiseSource3.gain.value = value * 15;
+    } );
+
+noiseSource1
+
+    views[j++] = new KnobView("gain", 0.25, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
     
     installViews(views, controls);
 
-    loadWaveTable("wave-tables/Full_2");    
+    loadWaveTable("wave-tables/Twelve_OpTines");    
 
     //
     // 01_Saw
