@@ -51,16 +51,104 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
-var currentView = 0; // FIXME: global...
-var context;
-var osc;
-var gainNode;
-var wavetable;
-var editorView;
+var defaultFrequency = 100;
 
+var context;
+var source;
+
+var currentView;
+var editorView;
 var views;
 
-window.onload = init;
+// Initialization.
+window.onload = function() {
+    source = new Source();
+
+    editorView = new ToneEditorView(context, "tone-editor");
+    editorView.draw();
+
+    var controls = document.getElementById("controls");
+    views = new Array();
+
+    var j = 0;
+    views[j++] = new KnobView("pitch", defaultFrequency, 5, 24000, UNITS.hertz, 0, true, function(value) { source.setFrequency(value); } );
+
+    installViews(views, controls);
+}
+
+function Source() {
+    context = new webkitAudioContext();
+    
+    var osc1 = context.createOscillator();
+    var osc2 = context.createOscillator();
+    this.osc1 = osc1;
+    this.osc2 = osc2;
+    
+    osc1.frequency.value = defaultFrequency;
+    osc2.frequency.value = defaultFrequency;
+
+    // Gain nodes for cross-fading between the two oscillators.
+    var gainNode1 = context.createGainNode();
+    var gainNode2 = context.createGainNode();
+    this.gainNode1 = gainNode1;
+    this.gainNode2 = gainNode2;
+
+    gainNode1.gain.value = 1;
+    gainNode2.gain.value = 0;    
+
+    osc1.connect(gainNode1);
+    osc2.connect(gainNode2);
+    
+    gainNode1.connect(context.destination);
+    gainNode2.connect(context.destination);
+    
+    // Cross-fading state.
+    this.lastCrossfadeTime = -1;
+    this.hasDeferredCrossfade = false;
+    this.crossFadeDuration = 0.060;
+    this.scheduleOffset = 0.020;
+    this.activeOsc = 0; // osc1
+}
+
+Source.prototype.setWaveTable = function(wavetable) {
+    var currentTime = context.currentTime;
+    
+    if (this.lastCrossfadeTime + this.crossFadeDuration <= currentTime) {
+        var startGainNode;
+        var endGainNode;
+        if (this.activeOsc == 0) {
+            // Cross-fade osc1 -> osc2.
+            startGainNode = this.gainNode1;
+            endGainNode = this.gainNode2;
+            this.osc2.setWaveTable(wavetable);
+            // console.log("osc1 -> osc2");
+        } else {
+            // Cross-fade osc2 -> osc1.
+            startGainNode = this.gainNode2;
+            endGainNode = this.gainNode1;
+            this.osc1.setWaveTable(wavetable);
+            // console.log("osc2 -> osc1");
+        }
+        
+        // Toggle active oscillator.
+        this.activeOsc = 1 - this.activeOsc;
+        
+        var startTime = currentTime + this.scheduleOffset;
+        var endTime = startTime + this.crossFadeDuration;
+        
+        startGainNode.gain.setValueAtTime(1, startTime);
+        startGainNode.gain.linearRampToValueAtTime(0, endTime);
+        endGainNode.gain.setValueAtTime(0, startTime);
+        endGainNode.gain.linearRampToValueAtTime(1, endTime);
+        
+        this.lastCrossfadeTime = startTime;
+    }    
+}
+
+Source.prototype.setFrequency = function(value) {
+    this.osc1.frequency.value = value;
+    this.osc2.frequency.value = value;
+}
 
 
 function ToneEditorView(context, name) {
@@ -70,7 +158,6 @@ function ToneEditorView(context, name) {
     this.numPartials = 4096;
     this.partials = new Float32Array(this.numPartials);
     this.positions = new Float32Array(this.numPartials);
-    this.kDecibelRange = 80.0;
 
     // Initialize to just a few partials.
     var p = this.partials;
@@ -79,7 +166,7 @@ function ToneEditorView(context, name) {
     p[3] = 0.1;
 
     var wavetable = context.createWaveTable(this.partials, this.partials);
-    osc.setWaveTable(wavetable);
+    source.setWaveTable(wavetable);
 
     this.backgroundColor = "rgb(60,40,40)";
     this.curveColor = "rgb(255,0,0)";
@@ -146,8 +233,9 @@ ToneEditorView.prototype.draw = function() {
     // Draw background.
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0,0, width, height);
+    ctx.strokeStyle = this.curveColor;
 
-    var kXScale = 0.8 * width;
+    var kXScale = width;
     var kXOffset = 10.0;
 
     var p = this.partials;
@@ -157,10 +245,6 @@ ToneEditorView.prototype.draw = function() {
 
     var positions = this.positions;
 
-    ctx.strokeStyle = this.curveColor;
-
-    var kDecibelRange = this.kDecibelRange;
-
     for (var i = 1; i < n; i++) {
         var x = (Math.log(i) / Math.LN2) / m;
 
@@ -169,8 +253,7 @@ ToneEditorView.prototype.draw = function() {
 
         positions[i] = x;
 
-        var dB = p[i] == 0.0 ? -200.0 : 20.0 * Math.log(p[i]) / Math.LN10;
-        var y = height * (-dB / kDecibelRange);
+        var y = height - height * p[i]; // linear
 
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -181,7 +264,6 @@ ToneEditorView.prototype.draw = function() {
 
 ToneEditorView.prototype.mouseDown = function(position) {
     this.mLastMouseX = -1.0;
-    gainNode.gain.setTargetValueAtTime(0.5, 0, 0.010);
 }
 
 ToneEditorView.prototype.mouseMove = function(position) {
@@ -195,19 +277,14 @@ ToneEditorView.prototype.mouseDrag = function(position) {
     var ctx = this.ctx;
     var width = this.width;
     var height = this.height;
-    var kDecibelRange = this.kDecibelRange;
     var mLastMouseX = this.mLastMouseX;
 
     var x = hitPt.x;
-    var y = (height - hitPt.y) / height;
-    if (y < 0.0)
-        y = 0.0;
-
-    // now convert y to decibels
-    if (y == 0.0)
-        y = -200.0;
-    else
-        y = -kDecibelRange * (1.0 - y);
+    var y = hitPt.y;
+    
+    var y_normalized = (height - y) / height;
+    if (y_normalized < 0.0)
+        y_normalized = 0.0;
 
     if (mLastMouseX == -1.0)
         mLastMouseX = x;
@@ -221,15 +298,8 @@ ToneEditorView.prototype.mouseDrag = function(position) {
 
     for (var i = 1; i < n; i++) {
         var posX = positions[i];
-
-        var kk = Math.log(i) / Math.LN2;
-        // bool isPowerOfTwo = (kk == Math.floor(kk));
-        // if (!isPowerOfTwo && inMouse.IsOptionPressed())
-        //     continue;
-
         if (posX >= x1 && posX <= x2) {
-            var k = Math.pow(10.0, 0.05 * y);
-            p[i] = k;
+            p[i] = y_normalized;
         }
     }
 
@@ -237,34 +307,12 @@ ToneEditorView.prototype.mouseDrag = function(position) {
 
     this.partials[0] = 0;
     var wavetable = context.createWaveTable(this.partials, this.partials);
-    osc.setWaveTable(wavetable);
-
+    source.setWaveTable(wavetable);
+    
     this.draw();
 }
 
 ToneEditorView.prototype.mouseUp = function(position) {
-    gainNode.gain.setTargetValueAtTime(1, 0, 0.010);
-}
-
-function init() {
-    context = new webkitAudioContext();
-    osc = context.createOscillator();
-    osc.frequency.value = 40;
-    gainNode = context.createGainNode();
-    osc.connect(gainNode);
-    gainNode.connect(context.destination);
-
-    editorView = new ToneEditorView(context, "tone-editor");
-    editorView.draw();
-
-    var controls = document.getElementById("controls");
-    views = new Array();
-
-    var j = 0;
-    views[j++] = new KnobView("pitch", 40, 10, 24000, UNITS.hertz, 0, true, function(value) { osc.frequency.value = value; } );
-
-    installViews(views, controls);
-
 }
 
 </script>
