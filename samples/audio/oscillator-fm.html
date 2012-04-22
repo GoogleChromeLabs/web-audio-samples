@@ -105,16 +105,17 @@ if ( !window.requestAnimationFrame ) {
 }
 
 var snapToDetune = 0;
+var randomization1 = 0;
+var randomization2 = 0;
+var randomization3 = 0;
 
 function draw() {
     analyserView1.doFrequencyAnalysis();
     
-    var t = 0; //context.currentTime;
-    var maxDetune = 0; //1200;
-    var d1 = (2*Math.random() - 1) * 0.5*maxDetune;
-    var d2 = (2*Math.random() - 1) * 0.5*maxDetune;
-    var d3 = (2*Math.random() - 1) * 0.5*maxDetune;
-    var k = 10;
+    var d1 = (2*Math.random() - 1) * 0.5*randomization1;
+    var d2 = (2*Math.random() - 1) * 0.5*randomization2;
+    var d3 = (2*Math.random() - 1) * 0.5*randomization3;
+    var k = 0.050;
     
     if (snapToDetune > 0) {
         k = 0.010;
@@ -123,6 +124,8 @@ function draw() {
         d3 = 0;
         --snapToDetune;
     }
+    
+    var t = 0;
     osc1.detune.setTargetValueAtTime(detune + d1, t, k);
     osc2.detune.setTargetValueAtTime(detune + detune2 + d2, t, k);
     osc3.detune.setTargetValueAtTime(detune + detune3 + d3, t, k);
@@ -238,6 +241,9 @@ feedbackGain.mark = true;
     views[j++] = new KnobView("filter", 24000, 20, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; } );
 
     views[j++] = new KnobView("feedback gain", 0, 0, 500, UNITS.generic, 0, false, function(value) { feedbackGain.gain.value = value; console.log(feedbackGain.gain.value); } );
+    views[j++] = new KnobView("randomization1", randomization1, 0, 100, UNITS.cents, 0, false, function(value) { randomization1 = value; snapToDetune = true; } );
+    views[j++] = new KnobView("randomization2", randomization2, 0, 100, UNITS.cents, 0, false, function(value) { randomization2 = value; snapToDetune = true; } );
+    views[j++] = new KnobView("randomization3", randomization3, 0, 100, UNITS.cents, 0, false, function(value) { randomization3 = value; snapToDetune = true; } );
     
     
 
