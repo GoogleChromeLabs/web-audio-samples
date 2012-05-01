@@ -167,11 +167,11 @@ function draw() {
     window.requestAnimationFrame(draw);
 }
 
-var FREQ1 = 32;
-var FREQ2 = 32;
-var FREQ3 = 64;
+var FREQ1 = 40;
+var FREQ2 = 40;
+var FREQ3 = 80;
 var FILTERCUTOFF = 24000;
-var resonance = 5;
+var resonance = 3;
 
 var noiseSource1;
 var noiseSource2;
@@ -311,11 +311,11 @@ function initAudio() {
 
 noiseSource1
 
-    views[j++] = new KnobView("gain", 0.25, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
+    views[j++] = new KnobView("gain", 0.15, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
     
     installViews(views, controls);
 
-    loadWaveTable("wave-tables/Twelve_OpTines");    
+    loadWaveTable("wave-tables/Phoneme_ah");    
 
     //
     // 01_Saw
