@@ -170,6 +170,7 @@ function draw() {
 var FREQ1 = 32;
 var FREQ2 = 32;
 var FREQ3 = 64;
+var FILTERCUTOFF = 24000;
 var resonance = 5;
 
 var noiseSource1;
@@ -222,6 +223,9 @@ function initAudio() {
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
 
+    // osc1.noteOn(0);
+    // osc2.noteOn(0);
+    // osc3.noteOn(0);
 
     noiseSource1 = createRandomPitchSource();
     noiseSource2 = createRandomPitchSource();
@@ -229,7 +233,6 @@ function initAudio() {
     noiseSource1.connect(osc1.detune);
     noiseSource2.connect(osc2.detune);
     noiseSource3.connect(osc3.detune);
-
     
     // 
     analyser = context.createAnalyser();
@@ -244,11 +247,11 @@ function initAudio() {
     
     filter = context.createBiquadFilter();
     filter.Q.value = resonance ;
-    filter.frequency.value = 24000;
+    filter.frequency.value = FILTERCUTOFF;
 
     filter2 = context.createBiquadFilter();
     filter2.Q.value = resonance;
-    filter2.frequency.value = 24000;
+    filter2.frequency.value = FILTERCUTOFF;
 
     filter.connect(filter2);
     filter2.connect(gainNode);
@@ -290,7 +293,7 @@ function initAudio() {
     views[j++] = new KnobView("pitch2", FREQ2, 10, 24000, UNITS.hertz, 0, true, function(value) { osc2.frequency.value = value; } );
     views[j++] = new KnobView("pitch3", FREQ3, 10, 24000, UNITS.hertz, 0, true, function(value) { osc3.frequency.value = value; } );
     views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { detune = value; snapToDetune = 20; } );
-    views[j++] = new KnobView("filter", 440, 30, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
+    views[j++] = new KnobView("filter", FILTERCUTOFF, 30, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
     views[j++] = new KnobView("resonance", resonance, 0, 40, UNITS.decibels, 0, false, function(value) {
         filter.Q.value = value;
         filter2.Q.value = value - 6;
