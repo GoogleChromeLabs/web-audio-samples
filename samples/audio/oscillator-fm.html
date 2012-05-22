@@ -169,6 +169,9 @@ function initAudio() {
     osc1.type = osc1.SINE;
     osc2.type = osc1.SINE;
     osc3.type = osc1.SINE;
+    osc1.noteOn(0);
+    osc2.noteOn(0);
+    osc3.noteOn(0);
     
     // 
     analyser = context.createAnalyser();
