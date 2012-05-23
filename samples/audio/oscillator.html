@@ -78,9 +78,11 @@ var audioBuffer;
 
 var context;
 var wavetable;
+
 var osc1;
 var osc2;
 var osc3;
+
 var gainNode;
 var resonanceGainNode;
 var filter;
@@ -183,7 +185,11 @@ function createNoiseBuffer() {
     var p = buffer.getChannelData(0);
     
     for (var i = 0; i < n; ++i) {
-        p[i] = (2*Math.random() - 1);
+        // p[i] = (2*Math.random() - 1);
+        var x = 0.2 * (2*Math.random()) * 0.8;
+        var x = Math.log(x);
+        
+        p[i] = x;
     }
 
     return buffer;
@@ -195,7 +201,7 @@ function createRandomPitchSource() {
     noiseSource.buffer = noiseBuffer;
     noiseSource.loop = true;
     
-    var cutoff = 40;
+    var cutoff = 100;
     var noiseLowpass = context.createBiquadFilter();
     noiseLowpass.frequency.value = cutoff;
     noiseLowpass.frequency.Q = 0;
@@ -223,9 +229,9 @@ function initAudio() {
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
 
-    // osc1.noteOn(0);
-    // osc2.noteOn(0);
-    // osc3.noteOn(0);
+    osc1.noteOn(0);
+    osc2.noteOn(0);
+    osc3.noteOn(0);
 
     noiseSource1 = createRandomPitchSource();
     noiseSource2 = createRandomPitchSource();
