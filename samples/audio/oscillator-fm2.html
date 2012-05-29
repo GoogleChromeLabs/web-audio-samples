@@ -1,0 +1,356 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+o3djs.require('o3djs.shader');
+
+window.onload = init;
+
+var analyser;
+var analyserView1;
+
+var context;
+var wavetable;
+var osc1;
+var osc2;
+var osc3;
+var gainNode;
+var filter;
+var views;
+var frequencyData;
+var detune = 0;
+var detune2 = -3;
+var detune3 = 5;
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
+var snapToDetune = 0;
+var randomization1 = 0;
+var randomization2 = 0;
+var randomization3 = 0;
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    
+    var d1 = (2*Math.random() - 1) * 0.5*randomization1;
+    var d2 = (2*Math.random() - 1) * 0.5*randomization2;
+    var d3 = (2*Math.random() - 1) * 0.5*randomization3;
+    var k = 0.050;
+    
+    if (snapToDetune > 0) {
+        k = 0.010;
+        d1 = 0;
+        d2 = 0;
+        d3 = 0;
+        --snapToDetune;
+    }
+    
+    var t = 0;
+    osc1.detune.setTargetValueAtTime(detune + d1, t, k);
+    osc2.detune.setTargetValueAtTime(detune + detune2 + d2, t, k);
+    osc3.detune.setTargetValueAtTime(detune + detune3 + d3, t, k);
+    
+    window.requestAnimationFrame(draw);
+}
+
+var FREQ1 = 32;
+var FREQ2 = 64;
+var FREQ3 = 128;
+
+var osc1Freq;
+var modulationGain1;
+var modulationGain2;
+var feedbackGain;
+
+function initAudio() {
+    context = new webkitAudioContext();
+
+    osc1 = context.createOscillator();
+    osc2 = context.createOscillator();
+    osc3 = context.createOscillator();
+
+    osc1.type = osc1.SINE;
+    osc2.type = osc1.SINE;
+    osc3.type = osc1.SINE;
+    osc1.noteOn(0);
+    osc2.noteOn(0);
+    osc3.noteOn(0);
+    
+    // 
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(context.destination);
+    
+    gainNode = context.createGainNode();
+    gainNode.gain.value = 0.75;
+    
+    filter = context.createBiquadFilter();
+    filter.Q.value = 0 ;
+    filter.frequency.value = 24000; // initially inactive
+    filter.connect(gainNode);
+    gainNode.connect(analyser);
+
+    var dest = filter;
+
+    // Modulation index.
+    modulationGain1 = context.createGainNode();
+    modulationGain2 = context.createGainNode();
+    osc2.connect(modulationGain1);
+    osc3.connect(modulationGain2);    
+    
+    // Feed modulators into osc1.
+    modulationGain1.connect(osc1.frequency);
+    modulationGain2.connect(osc1.frequency);
+
+    
+    // EXPERIMENTAL feedback
+    feedbackGain = context.createGainNode();
+    var delay = context.createDelayNode();
+    delay.delayTime.value = 0.001;
+    osc1.connect(delay);
+    delay.connect(feedbackGain);
+    feedbackGain.gain.value = 0;
+    feedbackGain.connect(osc1.frequency);
+
+    osc1.connect(dest);
+
+    osc1.frequency.value = FREQ1;
+    osc2.frequency.value = FREQ2;
+    osc3.frequency.value = FREQ3;
+    
+    recalc();
+
+
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("carrier freq", FREQ1, 1, 24000, UNITS.hertz, 0, true, function(value) { setOSC1Frequency(value); } );
+    views[j++] = new KnobView("mod2 detune", detune2, -1200, 1200, UNITS.cents, 0, false, function(value) { detune2 = value; snapToDetune = true; } );
+    views[j++] = new KnobView("mod3 detune", detune3, -1200, 1200, UNITS.cents, 0, false, function(value) { detune3 = value; snapToDetune = true; } );
+
+    views[j++] = new KnobView("N1", N1, 1, 5, UNITS.indexed, 0, false, function(value) { setN1(value); } );
+    views[j++] = new KnobView("N2", N2, 0, 64, UNITS.indexed, 0, false, function(value) { setN2(value); } );
+    views[j++] = new KnobView("N3", N3, 0, 64, UNITS.indexed, 0, false, function(value) { setN3(value); } );
+
+    views[j++] = new KnobView("modIndex", modulationIndex, 0, 30, UNITS.generic, 0.1, false, function(value) { setModulationIndex(value); } );
+    views[j++] = new KnobView("modCrossfade", modulationCrossfade, 0, 1, UNITS.generic, 0.1, false, function(value) { setModulationCrossfade(value); } );
+
+    views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { detune = value; snapToDetune = 20; } );
+    views[j++] = new KnobView("filter", 24000, 20, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; } );
+
+    views[j++] = new KnobView("feedback", 0, 0, 5000, UNITS.generic, 0, false, function(value) { feedbackGain.gain.value = value; console.log(feedbackGain.gain.value); } );
+    views[j++] = new KnobView("randomization1", randomization1, 0, 100, UNITS.cents, 0, false, function(value) { randomization1 = value; snapToDetune = true; } );
+    views[j++] = new KnobView("randomization2", randomization2, 0, 100, UNITS.cents, 0, false, function(value) { randomization2 = value; snapToDetune = true; } );
+    views[j++] = new KnobView("randomization3", randomization3, 0, 100, UNITS.cents, 0, false, function(value) { randomization3 = value; snapToDetune = true; } );
+
+    installViews(views, controls);
+}
+
+var N1 = 1;
+var N2 = 4;
+var N3 = 32;
+
+var modulationCrossfade = 0.5;  // 0->1
+var modulationIndex = 0.5;
+var modulationIndex1 = 0.5;
+var modulationIndex2 = 0.5;
+
+function setOSC1Frequency(value) {
+    osc1.frequency.value = value;
+    setN2(N2);
+    setN3(N3);
+}
+
+function setModulationCrossfade(value) {
+    modulationCrossfade = value;
+    setModulationIndex(modulationIndex);
+}
+
+function recalc() {
+    setN2(N2);
+    setN3(N3);
+}
+
+function setModulationIndex(value) {
+    modulationIndex = value;
+    
+    modulationIndex1 = modulationIndex * (1 - modulationCrossfade);
+    modulationIndex2 = modulationIndex * modulationCrossfade;
+    
+    setModulationIndex1(modulationIndex1);
+    setModulationIndex2(modulationIndex2);
+}
+
+function setModulationIndex1(value) {
+    modulationIndex1 = value;
+    modulationGain1.gain.value = osc2.frequency.value * modulationIndex1;
+}
+
+function setModulationIndex2(value) {
+    modulationIndex2 = value;
+    modulationGain2.gain.value = osc3.frequency.value * modulationIndex2;
+}
+
+function setN1(value) {
+    N1 = value;
+    setN2(N2);
+    setN3(N3);
+}
+
+function setN2(value) {
+    N2 = value;
+    osc2.frequency.value = (N2 / N1) * osc1.frequency.value;
+    
+    setModulationIndex1(modulationIndex1);
+}
+
+function setN3(value) {
+    N3 = value;
+    osc3.frequency.value = (N3 / N1) * osc1.frequency.value;
+    
+    setModulationIndex2(modulationIndex2);
+}
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+
+    initAudio();
+    analyserView1.initByteBuffer();
+    analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);
+    draw();
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Canvas tag for WebGL output -->
+
+<canvas id="view1" width="1280px" height="800px"></canvas>
+<br>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.SINE;" />
+SINE
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.SQUARE;" />
+SQUARE
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="osc1.type = osc1.SAWTOOTH;" />
+SAWTOOTH
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.TRIANGLE;"/>
+TRIANGLE
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.SINE;" />
+SINE
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.SQUARE;" />
+SQUARE
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="osc2.type = osc2.SAWTOOTH;" />
+SAWTOOTH
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.TRIANGLE;"/>
+TRIANGLE
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.SINE;" />
+SINE
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.SQUARE;" />
+SQUARE
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="osc3.type = osc3.SAWTOOTH;" />
+SAWTOOTH
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.TRIANGLE;"/>
+TRIANGLE
+
+</body>
+</html>
