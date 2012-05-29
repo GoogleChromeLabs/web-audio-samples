@@ -185,10 +185,7 @@ function createNoiseBuffer() {
     var p = buffer.getChannelData(0);
     
     for (var i = 0; i < n; ++i) {
-        // p[i] = (2*Math.random() - 1);
-        var x = 0.2 * (2*Math.random()) * 0.8;
-        var x = Math.log(x);
-        
+        var x = 2*Math.random() - 1;        
         p[i] = x;
     }
 
@@ -201,13 +198,13 @@ function createRandomPitchSource() {
     noiseSource.buffer = noiseBuffer;
     noiseSource.loop = true;
     
-    var cutoff = 100;
+    var cutoff = 1;
     var noiseLowpass = context.createBiquadFilter();
     noiseLowpass.frequency.value = cutoff;
     noiseLowpass.frequency.Q = 0;
     
     var noiseGain = context.createGainNode();
-    noiseGain.gain.value = 50;
+    noiseGain.gain.value = 1;
         
     noiseSource.connect(noiseLowpass);
     noiseLowpass.connect(noiseGain);
@@ -236,9 +233,9 @@ function initAudio() {
     noiseSource1 = createRandomPitchSource();
     noiseSource2 = createRandomPitchSource();
     noiseSource3 = createRandomPitchSource();
-    noiseSource1.connect(osc1.detune);
-    noiseSource2.connect(osc2.detune);
-    noiseSource3.connect(osc3.detune);
+    noiseSource1.connect(osc1.frequency);
+    noiseSource2.connect(osc2.frequency);
+    noiseSource3.connect(osc3.frequency);
     
     // 
     analyser = context.createAnalyser();
@@ -269,27 +266,9 @@ function initAudio() {
     
     var dest = filter;
 
-    // var dest = analyser;
-
-    
     osc1.connect(dest);
     osc2.connect(dest);
     osc3.connect(dest);
-
-    // var t = context.currentTime;
-    // var period = 5;
-    // osc1.frequency.value = 20;
-    // osc1.detune.setValueAtTime(0, t);
-    // for (var i = 0; i < 200; ++i) {
-    //     // osc1.detune.exponentialRampToValueAtTime(1200, (i+1)*period);
-    //     osc1.detune.linearRampToValueAtTime(12 * 1200, (i*2+1)*period);
-    //     osc1.detune.linearRampToValueAtTime(0, (i*2+2)*period);
-    // }
-
-    // var t = context.currentTime;
-    // osc1.frequency.value = 10;
-    // osc1.frequency.setValueAtTime(10, t);
-    // osc1.frequency.exponentialRampToValueAtTime(0.5 * context.sampleRate + 500, t + 4);
 
     var controls = document.getElementById("controls");
     views = new Array();
@@ -310,12 +289,10 @@ function initAudio() {
     } );
 
     views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) {
-        noiseSource1.gain.value = value * 15;
-        noiseSource2.gain.value = value * 15;
-        noiseSource3.gain.value = value * 15;
+        noiseSource1.gain.value = 0.01*value * osc1.frequency.value;
+        noiseSource2.gain.value = 0.01*value * osc2.frequency.value;
+        noiseSource3.gain.value = 0.01*value * osc3.frequency.value;
     } );
-
-noiseSource1
 
     views[j++] = new KnobView("gain", 0.15, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
     
