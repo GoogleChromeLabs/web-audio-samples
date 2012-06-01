@@ -1,0 +1,187 @@
+<html>
+
+<head>
+<link rel="stylesheet" href="http://chromium.googlecode.com/svn/trunk/samples/audio/specification/style.css">
+</head>
+
+<body>
+
+<h1>Web Audio Porting Guide</h1>
+
+<h2>Overview</h2>
+
+<p>
+The Web Audio API C++ code in WebKit can be shared between implementations.
+The majority of the code is cross-platform and is well-optimized.  It's been battle-hardened out in the field and is regularly stressed by fuzzer bots and
+ a non-trivial (over 60) set of layout tests.  It compiles using several versions of gcc and Visual Studio, and is deployed in three (or four) ports of WebKit (Chromium,
+Mac (Safari), Gnome GTK, and work is underway for the EFL port).  It runs on several different operating systems: Windows XP, Windows Vista, Windows 7,
+ Mac OS X (Snow Leopard / Lion), Linux, and ChromeOS.  The code has undergone stringent and rigorous code reviews and has undergone non-trivial security reviews.  The code is offered
+ under a permissive/non-restrictive open-source license.
+</p>
+
+<h2>Code Location</h2>
+
+<p>
+The vast majority of the interesting Web Audio API engine code lives in two different directories:
+</p>
+
+<ul>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/">WebCore/platform/audio</a>  </li>
+<p> This is where the lowest levels of the Web Audio API are implemented.  It handles the low-level details of audio mixing, and the
+lowest-level audio DSP functions.
+</p>
+
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/Modules/webaudio//">WebCore/Modules/webaudio</a>  </li>
+<p> This is where the higher levels of the Web Audio API are implemented, implementing each of the JavaScript types/classes.  This includes
+the <code>AudioContext</code>, each of the <code>AudioNode</code> types, <code>AudioBuffer</code>, etc.  There is much useful re-useable code
+for non-WebKit implementations, but the actual JavaScript bindings/glue code is WebKit-specific and would necessarily need to be ported for use
+by other browser engines.</p>
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/LayoutTests/webaudio//">LayoutTests/webaudio</a>  </li>
+<p> The layout tests are important for verifying that the code conforms to the specification
+</p>
+
+
+
+</ul>
+
+<h2>Audio Asset Loading</h2>
+<p>
+For decoding audio file data contained in an in-memory buffer, the following method must be implemented:
+</p>
+<code>
+PassOwnPtr<AudioBus> createBusFromInMemoryAudioFile(const void* data, size_t dataSize, bool mixToMono, float sampleRate);
+</code>
+
+<p>
+Implementing this method requires some kind of audio codec library.  The exact audio file formats are not defined here, but are
+expected to be at least the same audio file formats as are supported by the HTMLAudioElement (<code>audio</code> tag).
+This method returns the decoded PCM audio data sample-rate converted (if necessary) to <code>sampleRate</code>.
+</p>
+
+<p>
+WebKit has several different implementations of this method utilizing different audio codec libraries which can be used as a guide:
+</p>
+
+<ul>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/mac/AudioFileReaderMac.cpp">AudioFileReaderMac</a></li>
+<p>Reads audio file data using Apple's <code>ExtAudioFile</code> APIs.  This is suitable for Mac OS X implementations</p>
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/chromium/AudioBusChromium.cpp">AudioBusChromium</a></li>
+<p>Reads audio file data using FFmpeg.  The details of this implementation are mostly in the Chromium open-source project
+<a href="http://src.chromium.org/viewvc/chrome/trunk/src/media/filters/audio_file_reader.cc?view=markup">here</a>.
+</p>
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/gstreamer/AudioFileReaderGStreamer.cpp">AudioFileReaderGStreamer</a></li>
+<p>Reads audio file data using the GStreamer codec library.</p>
+
+
+</ul>
+
+
+
+
+
+<code>
+PassOwnPtr<AudioBus> AudioBus::loadPlatformResource(const char* name, float sampleRate);
+</code>
+
+<h2>Audio Hardware Access</h2>
+<p>
+<a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/AudioDestination.h">AudioDestination</a>
+is an abstract base class representing the audio hardware device where all rendered audio is sent.  There is a factory method:
+</p>
+<br>
+<code>
+static PassOwnPtr<AudioDestination> create(AudioSourceProvider&, float sampleRate);
+</code>
+
+<br>
+<p>
+which takes an <code>AudioSourceProvider</code> object representing a <em>callback</em> which will be called periodically when the hardware needs to
+generate the next buffer's worth of audio.
+</p>
+
+<p>
+A concrete implementation must be provided.  The following audio back-ends are implemented in WebKit which can serve as examples:
+</p>
+<ul>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/mac/AudioDestinationMac.cpp">AudioDestinationMac</a></li>
+<p>A simple back-end directly using CoreAudio's low-latency default output AudioUnit.  This is suitable for Mac OS X implementations</p>
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/gstreamer/AudioDestinationGStreamer.cpp">AudioDestinationGStreamer</a></li>
+<p>An audio back-end using GStreamer used by the GTK and EFL ports in WebKit</p>
+
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebKit/chromium/src/AudioDestinationChromium.cpp">AudioDestinationChromium</a></li>
+<p>A back-end using the Chrome IPC Audio system</p>
+<p>If desired more details can be provided for specific OS-level details for Windows waveOut, WASAPI, and Linux back-ends in the Chromium open-source
+project</p>
+
+
+
+</ul>
+
+<h2>FFT Implementation</h2>
+<p>
+A concrete implementation of <a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/FFTFrame.h"><code>FFTFrame</code></a>
+must be provided.  Several choices for FFT back-ends are already supported:
+<ul>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/FFTFrameStub.cpp">FFTFrameStub</a></li>
+<p>A basic stub implementation that doesn't do anything, but can be useful during bringup so that the project will link.</p>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/mac/FFTFrameMac.cpp">FFTFrameMac</a></li>
+<p>A highly optimized implementation using Mac OS X vecLib.framework.  This is recommended for implementations running on Mac OS X or iOS</p>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/ffmpeg/FFTFrameFFMPEG.cpp">FFTFrameFFMPEG</a></li>
+<p>An implementation using the rdft() function in the FFmpeg library</p>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/gstreamer/FFTFrameGStreamer.cpp">FFTFrameGStreamer</a></li>
+<p>An implementation using an FFT in the GStreamer library</p>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/ipp/FFTFrameIPP.cpp">FFTFrameIPP</a></li>
+<p>A fast implementation using Intel's IPP (Integrated Performance Primitives) library</p>
+<li><a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/platform/audio/mkl/FFTFrameMKL.cpp">FFTFrameMKL</a></li>
+<p>A fast implementation using Intel's MKL Math Kernel Library</p>
+</ul>
+</p>
+
+<h2>Threading</h2>
+<p>
+A realistic implementation of the Web Audio API requires that the audio processing happens on a different thread than the main JavaScript thread.
+Other additional worker (not web-worker) threads are also used in the WebKit implementation.  There are times when these other threads must invoke a function
+which needs to be called on the main JavaScript thread.  For example, this is necessary when a callback function into JavaScript needs to happen.
+In WebKit, a function called <code>callOnMainThread()</code> is used which is defined in
+<a href="http://svn.webkit.org/repository/webkit/trunk/Source/WTF/wtf/MainThread.h">MainThread.h</a> :
+</p>
+
+<code>
+WTF_EXPORT_PRIVATE void callOnMainThread(MainThreadFunction*, void* context);
+</code>
+
+<p>
+It is assumed that an equivalent function/technique will be available in other browser engines.
+</p>
+
+
+
+<h2>JavaScript Bindings</h2>
+<p>
+Non-WebKit browser engines will have different details of how JavaScript bindings/glue generation will work.  In WebKit, the JavaScript
+APIs are defined in <code>.idl</code> files and live in <a href="http://svn.webkit.org/repository/webkit/trunk/Source/WebCore/Modules/webaudio//">WebCore/Modules/webaudio</a>
+It's assumed that competent engineers working in a specific browser code-base will be familiar with these details.
+
+<h2>Object Ownership and Reference Counting</h2>
+<p>
+Many C++ objects in the WebKit implementation use two common ownership design patterns (common in computer science).  
+</p>
+
+<ul>
+<li> The first is one which is called <a href="http://svn.webkit.org/repository/webkit/trunk/Source/WTF/wtf/OwnPtr.h"> <code>OwnPtr</code> </a>
+ in WebKit and corresponds to the basic Boost <code>scoped_ptr</code>.  </li>
+ <li> The second one is called <a href="http://svn.webkit.org/repository/webkit/trunk/Source/WTF/wtf/RefPtr.h"><code>RefPtr</code> </a> and represents
+ reference-counted ownership of another object. </li>
+</ul>
+
+It is assumed that similar ownership models common in modern software engineering will be available in other browser code bases, or could be 
+created if necessary.  Alternatively, this code in WebKit's
+ <a href="http://svn.webkit.org/repository/webkit/trunk/Source/WTF/wtf/">wtf</a> utility directory could be re-used.
+
+</body>
+</html>
