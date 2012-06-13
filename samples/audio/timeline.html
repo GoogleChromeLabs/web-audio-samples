@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+</head>
+<body>
+
+<script>
+
+window.onload = runTest;
+
+var sampleRate = 44100.0;
+var lengthInSeconds = 1;
+var sampleFrameLength = sampleRate * lengthInSeconds;
+
+var context = 0;
+var constantOneBuffer = 0;
+var linearRampBuffer = 0;
+
+var backgroundColor = "rgb(240,240,240)";
+var textColor = "rgb(100,100,100)";
+var curveColor = "rgb(0, 0, 0)";
+var gridColor = "rgb(200,200,200)";
+
+function testPassed(s) {
+    var message = "PASSED: " + s;
+    console.log(message);
+}
+
+function testFailed(s) {
+    var message = "FAILED: " + s;
+    console.log(message);
+}
+
+function drawCurve(event) {
+    var renderedBuffer = event.renderedBuffer;
+    var data = renderedBuffer.getChannelData(0);
+  
+    canvas = document.getElementById('canvasID');
+    ctx = canvas.getContext('2d');
+    
+    // Draw center.
+    width = canvas.width;
+    height = canvas.height;
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = curveColor;
+    ctx.strokeStyle = curveColor;
+    ctx.textAlign = "left";
+    ctx.font = "12pt Courier";
+
+    // Draw value lines.
+    ctx.strokeStyle = gridColor;
+    for (var v = 0; v < 1; v += 0.1) {
+        ctx.beginPath();
+        
+        var y = height - height * v;
+
+        ctx.strokeStyle = gridColor;
+        ctx.moveTo(50, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = textColor;
+        ctx.textAlign = "center";
+        ctx.strokeText(v.toFixed(1), 25, y);
+    }
+
+    // Draw times.
+    ctx.strokeStyle = gridColor;
+    for (var t = 0; t < 1; t += 0.1) {
+        ctx.beginPath();
+        
+        ctx.strokeStyle = gridColor;
+        var x = width * t;
+        ctx.moveTo(x, 30);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+
+        ctx.strokeStyle = textColor;
+        ctx.textAlign = "center";
+        ctx.strokeText(t.toFixed(1), x, 25);
+    }
+
+    // Draw timeline curve.
+    ctx.strokeStyle = curveColor;
+    ctx.lineWidth = 1;
+
+    var n = data.length;
+    for (var i = 0; i < n; ++i) {
+        ctx.beginPath();
+        
+        var x = width * i / n;
+        var y = height - data[i] * height;
+        
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y+1);
+        ctx.stroke();
+    }
+}
+
+function checkResult(event) {
+    var renderedBuffer = event.renderedBuffer;
+    var renderedData = renderedBuffer.getChannelData(0);
+    var expectedData = constantOneBuffer.getChannelData(0);
+    var n = renderedBuffer.length;
+
+    if (n == sampleFrameLength) {
+        testPassed("Rendered signal is of correct length.");
+    } else {
+        testFailed("Rendered signal is not of correct length.");
+    }
+
+    // Check that the rendered result exactly matches the buffer used to control gain.
+    // This is because we're changing the gain of a signal having constant value 1.
+    var success = true;
+    for (var i = 0; i < n; ++i) {
+        if (renderedData[i] != expectedData[i]) {
+            success = false;
+            var message = i + " : " + renderedData[i] + " : " + expectedData[i];
+            console.log(expectedData);
+            console.log(message);
+            break;
+        }
+    }
+
+    if (success) {
+        testPassed("Rendered signal exactly matches.");
+    } else {
+        testFailed("Rendered signal differs.");
+    }
+    
+    drawCurve(renderedData);
+}
+
+// Create a buffer of the given length having a constant value.
+function createConstantBuffer(context, sampleFrameLength, constantValue) {
+    var audioBuffer = context.createBuffer(1, sampleFrameLength, context.sampleRate);
+    var n = audioBuffer.length;
+    var dataL = audioBuffer.getChannelData(0);
+
+    for (var i = 0; i < n; ++i)
+        dataL[i] = constantValue;
+
+    return audioBuffer;
+}
+
+// Create a buffer of the given length having a constant value.
+function createCurveBuffer(length, offset) {
+    curve = new Float32Array(length);
+    for (var i = 0; i < length; ++i)
+        curve[i] = Math.sin(Math.PI * i / length) + offset;
+    return curve;
+}
+
+function runTest() {
+    // Create offline audio context.
+    context = new webkitAudioContext(1, sampleFrameLength, sampleRate);
+
+    // Create buffer used by the source which will have its gain controlled.
+    constantOneBuffer = createConstantBuffer(context, sampleFrameLength, 1);
+
+    var constantSource = context.createBufferSource();
+    constantSource.buffer = constantOneBuffer;
+
+    // Create a gain node controlling the gain of constantSource and make the connections.
+    var gainNode = context.createGainNode();
+    constantSource.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    var curve = createCurveBuffer(sampleFrameLength, 0);
+    var curve2 = createCurveBuffer(sampleFrameLength, 0.2);
+    
+    var param = gainNode.gain;
+    
+    // var t0 = 0;
+    // var t1 = 0.1;
+    // var t2 = 0.2;
+    // var t3 = 0.3;
+    // var t4 = 0.4;
+    // var t5 = 0.6;
+    // var t6 = 0.7;
+    // var t7 = 1.0;
+    // 
+    // param.setValueAtTime(0.2, t0);
+    // param.setValueAtTime(0.3, t1);
+    // param.setValueAtTime(0.4, t2);
+    // param.linearRampToValueAtTime(1, t3);
+    // param.linearRampToValueAtTime(0.15, t4);
+    // param.exponentialRampToValueAtTime(0.75, t5);
+    // param.exponentialRampToValueAtTime(0.05, t6);
+    // param.setValueCurveAtTime(curve, t6, t7 - t6);
+
+    var t0 = 0;
+    var t1 = 0.1;
+    var t2 = 0.2;
+    var t3 = 0.3;
+    var t4 = 0.4;
+    var t5 = 0.6;
+    var t6 = 0.7;
+    var t7 = 1.0;
+    
+    param.linearRampToValueAtTime(0.2, t0);
+    param.linearRampToValueAtTime(0.5, t2);
+
+
+    // Start source at time 0.
+    constantSource.noteOn(0);
+
+    context.oncomplete = drawCurve;
+    context.startRendering();
+}
+
+</script>
+
+<canvas id="canvasID" width="1280" height="768">
+</canvas>
+
+</body>
+</html>
