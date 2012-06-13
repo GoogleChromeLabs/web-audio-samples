@@ -175,24 +175,6 @@ function runTest() {
     
     var param = gainNode.gain;
     
-    // var t0 = 0;
-    // var t1 = 0.1;
-    // var t2 = 0.2;
-    // var t3 = 0.3;
-    // var t4 = 0.4;
-    // var t5 = 0.6;
-    // var t6 = 0.7;
-    // var t7 = 1.0;
-    // 
-    // param.setValueAtTime(0.2, t0);
-    // param.setValueAtTime(0.3, t1);
-    // param.setValueAtTime(0.4, t2);
-    // param.linearRampToValueAtTime(1, t3);
-    // param.linearRampToValueAtTime(0.15, t4);
-    // param.exponentialRampToValueAtTime(0.75, t5);
-    // param.exponentialRampToValueAtTime(0.05, t6);
-    // param.setValueCurveAtTime(curve, t6, t7 - t6);
-
     var t0 = 0;
     var t1 = 0.1;
     var t2 = 0.2;
@@ -202,8 +184,26 @@ function runTest() {
     var t6 = 0.7;
     var t7 = 1.0;
     
-    param.linearRampToValueAtTime(0.2, t0);
-    param.linearRampToValueAtTime(0.5, t2);
+    param.setValueAtTime(0.2, t0);
+    param.setValueAtTime(0.3, t1);
+    param.setValueAtTime(0.4, t2);
+    param.linearRampToValueAtTime(1, t3);
+    param.linearRampToValueAtTime(0.15, t4);
+    param.exponentialRampToValueAtTime(0.75, t5);
+    param.exponentialRampToValueAtTime(0.05, t6);
+    param.setValueCurveAtTime(curve, t6, t7 - t6);
+
+    // var t0 = 0;
+    // var t1 = 0.1;
+    // var t2 = 0.2;
+    // var t3 = 0.3;
+    // var t4 = 0.4;
+    // var t5 = 0.6;
+    // var t6 = 0.7;
+    // var t7 = 1.0;
+    // 
+    // param.linearRampToValueAtTime(0.2, t0);
+    // param.linearRampToValueAtTime(0.5, t2);
 
 
     // Start source at time 0.
