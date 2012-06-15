@@ -86,6 +86,8 @@ function Source() {
     
     osc1.frequency.value = defaultFrequency;
     osc2.frequency.value = defaultFrequency;
+    osc1.noteOn(0);
+    osc2.noteOn(0);
 
     // Gain nodes for cross-fading between the two oscillators.
     var gainNode1 = context.createGainNode();
@@ -136,6 +138,9 @@ Source.prototype.setWaveTable = function(wavetable) {
         var startTime = currentTime + this.scheduleOffset;
         var endTime = startTime + this.crossFadeDuration;
         
+        startGainNode.gain.cancelScheduledValues(0);
+        endGainNode.gain.cancelScheduledValues(0);
+
         startGainNode.gain.setValueAtTime(1, startTime);
         startGainNode.gain.linearRampToValueAtTime(0, endTime);
         endGainNode.gain.setValueAtTime(0, startTime);
