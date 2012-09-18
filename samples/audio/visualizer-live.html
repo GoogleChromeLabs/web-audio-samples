@@ -1,5 +1,5 @@
 <!--
-Copyright 2010, Google Inc.
+Copyright 2012, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,6 @@ Title
 <!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 
-
-
-
 <style type="text/css">
   #slider { margin: 10px; }
 </style>
@@ -82,12 +79,6 @@ var buffer;
 var audioBuffer;
 
 var analyserView1;
-var analyserView2;
-
-
-
-
-
 
 function error() {
     alert('Stream generation failed.');
@@ -106,77 +97,36 @@ function getUserMedia(dictionary, callback) {
 function gotStream(stream) {
     s = stream;
 
-
     analyserView1 = new AnalyserView("view1");
-    // analyserView2 = new AnalyserView("view2");
 
     initAudio(stream);
     analyserView1.initByteBuffer();
-    // analyserView2.initByteBuffer();
-    
-    // analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);
 
     window.requestAnimationFrame(draw);
-
 }
-
-
-
-
-
-
-
-
 
 function init() {
     getUserMedia({audio:true}, gotStream);
 }
 
-function loadAudioBuffer(url) {
-    // Load asynchronously
-
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    request.onload = function() { 
-        audioBuffer = context.createBuffer(request.response, false /*true*/);
-        finishLoad();  // add in the slider, etc. now that we've loaded the audio
-    }
-
-    request.send();
-}
-
 function initAudio(stream) {
-    
-    
-    
-    
-    
-    
-    
-    
     context = new webkitAudioContext();
     
-    // source = context.createBufferSource();
-
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;
 
     // Connect audio processing graph:
     // live-input -> analyser -> destination
 
-
     // Create an AudioNode from the stream.
     var mediaStreamSource = context.createMediaStreamSource(stream);    
     mediaStreamSource.connect(analyser);
     analyser.connect(context.destination);
 
-    loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    window.requestAnimationFrame(draw);
 }
 
 if ( !window.requestAnimationFrame ) {
-
         window.requestAnimationFrame = ( function() {
 
                 return window.webkitRequestAnimationFrame ||
@@ -188,25 +138,13 @@ if ( !window.requestAnimationFrame ) {
                         window.setTimeout( callback, 1000 / 60 );
 
                 };
-
         } )();
-
 }
 
 function draw() {
     analyserView1.doFrequencyAnalysis();
     window.requestAnimationFrame(draw);
 }
-
-function finishLoad() {
-    // source.buffer = audioBuffer;
-    // source.looping = true;
-    // 
-    // source.noteOn(0.0);
-    
-    window.requestAnimationFrame(draw);
-}
-
 
 </script>
 
