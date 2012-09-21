@@ -131,16 +131,33 @@ function initAudio() {
 
     // loadAudioBuffer("sounds/hyper-reality/penny-spinning.wav");
     // loadAudioBuffer("sounds/DriftingDrums.mp3");
-    loadAudioBuffer("sounds/effects/waves.wav");
-    // loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    // loadAudioBuffer("sounds/effects/waves.wav");
+    loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
     
     
 }
 
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
 function draw() {
     analyserView1.doFrequencyAnalysis();
-    // analyserView2.doFrequencyAnalysis();
-    setTimeout(draw, 0);
+    window.requestAnimationFrame(draw);
 }
 
 function finishLoad() {
