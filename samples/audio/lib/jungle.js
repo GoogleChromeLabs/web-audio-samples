@@ -46,9 +46,9 @@ function createFadeBuffer(context, activeTime, fadeTime) {
         var value;
         
         if (i < fadeIndex1) {
-            value = (i / fadeLength);
+            value = Math.sqrt(i / fadeLength);
         } else if (i >= fadeIndex2) {
-            value = (1 - (i - fadeIndex2) / fadeLength);
+            value = Math.sqrt(1 - (i - fadeIndex2) / fadeLength);
         } else {
             value = 1;
         }
@@ -65,7 +65,7 @@ function createFadeBuffer(context, activeTime, fadeTime) {
     return buffer;
 }
 
-function createDelayTimeBuffer(context, activeTime, fadeTime, delayTime) {
+function createDelayTimeBuffer(context, activeTime, fadeTime) {
     var length1 = activeTime * context.sampleRate;
     var length2 = (activeTime - 2*fadeTime) * context.sampleRate;
     var length = length1 + length2;
@@ -76,7 +76,7 @@ function createDelayTimeBuffer(context, activeTime, fadeTime, delayTime) {
     
     // 1st part of cycle
     for (var i = 0; i < length1; ++i) {
-        p[i] = delayTime * i / length1;
+        p[i] = i / length1;
     }
 
     // 2nd part
@@ -88,7 +88,7 @@ function createDelayTimeBuffer(context, activeTime, fadeTime, delayTime) {
 }
 
 var delayTime = 0.050;
-var fadeTime = 0.040;
+var fadeTime = 0.050;
 var bufferTime = 0.100;
 
 function Jungle(context) {
@@ -102,16 +102,22 @@ function Jungle(context) {
     // Delay modulation.
     var mod1 = context.createBufferSource();
     var mod2 = context.createBufferSource();
-    var delayTimeBuffer = createDelayTimeBuffer(context, bufferTime, fadeTime, delayTime);
+    var delayTimeBuffer = createDelayTimeBuffer(context, bufferTime, fadeTime);
     mod1.buffer = delayTimeBuffer;
     mod2.buffer = delayTimeBuffer;
     mod1.loop = true;
     mod2.loop = true;
+    
+    // Delay amount
+    var modGain1 = context.createGainNode();
+    var modGain2 = context.createGainNode();
 
     var delay1 = context.createDelayNode();
     var delay2 = context.createDelayNode();
-    mod1.connect(delay1.delayTime);
-    mod2.connect(delay2.delayTime);
+    mod1.connect(modGain1);
+    mod2.connect(modGain2);
+    modGain1.connect(delay1.delayTime);
+    modGain2.connect(delay2.delayTime);
 
     // Crossfading.
     var fade1 = context.createBufferSource();
@@ -148,13 +154,19 @@ function Jungle(context) {
 
     this.mod1 = mod1;
     this.mod2 = mod2;
+    this.modGain1 = modGain1;
+    this.modGain2 = modGain2;
     this.fade1 = fade1;
     this.fade2 = fade2;
     this.mix1 = mix1;
     this.mix2 = mix2;
     this.delay1 = delay1;
     this.delay2 = delay2;
+    
+    this.setDelay(delayTime);
 }
 
-Jungle.prototype.setDelayTime = function(delayTime) {
+Jungle.prototype.setDelay = function(delayTime) {
+    this.modGain1.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.020);
+    this.modGain2.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.020);
 }
