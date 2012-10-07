@@ -34,7 +34,7 @@ function createFadeBuffer(context, activeTime, fadeTime) {
     var buffer = context.createBuffer(1, length, context.sampleRate);
     var p = buffer.getChannelData(0);
     
-    console.log("length = " + length);
+    console.log("createFadeBuffer() length = " + length);
     
     var fadeLength = fadeTime * context.sampleRate;
 
@@ -72,7 +72,7 @@ function createDelayTimeBuffer(context, activeTime, fadeTime, delayTime) {
     var buffer = context.createBuffer(1, length, context.sampleRate);
     var p = buffer.getChannelData(0);
 
-    console.log("delay length = " + length);
+    console.log("createDelayTimeBuffer() length = " + length);
     
     // 1st part of cycle
     for (var i = 0; i < length1; ++i) {
@@ -87,8 +87,8 @@ function createDelayTimeBuffer(context, activeTime, fadeTime, delayTime) {
     return buffer;
 }
 
-var delayTime = 0.045;
-var fadeTime = 0.020;
+var delayTime = 0.050;
+var fadeTime = 0.040;
 var bufferTime = 0.100;
 
 function Jungle(context) {
