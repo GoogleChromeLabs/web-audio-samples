@@ -108,7 +108,7 @@ function Jungle(context) {
     mod1.loop = true;
     mod2.loop = true;
     
-    // Delay amount
+    // Delay amount for changing pitch.
     var modGain1 = context.createGainNode();
     var modGain2 = context.createGainNode();
 
@@ -145,7 +145,7 @@ function Jungle(context) {
     mix2.connect(output);
     
     // Start
-    var t = context.currentTime + 0.500;
+    var t = context.currentTime + 0.050;
     var t2 = t + bufferTime - fadeTime;
     mod1.start(t);
     mod2.start(t2);
@@ -167,6 +167,6 @@ function Jungle(context) {
 }
 
 Jungle.prototype.setDelay = function(delayTime) {
-    this.modGain1.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.020);
-    this.modGain2.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.020);
+    this.modGain1.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.010);
+    this.modGain2.gain.setTargetValueAtTime(0.5*delayTime, 0, 0.010);
 }
