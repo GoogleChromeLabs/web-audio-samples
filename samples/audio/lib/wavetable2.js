@@ -29,7 +29,7 @@
 
 var kDefaultNumberOfResampleRanges = 11;
 
-function WaveTableWrapper(name, context) {
+function Wave(name, context) {
     this.name = name;
     this.context = context;
     this.sampleRate = context.sampleRate;
@@ -39,7 +39,7 @@ function WaveTableWrapper(name, context) {
     this.numberOfResampleRanges = kDefaultNumberOfResampleRanges;
 }
 
-WaveTableWrapper.prototype.getWaveDataForPitch = function(pitchFrequency) {
+Wave.prototype.getWaveDataForPitch = function(pitchFrequency) {
     var nyquist = 0.5 * this.sampleRate;
     var lowestNumPartials = this.getNumberOfPartialsForRange(0);
     var lowestFundamental = nyquist / lowestNumPartials;
@@ -58,7 +58,7 @@ WaveTableWrapper.prototype.getWaveDataForPitch = function(pitchFrequency) {
     return this.buffers[pitchRange];
 }
 
-WaveTableWrapper.prototype.getNumberOfPartialsForRange = function(j) {
+Wave.prototype.getNumberOfPartialsForRange = function(j) {
 	// goes from 1024 -> 4 @ 44.1KHz (and do same for 48KHz)
 	// goes from 2048 -> 8 @ 96KHz
 	var npartials = Math.pow(2, 1 + this.numberOfResampleRanges - j);
@@ -68,27 +68,27 @@ WaveTableWrapper.prototype.getNumberOfPartialsForRange = function(j) {
 	return npartials;
 }
 
-WaveTableWrapper.prototype.getWaveTableSize = function() {
+Wave.prototype.getWaveTableSize = function() {
     return this.waveTableSize;
 }
 
-WaveTableWrapper.prototype.getSampleRate = function() {
+Wave.prototype.getSampleRate = function() {
     return this.sampleRate;
 }
 
-WaveTableWrapper.prototype.getRateScale = function() {
+Wave.prototype.getRateScale = function() {
     return this.getWaveTableSize() / this.getSampleRate();
 }
 
-WaveTableWrapper.prototype.getNumberOfResampleRanges = function() {
+Wave.prototype.getNumberOfResampleRanges = function() {
     this.numberOfResampleRanges;
 }
 
-WaveTableWrapper.prototype.getName = function() {
+Wave.prototype.getName = function() {
     return this.name;
 }
 
-WaveTableWrapper.prototype.load = function(callback) {
+Wave.prototype.load = function(callback) {
     var request = new XMLHttpRequest();
     request.open("GET", this.url, true);
     var wave = this;
@@ -111,7 +111,7 @@ WaveTableWrapper.prototype.load = function(callback) {
         // console.log("frequencyData.real.length: " + frequencyData.real.length + " : " + frequencyData.imag[0]);
         console.log("wavetable: " + wave.wavetable);
         
-        wave.createBuffers();
+        // wave.createBuffers();
         if (callback)
             callback(wave);
     };
@@ -123,7 +123,7 @@ WaveTableWrapper.prototype.load = function(callback) {
     request.send();
 }
 
-WaveTableWrapper.prototype.print = function() {
+Wave.prototype.print = function() {
     var f = this.frequencyData;
 
     var info = document.getElementById("info");
@@ -136,7 +136,7 @@ WaveTableWrapper.prototype.print = function() {
     info.innerHTML = s;
 }
 
-WaveTableWrapper.prototype.printBuffer = function(buffer) {
+Wave.prototype.printBuffer = function(buffer) {
     var info = document.getElementById("info");
     
     var s = "";
@@ -147,131 +147,7 @@ WaveTableWrapper.prototype.printBuffer = function(buffer) {
     info.innerHTML = s;
 }
 
-// WaveTableWrapper.prototype.createBuffers = function() {
-//     var f = this.frequencyData;
-//     
-//     var n = 4096;
-//     
-//     var fft = new FFT(n, 44100);
-//         
-//     // Copy from loaded frequency data and scale.
-//     for (var i = 0; i < n / 2; ++i) {
-//         fft.real[i] = 4096 * f.real[i];
-//         fft.imag[i] = 4096 * f.imag[i];
-//     }
-// 
-//     // Now do inverse FFT
-//     this.data = fft.inverse();
-//     var data = this.data;
-//     
-//     this.buffer = context.createBuffer(1, data.length, 44100);
-//     
-//     // Copy data to the buffer.
-//     var p = this.buffer.getChannelData(0);
-//     for (var i = 0; i < data.length; ++i) {
-//         p[i] = data[i];
-//     }
-// }
-
-// Convert into time-domain wave tables.
-// We actually create several of them for non-aliasing playback at different playback rates.
-WaveTableWrapper.prototype.createBuffers = function() {
-	// resample ranges
-	//
-	// let's divide up versions of our waves based on the maximum fundamental frequency we're
-	// resampling at.  Let's use fundamental frequencies based on dividing Nyquist by powers of two.
-	// For example for 44.1KHz sample-rate we have:
-	//
-	//		ranges
-	//		----------------------------------
-	//		21Hz, 43Hz, 86Hz, 172Hz, 344Hz, 689Hz, 1378Hz, 2756Hz, 5512Hz, 11025Hz, 22050Hz               <-- 44.1KHz
-	//		23Hz, 47Hz, 94Hz, 187Hz, 375Hz, 750Hz, 1500Hz, 3000Hz, 6000Hz, 12000Hz, 24000Hz, 48000Hz      <-- 96KHz
-	//
-	// and number of partials:
-	//
-	//      1024, 512,  256,  128,    64,    32,    16,     8,       4,      2,       1
-	//		2048, 1024, 512,  256,   128,    64,    32,    16,       8,      4,       2,     1
-	//
-	// But it's probably OK if we skip the very highest fundamental frequencies and only
-	// go up to 5512Hz, so we have a total of 9 resample ranges
-	//
-	//      0      1     2     3      4       5     6       7        8
-
-	// The FFT size needs to be at least 2048 @ 44.1KHz and 4096 @ 96KHz
-	//
-	// So let's try to use FFT size of 4096 all the time and pull out the harmonics we want
-	//
-	
-	this.buffers = new Array();
-	
-	var finalScale = 1.0;
-
-	for (var j = 0; j < this.numberOfResampleRanges; ++j) {
-        var n = this.waveTableSize;
-        var frame = new FFT(n, this.sampleRate);
-
-        // Copy from loaded frequency data and scale.
-        var f = this.frequencyData;
-        var scale = n;
-        for (var i = 0; i < n / 2; ++i) {
-            frame.real[i] = scale * f.real[i];
-            frame.imag[i] = scale * f.imag[i];
-        }
-
-		var realP = frame.real;
-		var imagP = frame.imag;
-
-		// Find the starting bin where we should start clearing out
-		// (we need to clear out the highest frequencies to band-limit the waveform)
-		var fftSize = n;
-		var halfSize = fftSize / 2;
-
-		var npartials = this.getNumberOfPartialsForRange(j);
-
-		// Now, go through and cull out the aliasing harmonics...
-		for (var i = npartials + 1; i < halfSize; i++) {
-			realP[i] = 0.0;
-			imagP[i] = 0.0;
-		}
-		// Clear packed-nyquist if necessary
-		if (npartials < halfSize)
-			imagP[0] = 0.0;
-
-		// Clear any DC-offset
-		realP[0] = 0.0;
-
-        // For the first resample range, find power and compute scale.
-        if (j == 0) {
-            var power = 0;
-            for (var i = 1; i < halfSize; ++i) {
-                x = realP[i];
-                y = imagP[i];
-                power += x * x + y * y;
-            }
-            power = Math.sqrt(power) / fftSize;
-            
-            finalScale = 0.5 / power;
-
-            // window.console.log("power = " + power);
-        }
-
-		// Great, now do inverse FFT into our wavetable...
-        var data = frame.inverse();
-
-        // Create mono AudioBuffer.
-        var buffer = this.context.createBuffer(1, data.length, this.sampleRate);
-        
-        // Copy data to the buffer.
-        var p = buffer.getChannelData(0);
-        for (var i = 0; i < data.length; ++i) {
-            p[i] = finalScale * data[i];
-        }
-
-		this.buffers[j] = buffer;
-	}
-}
-
-WaveTableWrapper.prototype.displayWaveData = function() {
+Wave.prototype.displayWaveData = function() {
     var data = this.data;
     var n = data.length;
 
