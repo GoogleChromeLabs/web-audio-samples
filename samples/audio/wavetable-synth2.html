@@ -45,7 +45,7 @@ Title
 <script type="text/javascript" src="lib/fft.js"></script>
 <script type="text/javascript" src="lib/bpm-delay.js"></script>
 <script type="text/javascript" src="lib/waveshaper.js"></script>
-<script type="text/javascript" src="lib/wavetable.js"></script>
+<script type="text/javascript" src="lib/wavetable2.js"></script>
 <script type="text/javascript" src="lib/knob.js"></script>
 <style type="text/css">
   #slider { margin: 10px; }
@@ -204,7 +204,7 @@ WaveTableLoader.prototype.load = function(finishedCallback) {
 
     for (var i = 0; i < loader.waveNames.length; ++i) {
         var name = loader.waveNames[i];
-        loader.waveList[i] = new WaveTableWrapper(name, context);
+        loader.waveList[i] = new Wave(name, context);
         loader.waveList[i].load(function(waveTable) {
             loader.loadedCount++;
             if (loader.loadedCount == loader.waveList.length)
@@ -620,8 +620,6 @@ Note.prototype.setFilterValues = function() {
 var firstTime = true;
 
 Note.prototype.play = function(wave, wave2, semitone, octave, time) {
-    console.log("time: " + time);
-    
     this.time = time;
     
     if (wave != this.wave || wave2 != this.wave2 || !this.isMonophonic) {
@@ -669,9 +667,9 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     if (firstTime) osc2.setWaveTable(table);
 
     if (this.isMonophonic) {
-        osc2.frequency.value = pitchFrequency;
-    } else {
         osc2.frequency.setValueAtTime(pitchFrequency, time);
+    } else {
+        osc2.frequency.value = pitchFrequency;
     }
     osc2.detune.value = detune2;
 
