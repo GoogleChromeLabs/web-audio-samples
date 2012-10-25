@@ -673,7 +673,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     }
     osc2.detune.value = detune2;
 
-    if (firstTime) osc2Octave.setWaveTable(wave2);
+    if (firstTime) osc2Octave.setWaveTable(table2);
 
     if (this.isMonophonic) {
         osc2Octave.frequency.setValueAtTime(pitchFrequency, time);
