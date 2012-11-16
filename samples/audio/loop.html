@@ -170,8 +170,8 @@ function handleKeyDown(event) {
     } else if (code == 32) {
         // Space
         toggleMuteSource();
-    } else if (code >= 49 && code <=55) {
-        // 1,2,3,4,5,6
+    } else if (code >= 49 && code <=57) {
+        // 1,2,3,4,5,6,7,8
         var i = code - 49;
         selectedLoop().setBuffer(bufferList[i]);
     }
@@ -219,6 +219,7 @@ function Loop(context, globalEffects) {
     
     this.setDelayDryWet(0.3);
     this.setReverbDryWet(0.0);
+    this.setResonance(3);
 
     this.granular = new Granular(context, this.filter /*globalEffects.compressor*/, globalEffects.convolver);
 }
@@ -253,7 +254,7 @@ Loop.prototype.setResonance = function(value) {
     this.filter2.Q.value = value - 6;
     
     // Resonance gain compensation.
-    var gain = Math.pow(10, -0.5*value * 0.05);
+    var gain = Math.pow(10, -0.25*value * 0.05);
     this.filterGain.gain.value = gain;
 }
 
@@ -372,10 +373,10 @@ function loadSourceBuffer(url) {
 
 function bufferLoaderFinished(buffers) {
     bufferList = buffers;
-    globalEffects.setConvolverBuffer(buffers[7]);  // FIXME: fragile
+    globalEffects.setConvolverBuffer(buffers[8]);  // FIXME: fragile
     
     loops[0].setBuffer(buffers[3]); // granular
-    loops[1].setBuffer(buffers[6]); // granular
+    loops[1].setBuffer(buffers[1]); // granular
 }
 
 function init() {
@@ -386,6 +387,9 @@ function init() {
     gain.connect(context.destination);
 
     globalEffects = new GlobalEffects(context);
+    
+    globalEffects.setDelayFeedback(0.65);
+    globalEffects.setDelayGrunge(-3);
     
     
     for (var i = 0; i < 4; ++i) {
@@ -404,6 +408,7 @@ function init() {
         'sounds/drum-samples/loops/break28.wav',
         'sounds/drum-samples/loops/break29.wav',
         'sounds/hyper-reality/refreshing-drink.wav',
+        'sounds/hyper-reality/human-voice.mp4',
         'sounds/hyper-reality/guitar-chords.wav',
         'sounds/drum-samples/loops/organ-echo-chords.wav',
         'impulse-responses/matrix-reverb5.wav',
@@ -507,7 +512,7 @@ function installGlobalControls() {
     var views = new Array();
     
     var j = 0;
-    views[j++] = new KnobView("speed", 1, -2, 2, UNITS.generic, 1, false, function(value) { setSpeed(value); } );
+    views[j++] = new KnobView("speed", 1, -1, 1, UNITS.generic, 1, false, function(value) { setSpeed(value); } );
     views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { globalEffects.setDelayFeedback(0.01 * value); } );
     views[j++] = new KnobView("delay grunge", 0, -10, 30, UNITS.decibels, 1, false, function(value) { globalEffects.setDelayGrunge(value); } );
     
