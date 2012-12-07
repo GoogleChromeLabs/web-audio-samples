@@ -242,7 +242,7 @@ function loadBufferForSource(source, url) {
     newSource.buffer = context.createBuffer(request.response, false);
 
     // Start playing exactly on the next 4-beat boundary with looping.
-    newSource.looping = true;
+    newSource.loop = true;
     newSource.noteOn(time);
     
     // This new source will replace the existing source.
@@ -314,8 +314,8 @@ function init() {
     source1Gain.gain.value = 0.707;
     source2Gain.gain.value = 0.707;
 
-    source1.looping = true;
-    source2.looping = true;
+    source1.loop = true;
+    source2.loop = true;
 
     // load reverb
     // setReverbImpulseResponse('impulse-responses/spatialized3.wav');

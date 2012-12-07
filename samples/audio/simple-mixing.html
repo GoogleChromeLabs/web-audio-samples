@@ -151,9 +151,9 @@ function init() {
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();
     source3 = context.createBufferSource();
-    source1.looping = true;
-    source2.looping = true;
-    source3.looping = true;
+    source1.loop = true;
+    source2.loop = true;
+    source3.loop = true;
 
     gain1 = context.createGainNode();
     gain2 = context.createGainNode();

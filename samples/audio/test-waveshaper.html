@@ -158,7 +158,7 @@ function init() {
     curve = new Float32Array(65536);
     generateWaveShapingCurve(curve);
     source.buffer = buffer;
-    source.looping = true;
+    source.loop = true;
     waveshaper = context.createWaveShaper();
     waveshaper.curve = curve;
     

@@ -505,19 +505,11 @@ function Note(staticAudioRouting, isMonophonic) {
     this.staticAudioRouting = staticAudioRouting;
     this.isMonophonic = isMonophonic;
     
-    // Create oscillators, panners, amplitude, and filter envelopes.    
-    
+    // Create oscillators, panners, amplitude, and filter envelopes.
     var osc1 = context.createOscillator();
-    osc1.looping = true;
-
     var osc1Octave = context.createOscillator();
-    osc1Octave.looping = true;
-
     var osc2 = context.createOscillator();
-    osc2.looping = true;
-
     var osc2Octave = context.createOscillator();
-    osc2Octave.looping = true;
     
     var panner1 = context.createPanner();
     panner1.panningModel = webkitAudioPannerNode.EQUALPOWER;
