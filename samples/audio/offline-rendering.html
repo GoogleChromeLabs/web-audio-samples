@@ -116,7 +116,8 @@ function playNote(context, time) {
 }
 
 function startOfflineProcessing() {
-    offlineContext = new webkitAudioContext(2, 2 * 44100, 44100);
+    // offlineContext = new webkitAudioContext(2, 2 * 44100, 44100);
+    offlineContext = new webkitOfflineAudioContext(2, 2 * 44100, 44100);
 
     offlineContext.oncomplete = function(event) {
       var source = context.createBufferSource();
