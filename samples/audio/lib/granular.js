@@ -63,7 +63,7 @@ function Granular(context, finalMix, convolver, delay) {
     this.pitch = 0;
     this.timeRandomization = kTimeRandomization;
     this.pitchRandomization = kPitchRandomization;
-    this.panningRandomization = kPanningRandomization;
+    this.panningRandomization = 0; //kPanningRandomization;
     this.diffusionRandomization = kDiffusionRandomization;
     this.grainTime = 0.0;
     this.realTime = -1; // uninitialized
@@ -71,6 +71,8 @@ function Granular(context, finalMix, convolver, delay) {
     this.grainSpacing = 0.5 * kGrainDuration;
     
     this.crossings = new Float32Array(16384);
+    this.avePeriodTime = new Float32Array(16384);
+    this.longAvePeriodTime = new Float32Array(16384);
     this.averageDuration = 0.090;
     this.aveDelta = 0;
 }
@@ -82,8 +84,11 @@ Granular.prototype.setBuffer = function(buffer) {
 
 Granular.prototype.findZeroCrossings = function() {
     var crossings = this.crossings;
+    var avePeriodTime = this.avePeriodTime;
+    var longAvePeriodTime = this.longAvePeriodTime;
     var buffer = this.buffer;
     var n = buffer.length;
+    var sampleRate = buffer.sampleRate;
 
     var j = 0;
 
@@ -147,11 +152,27 @@ Granular.prototype.findZeroCrossings = function() {
         if (j >= crossings.length)
             break;
     }
-    
+
     console.log("Final j: " + j);
     
     this.zeroCrossingIndex = 0;
     this.zeroCrossingSize = j;
+    
+    
+    var ave = (crossings[1] - crossings[0]) / sampleRate;;
+    var ave2 = (crossings[1] - crossings[0]) / sampleRate;;
+    for (var i = 1; i < j - 1; ++i) {
+        avePeriodTime[i - 1] = ave;
+        longAvePeriodTime[i - 1] = ave2;
+        var target = (crossings[i + 1] - crossings[i]) / sampleRate;
+        ave += (target - ave) * 0.2;
+        ave2 += (target - ave2) * 0.01;
+    }
+    avePeriodTime[j - 2] = ave;
+    avePeriodTime[j - 1] = ave;
+
+    longAvePeriodTime[j - 2] = ave2;
+    longAvePeriodTime[j - 1] = ave2;
 }
 
 Granular.prototype.scheduleGrain = function() {
@@ -175,30 +196,6 @@ Granular.prototype.scheduleGrain = function() {
     r3 = (r3 - 0.5) * 2.0;
     r4 = (r4 - 0.5) * 2.0;
 
-    // Spatialization
-    var panner = context.createPanner();
-
-    // Create a gain node with a special "grain window" shaping curve.
-    var grainWindowNode = context.createGainNode();
-    source.connect(grainWindowNode);
-    grainWindowNode.connect(panner);
-
-    var distance = 2.0;
-    var azimuth = Math.PI * this.panningRandomization * r3;
-    var elevation = Math.PI * this.panningRandomization * r4;
-
-    var x = Math.sin(azimuth);
-    var z = Math.cos(azimuth);
-    var y = Math.sin(elevation);
-    var scaleXZ = Math.cos(elevation);
-
-    x *= distance * scaleXZ;
-    y *= distance;
-    z *= distance * scaleXZ;
-
-    panner.panningModel = webkitAudioPannerNode.HRTF;
-    panner.setPosition(x, y, z);
-
     var dryGainNode = context.createGainNode();
     var wetGainNode = context.createGainNode();
     wetGainNode.gain.value = 0.5 * this.diffusionRandomization * r5;
@@ -208,14 +205,44 @@ Granular.prototype.scheduleGrain = function() {
     var totalPitch = this.pitch + r1 * this.pitchRandomization;
     var pitchRate = Math.pow(2.0, totalPitch / 1200.0);
     source.playbackRate.value = pitchRate;
+
+    // Create a gain node with a special "grain window" shaping curve.
+    var grainWindowNode = context.createGainNode();
+    source.connect(grainWindowNode);
+
+    if (this.panningRandomization > 0) {
+        // Spatialization
+        var panner = context.createPanner();
+        grainWindowNode.connect(panner);
+
+        var distance = 2.0;
+        var azimuth = Math.PI * this.panningRandomization * r3;
+        var elevation = Math.PI * this.panningRandomization * r4;
+
+        var x = Math.sin(azimuth);
+        var z = Math.cos(azimuth);
+        var y = Math.sin(elevation);
+        var scaleXZ = Math.cos(elevation);
+
+        x *= distance * scaleXZ;
+        y *= distance;
+        z *= distance * scaleXZ;
+
+        panner.panningModel = webkitAudioPannerNode.HRTF;
+        panner.setPosition(x, y, z);
+
     
-    // Connect dry mix
-    panner.connect(dryGainNode);
+        // Connect dry mix
+        panner.connect(dryGainNode);
+        panner.connect(wetGainNode);
+    } else {
+        grainWindowNode.connect(dryGainNode);
+        grainWindowNode.connect(wetGainNode);
+    }
+
     dryGainNode.connect(finalMix);
     
     // Connect wet mix
-    panner.connect(wetGainNode);
-    // finalMix.connect(wetGainNode);
     wetGainNode.connect(convolver);
 
     // Time randomization
@@ -223,57 +250,51 @@ Granular.prototype.scheduleGrain = function() {
     
     // Schedule sound grain
 
-    var scaledGrainDuration = this.grainDuration   /* / pitchRate */;
+    var scaledGrainDuration = this.grainDuration;
 
     var grainSpacing = -1;
 
     var sampleRate = buffer.sampleRate;
     var crossings = this.crossings;
-    if (true) {
-        var d = 0;
-        var offset = 1;
-        // var goal = pitchRate < 1 ? pitchRate * this.grainDuration : this.grainDuration;
-        var goal = pitchRate * this.grainDuration;
-        if (this.aveDelta < 400)
-            goal *= 2;
-        
-        while (d < goal && (this.zeroCrossingIndex + offset) < this.zeroCrossingSize) {
-            var i1 = this.zeroCrossingIndex;
-            var i2 = this.zeroCrossingIndex + offset;
-            var delta = crossings[i2] - crossings[i1];
-            
-            
-            
-            
-            d = delta / sampleRate;
-            
-            if (d < goal)
-                scaledGrainDuration = d;
-            
-            offset++;
-        }
-        offset--;
-        
-        // this.averageDuration += (scaledGrainDuration - this.averageDuration) * 0.1;
-        // if (scaledGrainDuration > 1.5 * this.averageDuration)
-        //     scaledGrainDuration = this.averageDuration;
-        
-        console.log("offset: " + offset);
+    var avePeriodTime = this.avePeriodTime;
+    var longAvePeriodTime = this.longAvePeriodTime;
+    
+    var d = 0;
+    var goal = pitchRate * this.grainDuration;
 
-        // Deal with grain spacing.
-        var half = Math.floor(0.5 * offset    * this.speed            / pitchRate);
-        var i1 = this.zeroCrossingIndex;
-        var i2 = this.zeroCrossingIndex + half;
-        var delta = crossings[i2] - crossings[i1];
-        var spacing = delta / sampleRate;
-        if (spacing > 0.010 && spacing < 0.75*scaledGrainDuration / pitchRate)
-            grainSpacing = 0.5 * (0.5*scaledGrainDuration/pitchRate + spacing);
-
-            var delta2 = crossings[i2] - crossings[i2-1];
-            this.aveDelta += (delta2 - this.aveDelta) * 0.1;
-            if (isNaN(this.aveDelta)) this.aveDelta = delta2;
-        console.log("*** " + this.aveDelta);
+    var avePeriod = avePeriodTime[this.zeroCrossingIndex];
+    var longAvePeriod = longAvePeriodTime[this.zeroCrossingIndex];
+    // var avePeriod = this.aveDelta / sampleRate;
+    if (avePeriod < 0.009 || longAvePeriod < 0.010) {
+        goal *= 2;
+        console.log("*** ");
     }
+    
+    if (avePeriod > 0.012) {
+        console.log("^^^");
+        goal = 2 * avePeriod;
+    }
+    
+    console.log(avePeriod + " ::: " + longAvePeriod);        
+    
+    var sum = 0;
+    var offset = 1;
+    for (var i = this.zeroCrossingIndex; i < this.zeroCrossingSize; ++i) {
+        offset++;
+        sum += avePeriodTime[i];
+        if (sum < goal)
+            scaledGrainDuration = sum;
+        if (sum > goal)
+            break;
+    }
+    
+    var spacing = 0.5 * scaledGrainDuration * this.speed / pitchRate;
+
+        var i2 = this.zeroCrossingIndex + 1;
+        var delta2 = crossings[i2] - crossings[i2-1];
+        this.aveDelta += (delta2 - this.aveDelta) * 0.1;
+        if (isNaN(this.aveDelta)) this.aveDelta = delta2;
+    // console.log("*** " + this.aveDelta);
 
     source.start(this.realTime, this.grainTime + randomGrainOffset, scaledGrainDuration);
 
@@ -281,7 +302,6 @@ Granular.prototype.scheduleGrain = function() {
     // This applies a time-varying gain change for smooth fade-in / fade-out.
     var windowDuration = scaledGrainDuration / pitchRate;
     var window = Math.abs(totalPitch) < 200 ? this.linearWindow : this.equalPowerWindow;
-    // var window = this.equalPowerWindow;
     
     grainWindowNode.gain.value = 0.0; // make default value 0
     grainWindowNode.gain.setValueCurveAtTime(window, this.realTime, windowDuration);
@@ -289,6 +309,8 @@ Granular.prototype.scheduleGrain = function() {
     // Update time params.
     if (grainSpacing == -1)
         grainSpacing = 0.5 * windowDuration;
+
+    var oldGrainTime = this.grainTime;
 
     this.realTime += grainSpacing;
     this.grainTime += this.speed * grainSpacing;
@@ -302,14 +324,15 @@ Granular.prototype.scheduleGrain = function() {
     if (this.zeroCrossingIndex >= this.zeroCrossingSize - 1)
         this.zeroCrossingIndex = 0;
     var z = this.zeroCrossingIndex;
-    while (crossings[z] / sampleRate < this.grainTime) {
+    var grainSampleFrame = sampleRate * this.grainTime;
+    while (crossings[z]  < grainSampleFrame) {
         z++;
         if (z >= this.zeroCrossingSize) {
             z = 0;
             break;
         }
     }
-
+    
     this.zeroCrossingIndex = z;
 }
 
