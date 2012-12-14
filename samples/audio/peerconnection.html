@@ -43,6 +43,7 @@ btn3.disabled = true;
 var pc1,pc2;
 var localstream;
 var context = 0;
+var source = 0;
 var mediaStreamDestination = 0;
 
 function trace(text) {
@@ -93,7 +94,11 @@ function call() {
 }
 
 function webAudio() {
+    mediaStreamDestination = context.createMediaStreamDestination();
     pc1.addStream(mediaStreamDestination.stream);
+    
+    source.connect(mediaStreamDestination);
+    source.start(0);
 }
 
 function gotDescription1(desc){
@@ -144,10 +149,8 @@ function loadAudioBuffer(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        var source = context.createBufferSource();
+        source = context.createBufferSource();
         source.buffer = context.createBuffer(request.response, false);
-        source.connect(mediaStreamDestination);
-        source.start(0);
         // ....
     }
 
@@ -156,7 +159,6 @@ function loadAudioBuffer(url) {
 
 function init() {
     context = new webkitAudioContext();
-    mediaStreamDestination = context.createMediaStreamDestination();
 
     loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
 }
