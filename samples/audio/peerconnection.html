@@ -35,8 +35,6 @@ textarea {
 
 window.onload = init;
 
-//var vid1 = document.getElementById("vid1");
-//var vid2 = document.getElementById("vid2");
 btn1.disabled = false;
 btn2.disabled = true;
 btn3.disabled = true;
@@ -45,6 +43,10 @@ var localstream;
 var context = 0;
 var source = 0;
 var mediaStreamDestination = 0;
+var drumSoundBuffer = 0;
+
+var useGetUserMedia = true;
+var useOpus = true;
 
 function trace(text) {
   // This function is used for logging.
@@ -64,18 +66,20 @@ function gotStream(stream){
 function start() {
   trace("Requesting local stream");
   btn1.disabled = true;
-  navigator.webkitGetUserMedia({audio:true, video:true},
-                               gotStream, function() {});
+
+  if (useGetUserMedia) {
+      navigator.webkitGetUserMedia({audio:true, video:true},
+                                   gotStream, function() {});
+  } else {
+      btn2.disabled = false;
+  }
 }  
   
 function call() {
   btn2.disabled = true;
   btn3.disabled = false;
   trace("Starting call");
-  if (localstream.videoTracks.length > 0)
-    trace('Using Video device: ' + localstream.videoTracks[0].label);  
-  if (localstream.audioTracks.length > 0)
-    trace('Using Audio device: ' + localstream.audioTracks[0].label);
+
   var servers = null;
   pc1 = new webkitRTCPeerConnection(servers);
   trace("Created local peer connection object pc1");
@@ -85,27 +89,40 @@ function call() {
   pc2.onicecandidate = iceCallback2;
   pc2.onaddstream = gotRemoteStream;
 
-  // !!!!!!!!!!! this shouldn't be necessary !!!!!!!!!!!!!!!!!
-  pc1.addStream(localstream);
-
   trace("Adding Local Stream to peer connection");
   
   pc1.createOffer(gotDescription1);
 }
 
 function webAudio() {
-    mediaStreamDestination = context.createMediaStreamDestination();
     pc1.addStream(mediaStreamDestination.stream);
     
-    source.connect(mediaStreamDestination);
     source.start(0);
 }
 
+function transform(sdp) {
+    if (useOpus) {
+        // Remove all other codecs (not the video codecs though).
+        sdp = sdp.replace(/m=audio (\d+) RTP\/SAVPF.*\r\n/g,
+                          'm=audio $1 RTP/SAVPF 111\r\n');
+        sdp = sdp.replace(/a=rtpmap:(?!111)\d{1,3} (?!VP8|red|ulpfec).*\r\n/g, '');
+    }
+    return sdp;
+}
+
 function gotDescription1(desc){
-  pc1.setLocalDescription(desc);
-  trace("Offer from pc1 \n" + desc.sdp);
-  pc2.setRemoteDescription(desc);
-  pc2.createAnswer(gotDescription2);
+    trace("Offer from pc1 \n" + desc.sdp);
+    var modifiedOffer = new RTCSessionDescription( {type: 'offer',
+                                                    sdp: transform(desc.sdp)});
+    pc1.setLocalDescription(modifiedOffer);
+    trace("Offer from pc1 \n" + modifiedOffer.sdp);
+    pc2.setRemoteDescription(modifiedOffer);
+    pc2.createAnswer(gotDescription2);
+
+    // pc1.setLocalDescription(desc);
+    // trace("Offer from pc1 \n" + desc.sdp);
+    // pc2.setRemoteDescription(desc);
+    // pc2.createAnswer(gotDescription2);
 }
 
 function gotDescription2(desc){
@@ -149,18 +166,46 @@ function loadAudioBuffer(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        source = context.createBufferSource();
         source.buffer = context.createBuffer(request.response, false);
-        // ....
     }
 
     request.send();
 }
 
+function loadDrumSound(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        drumSoundBuffer = context.createBuffer(request.response, true);
+    }
+
+    request.send();
+}
+
+function handleKeyDown(event) {
+    // Play the drum sound to the remote peer.
+    var drumSound = context.createBufferSource();
+    drumSound.buffer = drumSoundBuffer;
+    drumSound.connect(mediaStreamDestination);
+    // drumSound.connect(context.destination);
+    drumSound.start(0);
+}
+
 function init() {
     context = new webkitAudioContext();
+    source = context.createBufferSource();
+    mediaStreamDestination = context.createMediaStreamDestination();
+    source.connect(mediaStreamDestination);
 
-    loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    // loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    loadAudioBuffer("sounds/DriftingDrums.mp3");
+    loadDrumSound("sounds/drum-samples/Kit8/snare.wav");
+
+    document.addEventListener("keydown", handleKeyDown, true);  
 }
 
 </script>
