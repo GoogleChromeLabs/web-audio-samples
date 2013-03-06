@@ -57,10 +57,13 @@ var context;
 var gain;
 
 function getSampleRate() {
+    alert("getSampleRate()");
+
     gain = context.createGain();
     var s = "context.sampleRate = " + context.sampleRate;
     var e = document.getElementById("sample-rate");
     e.innerHTML = s;
+    alert(s);
 }
 
 function init() {
