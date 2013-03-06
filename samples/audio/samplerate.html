@@ -53,6 +53,7 @@ Title
 // init() once the page has finished loading.
 
 var context;
+var source;
 var gain;
 
 function getSampleRate() {
@@ -61,8 +62,11 @@ function getSampleRate() {
     context = new webkitAudioContext();
 
     alert("2 getSampleRate()");
-
+    
+    source = context.createBufferSource();
     gain = context.createGainNode();
+    source.connect(context.destination);
+    source.noteOn(0);
 
     alert("3 getSampleRate()");
 
