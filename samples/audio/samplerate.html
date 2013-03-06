@@ -56,12 +56,24 @@ var context;
 var gain;
 
 function getSampleRate() {
-    alert("getSampleRate()");
+    alert("1 getSampleRate()");
 
     context = new webkitAudioContext();
+
+    alert("2 getSampleRate()");
+
     gain = context.createGainNode();
+
+    alert("3 getSampleRate()");
+
     var s = "context.sampleRate = " + context.sampleRate;
+
+    alert("4 getSampleRate()");
+
     var e = document.getElementById("sample-rate");
+
+    alert("5 getSampleRate()");
+
     e.innerHTML = s;
     alert(s);
 }
