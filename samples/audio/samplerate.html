@@ -64,11 +64,19 @@ function getSampleRate() {
     alert("2 getSampleRate()");
     
     source = context.createBufferSource();
-    gain = context.createGainNode();
-    source.connect(context.destination);
-    source.noteOn(0);
 
     alert("3 getSampleRate()");
+
+    gain = context.createGainNode();
+
+    alert("4 getSampleRate()");
+
+    // source.connect(context.destination);
+    // 
+    // alert("5 getSampleRate()");
+    // 
+    // source.noteOn(0);
+
 
     // var s = "context.sampleRate = " + context.sampleRate;
     // 
@@ -87,7 +95,7 @@ function getSampleRate() {
 
 <body>
 
-<span onclick="getSampleRate();">
+<span ontouchstart="getSampleRate();">
 SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE 
 SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE 
 SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE SAMPLE-RATE 
