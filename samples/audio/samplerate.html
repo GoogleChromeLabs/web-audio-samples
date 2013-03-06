@@ -57,15 +57,12 @@ var source;
 var gain;
 
 function getSampleRate() {
-    alert("1 getSampleRate()");
 
     context = new webkitAudioContext();
 
-    alert("2 getSampleRate()");
     
     source = context.createBufferSource();
 
-    alert("3 getSampleRate()");
 
     gain = context.createGainNode();
 
