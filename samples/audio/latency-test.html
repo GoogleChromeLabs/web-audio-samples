@@ -1,0 +1,132 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var firstTime = true;
+
+var context;
+var latency = 0.0;
+var hihatShort;
+
+function latencyHandler(event, ui) {
+    latency = Math.pow(2.0, 8.0 * (ui.value - 1.0));
+    if (ui.value == 0.0) latency = 0.0;
+
+    var info = document.getElementById("latency-value");
+    info.innerHTML = "latency = " + latency + " seconds";
+}
+
+function handleKeyDown(event) {
+    if (firstTime) {
+        firstTime = false;
+        alert("about to create AudioContext!");
+        initAudio();
+    }
+
+    var source = context.createBufferSource();
+
+    source.buffer = hihatShort;
+    source.connect(context.destination);
+    
+    var currentTime = context.currentTime;
+    var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
+    source.noteOn(playTime);
+}
+
+function finishLoad() {
+    addSlider("latency");
+    configureSlider("latency", 0.0, 0.0, 1.0, latencyHandler);
+
+    var ui = {value: 1.0};
+
+    ui.value = 0.0;
+    latencyHandler(0, ui);
+}
+
+function loadHihat(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        hihatShort = context.createBuffer(request.response, true);
+        finishLoad();  // add in the slider, etc. now that we've loaded the audio
+    }
+
+    request.send();
+}
+
+function init() {
+    document.addEventListener("keydown", handleKeyDown, true);  
+}
+
+function initAudio() {
+    context = new webkitAudioContext();
+    alert("context.sampleRate = " + context.sampleRate );
+
+    loadHihat("sounds/drum-samples/Kit8/snare.wav");
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+</html>
