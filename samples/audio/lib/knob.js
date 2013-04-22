@@ -269,7 +269,7 @@ function installViews(views, parentDiv) {
         
         var s = "<canvas id=\"";
         s += view.name; // FIXME: namespace...
-        s += "\" width=\"260\" height=\"24\"> </canvas>";
+        s += "\" width=\"260\" height=\"24\" style=\"-webkit-user-select: none;\"> </canvas>";
 
         ss += s;
     }
