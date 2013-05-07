@@ -69,82 +69,130 @@ window.onload = init;
 
 
 
+var context;
+var synthNote;
+
+var wavetable;
+var frequencyData;
 var analyser;
 var analyserView1;
-
-var buffer;
-var audioBuffer;
-
-
-var context;
-var wavetable;
-
-var osc1;
-var osc2;
-var osc3;
-
-var gainNode;
-var resonanceGainNode;
-var filter;
-var filter2;
 var views;
-var frequencyData;
-var detune = 0;
 
-function loadWaveTable(url) {
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
+var FREQ1 = 40;
+var FREQ2 = 40;
+var FREQ3 = 80;
+var FILTERCUTOFF = 24000;
+var RESONANCE = 3;
+
+//----------------------------------------------------------------------------------------------------
+
+function SynthNote() {
+    this.detune = 0;
+    this.snapToDetune = 0;
+    this.resonance = RESONANCE;
+
+    var osc1 = context.createOscillator();
+    var osc2 = context.createOscillator();
+    var osc3 = context.createOscillator();
+    osc1.frequency.value = FREQ1;
+    osc2.frequency.value = FREQ2;
+    osc3.frequency.value = FREQ3;
+
+    osc1.noteOn(0);
+    osc2.noteOn(0);
+    osc3.noteOn(0);
+
+    var noiseSource1 = createRandomPitchSource();
+    var noiseSource2 = createRandomPitchSource();
+    var noiseSource3 = createRandomPitchSource();
+    noiseSource1.connect(osc1.frequency);
+    noiseSource2.connect(osc2.frequency);
+    noiseSource3.connect(osc3.frequency);
     
-    request.onload = function() {
-        // Get the frequency-domain waveform data.
-        var f = eval('(' + request.responseText + ')');
+    
+    var gainNode = context.createGainNode();
+    gainNode.gain.value = 0.25;
 
-        // Copy into more efficient Float32Arrays.
-        var n = f.real.length;
-        frequencyData = { "real": new Float32Array(n), "imag": new Float32Array(n) };
+    var resonanceGainNode = context.createGainNode();
+    
+    
+    var filter = context.createBiquadFilter();
+    filter.Q.value = this.resonance ;
+    filter.frequency.value = FILTERCUTOFF;
 
-        for (var i = 0; i < n; ++i) {
-            frequencyData.real[i] = f.real[i];
-            frequencyData.imag[i] = f.imag[i];
-        }
-        
-        wavetable = context.createWaveTable(frequencyData.real, frequencyData.imag);
-        osc1.setWaveTable(wavetable);
-        osc2.setWaveTable(wavetable);
-        osc3.setWaveTable(wavetable);
-        console.log("loaded wavetable");   
-    };
+    var filter2 = context.createBiquadFilter();
+    filter2.Q.value = this.resonance;
+    filter2.frequency.value = FILTERCUTOFF;
 
-    request.onerror = function() {
-        alert("error loading: " + url);
-    };
+    filter.connect(filter2);
+    filter2.connect(gainNode);
 
-    request.send();
+    gainNode.connect(resonanceGainNode);
+    resonanceGainNode.connect(analyser);
+
+    
+    
+    var dest = filter;
+
+    osc1.connect(dest);
+    osc2.connect(dest);
+    osc3.connect(dest);
+    
+    //
+    this.osc1 = osc1;
+    this.osc2 = osc2;
+    this.osc3 = osc3;
+    this.noiseSource1 = noiseSource1;
+    this.noiseSource2 = noiseSource2;
+    this.noiseSource3 = noiseSource3;
+    this.gainNode = gainNode;
+    this.resonanceGainNode = resonanceGainNode;
+    this.filter = filter;
+    this.filter2 = filter2;
 }
 
-if ( !window.requestAnimationFrame ) {
-
-        window.requestAnimationFrame = ( function() {
-
-                return window.webkitRequestAnimationFrame ||
-                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
-                window.oRequestAnimationFrame ||
-                window.msRequestAnimationFrame ||
-                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
-
-                        window.setTimeout( callback, 1000 / 60 );
-
-                };
-
-        } )();
-
+SynthNote.prototype.setFrequency1 = function(value) {
+    this.osc1.frequency.value = value;
 }
 
-var snapToDetune = 0;
+SynthNote.prototype.setFrequency2 = function(value) {
+    this.osc2.frequency.value = value;
+}
 
-function draw() {
-    analyserView1.doFrequencyAnalysis();
-    
+SynthNote.prototype.setFrequency3 = function(value) {
+    this.osc3.frequency.value = value;
+}
+
+SynthNote.prototype.setDetune = function(value) {
+    this.detune = value;
+    this.snapToDetune = 20
+}
+
+SynthNote.prototype.setFilterFrequency = function(value) {
+    this.filter.frequency.value = value;
+    this.filter2.frequency.value = value
+}
+
+SynthNote.prototype.setFilterResonance = function(value) {
+    this.filter.Q.value = value;
+    this.filter2.Q.value = value - 6;
+
+    // Resonance gain compensation.
+    var gain = Math.pow(10, -value * 0.05);
+    this.resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
+}
+
+SynthNote.prototype.setRandomization = function(value) {
+    this.noiseSource1.gain.value = 0.01*value * this.osc1.frequency.value;
+    this.noiseSource2.gain.value = 0.01*value * this.osc2.frequency.value;
+    this.noiseSource3.gain.value = 0.01*value * this.osc3.frequency.value;
+}
+
+SynthNote.prototype.setGain = function(value) {
+    this.gainNode.gain.value = value
+}
+
+SynthNote.prototype.handleDetune = function() {
     var t = 0; //context.currentTime;
     var maxDetune = 50; //1200;
     // var d1 = (2*Math.random() - 1) * 0.5*maxDetune;
@@ -155,29 +203,18 @@ function draw() {
     var d3 = 0;
     var k = 1;
     
-    if (snapToDetune > 0) {
+    if (this.snapToDetune > 0) {
         k = 0.010;
         d1 = 0;
         d2 = 0;
         d3 = 0;
-        --snapToDetune;
+        --this.snapToDetune;
     }
-    osc1.detune.setTargetValueAtTime(detune + d1, t, k);
-    osc2.detune.setTargetValueAtTime(detune + d2, t, k);
-    osc3.detune.setTargetValueAtTime(detune + d3, t, k);
-    
-    window.requestAnimationFrame(draw);
+    this.osc1.detune.setTargetValueAtTime(this.detune + d1, t, k);
+    this.osc2.detune.setTargetValueAtTime(this.detune + d2, t, k);
+    this.osc3.detune.setTargetValueAtTime(this.detune + d3, t, k);
 }
 
-var FREQ1 = 40;
-var FREQ2 = 40;
-var FREQ3 = 80;
-var FILTERCUTOFF = 24000;
-var resonance = 3;
-
-var noiseSource1;
-var noiseSource2;
-var noiseSource3;
 
 function createNoiseBuffer() {
     var n =  5 * context.sampleRate;
@@ -214,87 +251,32 @@ function createRandomPitchSource() {
 }
 
 
+
 function initAudio() {
     context = new webkitAudioContext();
-            
-    osc1 = context.createOscillator();
-    osc1.type = osc1.SINE;
-    
-    osc2 = context.createOscillator();
-    osc3 = context.createOscillator();
-    osc1.frequency.value = FREQ1;
-    osc2.frequency.value = FREQ2;
-    osc3.frequency.value = FREQ3;
-
-    osc1.noteOn(0);
-    osc2.noteOn(0);
-    osc3.noteOn(0);
-
-    noiseSource1 = createRandomPitchSource();
-    noiseSource2 = createRandomPitchSource();
-    noiseSource3 = createRandomPitchSource();
-    noiseSource1.connect(osc1.frequency);
-    noiseSource2.connect(osc2.frequency);
-    noiseSource3.connect(osc3.frequency);
     
     // 
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;
     analyser.connect(context.destination);
-    
-    gainNode = context.createGainNode();
-    gainNode.gain.value = 0.25;
 
-    resonanceGainNode = context.createGainNode();
-    
-    
-    filter = context.createBiquadFilter();
-    filter.Q.value = resonance ;
-    filter.frequency.value = FILTERCUTOFF;
+    synthNote = new SynthNote();
 
-    filter2 = context.createBiquadFilter();
-    filter2.Q.value = resonance;
-    filter2.frequency.value = FILTERCUTOFF;
-
-    filter.connect(filter2);
-    filter2.connect(gainNode);
-
-    gainNode.connect(resonanceGainNode);
-    resonanceGainNode.connect(analyser);
-
-    
-    
-    var dest = filter;
-
-    osc1.connect(dest);
-    osc2.connect(dest);
-    osc3.connect(dest);
 
     var controls = document.getElementById("controls");
     views = new Array();
     
     var j = 0;
-    views[j++] = new KnobView("pitch1", FREQ1, 10, 24000, UNITS.hertz, 0, true, function(value) { osc1.frequency.value = value; } );
-    views[j++] = new KnobView("pitch2", FREQ2, 10, 24000, UNITS.hertz, 0, true, function(value) { osc2.frequency.value = value; } );
-    views[j++] = new KnobView("pitch3", FREQ3, 10, 24000, UNITS.hertz, 0, true, function(value) { osc3.frequency.value = value; } );
-    views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { detune = value; snapToDetune = 20; } );
-    views[j++] = new KnobView("filter", FILTERCUTOFF, 30, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
-    views[j++] = new KnobView("resonance", resonance, 0, 40, UNITS.decibels, 0, false, function(value) {
-        filter.Q.value = value;
-        filter2.Q.value = value - 6;
-        
-        // Resonance gain compensation.
-        var gain = Math.pow(10, -value * 0.05);
-        resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
-    } );
+    views[j++] = new KnobView("pitch1", FREQ1, 10, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFrequency1(value); } );
+    views[j++] = new KnobView("pitch2", FREQ2, 10, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFrequency2(value); } );
+    views[j++] = new KnobView("pitch3", FREQ3, 10, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFrequency3(value); } );
+    views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { synthNote.setDetune(value); } );
+    views[j++] = new KnobView("filter", FILTERCUTOFF, 30, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFilterFrequency(value); } );
+    views[j++] = new KnobView("resonance", RESONANCE, 0, 40, UNITS.decibels, 0, false, function(value) { synthNote.setFilterResonance(value); } );
 
-    views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) {
-        noiseSource1.gain.value = 0.01*value * osc1.frequency.value;
-        noiseSource2.gain.value = 0.01*value * osc2.frequency.value;
-        noiseSource3.gain.value = 0.01*value * osc3.frequency.value;
-    } );
+    views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) { synthNote.setRandomization(value); } );
 
-    views[j++] = new KnobView("gain", 0.15, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
+    views[j++] = new KnobView("gain", 0.15, 0, 1, UNITS.generic, 0, false, function(value) { synthNote.setGain(value); } );
     
     installViews(views, controls);
 
@@ -352,8 +334,6 @@ function initAudio() {
     // Twelve_OpTines
     // Wurlitzer
     // Wurlitzer_2
-
-
 }
 
 function init() {
@@ -364,6 +344,69 @@ function init() {
     analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);
     draw();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+}
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    
+    synthNote.handleDetune();
+    
+    window.requestAnimationFrame(draw);
+}
+
+function loadWaveTable(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    
+    request.onload = function() {
+        // Get the frequency-domain waveform data.
+        var f = eval('(' + request.responseText + ')');
+
+        // Copy into more efficient Float32Arrays.
+        var n = f.real.length;
+        frequencyData = { "real": new Float32Array(n), "imag": new Float32Array(n) };
+
+        for (var i = 0; i < n; ++i) {
+            frequencyData.real[i] = f.real[i];
+            frequencyData.imag[i] = f.imag[i];
+        }
+        
+        wavetable = context.createWaveTable(frequencyData.real, frequencyData.imag);
+        synthNote.osc1.setWaveTable(wavetable);
+        synthNote.osc2.setWaveTable(wavetable);
+        synthNote.osc3.setWaveTable(wavetable);
+        console.log("loaded wavetable");   
+    };
+
+    request.onerror = function() {
+        alert("error loading: " + url);
+    };
+
+    request.send();
+}
+
+
 
 </script>
 </head>
@@ -391,35 +434,35 @@ Waveform
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.SINE;" />
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'sine';" />
 SINE
-<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.SQUARE;" />
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="osc1.type = osc1.SAWTOOTH;" />
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="synthNote.osc1.type = 'sawtooth';" />
 SAWTOOTH
-<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = osc1.TRIANGLE;"/>
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'triangle';"/>
 TRIANGLE
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.SINE;" />
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'sine';" />
 SINE
-<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.SQUARE;" />
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="osc2.type = osc2.SAWTOOTH;" />
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="synthNote.osc2.type = 'sawtooth';" />
 SAWTOOTH
-<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = osc2.TRIANGLE;"/>
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'triangle';"/>
 TRIANGLE
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.SINE;" />
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'sine';" />
 SINE
-<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.SQUARE;" />
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="osc3.type = osc3.SAWTOOTH;" />
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="synthNote.osc3.type = 'sawtooth';" />
 SAWTOOTH
-<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = osc3.TRIANGLE;"/>
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'triangle';"/>
 TRIANGLE
 
 <!-- 
