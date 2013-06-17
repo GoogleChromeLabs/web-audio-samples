@@ -411,29 +411,21 @@ function initAudio() {
     context = new webkitAudioContext();
     
     noiseBuffer = createNoiseBuffer();
-    
-    waveshaper = new WaveShaper(context);
+
     lfo = context.createOscillator();
     lfo.frequency.value = LFOSPEED;
-    // lfo.type = "triangle";
+    lfo.type = "triangle";
     
     lfoDepth = context.createGain();
     lfoDepth.gain.value = LFODEPTH;
     
     lfo.connect(lfoDepth);
     lfo.start(0);
-
-    // Subsonic rumble filter.
-    subsonicFilter = context.createBiquadFilter();
-    subsonicFilter.type = "highpass";
-    subsonicFilter.frequency.value = 15;
     
     masterGain = context.createGain();
     masterGain.gain.value = 1;
     
     resonanceGainNode = context.createGainNode();
-    
-    unitySource = createUnitySource(context);
     
     // Handle MIDI -- for now this is a total hack while the real Web MIDI API is landed.
     inputs = context.midiAccess.inputs();
@@ -442,6 +434,7 @@ function initAudio() {
 
     // Let's create some master control signals which can be changed via the UI
     // and connected to all active voices.
+    unitySource = createUnitySource(context);
     tune = new ControlSignal(context, unitySource, 0);
     pitch1 = new ControlSignal(context, unitySource, PITCH1);
     pitch2 = new ControlSignal(context, unitySource, PITCH2);
@@ -452,17 +445,27 @@ function initAudio() {
     
     masterGain.connect(resonanceGainNode);
 
+    // Subsonic rumble filter.
+    subsonicFilter = context.createBiquadFilter();
+    subsonicFilter.type = "highpass";
+    subsonicFilter.frequency.value = 15;
+
     resonanceGainNode.connect(subsonicFilter);
+
+    // Warming oversampled saturation.
+    waveshaper = new WaveShaper(context);
 
     subsonicFilter.connect(waveshaper.input);
     
+    // Visualize the whole mix.
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;
-    
+
     waveshaper.output.connect(analyser);
 
     analyser.connect(context.destination);
-    
+
+    // As one of our waveform types, use a nice organ.
     loadWaveTable("wave-tables/Twelve_OpTines");    
 }
 
@@ -635,6 +638,7 @@ Waveform
 
 
 <br>
+Filter:
 <!-- Filter type -->
 <input type="radio" name="FilterType" value="data" checked="checked" onMouseDown="setFilterType('2pole');" />
 2pole
@@ -642,6 +646,17 @@ Waveform
 4pole
 
 <br>
+<!-- LFO type -->
+LFO:
+<input type="radio" name="LFOType" value="data" onMouseDown="lfo.type = 'sine';" />
+SINE
+<input type="radio" name="LFOType" value="data" onMouseDown="lfo.type = 'square';" />
+SQUARE
+<input type="radio" name="LFOType" value="data" checked="checked" onMouseDown="lfo.type = 'triangle';"/>
+TRIANGLE
+
+<br>
+OSC1:
 <!-- Waveform type -->
 <input type="radio" name="Waveform1" value="data" onMouseDown="setOsc1Type('sine');" />
 SINE
@@ -655,6 +670,7 @@ TRIANGLE
 CUSTOM1
 
 <br>
+OSC4:
 <!-- Waveform type -->
 <input type="radio" name="Waveform2" value="data" onMouseDown="setOsc2Type('sine');" />
 SINE
@@ -668,6 +684,7 @@ TRIANGLE
 CUSTOM1
 
 <br>
+OSC3:
 <!-- Waveform type -->
 <input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('sine');" />
 SINE
