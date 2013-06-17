@@ -85,6 +85,8 @@ KnobView.prototype.attach = function() {
             view.startPreValue = view.valueToPre(view.value);
             
             view.mouseDown(position);
+            
+            event.stopPropagation();
         },
         true
     );
@@ -109,6 +111,8 @@ KnobView.prototype.attach = function() {
 
                 currentView.mouseMove(position);
             }
+            
+            event.stopPropagation();
         },
         true
     );
@@ -125,6 +129,8 @@ KnobView.prototype.attach = function() {
                 currentView.mouseUp(position);
                 currentView = 0;
             }
+            
+            event.stopPropagation();
         },
         true
     );
