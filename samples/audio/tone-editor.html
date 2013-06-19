@@ -112,7 +112,7 @@ function Source() {
     this.activeOsc = 0; // osc1
 }
 
-Source.prototype.setWaveTable = function(wavetable) {
+Source.prototype.setPeriodicWave = function(wave) {
     var currentTime = context.currentTime;
     
     if (this.lastCrossfadeTime + this.crossFadeDuration <= currentTime) {
@@ -122,13 +122,13 @@ Source.prototype.setWaveTable = function(wavetable) {
             // Cross-fade osc1 -> osc2.
             startGainNode = this.gainNode1;
             endGainNode = this.gainNode2;
-            this.osc2.setWaveTable(wavetable);
+            this.osc2.setPeriodicWave(wave);
             // console.log("osc1 -> osc2");
         } else {
             // Cross-fade osc2 -> osc1.
             startGainNode = this.gainNode2;
             endGainNode = this.gainNode1;
-            this.osc1.setWaveTable(wavetable);
+            this.osc1.setPeriodicWave(wave);
             // console.log("osc2 -> osc1");
         }
         
@@ -170,8 +170,8 @@ function ToneEditorView(context, name) {
     p[2] = 0.5;
     p[3] = 0.1;
 
-    var wavetable = context.createWaveTable(this.partials, this.partials);
-    source.setWaveTable(wavetable);
+    var wave = context.createPeriodicWave(this.partials, this.partials);
+    source.setPeriodicWave(wave);
 
     this.backgroundColor = "rgb(60,40,40)";
     this.curveColor = "rgb(255,0,0)";
@@ -311,8 +311,8 @@ ToneEditorView.prototype.mouseDrag = function(position) {
     this.mLastMouseX = hitPt.x;
 
     this.partials[0] = 0;
-    var wavetable = context.createWaveTable(this.partials, this.partials);
-    source.setWaveTable(wavetable);
+    var wave = context.createPeriodicWave(this.partials, this.partials);
+    source.setPeriodicWave(wave);
     
     this.draw();
 }
@@ -325,7 +325,7 @@ ToneEditorView.prototype.mouseUp = function(position) {
 
 <body>
 
-<canvas id="tone-editor" width="1280px" height="800px"></canvas>
+<canvas id="tone-editor" width="1280px" height="800px" style="-webkit-user-select: none;"></canvas>
 
 <!-- Sliders and other controls will be added here -->
 <div id="controls"> </div>
