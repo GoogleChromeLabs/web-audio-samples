@@ -125,7 +125,7 @@ var FILTERCUTOFF = 2400; // cents
 var RESONANCE = 3;
 var RANDOMIZATION = 10;
 var LFODEPTH = 0;
-var LFOSPEED = 0.5;
+var LFOSPEED = 6;
 
 // We keep track of actively playing SynthNotes here.
 // When a key is released (note-off), then we need to find the correct voice and release it.
@@ -356,7 +356,7 @@ function createRandomPitchSource() {
     return noiseGain;
 }
 
-function handleMIDIMessage(event) {
+function handleMIDIData(event) {
     var data = event.data;
     var length = event.data.length;
     // console.log("event " + length);
@@ -376,10 +376,12 @@ function handleMIDIMessage(event) {
     while (index < length) {
         var message = data[index] & 0xf0;
     
-        var noteNumber = data[index + 1];
+        var data1 = data[index + 1];
+        var data2 = data[index + 2];
+        var noteNumber = data1;
         if (noteNumber < 0) noteNumber = 0;
     
-        var velocity = data[index + 2];
+        var velocity = data2;
         var v = velocity / 128;
         var gain = Math.pow(v, 1.3); // empirical velocity response curve
         gain = 0.25 + 0.75*gain;
@@ -399,13 +401,64 @@ function handleMIDIMessage(event) {
             if (notes[noteNumber] != 0)
                 notes[noteNumber].noteOff();
             notes[noteNumber] = 0;
+        } else if (message == 0xe0) {
+            // Pitch wheel
+            var value = (data1 + 128 * data2) - 8192;
+            value /= 8192;
+            
+            tune.setValue(2400 * value);
+        } else if (message == 0xb0) {
+            var value = data2 / 128;
+            if (data1 == 28) { // filter cutoff
+                views[4].setNormalizedValue(value); // Ugly!
+            } else if (data1 == 1) {
+                // modulation - control lfo depth
+                views[17].setNormalizedValue(value); // Ugly!
+            }
         }
+        //  else if (message == 0xd0) {
+        //     // Channel Pressure
+        //     var value = data1 / 128;
+        //     views[4].setNormalizedValue(value); // Ugly!
+        // }
 
         index += 3;
     }
 }
 
 var input;
+
+var midiAccess = 0;
+
+function onMIDISuccess(access) {
+    midiAccess = access;
+
+    var inputs = midiAccess.inputs();
+    console.log("Number of inputs: " + inputs.length);
+    for (var i = 0; i < inputs.length; ++i) {
+        var input = inputs[i];
+        console.log(input.id);
+        console.log(input.manufacturer);
+        console.log(input.name);
+        console.log(input.version);
+
+        input.onmidimessage = handleMIDIData;
+    }
+    
+    var outputs = midiAccess.outputs();
+    console.log("Number of outputs: " + outputs.length);
+    for (var i = 0; i < outputs.length; ++i) {
+        var output = outputs[i];
+        console.log(output.id);
+        console.log(output.manufacturer);
+        console.log(output.name);
+        console.log(output.version);
+    }
+}
+
+function onMIDIFailure(error) {
+    console.log("MIDI Access failed: " + error);
+}
 
 function initAudio() {
     context = new webkitAudioContext();
@@ -427,10 +480,15 @@ function initAudio() {
     
     resonanceGainNode = context.createGainNode();
     
-    // Handle MIDI -- for now this is a total hack while the real Web MIDI API is landed.
-    inputs = context.midiAccess.inputs();
-    input = inputs[0];
-    input.onmidimessage = handleMIDIMessage;
+    // // Handle MIDI -- for now this is a total hack while the real Web MIDI API is landed.
+    // inputs = context.midiAccess.inputs();
+    // input = inputs[0];
+    // input.onmidimessage = handleMIDIData;
+
+    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+
+
+
 
     // Let's create some master control signals which can be changed via the UI
     // and connected to all active voices.
@@ -495,8 +553,8 @@ function initUI() {
 
     views[j++] = new KnobView("randomization", RANDOMIZATION, 0, 100, UNITS.percent, 0, false, function(value) { setRandomization(value); } );
 
-    views[j++] = new KnobView("lfo speed", LFOSPEED, .5, 30, UNITS.hertz, 0, true, function(value) { lfo.frequency.value = value; } );
-    views[j++] = new KnobView("lfo depth", LFODEPTH, 0, 2400, UNITS.cents, 0, false, function(value) { lfoDepth.gain.value = value; } );
+    views[j++] = new KnobView("lfo speed", LFOSPEED, 0.5, 30, UNITS.hertz, 0, true, function(value) { lfo.frequency.value = value; } );
+    views[j++] = new KnobView("lfo depth", LFODEPTH, 0, 4800, UNITS.cents, 0, false, function(value) { lfoDepth.gain.value = value; } );
 
     views[j++] = new KnobView("osc1 mix", osc1Mix, 0, 1, UNITS.generic, 0, false, function(value) { osc1Mix = value*value; } );
     views[j++] = new KnobView("osc2 mix", osc2Mix, 0, 1, UNITS.generic, 0, false, function(value) { osc2Mix = value*value; } );
