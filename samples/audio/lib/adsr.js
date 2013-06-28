@@ -91,6 +91,10 @@ function ControlSignal(context, unitySource, initialValue) {
     unitySource.connect(this.output);
 }
 
-ControlSignal.prototype.setValue = function(value) {
-    this.output.gain.value = value;
+ControlSignal.prototype.setValue = function(value, timeConstant) {
+    if (timeConstant === undefined)
+        timeConstant = 0.010;
+        
+    // this.output.gain.value = value;
+    this.output.gain.setTargetAtTime(value, 0, timeConstant);
 }
