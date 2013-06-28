@@ -265,6 +265,12 @@ KnobView.prototype.mouseDrag = function(position) {
     this.draw();
 }
 
+KnobView.prototype.setNormalizedValue = function(k) {
+    this.preValue = k;
+    this.value = this.preToValue(k);
+    this.onchange(this.value);
+}
+
 KnobView.prototype.mouseUp = function(position) {
 }
 
