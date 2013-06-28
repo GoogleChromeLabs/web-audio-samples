@@ -371,59 +371,55 @@ function handleMIDIData(event) {
     // 
     // console.log(str);
 
-    // Process all MIDI messages in the MIDI data.
-    var index = 0
-    while (index < length) {
-        var message = data[index] & 0xf0;
-    
-        var data1 = data[index + 1];
-        var data2 = data[index + 2];
-        var noteNumber = data1;
-        if (noteNumber < 0) noteNumber = 0;
-    
-        var velocity = data2;
-        var v = velocity / 128;
-        var gain = Math.pow(v, 1.3); // empirical velocity response curve
-        gain = 0.25 + 0.75*gain;
-    
-        var detune = noteNumber * 100 - 3600;
+    var message = data[0] & 0xf0;
 
-        if (message == 0x90 && velocity != 0) {
-            var note = new SynthNote();
-            note.noteOn(detune, gain);
+    var data1 = data[1];
+    var data2 = data[2];
+    var noteNumber = data1;
+    if (noteNumber < 0) noteNumber = 0;
 
-            // stop any old note
-            if (notes[noteNumber] != 0)
-                notes[noteNumber].noteOff();
+    var velocity = data2;
+    var v = velocity / 128;
+    var gain = Math.pow(v, 1.3); // empirical velocity response curve
+    gain = 0.25 + 0.75*gain;
 
-            notes[noteNumber] = note;
-        } else if (message == 0x80 || message == 0x90 && velocity == 0) {
-            if (notes[noteNumber] != 0)
-                notes[noteNumber].noteOff();
-            notes[noteNumber] = 0;
-        } else if (message == 0xe0) {
-            // Pitch wheel
-            var value = (data1 + 128 * data2) - 8192;
-            value /= 8192;
-            
-            tune.setValue(2400 * value);
-        } else if (message == 0xb0) {
-            var value = data2 / 128;
-            if (data1 == 28) { // filter cutoff
-                views[4].setNormalizedValue(value); // Ugly!
-            } else if (data1 == 1) {
-                // modulation - control lfo depth
-                views[17].setNormalizedValue(value); // Ugly!
-            }
+    var detune = noteNumber * 100 - 3600;
+
+    if (message == 0x90 && velocity != 0) {
+        var note = new SynthNote();
+        note.noteOn(detune, gain);
+
+        // stop any old note
+        if (notes[noteNumber] != 0)
+            notes[noteNumber].noteOff();
+
+        notes[noteNumber] = note;
+    } else if (message == 0x80 || message == 0x90 && velocity == 0) {
+        if (notes[noteNumber] != 0)
+            notes[noteNumber].noteOff();
+        notes[noteNumber] = 0;
+    } else if (message == 0xe0) {
+        // Pitch wheel
+        var value = (data1 + 128 * data2) - 8192;
+        value /= 8192;
+        
+        tune.setValue(2400 * value, 0.030);
+    } else if (message == 0xb0) {
+        var value = data2 / 128;
+        if (data1 == 28) { // filter cutoff
+            views[4].setNormalizedValue(value); // Ugly!
+        } else if (data1 == 1) {
+            // modulation - control lfo depth
+            views[17].setNormalizedValue(value); // Ugly!
         }
-        //  else if (message == 0xd0) {
-        //     // Channel Pressure
-        //     var value = data1 / 128;
-        //     views[4].setNormalizedValue(value); // Ugly!
-        // }
-
-        index += 3;
     }
+    //  else if (message == 0xd0) {
+    //     // Channel Pressure
+    //     var value = data1 / 128;
+    //     views[4].setNormalizedValue(value); // Ugly!
+    // }
+
+    index += 3;
 }
 
 var input;
