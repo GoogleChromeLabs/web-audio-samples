@@ -67,6 +67,9 @@ o3djs.require('o3djs.shader');
 
 window.onload = init;
 
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 var context;
 var waveshaper;
 var subsonicFilter;
@@ -476,15 +479,7 @@ function initAudio() {
     
     resonanceGainNode = context.createGainNode();
     
-    // // Handle MIDI -- for now this is a total hack while the real Web MIDI API is landed.
-    // inputs = context.midiAccess.inputs();
-    // input = inputs[0];
-    // input.onmidimessage = handleMIDIData;
-
     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-
-
-
 
     // Let's create some master control signals which can be changed via the UI
     // and connected to all active voices.
