@@ -110,8 +110,8 @@ var osc1Type = "square";
 var osc2Type = "square";
 var osc3Type = "square";
 
-var wavetable;
-var custom1WaveTable;
+var periodicWave;
+var custom1PeriodicWave;
 
 var filterType = "2pole";
 
@@ -149,7 +149,7 @@ SynthNote.prototype.noteOn = function(detune, gain) {
     var osc2 = context.createOscillator();
     var osc3 = context.createOscillator();
     
-    // More complicated than just setting osc.type, since we handle wavetables too.
+    // More complicated than just setting osc.type, since we handle periodicWaves too.
     setOscType(osc1, osc1Type);
     setOscType(osc2, osc2Type);
     setOscType(osc3, osc3Type);
@@ -374,6 +374,10 @@ function handleMIDIData(event) {
     // 
     // console.log(str);
 
+    // var now = performance.now();
+    // var delta = now - event.receivedTime;
+    // console.log("timestamp: " + event.receivedTime + " : " + now + " delta: " + delta);
+
     var message = data[0] & 0xf0;
 
     var data1 = data[1];
@@ -421,8 +425,6 @@ function handleMIDIData(event) {
     //     var value = data1 / 128;
     //     views[4].setNormalizedValue(value); // Ugly!
     // }
-
-    index += 3;
 }
 
 var input;
@@ -599,11 +601,11 @@ function loadWaveTable(url) {
             frequencyData.imag[i] = f.imag[i];
         }
         
-        wavetable = context.createWaveTable(frequencyData.real, frequencyData.imag);
+        periodicWave = context.createPeriodicWave(frequencyData.real, frequencyData.imag);
         
-        custom1WaveTable = wavetable;
+        custom1PeriodicWave = periodicWave;
         
-        console.log("loaded wavetable");   
+        console.log("loaded periodicWave");   
     };
 
     request.onerror = function() {
@@ -613,10 +615,10 @@ function loadWaveTable(url) {
     request.send();
 }
 
-// This is allows us to set one of the standard shapes, or a custom wavetable.
+// This is allows us to set one of the standard shapes, or a custom periodicWave.
 function setOscType(osc, type) {
     if (type == "custom1")
-        osc.setWaveTable(custom1WaveTable);
+        osc.setPeriodicWave(custom1PeriodicWave);
     else
         osc.type = type;
 }
