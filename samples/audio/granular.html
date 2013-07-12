@@ -166,7 +166,7 @@ function scheduleGrain() {
     var grainWindowNode;
     if (applyGrainWindow) {
         // Create a gain node with a special "grain window" shaping curve.
-        grainWindowNode = context.createGainNode();
+        grainWindowNode = context.createGain();
         source.connect(grainWindowNode);
         grainWindowNode.connect(panner);
     } else {
@@ -189,8 +189,8 @@ function scheduleGrain() {
     panner.panningModel = webkitAudioPannerNode.HRTF;
     panner.setPosition(x, y, z);
 
-    var dryGainNode = context.createGainNode();
-    var wetGainNode = context.createGainNode();
+    var dryGainNode = context.createGain();
+    var wetGainNode = context.createGain();
     wetGainNode.gain.value = 0.5 * diffusionRandomization * r5;
     dryGainNode.gain.value = 1.0 - wetGainNode.gain.value;
 
