@@ -358,12 +358,11 @@ function playSound(impactType, velocity, x, y) {
     var isQuiet = (gain < 0.5);
     
     // Setup send and main gains
-    var sendGain = context.createGainNode();
-    var mainGain = context.createGainNode();
+    var sendGain = context.createGain();
+    var mainGain = context.createGain();
 
     // Use biquad filter API if available.
-    var hasBiquadFilter = context.createBiquadFilter;    
-    var filter = hasBiquadFilter ? context.createBiquadFilter() : context.createLowPass2Filter();
+    var filter = context.createBiquadFilter();
 
     sendGain.gain.value = sendScale;
     mainGain.gain.value = gain;
@@ -387,15 +386,10 @@ function playSound(impactType, velocity, x, y) {
     var sampleRate = 44100.0;
     var nyquist = sampleRate * 0.5;
 
-    if (hasBiquadFilter) {
-        filter.type = 0; // lowpass
-        filter.frequency.value = v2 * nyquist;
-        filter.Q.value = 0.0; // this is actually resonance in dB
-    } else {
-        filter.cutoff.value = v2 * nyquist;
-        filter.resonance.value = 0.0;
-    }
-    
+    filter.type = "lowpass";
+    filter.frequency.value = v2 * nyquist;
+    filter.Q.value = 0.0; // this is actually resonance in dB
+
     var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
     if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
     if (azimuth > 0.5*Math.PI) azimuth = 0.5*Math.PI;
@@ -418,9 +412,9 @@ function playSound(impactType, velocity, x, y) {
     // voice.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
 
     if (impactType == 3) {
-      voice.noteOn(context.currentTime + 0.125);
+      voice.start(context.currentTime + 0.125);
     } else {
-      voice.noteOn(0);
+      voice.start(0);
     }
   }  
 }
