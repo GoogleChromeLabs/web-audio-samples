@@ -85,6 +85,9 @@ var kitCount = 0;
 
 var kitElement = 0;  // for list hilighting
 
+var errorCount = 0;
+var successCount = 0;
+
 var kitNames = [
   "R8",
   "CR78",
@@ -147,18 +150,35 @@ Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
     var kit = this;
 
     request.onload = function() {
-        var buffer = context.createBuffer(request.response, mixToMono);
-        switch (sampleID) {
-            case 0: kit.kickBuffer = buffer; break;
-            case 1: kit.snareBuffer = buffer; break;
-            case 2: kit.hihatBuffer = buffer; break;
-            case 3: kit.tom1 = buffer; break;
-            case 4: kit.tom2 = buffer; break;
-            case 5: kit.tom3 = buffer; break;
-        }
+        context.decodeAudioData(
+            request.response, function(buffer) {
+                // var buffer = context.createBuffer(request.response, mixToMono);
+                switch (sampleID) {
+                    case 0: kit.kickBuffer = buffer; break;
+                    case 1: kit.snareBuffer = buffer; break;
+                    case 2: kit.hihatBuffer = buffer; break;
+                    case 3: kit.tom1 = buffer; break;
+                    case 4: kit.tom2 = buffer; break;
+                    case 5: kit.tom3 = buffer; break;
+                }
+                
+                successCount++;
+                var info = document.getElementById("info");
+                info.innerHTML = errorCount + " " + successCount;
 
-        kit.instrumentLoadCount++;
-        if (kit.instrumentLoadCount == kit.instrumentCount) finishLoading();
+                kit.instrumentLoadCount++;
+                if (kit.instrumentLoadCount == kit.instrumentCount) finishLoading();
+
+            },
+            
+            function() {
+                errorCount++;
+                var info = document.getElementById("info");
+                info.innerHTML = errorCount + " " + successCount;
+            }
+        );
+        
+        
     }
 
     request.send();
@@ -420,18 +440,18 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
     }
 
     // Connect to dry mix
-    var dryGainNode = context.createGainNode();
+    var dryGainNode = context.createGain();
     dryGainNode.gain.value = mainGain;
     finalNode.connect(dryGainNode);
     dryGainNode.connect(compressor);
 
     // Connect to wet mix
-    var wetGainNode = context.createGainNode();
+    var wetGainNode = context.createGain();
     wetGainNode.gain.value = sendGain;
     finalNode.connect(wetGainNode);
     wetGainNode.connect(convolver);
 
-    voice.noteOn(noteTime);
+    voice.start(noteTime);
 
 }
 
@@ -566,7 +586,7 @@ function init() {
     var audioBuffer = context.createBuffer(1, 1024, 44100.0);
 
     // Create master gain control.
-    masterGainNode = context.createGainNode();
+    masterGainNode = context.createGain();
     masterGainNode.gain.value = 0.7;
     masterGainNode.connect(context.destination);
     
