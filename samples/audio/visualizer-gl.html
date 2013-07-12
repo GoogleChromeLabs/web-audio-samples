@@ -151,7 +151,7 @@ function finishLoad() {
     source.buffer = audioBuffer;
     source.loop = true;
 
-    source.noteOn(0.0);
+    source.start(0.0);
     
     window.requestAnimationFrame(draw);
 }
