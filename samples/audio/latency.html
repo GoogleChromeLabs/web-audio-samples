@@ -73,7 +73,7 @@ function handleKeyDown(event) {
     
     var currentTime = context.currentTime;
     var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
-    source.noteOn(playTime);
+    source.start(playTime);
 }
 
 function finishLoad() {
