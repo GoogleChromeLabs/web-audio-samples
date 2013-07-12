@@ -30,25 +30,25 @@
 function Chorus(context) {
     this.context = context;
     // Create nodes for the input and output of this "module".
-    var input = context.createGainNode();
-    var output = context.createGainNode();
-    var feedbackInput = context.createGainNode();
+    var input = context.createGain();
+    var output = context.createGain();
+    var feedbackInput = context.createGain();
 
     // Feedback
-    var feedback = context.createGainNode();
+    var feedback = context.createGain();
     this.feedback = feedback;
     feedback.gain.value = 0.9999;
     
     output.connect(feedback);
     feedback.connect(feedbackInput);
     
-    var dryMix = context.createGainNode();
-    var wetMix = context.createGainNode();
+    var dryMix = context.createGain();
+    var wetMix = context.createGain();
     var splitter = context.createChannelSplitter();
     var merger = context.createChannelMerger();
-    var delayL = context.createDelayNode();
-    var delayR = context.createDelayNode();
-    var mix = context.createGainNode();
+    var delayL = context.createDelay();
+    var delayR = context.createDelay();
+    var mix = context.createGain();
         
     // Connect input.
     input.connect(feedbackInput);
@@ -63,17 +63,17 @@ function Chorus(context) {
     var rate = .1;
     var osc1 = context.createOscillator();
     var osc2 = context.createOscillator();
-    osc1.type = osc1.TRIANGLE;
-    osc2.type = osc1.TRIANGLE;
+    osc1.type = "triangle";
+    osc2.type = "triangle";
     osc1.frequency.value = rate;
     osc2.frequency.value = rate;
-    osc1.noteOn(0);
-    osc2.noteOn(0);
+    osc1.start(0);
+    osc2.start(0);
 
     var delay = 0.5;
     var depth = 0.4;
-    var oscGain1 = context.createGainNode();
-    var oscGain2 = context.createGainNode();
+    var oscGain1 = context.createGain();
+    var oscGain2 = context.createGain();
     oscGain1.gain.value = depth;
     oscGain2.gain.value = -depth;
     osc1.connect(oscGain1);
