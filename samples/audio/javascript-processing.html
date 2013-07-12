@@ -121,7 +121,7 @@ function loadSample(url) {
     request.onload = function() { 
         source.buffer = context.createBuffer(request.response, false);
         source.loop = true;
-        source.noteOn(0);
+        source.start(0);
         
         draw();
     }
