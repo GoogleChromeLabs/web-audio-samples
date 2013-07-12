@@ -168,7 +168,7 @@ function loadBufferAndPlay(url) {
 
   request.onload = function() { 
     source.buffer = context.createBuffer(request.response, true);
-    source.noteOn(0);
+    source.start(0);
 
     // get rid of loading animation
     var loading = document.getElementById("loading");
