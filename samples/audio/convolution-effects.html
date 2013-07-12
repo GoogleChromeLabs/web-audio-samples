@@ -155,15 +155,25 @@ Asset.prototype.load = function(preset) {
     var asset = this;
 
     request.onload = function() {
-        // asset.buffer = request.buffer;
-        asset.buffer = context.createBuffer(request.response, false);
-        asset.loaded = true;
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                asset.buffer = buffer;
+                asset.loaded = true;
+                
+                alert("loaded: " + asset.url);
 
-        // Tell all the presets that depend on us that we're ready
-        for (i = 0; i < asset.presetList.length; i++) {
-            var preset = asset.presetList[i];
-            preset.assetFinishedLoading(asset);
-        }
+                // Tell all the presets that depend on us that we're ready
+                for (i = 0; i < asset.presetList.length; i++) {
+                    var preset = asset.presetList[i];
+                    preset.assetFinishedLoading(asset);
+                }
+            },
+            
+            function(buffer) {
+                alert("ERROR!!!!! " + asset.url);
+            }
+        );
     }
 
     request.send();
@@ -231,11 +241,6 @@ Preset.prototype.assetFinishedLoading = function(asset) {
         var s = this.generateDivString(true);
         div.innerHTML = s;
         
-        var nextPreset = getPreset(this.presetIndex + 1);
-        if (nextPreset) {
-            nextPreset.load();
-        }
-        
         // Autoplay first preset
         if (this.presetIndex == 0) {
             this.play();
@@ -263,7 +268,7 @@ Preset.prototype.play = function() {
     gainNode1.gain.value = this.mainGain;
     gainNode2.gain.value = this.sendGain;
 
-    source.noteOn(0);
+    source.start(0);
 }
 
 function highlightElement(object) {
@@ -356,8 +361,8 @@ function init() {
     convolver = context.createConvolver();
     source = context.createBufferSource();
 
-    gainNode1 = context.createGainNode();
-    gainNode2 = context.createGainNode();
+    gainNode1 = context.createGain();
+    gainNode2 = context.createGain();
     gainNode1.gain.value = 1.0;
     gainNode2.gain.value = 2.0;
 
@@ -368,12 +373,15 @@ function init() {
     convolver.connect(gainNode2);
     gainNode2.connect(context.destination);
 
-    source.looping = true;
+    source.loop = true;
 
     // Start loading
     initAssets();
     initPresets();
-    presetList[0].load();
+    
+    for (var i = 0; i < presetList.length; ++i) {
+        presetList[i].load();
+    }
 }
 
 </script>
