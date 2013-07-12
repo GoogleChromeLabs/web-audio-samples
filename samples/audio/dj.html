@@ -322,7 +322,7 @@ function init() {
     
 
     // Create post-compressor gain node.
-    postCompressorGain = context.createGainNode();
+    postCompressorGain = context.createGain();
     postCompressorGain.gain.value = 1.4;
 
     postCompressorGain.connect(context.destination);
@@ -341,19 +341,19 @@ function init() {
     source2 = context.createBufferSource();
     
     // Create gain nodes to control the volume for the two sources.
-    source1Gain = context.createGainNode();
-    source2Gain = context.createGainNode();
+    source1Gain = context.createGain();
+    source2Gain = context.createGain();
     
     // Create pre-compressor gain node.
-    preCompressorGain = context.createGainNode();
+    preCompressorGain = context.createGain();
     preCompressorGain.gain.value = 0.4;
     
     
     preCompressorGain.connect(compressor);
 
     // Create gain nodes to control the wet (effect) mix levels for left/right
-    wetGainNode1 = context.createGainNode();
-    wetGainNode2 = context.createGainNode();
+    wetGainNode1 = context.createGain();
+    wetGainNode2 = context.createGain();
     wetGainNode1.gain.value = 0.0;
     wetGainNode2.gain.value = 0.0;
 
