@@ -55,18 +55,14 @@
         if (ping) {
           var isQuiet = (gain < 0.5);
           ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
-          
-          var hasBiquadFilter = context.createBiquadFilter;
-          
+
           // Use biquad filter API if available.
-          var filter = hasBiquadFilter ? context.createBiquadFilter() : context.createLowPass2Filter();
-          
+          var filter = context.createBiquadFilter();
           var panner = context.createPanner();
-          panner.panningModel = webkitAudioPannerNode.HRTF;
           
           // Create inputs to dry/wet mixers
-          var dryGainNode = context.createGainNode();
-          var wetGainNode = context.createGainNode();
+          var dryGainNode = context.createGain();
+          var wetGainNode = context.createGain();
           wetGainNode.gain.value = gain < 0.125 ? 0.15 : 0.1;
           dryGainNode.gain.value = gain;  //isQuiet ? 0.0 : gain;
           
@@ -119,7 +115,7 @@
 
           panner.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
 
-          ping.noteOn(0);
+          ping.start(0);
         }
       }
     }
