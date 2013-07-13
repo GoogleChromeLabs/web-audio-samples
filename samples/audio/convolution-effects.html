@@ -161,8 +161,6 @@ Asset.prototype.load = function(preset) {
                 asset.buffer = buffer;
                 asset.loaded = true;
                 
-                alert("loaded: " + asset.url);
-
                 // Tell all the presets that depend on us that we're ready
                 for (i = 0; i < asset.presetList.length; i++) {
                     var preset = asset.presetList[i];
@@ -171,7 +169,7 @@ Asset.prototype.load = function(preset) {
             },
             
             function(buffer) {
-                alert("ERROR!!!!! " + asset.url);
+                // alert("ERROR!!!!! " + asset.url);
             }
         );
     }
