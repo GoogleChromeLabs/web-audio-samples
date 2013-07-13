@@ -88,13 +88,8 @@
           var sampleRate = 44100.0;
           var nyquist = sampleRate * 0.5;
 
-          if (hasBiquadFilter) {
-              filter.frequency.value = v2 * nyquist;
-              filter.Q.value = 10.0; // this is actually resonance in dB
-          } else {
-              filter.cutoff.value = v2 * nyquist;
-              filter.resonance.value = 10.0 /*5.0*/;
-          }
+          filter.frequency.value = v2 * nyquist;
+          filter.Q.value = 10.0; // this is actually resonance in dB
 
           var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
           if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
