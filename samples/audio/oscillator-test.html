@@ -203,12 +203,12 @@ function createRandomPitchSource() {
     noiseLowpass.frequency.value = cutoff;
     noiseLowpass.frequency.Q = 0;
     
-    var noiseGain = context.createGainNode();
+    var noiseGain = context.createGain();
     noiseGain.gain.value = 1;
         
     noiseSource.connect(noiseLowpass);
     noiseLowpass.connect(noiseGain);
-    noiseSource.noteOn(0);
+    noiseSource.start(0);
     
     return noiseGain;
 }
@@ -226,9 +226,9 @@ function initAudio() {
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
 
-    osc1.noteOn(0);
-    osc2.noteOn(0);
-    osc3.noteOn(0);
+    osc1.start(0);
+    osc2.start(0);
+    osc3.start(0);
 
     noiseSource1 = createRandomPitchSource();
     noiseSource2 = createRandomPitchSource();
@@ -242,10 +242,10 @@ function initAudio() {
     analyser.fftSize = 2048;
     analyser.connect(context.destination);
     
-    gainNode = context.createGainNode();
+    gainNode = context.createGain();
     gainNode.gain.value = 0.25;
 
-    resonanceGainNode = context.createGainNode();
+    resonanceGainNode = context.createGain();
     
     
     filter = context.createBiquadFilter();
