@@ -110,9 +110,9 @@ function finishedLoading() {
 
     // Try to start sources at the same time
     var time = context.currentTime + 0.020;
-    source1.noteOn(time);
-    source2.noteOn(time);
-    source3.noteOn(time);
+    source1.start(time);
+    source2.start(time);
+    source3.start(time);
 }
 
 function gainHandler1(event, ui) {
@@ -155,9 +155,9 @@ function init() {
     source2.loop = true;
     source3.loop = true;
 
-    gain1 = context.createGainNode();
-    gain2 = context.createGainNode();
-    gain3 = context.createGainNode();
+    gain1 = context.createGain();
+    gain2 = context.createGain();
+    gain3 = context.createGain();
     source1.connect(gain1);
     source2.connect(gain2);
     source3.connect(gain3);
