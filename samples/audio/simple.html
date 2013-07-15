@@ -248,8 +248,8 @@ function setSourceBuffer(buffer) {
      context = new webkitAudioContext();
 
      source = context.createBufferSource();
-     dryGainNode = context.createGainNode();
-     wetGainNode = context.createGainNode();
+     dryGainNode = context.createGain();
+     wetGainNode = context.createGain();
      panner = context.createPanner();
 
      lowFilter = context.createBiquadFilter();
@@ -296,7 +296,7 @@ function setSourceBuffer(buffer) {
      gFrontProjection.drawDotNormalized(cn);
 
      var currentTime = context.currentTime;
-     source.noteOn(currentTime + 0.020);
+     source.start(currentTime + 0.020);
  }
 
 var gIsMouseDown = false;
