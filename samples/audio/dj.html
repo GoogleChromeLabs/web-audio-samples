@@ -235,7 +235,7 @@ function loadBufferForSource(source, url) {
     var time = anchorTime + roundedUpDeltaTime;
     
     // Stop the current loop (when it gets to the next 4-beat boundary).
-    source.noteOff(time);
+    source.stop(time);
     
     // Create a new source.
     var newSource = context.createBufferSource();
