@@ -59,9 +59,9 @@ var gain;
 function getSampleRate() {
     context = new webkitAudioContext();
     source = context.createBufferSource();
-    gain = context.createGainNode();
+    gain = context.createGain();
     source.connect(context.destination);
-    source.noteOn(0);
+    source.start(0);
 
     var s = "context.sampleRate = " + context.sampleRate;
     var e = document.getElementById("sample-rate");
