@@ -97,9 +97,6 @@ function createCurve() {
         curve[i] = y;
     }
 
-    // generateColortouchCurve(curve, 5);
-    // generateHardClipCurve(curve, 4);
-
     return curve;
 }
 
@@ -107,13 +104,9 @@ function createCurve() {
 
 function SynthNote() {
     this.detune = 0;
-    this.snapToDetune = 0;
-    
+    this.snapToDetune = 0;    
     
     var source = context.createBufferSource();
-    
-    
-    
 
     var osc1 = context.createOscillator();
     osc1.frequency.value = FREQ1;
@@ -124,10 +117,9 @@ function SynthNote() {
     waveshaper.oversample = "4x";
     
     osc1.connect(waveshaper);
-    // source.connect(waveshaper);
     waveshaper.connect(analyser);
 
-    var gainNode = context.createGainNode();
+    var gainNode = context.createGain();
     gainNode.gain.value = 0.25;
 
     //
@@ -194,7 +186,7 @@ function loadAudioBuffer(url) {
         synthNote.source.buffer = audioBuffer;
         synthNote.source.loop = true;
 
-        synthNote.source.noteOn(0.0);
+        synthNote.source.start(0.0);
     }
 
     request.send();
