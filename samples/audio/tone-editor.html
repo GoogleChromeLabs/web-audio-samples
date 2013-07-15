@@ -86,12 +86,12 @@ function Source() {
     
     osc1.frequency.value = defaultFrequency;
     osc2.frequency.value = defaultFrequency;
-    osc1.noteOn(0);
-    osc2.noteOn(0);
+    osc1.start(0);
+    osc2.start(0);
 
     // Gain nodes for cross-fading between the two oscillators.
-    var gainNode1 = context.createGainNode();
-    var gainNode2 = context.createGainNode();
+    var gainNode1 = context.createGain();
+    var gainNode2 = context.createGain();
     this.gainNode1 = gainNode1;
     this.gainNode2 = gainNode2;
 
