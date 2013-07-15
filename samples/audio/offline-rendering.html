@@ -74,7 +74,7 @@ function handleKeyDown(event) {
     
     var currentTime = context.currentTime;
     var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
-    source.noteOn(playTime);
+    source.start(playTime);
 }
 
 function finishLoad() {
@@ -112,7 +112,7 @@ function playNote(context, time) {
     source.buffer = hihatShort;
     source.connect(context.destination);
     
-    source.noteOn(time);
+    source.start(time);
 }
 
 function startOfflineProcessing() {
@@ -123,7 +123,7 @@ function startOfflineProcessing() {
       var source = context.createBufferSource();
       source.buffer = event.renderedBuffer;
       source.connect(context.destination);
-      source.noteOn(0);
+      source.start(0);
     };
     
     playNote(offlineContext, 0.0);
