@@ -98,11 +98,11 @@ function SynthNote() {
     osc1.type = osc1.SINE;
     osc2.type = osc1.SINE;
     osc3.type = osc1.SINE;
-    osc1.noteOn(0);
-    osc2.noteOn(0);
-    osc3.noteOn(0);
+    osc1.start(0);
+    osc2.start(0);
+    osc3.start(0);
 
-    var gainNode = context.createGainNode();
+    var gainNode = context.createGain();
     gainNode.gain.value = 0.75;
 
     var filter = context.createBiquadFilter();
@@ -114,8 +114,8 @@ function SynthNote() {
     var dest = filter;
 
     // Modulation index.
-    var modulationGain1 = context.createGainNode();
-    var modulationGain2 = context.createGainNode();
+    var modulationGain1 = context.createGain();
+    var modulationGain2 = context.createGain();
     osc2.connect(modulationGain1);
     osc3.connect(modulationGain2);    
 
@@ -125,8 +125,8 @@ function SynthNote() {
 
 
     // EXPERIMENTAL feedback
-    var feedbackGain = context.createGainNode();
-    var delay = context.createDelayNode();
+    var feedbackGain = context.createGain();
+    var delay = context.createDelay();
     delay.delayTime.value = 0.001;
     osc1.connect(delay);
     delay.connect(feedbackGain);
