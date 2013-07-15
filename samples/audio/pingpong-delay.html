@@ -99,7 +99,7 @@ function handleKeyDown(event) {
     source.connect(context.destination);
     source.connect(delay1);
     source.connect(delay2);
-    source.noteOn(0.0);
+    source.start(0.0);
 }
 
 function finishLoad() {
@@ -132,16 +132,16 @@ function init() {
     context = new webkitAudioContext();
     
     // Setup a delay with feedback
-    delay1 = context.createDelayNode();
+    delay1 = context.createDelay();
     delay1.delayTime.value = 0.4;
 
-    delay2 = context.createDelayNode();
+    delay2 = context.createDelay();
     delay2.delayTime.value = 0.6;
     
-    feedbackGainNode1 = context.createGainNode();
+    feedbackGainNode1 = context.createGain();
     feedbackGainNode1.gain.value = 0.5;
     
-    feedbackGainNode2 = context.createGainNode();
+    feedbackGainNode2 = context.createGain();
     feedbackGainNode2.gain.value = 0.5;
 
     channelMerger = context.createChannelMerger();
