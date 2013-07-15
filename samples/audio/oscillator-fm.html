@@ -169,16 +169,16 @@ function initAudio() {
     osc1.type = osc1.SINE;
     osc2.type = osc1.SINE;
     osc3.type = osc1.SINE;
-    osc1.noteOn(0);
-    osc2.noteOn(0);
-    osc3.noteOn(0);
+    osc1.start(0);
+    osc2.start(0);
+    osc3.start(0);
     
     // 
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;
     analyser.connect(context.destination);
     
-    gainNode = context.createGainNode();
+    gainNode = context.createGain();
     gainNode.gain.value = 0.75;
     
     filter = context.createBiquadFilter();
@@ -193,12 +193,12 @@ function initAudio() {
     var unity = createUnitySource();
 
     // Modulation index.
-    modulationGain = context.createGainNode();
+    modulationGain = context.createGain();
     osc2.connect(modulationGain);    
     osc3.connect(modulationGain);    
     
     // Sum unity plus modulators.
-    osc1Freq = context.createGainNode();
+    osc1Freq = context.createGain();
     unity.connect(osc1Freq);
     modulationGain.connect(osc1Freq);
     
@@ -206,7 +206,7 @@ function initAudio() {
     osc1Freq.connect(osc1.frequency);
     
 // EXPERIMENTAL feedback
-feedbackGain = context.createGainNode();
+feedbackGain = context.createGain();
 var delay = context.createDelayNode();
 delay.delayTime.value = 0.75;
 // osc1.connect(feedbackGain);
@@ -223,7 +223,7 @@ feedbackGain.mark = true;
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
 
-    unity.noteOn(0);
+    unity.start(0);
 
 
     var controls = document.getElementById("controls");
