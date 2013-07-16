@@ -221,24 +221,32 @@ Kit.prototype.loadSample = function(sampleID, url, mixToMono) {
     var kit = this;
 
     request.onload = function() {
-        var buffer = context.createBuffer(request.response, mixToMono);
-        switch (sampleID) {
-            case 0: kit.kickBuffer = buffer; break;
-            case 1: kit.snareBuffer = buffer; break;
-            case 2: kit.hihatBuffer = buffer; break;
-            case 3: kit.tom1 = buffer; break;
-            case 4: kit.tom2 = buffer; break;
-            case 5: kit.tom3 = buffer; break;
-        }
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                switch (sampleID) {
+                    case 0: kit.kickBuffer = buffer; break;
+                    case 1: kit.snareBuffer = buffer; break;
+                    case 2: kit.hihatBuffer = buffer; break;
+                    case 3: kit.tom1 = buffer; break;
+                    case 4: kit.tom2 = buffer; break;
+                    case 5: kit.tom3 = buffer; break;
+                }
 
-        kit.instrumentLoadCount++;
-        if (kit.instrumentLoadCount == kit.instrumentCount) {
-            kit.isLoaded = true;
+                kit.instrumentLoadCount++;
+                if (kit.instrumentLoadCount == kit.instrumentCount) {
+                    kit.isLoaded = true;
 
-            if (kit.demoIndex != -1) {
-                beatDemo[kit.demoIndex].setKitLoaded();
+                    if (kit.demoIndex != -1) {
+                        beatDemo[kit.demoIndex].setKitLoaded();
+                    }
+                }
+            },
+            
+            function(buffer) {
+                console.log("Error decoding drum samples!");
             }
-        }
+        );
     }
 
     request.send();
@@ -310,12 +318,21 @@ ImpulseResponse.prototype.load = function() {
     var asset = this;
 
     request.onload = function() {
-        asset.buffer = context.createBuffer(request.response, false);
-        asset.isLoaded_ = true;
-        
-        if (asset.demoIndex != -1) {
-            beatDemo[asset.demoIndex].setEffectLoaded();
-        }
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                asset.buffer = buffer;
+                asset.isLoaded_ = true;
+
+                if (asset.demoIndex != -1) {
+                    beatDemo[asset.demoIndex].setEffectLoaded();
+                }                
+            },
+            
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
 
     request.send();
