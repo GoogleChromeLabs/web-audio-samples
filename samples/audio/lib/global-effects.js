@@ -14,7 +14,7 @@ function GlobalEffects(context) {
 
     bpmDelay.delay.connect(compressor);
 
-    var delayFeedback = context.createGainNode();
+    var delayFeedback = context.createGain();
     delayFeedback.gain.value = 0.5;
     bpmDelay.delay.connect(delayFeedback);
     delayWaveShaper = new WaveShaper(context);
