@@ -71,7 +71,6 @@ var y = 0;
 var z = 0;
 var hilightedElement = 0;
 var bufferList;
-var hihatShort;
 
 var fileCount = 8;
 var fileList = [
@@ -109,6 +108,20 @@ function setReverbImpulseResponse(url) {
     request.send();
 }
 
+function mixToMono(buffer) {
+    if (buffer.numberOfChannels == 2) {
+        var pL = buffer.getChannelData(0);
+        var pR = buffer.getChannelData(1);
+        var length = buffer.length;
+        
+        for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+        }
+    }
+}
+
 function setAudioSource(i) {
     var buffer = bufferList[i];
 
@@ -127,6 +140,7 @@ function setAudioSource(i) {
             context.decodeAudioData(
                 request.response,
                 function(buffer) {
+                    mixToMono(buffer);
                     source.buffer = buffer;
                     bufferList[i] = buffer;  // cache it
                 },
@@ -139,29 +153,6 @@ function setAudioSource(i) {
 
         request.send();
     }
-}
-
-function loadHihat(url) {
-    // Load asynchronously
-
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    request.onload = function() { 
-        context.decodeAudioData(
-            request.response,
-            function(buffer) {
-                hihatShort = buffer;
-            },
-
-            function(buffer) {
-                console.log("Error decoding hihat!");
-            }
-        );
-    }
-
-    request.send();
 }
 
 function highlightElement(object) {
@@ -301,8 +292,6 @@ function setSourceBuffer(buffer) {
      for (var i = 0; i < fileCount; ++i) {
          bufferList[i] = 0;
      }
-
-     loadHihat("sounds/drum-samples/hihat-short.wav");
 
      setReverbImpulseResponse('impulse-responses/spatialized3.wav');
 
