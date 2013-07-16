@@ -73,6 +73,11 @@ function output(str) {
 
 // Events
 // init() once the page has finished loading.
+
+// Temporary patch until all browsers support unprefixed context.
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 window.onload = init;
 
 var context;
