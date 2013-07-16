@@ -523,7 +523,6 @@ function Note(staticAudioRouting, isMonophonic) {
 
     // Filter
     var filter = context.createBiquadFilter();
-    filter.type = 0;
     filter.gain.value = 0.0; // default value
 
     // Create note volume.
@@ -581,7 +580,7 @@ Note.prototype.setFilterValues = function() {
     
     filter.frequency.cancelScheduledValues(0);
 
-    filter.type = 0; // Lowpass
+    filter.type = "lowpass";
     filter.Q.value = resonance; // !!FIXME: should be Q
 
     var nyquist = 0.5 * context.sampleRate;
@@ -605,8 +604,8 @@ Note.prototype.setFilterValues = function() {
         // filter.frequency.setValueAtTime(filter.frequency.value, time); // !! not correct
     }
 
-    filter.frequency.setTargetValueAtTime(envAmountFrequency, time, filterAttack);
-    filter.frequency.setTargetValueAtTime(startFrequency, time + filterAttack, filterDecay);
+    filter.frequency.setTargetAtTime(envAmountFrequency, time, filterAttack);
+    filter.frequency.setTargetAtTime(startFrequency, time + filterAttack, filterDecay);
 }
 
 var firstTime = true;
@@ -679,10 +678,10 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     // pan maximum from -90 -> +90 degrees
     var x = Math.sin(0.5*Math.PI * width);
     var z = -Math.cos(0.5*Math.PI * width);
-    panner1.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner1.panningModel = "equalpower";
     panner1.setPosition(-x, 0, z);
 
-    panner2.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner2.panningModel = "equalpower";
     panner2.setPosition(x, 0, z);
 
     // Amplitude envelope
@@ -698,8 +697,8 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     var ampAttackTime = time + ampAttack;
     
     // Amplitude decay
-    ampEnvelope.gain.setTargetValueAtTime(1, time, ampAttack);
-    ampEnvelope.gain.setTargetValueAtTime(0, ampAttackTime, ampDecay);
+    ampEnvelope.gain.setTargetAtTime(1, time, ampAttack);
+    ampEnvelope.gain.setTargetAtTime(0, ampAttackTime, ampDecay);
 
     // Filter
     this.setFilterValues();
@@ -802,7 +801,7 @@ function StaticAudioRouting() {
 
     var subsonicFilter = context.createBiquadFilter();
     
-    subsonicFilter.type = 1; // hipass
+    subsonicFilter.type = "highpass";
     subsonicFilter.frequency.value = 10;
 
     subsonicFilter.connect(grungeWaveShaper.input);
