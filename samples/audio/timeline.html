@@ -166,7 +166,7 @@ function runTest() {
     constantSource.buffer = constantOneBuffer;
 
     // Create a gain node controlling the gain of constantSource and make the connections.
-    var gainNode = context.createGainNode();
+    var gainNode = context.createGain();
     constantSource.connect(gainNode);
     gainNode.connect(context.destination);
     
