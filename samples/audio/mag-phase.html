@@ -135,57 +135,51 @@
         }
 
         // Figure out the y axis range based on the filter type.
-        switch (filter.type)
-        {
-          case 0:
+
+        var type = filter.type;
+
+        if (type == "lowpass") {
             magmin = -80;
             magmax = 40;
             phasemin = -200;
             phasemax = 0;
-            break;
-          case 1:
+        } else if (type == "highpass") {
             magmin = -80;
             magmax = 20;
             phasemin = 0;
             phasemax = 180;
-            break;
-          case 2:
+        } else if (type == "bandpass") {
             magmin = -80;
             magmax = 0;
             phasemin = -180;
             phasemax = 180;
-            break;
-          case 3:
+        } else if (type == "lowshelf") {
             magmin = -15;
             magmax = 15;
             phasemin = -50;
             phasemax = 50;
-            break;
-          case 4:
+        } else if (type == "highshelf") {
             magmin = -15;
             magmax = 15;
             phasemin = -60;
             phasemax = 60;
-            break;
-          case 5:
+        } else if (type == "peaking") {
             magmin = -10;
             magmax = 10;
             phasemin = -45;
             phasemax = 45;
-            break;
-          case 6:
+        } else if (type == "notch") {
             magmin = -60;
             magmax = 0;
             phasemin = -100;
             phasemax = 100;
-            break;
-          case 7:
+        } else if (type == "allpass") {
             magmin = -1;
             magmax = 1;
             phasemin = -180;
             phasemax = 180;
-            break;
         }
+
         $.plot($("#graph"),
           [ { data : magData, label: "Mag (dB)" },
             { data : phaseData, label: "Phase (deg)", yaxis: 2 }],
