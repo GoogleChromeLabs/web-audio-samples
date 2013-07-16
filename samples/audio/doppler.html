@@ -154,10 +154,33 @@ function setReverbImpulseResponse(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    convolver.buffer = context.createBuffer(request.response, false);
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              convolver.buffer = buffer;
+          },
+
+          function(buffer) {
+              console.log("Error decoding impulse response!");
+          }
+      );
   }
   
   request.send();
+}
+
+function mixToMono(buffer) {
+    if (buffer.numberOfChannels == 2) {
+        var pL = buffer.getChannelData(0);
+        var pR = buffer.getChannelData(1);
+        var length = buffer.length;
+        
+        for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+        }
+    }
 }
 
 function loadBufferAndPlay(url) {
@@ -167,12 +190,22 @@ function loadBufferAndPlay(url) {
   request.responseType = "arraybuffer";
 
   request.onload = function() { 
-    source.buffer = context.createBuffer(request.response, true);
-    source.start(0);
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              mixToMono(buffer);
+              source.buffer = buffer;
+              source.start(0);
 
-    // get rid of loading animation
-    var loading = document.getElementById("loading");
-    loading.innerHTML = "";
+              // get rid of loading animation
+              var loading = document.getElementById("loading");
+              loading.innerHTML = "";
+          },
+
+          function(buffer) {
+              console.log("Error decoding source!");
+          }
+      );
   }
 
   request.send();
@@ -391,7 +424,7 @@ function addSliders() {
      source.loop = true;
 
      // Load up initial buffer
-     loadBufferAndPlay("sounds/hyper-reality/white-noise.wav");  
+     loadBufferAndPlay("sounds/hyper-reality/white-noise-mono.wav");
 
      lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
      slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
