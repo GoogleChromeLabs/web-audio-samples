@@ -267,7 +267,7 @@ Preset.prototype.play = function() {
     gainNode1.gain.value = this.mainGain;
     gainNode2.gain.value = this.sendGain;
 
-    source.noteOn(0);
+    source.start(0);
 }
 
 function highlightElement(object) {
@@ -360,8 +360,8 @@ function init() {
     convolver = context.createConvolver();
     source = context.createBufferSource();
 
-    gainNode1 = context.createGainNode();
-    gainNode2 = context.createGainNode();
+    gainNode1 = context.createGain();
+    gainNode2 = context.createGain();
     gainNode1.gain.value = 1.0;
     gainNode2.gain.value = 2.0;
 
