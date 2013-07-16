@@ -162,6 +162,10 @@ var softCount = 0;
 var mediumCount = 0;
 var hardCount = 0;
 
+// Temporary patch until all browsers support unprefixed context.
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 function updateInfo() {
  var info = document.getElementById('info');
  
