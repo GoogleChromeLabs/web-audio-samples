@@ -741,8 +741,17 @@ function loadImpulseResponse(url, convolver) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        convolver.buffer = context.createBuffer(request.response, false);
-        isImpulseResponseLoaded = true;
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                convolver.buffer = buffer;
+                isImpulseResponseLoaded = true;
+            },
+            
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
     request.onerror = function() { 
         alert("error loading reverb");
