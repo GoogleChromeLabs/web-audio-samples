@@ -23,6 +23,9 @@
     var pingBuffer = 0;
     var gCount = 0;
     
+    // Temporary patch until all browsers support unprefixed context.
+    if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+        window.webkitAudioContext = AudioContext;
 
     // Callback when a collision occurs
     function countContact(body1, body2) {
