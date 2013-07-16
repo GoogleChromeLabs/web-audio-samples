@@ -162,7 +162,7 @@ function init() {
     waveshaper = context.createWaveShaper();
     waveshaper.curve = curve;
     
-    gainNode = context.createGainNode();
+    gainNode = context.createGain();
     
     source.connect(gainNode);
     gainNode.connect(waveshaper);
