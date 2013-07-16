@@ -61,6 +61,10 @@ Title
 
 o3djs.require('o3djs.shader');
 
+// Temporary patch until all browsers support unprefixed context.
+if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
+    window.webkitAudioContext = AudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
