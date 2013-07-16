@@ -331,9 +331,18 @@ function loadImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        convolver.buffer = context.createBuffer(request.response, false);
-        isImpulseResponseLoaded = true;
-        finishLoading();
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                convolver.buffer = buffer;
+                isImpulseResponseLoaded = true;
+                finishLoading();
+            },
+            
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
     request.onerror = function() { 
         alert("error loading reverb");
@@ -350,10 +359,19 @@ function loadHumanVoice(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() {
-        buffer = context.createBuffer(request.response, false /*true*/);
-        bufferDuration = buffer.duration - 0.050;
-        isSourceLoaded = true;
-        finishLoading();  // we have the voice, put up sliders and start playing...
+        context.decodeAudioData(
+            request.response,
+            function(b) {
+                buffer = b;
+                bufferDuration = buffer.duration - 0.050;
+                isSourceLoaded = true;
+                finishLoading();  // we have the voice, put up sliders and start playing...
+            },
+            
+            function(buffer) {
+                console.log("Error decoding human voice!");
+            }
+        );
     };
 
     request.onerror = function() {
