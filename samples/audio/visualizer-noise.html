@@ -1,5 +1,5 @@
 <!--
-Copyright 2010, Google Inc.
+Copyright 2012, Google Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -88,13 +88,9 @@ var analyserView2;
 
 function init() {
     analyserView1 = new AnalyserView("view1");
-    // analyserView2 = new AnalyserView("view2");
 
     initAudio();
     analyserView1.initByteBuffer();
-    // analyserView2.initByteBuffer();
-    
-    // analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);
 }
 
 function loadAudioBuffer(url) {
@@ -141,19 +137,16 @@ function initAudio() {
     context = new webkitAudioContext();
     
     source = context.createBufferSource();
-    // filterNode = context.createHighPass2Filter();
-    // filterNode.resonance.value = 5.0;
     filterNode = context.createBiquadFilter();
-    filterNode.type = 6; //BiquadFilterNode.HIGHPASS;
+    filterNode.type = "notch";
 
-    // alert("filterNode.gain = " + filterNode.gain + " : filterNode.Q = " + filterNode.Q);
-    filterNode.gain.value = 10;
-    filterNode.Q.value = 1;
+    filterNode.frequency.value = 10;
+    filterNode.Q.value = .1;
         
-    gainNode = context.createGainNode();
+    gainNode = context.createGain();
     
     analyser = context.createAnalyser();
-    analyser.fftSize = 4096; //2048;
+    analyser.fftSize = 2048;
 
     // Connect audio processing graph
     source.connect(filterNode);
@@ -161,37 +154,43 @@ function initAudio() {
     gainNode.connect(analyser);
     analyser.connect(context.destination);
 
-    // loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
     loadAudioBuffer("sounds/tones/pinkgood.wav");
 }
 
 function finishLoad() {
     source.buffer = audioBuffer;
-    source.looping = true;
+    source.loop = true;
 
-    source.noteOn(0.0);
+    source.start(0.0);
     
     var startTime = context.currentTime;
 
-    filterNode.frequency.setValueAtTime(200.0, startTime);
-    // filterNode.frequency.setValueAtTime(400.0, startTime + 1);
-    // filterNode.frequency.setValueAtTime(800.0, startTime + 2);
-
-    var period = 2;
-    for (var i = 0; i < 100; ++i) {
-        filterNode.frequency.exponentialRampToValueAtTime(200.0, startTime + i*period);
-        filterNode.frequency.exponentialRampToValueAtTime(10000.0, startTime + i*period + 0.5*period);
-    }
-    
-    // filterNode.frequency.setValueAtTime(20000.0,               startTime + 0.5);
-    // filterNode.frequency.setTargetValueAtTime(200.0,           startTime + 0.6, 0.125);
-    // filterNode.frequency.setTargetValueAtTime(20000.0,         startTime + 2.0, 0.125);
-    // filterNode.frequency.exponentialRampToValueAtTime(400.0,   startTime + 3.0);
-
-    // gainNode.gain.setValueAtTime(1.0, startTime + 0.5);
-    // gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 2.5);
-    // gainNode.gain.exponentialRampToValueAtTime(1, startTime + 3.5);
+    // filterNode.frequency.setValueAtTime(200.0, startTime);
     // 
+    // var period = 2;
+    // for (var i = 0; i < 100; ++i) {
+    //     filterNode.frequency.exponentialRampToValueAtTime(200.0, startTime + i*period);
+    //     filterNode.frequency.exponentialRampToValueAtTime(10000.0, startTime + i*period + 0.5*period);
+    // }
+
+    filterNode.frequency.value = 1000;
+
+    var osc = context.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = .25;
+    osc.start(0);
+    var gainNode = context.createGain();
+    gainNode.gain.value = 4800;
+    osc.connect(gainNode);
+    // gainNode.connect(filterNode.frequency);
+
+    filterNode.detune.value = 0;
+    gainNode.connect(filterNode.detune);
+    
+    
+
+
+    
     window.requestAnimationFrame(draw);
 }
 
