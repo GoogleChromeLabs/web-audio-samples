@@ -45,7 +45,7 @@ var times =
 ];
 
 function BpmDelay(context) {
-    this.delay = context.createDelayNode();
+    this.delay = context.createDelay();
     this.context = context;
     this.tempo = 120;
     this.noteDivision = times[6];
