@@ -196,8 +196,8 @@ Granular.prototype.scheduleGrain = function() {
     r3 = (r3 - 0.5) * 2.0;
     r4 = (r4 - 0.5) * 2.0;
 
-    var dryGainNode = context.createGainNode();
-    var wetGainNode = context.createGainNode();
+    var dryGainNode = context.createGain();
+    var wetGainNode = context.createGain();
     wetGainNode.gain.value = 0.5 * this.diffusionRandomization * r5;
     dryGainNode.gain.value = 1.0 - wetGainNode.gain.value;
 
@@ -207,7 +207,7 @@ Granular.prototype.scheduleGrain = function() {
     source.playbackRate.value = pitchRate;
 
     // Create a gain node with a special "grain window" shaping curve.
-    var grainWindowNode = context.createGainNode();
+    var grainWindowNode = context.createGain();
     source.connect(grainWindowNode);
 
     if (this.panningRandomization > 0) {
