@@ -207,7 +207,7 @@ function initAudio() {
     
 // EXPERIMENTAL feedback
 feedbackGain = context.createGain();
-var delay = context.createDelayNode();
+var delay = context.createDelay();
 delay.delayTime.value = 0.75;
 // osc1.connect(feedbackGain);
 osc1.connect(delay);
