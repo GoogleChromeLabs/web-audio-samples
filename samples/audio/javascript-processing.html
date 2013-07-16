@@ -119,11 +119,20 @@ function loadSample(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        source.buffer = context.createBuffer(request.response, false);
-        source.loop = true;
-        source.start(0);
-        
-        draw();
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                source.buffer = buffer;
+                source.loop = true;
+                source.start(0);
+
+                draw();
+            },
+
+            function(buffer) {
+                console.log("Error decoding source!");
+            }
+        );
     }
 
     request.send();
