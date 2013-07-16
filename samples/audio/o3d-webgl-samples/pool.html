@@ -176,7 +176,7 @@ function loadStickCueLight(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueLight = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { stickCueLight = buffer; });
   }
 
   request.send();
@@ -188,7 +188,7 @@ function loadStickCueMedium(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueMedium = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { stickCueMedium = buffer; });
   }
 
   request.send();
@@ -200,7 +200,7 @@ function loadStickCueHard(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    stickCueHard = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { stickCueHard = buffer; });
   }
 
   request.send();
@@ -213,24 +213,11 @@ function loadBallPocket(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballPocket = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { ballPocket = buffer; });
   }
 
   request.send();
 }
-
-function loadImpulseResponse(url) {
-  // Load impulse response asynchronously
-  var request = new XMLHttpRequest();
-  request.open("GET", url, true);
-  request.responseType = "arraybuffer";
-  request.onload = function() { 
-    convolver.buffer = context.createBuffer(request.response, false);
-  }
-  
-  request.send();
-}
-
 
 function loadBallBallLight(url) {
   // Load asynchronously
@@ -238,7 +225,7 @@ function loadBallBallLight(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallLight = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { ballBallLight = buffer; });
   }
 
   request.send();
@@ -250,7 +237,7 @@ function loadBallBallMedium(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallMedium = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { ballBallMedium = buffer; });
   }
 
   request.send();
@@ -262,13 +249,11 @@ function loadBallBallHard(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    ballBallHard = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { ballBallHard = buffer; });
   }
 
   request.send();
 }
-
-
 
 function loadMediumEdge(url) {
   // Load asynchronously
@@ -276,7 +261,7 @@ function loadMediumEdge(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    mediumEdge = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { mediumEdge = buffer; });
   }
 
   request.send();
@@ -288,17 +273,25 @@ function loadHardEdge(url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
   request.onload = function() { 
-    hardEdge = context.createBuffer(request.response, true);
+    context.decodeAudioData(request.response, function(buffer) { hardEdge = buffer; });
   }
 
   request.send();
 }
 
-
+function loadImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { convolver.buffer = buffer; });
+  }
+  
+  request.send();
+}
 
 function playSound(impactType, velocity, x, y) {
-  // info.innerHTML = velocity;
-
   var buffer = 0;
   var gainScale = 1.0;
   var sendScale = 1.0;
