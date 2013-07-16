@@ -94,8 +94,8 @@ var bufferTime = 0.100;
 function Jungle(context) {
     this.context = context;
     // Create nodes for the input and output of this "module".
-    var input = context.createGainNode();
-    var output = context.createGainNode();
+    var input = context.createGain();
+    var output = context.createGain();
     this.input = input;
     this.output = output;
     
@@ -109,11 +109,11 @@ function Jungle(context) {
     mod2.loop = true;
     
     // Delay amount for changing pitch.
-    var modGain1 = context.createGainNode();
-    var modGain2 = context.createGainNode();
+    var modGain1 = context.createGain();
+    var modGain2 = context.createGain();
 
-    var delay1 = context.createDelayNode();
-    var delay2 = context.createDelayNode();
+    var delay1 = context.createDelay();
+    var delay2 = context.createDelay();
     mod1.connect(modGain1);
     mod2.connect(modGain2);
     modGain1.connect(delay1.delayTime);
@@ -128,8 +128,8 @@ function Jungle(context) {
     fade1.loop = true;
     fade2.loop = true;
 
-    var mix1 = context.createGainNode();
-    var mix2 = context.createGainNode();
+    var mix1 = context.createGain();
+    var mix2 = context.createGain();
     mix1.gain.value = 0;
     mix2.gain.value = 0;
 
