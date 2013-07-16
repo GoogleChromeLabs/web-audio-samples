@@ -118,6 +118,20 @@
       }
     }
 
+    function mixToMono(buffer) {
+        if (buffer.numberOfChannels == 2) {
+            var pL = buffer.getChannelData(0);
+            var pR = buffer.getChannelData(1);
+            var length = buffer.length;
+
+            for (var i = 0; i < length; ++i) {
+                var mono = 0.5 * (pL[i] + pR[i]);
+                pL[i] = mono;
+                pR[i] = mono;
+            }
+        }
+    }
+
     function loadPing(url) {
       // Load asynchronously
       var request = new XMLHttpRequest();
@@ -128,6 +142,7 @@
           context.decodeAudioData(
               request.response,
               function(buffer) {
+                  mixToMono(buffer);
                   pingBuffer = buffer;
               },
 
