@@ -512,13 +512,13 @@ function Note(staticAudioRouting, isMonophonic) {
     var osc2Octave = context.createOscillator();
     
     var panner1 = context.createPanner();
-    panner1.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner1.panningModel = "equalpower";
 
     var panner2 = context.createPanner();
-    panner2.panningModel = webkitAudioPannerNode.EQUALPOWER;
+    panner2.panningModel = "equalpower";
 
     // Amplitude envelope
-    var ampEnvelope = context.createGainNode();
+    var ampEnvelope = context.createGain();
     ampEnvelope.gain.value = 0.0; // default value
 
     // Filter
@@ -527,7 +527,7 @@ function Note(staticAudioRouting, isMonophonic) {
     filter.gain.value = 0.0; // default value
 
     // Create note volume.
-    var noteVolume = context.createGainNode();
+    var noteVolume = context.createGain();
     noteVolume.gain.value = 0; // start out silent until told otherwise
 
     // Make connections
@@ -553,10 +553,10 @@ function Note(staticAudioRouting, isMonophonic) {
 
     // Keep oscillators playing at all times if monophonic.
     if (this.isMonophonic) {
-        osc1.noteOn(0);
-        osc2.noteOn(0);
-        osc1Octave.noteOn(0);
-        osc2Octave.noteOn(0);
+        osc1.start(0);
+        osc2.start(0);
+        osc1Octave.start(0);
+        osc2Octave.start(0);
     }
     
     // Keep track of all the nodes.
@@ -714,15 +714,15 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
         if (ampDecayAdjust > 4) ampDecayAdjust = 4;
         var offTime = ampAttackTime + ampDecayAdjust;
 
-        osc1.noteOn(time);
-        osc2.noteOn(time);
-        osc1.noteOff(offTime);
-        osc2.noteOff(offTime);
+        osc1.start(time);
+        osc2.start(time);
+        osc1.stop(offTime);
+        osc2.stop(offTime);
 
-        osc1Octave.noteOn(time);
-        osc2Octave.noteOn(time);
-        osc1Octave.noteOff(offTime);
-        osc2Octave.noteOff(offTime);
+        osc1Octave.start(time);
+        osc2Octave.start(time);
+        osc1Octave.stop(offTime);
+        osc2Octave.stop(offTime);
     } else {
         firstTime = false;
     }
@@ -762,8 +762,8 @@ function StaticAudioRouting() {
     loadImpulseResponse('impulse-responses/tim-warehouse/tim-stretch2.wav', convolver);
     // loadImpulseResponse('impulse-responses/spatialized4.wav', convolver);
 
-    var convolverDry = context.createGainNode();
-    var convolverWet = context.createGainNode();
+    var convolverDry = context.createGain();
+    var convolverWet = context.createGain();
 
     convolverDry.connect(compressor);
     convolverWet.connect(convolver);
@@ -772,9 +772,9 @@ function StaticAudioRouting() {
     // BPM delay through delayWaveShaper feedback loop
     bpmDelay = new BpmDelay(context);
 
-    var delayFeedback = context.createGainNode();
-    var delayDry = context.createGainNode();
-    var delayWet = context.createGainNode();
+    var delayFeedback = context.createGain();
+    var delayDry = context.createGain();
+    var delayWet = context.createGain();
 
     delayFeedback.gain.value = 0.5;
     delayDry.gain.value = 0.5;
