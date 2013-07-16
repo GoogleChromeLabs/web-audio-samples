@@ -106,8 +106,12 @@ Wave.prototype.load = function(callback) {
             frequencyData.imag[i] = f.imag[i];
         }
         
+        if (typeof(wave.context.createPeriodicWave) === 'function')
+            wave.wavetable = wave.context.createPeriodicWave(frequencyData.real, frequencyData.imag);
+        else
+            wave.wavetable = wave.context.createWaveTable(frequencyData.real, frequencyData.imag);
         
-        wave.wavetable = wave.context.createWaveTable(frequencyData.real, frequencyData.imag);
+
         // console.log("frequencyData.real.length: " + frequencyData.real.length + " : " + frequencyData.imag[0]);
         console.log("wavetable: " + wave.wavetable);
         
