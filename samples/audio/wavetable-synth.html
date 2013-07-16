@@ -613,8 +613,8 @@ Note.prototype.setFilterValues = function() {
         // filter.frequency.setValueAtTime(filter.frequency.value, time); // !! not correct
     }
 
-    filter.frequency.setTargetValueAtTime(envAmountFrequency, time, filterAttack);
-    filter.frequency.setTargetValueAtTime(startFrequency, time + filterAttack, filterDecay);
+    filter.frequency.setTargetAtTime(envAmountFrequency, time, filterAttack);
+    filter.frequency.setTargetAtTime(startFrequency, time + filterAttack, filterDecay);
 }
 
 var firstTime = true;
@@ -688,8 +688,8 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     var ampAttackTime = time + ampAttack;
     
     // Amplitude decay
-    ampEnvelope.gain.setTargetValueAtTime(1, time, ampAttack);
-    ampEnvelope.gain.setTargetValueAtTime(0, ampAttackTime, ampDecay);
+    ampEnvelope.gain.setTargetAtTime(1, time, ampAttack);
+    ampEnvelope.gain.setTargetAtTime(0, ampAttackTime, ampDecay);
 
     // Filter
     this.setFilterValues();
