@@ -189,8 +189,8 @@ function finishLoad() {
   var now = context.currentTime;
   anchorTime = now + 0.040;
   
-  source1.noteOn(anchorTime);
-  source2.noteOn(anchorTime);
+  source1.start(anchorTime);
+  source2.start(anchorTime);
 }
 
 function setReverbImpulseResponse(url) {
@@ -229,7 +229,7 @@ function loadBufferForSource(source, url) {
     var time = anchorTime + roundedUpDeltaTime;
     
     // Stop the current loop (when it gets to the next 4-beat boundary).
-    source.noteOff(time);
+    source.stop(time);
     
     // Create a new source.
     var newSource = context.createBufferSource();
@@ -243,7 +243,7 @@ function loadBufferForSource(source, url) {
 
     // Start playing exactly on the next 4-beat boundary with looping.
     newSource.loop = true;
-    newSource.noteOn(time);
+    newSource.start(time);
     
     // This new source will replace the existing source.
     if (source == source1)
@@ -273,18 +273,18 @@ function init() {
     source2 = context.createBufferSource();
     
     // Create gain nodes to control the volume for the two sources.
-    source1Gain = context.createGainNode();
-    source2Gain = context.createGainNode();
+    source1Gain = context.createGain();
+    source2Gain = context.createGain();
 
     // Create gain nodes to control the wet (effect) mix levels for left/right
-    wetGainNode1 = context.createGainNode();
-    wetGainNode2 = context.createGainNode();
+    wetGainNode1 = context.createGain();
+    wetGainNode2 = context.createGain();
     wetGainNode1.gain.value = 0.0;
     wetGainNode2.gain.value = 0.0;
 
     // Create a lowpass resonant filter for both left and right
-    lowFilter1 = context.createLowPass2Filter();
-    lowFilter2 = context.createLowPass2Filter();
+    lowFilter1 = context.createBiquadFilter();
+    lowFilter2 = context.createBiquadFilter();
     lowFilter1.cutoff.value = 22050.0;
     lowFilter2.cutoff.value = 22050.0;
     lowFilter1.resonance.value = 5.0;
