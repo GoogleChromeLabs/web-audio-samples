@@ -103,8 +103,17 @@ function loadAudioBuffer(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        audioBuffer = context.createBuffer(request.response, false /*true*/);
-        finishLoad();  // add in the slider, etc. now that we've loaded the audio
+        context.decodeAudioData(
+            request.response,
+            function(b) {
+                audioBuffer = b;
+                finishLoad();  // add in the slider, etc. now that we've loaded the audio
+            },
+            
+            function(buffer) {
+                console.log("Error decoding human voice!");
+            }
+        );
     }
 
     request.send();
