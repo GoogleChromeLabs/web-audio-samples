@@ -351,9 +351,9 @@ function addSliders() {
      
      source = context.createBufferSource();
 
-     masterGainNode = context.createGainNode();
-     dryGainNode = context.createGainNode();
-     wetGainNode = context.createGainNode();
+     masterGainNode = context.createGain();
+     dryGainNode = context.createGain();
+     wetGainNode = context.createGain();
 
      panner = context.createPanner();
      convolver = context.createConvolver();
