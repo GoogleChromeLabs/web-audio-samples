@@ -94,7 +94,16 @@ function setReverbImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        convolver.buffer = context.createBuffer(request.response, false);
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                convolver.buffer = buffer;
+            },
+
+            function(buffer) {
+                console.log("Error decoding impulse response!");
+            }
+        );
     }
 
     request.send();
@@ -115,10 +124,17 @@ function setAudioSource(i) {
         request.responseType = "arraybuffer";
 
         request.onload = function() { 
-            var buffer = context.createBuffer(request.response, true);
-            
-            source.buffer = buffer;
-            bufferList[i] = buffer;  // cache it
+            context.decodeAudioData(
+                request.response,
+                function(buffer) {
+                    source.buffer = buffer;
+                    bufferList[i] = buffer;  // cache it
+                },
+
+                function(buffer) {
+                    console.log("Error decoding audio source data!");
+                }
+            );
         }
 
         request.send();
@@ -133,7 +149,16 @@ function loadHihat(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        hihatShort = context.createBuffer(request.response, true);
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                hihatShort = buffer;
+            },
+
+            function(buffer) {
+                console.log("Error decoding hihat!");
+            }
+        );
     }
 
     request.send();
