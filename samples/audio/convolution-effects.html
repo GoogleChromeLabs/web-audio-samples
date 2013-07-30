@@ -60,6 +60,7 @@ if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudio
 // init() once the page has finished loading.
 window.onload = init;
 
+var isStarted = false;
 var context = 0;
 var source = 0;
 var convolver = 0;
@@ -271,7 +272,10 @@ Preset.prototype.play = function() {
     gainNode1.gain.value = this.mainGain;
     gainNode2.gain.value = this.sendGain;
 
-    source.start(0);
+    if (!isStarted) {
+        isStarted = true;
+        source.start(0);
+    }
 }
 
 function highlightElement(object) {
