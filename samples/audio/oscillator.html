@@ -94,6 +94,9 @@ function SynthNote() {
     var osc1 = context.createOscillator();
     var osc2 = context.createOscillator();
     var osc3 = context.createOscillator();
+    osc1.type = "sawtooth";
+    osc2.type = "sawtooth";
+    osc3.type = "sawtooth";
     osc1.frequency.value = FREQ1;
     osc2.frequency.value = FREQ2;
     osc3.frequency.value = FREQ3;
