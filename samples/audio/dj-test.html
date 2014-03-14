@@ -72,9 +72,11 @@ var bufferLoader1 = 0;
 var bufferLoader2 = 0;
 var loadCount = 0;
 var tempo = 120.0;  // hardcoded for now
+var hilightedElement = null;
 
 function highlightElement(object) {
-  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  if (hilightedElement)
+    hilightedElement.style.backgroundColor = "";
   hilightedElement = object;
 
   object.style.backgroundColor = "green";
@@ -136,7 +138,7 @@ function leftFilterHandler(event, ui) {
   var info = document.getElementById("leftFilter-value");
   info.innerHTML = "leftFilter = " + cutoff + " Hz";
 
-  lowFilter1.cutoff.value = cutoff;
+  lowFilter1.frequency.value = cutoff;
 }
 
 function rightFilterHandler(event, ui) {
@@ -150,7 +152,7 @@ function rightFilterHandler(event, ui) {
   var info = document.getElementById("rightFilter-value");
   info.innerHTML = "rightFilter = " + cutoff + " Hz";
 
-  lowFilter2.cutoff.value = cutoff;
+  lowFilter2.frequency.value = cutoff;
 }
 
 function leftRhythmEffectHandler(event, ui) {
@@ -285,10 +287,10 @@ function init() {
     // Create a lowpass resonant filter for both left and right
     lowFilter1 = context.createBiquadFilter();
     lowFilter2 = context.createBiquadFilter();
-    lowFilter1.cutoff.value = 22050.0;
-    lowFilter2.cutoff.value = 22050.0;
-    lowFilter1.resonance.value = 5.0;
-    lowFilter2.resonance.value = 5.0;
+    lowFilter1.frequency.value = 22050.0;
+    lowFilter2.frequency.value = 22050.0;
+    lowFilter1.Q.value = 5.0;
+    lowFilter2.Q.value = 5.0;
 
     // Create a convolver for a rhythm effect
     convolver = context.createConvolver();
