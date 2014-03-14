@@ -640,7 +640,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     this.pitchFrequency = pitchFrequency;
     
     var table = wave.wavetable;
-    if (firstTime) osc1.setWaveTable(table);
+    if (firstTime) osc1.setPeriodicWave(table);
 
     if (this.isMonophonic) {
         osc1.frequency.setValueAtTime(pitchFrequency, time);
@@ -650,7 +650,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     osc1.detune.value = -detune1;
 
     var table2 = wave2.wavetable;
-    if (firstTime) osc1Octave.setWaveTable(table2);
+    if (firstTime) osc1Octave.setPeriodicWave(table2);
 
     if (this.isMonophonic) {
         osc1Octave.frequency.setValueAtTime(pitchFrequency, time);
@@ -659,7 +659,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     }
     osc1Octave.detune.value = 1200*octave - detune2;
 
-    if (firstTime) osc2.setWaveTable(table);
+    if (firstTime) osc2.setPeriodicWave(table);
 
     if (this.isMonophonic) {
         osc2.frequency.setValueAtTime(pitchFrequency, time);
@@ -668,7 +668,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     }
     osc2.detune.value = detune2;
 
-    if (firstTime) osc2Octave.setWaveTable(table2);
+    if (firstTime) osc2Octave.setPeriodicWave(table2);
 
     if (this.isMonophonic) {
         osc2Octave.frequency.setValueAtTime(pitchFrequency, time);
@@ -727,7 +727,7 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
         osc1Octave.stop(offTime);
         osc2Octave.stop(offTime);
     } else {
-        firstTime = false;
+            firstTime = false;
     }
 }
 

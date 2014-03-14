@@ -718,7 +718,13 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
         osc1Octave.stop(offTime);
         osc2Octave.stop(offTime);
     } else {
-        firstTime = false;
+        if (firstTime) {
+            osc1.start(0);
+            osc2.start(0);
+            osc1Octave.start(0);
+            osc2Octave.start(0);
+            firstTime = false;
+        }
     }
 }
 

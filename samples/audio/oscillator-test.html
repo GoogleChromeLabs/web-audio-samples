@@ -108,10 +108,10 @@ function loadWaveTable(url) {
             frequencyData.imag[i] = f.imag[i];
         }
         
-        wavetable = context.createWaveTable(frequencyData.real, frequencyData.imag);
-        osc1.setWaveTable(wavetable);
-        osc2.setWaveTable(wavetable);
-        osc3.setWaveTable(wavetable);
+        wavetable = context.createPeriodicWave(frequencyData.real, frequencyData.imag);
+        osc1.setPeriodicWave(wavetable);
+        osc2.setPeriodicWave(wavetable);
+        osc3.setPeriodicWave(wavetable);
         console.log("loaded wavetable");   
     };
 
