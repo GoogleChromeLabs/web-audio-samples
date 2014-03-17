@@ -75,8 +75,7 @@ function output(str) {
 // init() once the page has finished loading.
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 window.onload = init;
 
@@ -125,7 +124,7 @@ function loadAudioBuffer(url) {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     source = context.createBufferSource();
     analyser = context.createAnalyser();
@@ -135,7 +134,7 @@ function initAudio() {
     source.connect(analyser);
     analyser.connect(context.destination);
 
-    loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    loadAudioBuffer("sounds/hyper-reality/human-voice.mp3");
 }
 
 if ( !window.requestAnimationFrame ) {
