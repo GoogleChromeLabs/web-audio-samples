@@ -51,8 +51,7 @@ Granular Effects
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 // init() once the page has finished loading.
 window.onload = init;
@@ -190,7 +189,7 @@ function scheduleGrain() {
     y *= distance;
     z *= distance * scaleXZ;
 
-    panner.panningModel = webkitAudioPannerNode.HRTF;
+    panner.panningModel = "HRTF";
     panner.setPosition(x, y, z);
 
     var dryGainNode = context.createGain();
@@ -215,7 +214,7 @@ function scheduleGrain() {
     var randomGrainOffset = r2 * timeRandomization;
 
     // Schedule sound grain
-    source.noteGrainOn(realTime, grainTime + randomGrainOffset, grainDuration);
+    source.start(realTime, grainTime + randomGrainOffset, grainDuration);
 
     // Schedule the grain window.
     // This applies a time-varying gain change for smooth fade-in / fade-out.
@@ -245,7 +244,7 @@ function schedule() {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     // This check is a hack and will only be needed temporarily.
     // The reason is that the noteGrainOn() method used to (in older builds) apply a hard-coded amplitude window.
@@ -324,7 +323,7 @@ function init() {
 function load() {
     // loadImpulseResponse('impulse-responses/spatialized4.wav');
     loadImpulseResponse('impulse-responses/matrix-reverb5.wav');
-    loadHumanVoice("sounds/hyper-reality/human-voice.mp4");
+    loadHumanVoice("sounds/hyper-reality/human-voice.mp3");
 }
 
 function loadImpulseResponse(url) {
