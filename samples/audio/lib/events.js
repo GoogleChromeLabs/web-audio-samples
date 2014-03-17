@@ -102,7 +102,7 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
       slider.min = min;
       slider.max = max;
       slider.value = value;
-      slider.onchange = function() { handler(0, this); };
+      slider.oninput = function() { handler(0, this); };
   }
 
   function addSliderOld(name) {
