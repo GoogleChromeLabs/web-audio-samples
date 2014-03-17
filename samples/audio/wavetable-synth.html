@@ -563,6 +563,7 @@ function Note(staticAudioRouting, isMonophonic) {
     // note volume -> subsonic filter
     noteVolume.connect(this.staticAudioRouting.subsonicFilter /*subsonicFilter*/);
 
+/*
     // Keep oscillators playing at all times if monophonic.
     if (this.isMonophonic) {
         osc1.start(0);
@@ -570,7 +571,7 @@ function Note(staticAudioRouting, isMonophonic) {
         osc1Octave.start(0);
         osc2Octave.start(0);
     }
-    
+*/    
     // Keep track of all the nodes.
     this.osc1 = osc1;
     this.osc2 = osc2;
@@ -728,6 +729,13 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     }
 }
 
+Note.prototype.stop = function(wave, wave2, semitone, octave, time) {
+    this.osc1.stop();
+    this.osc2.stop();
+    this.osc1Octave.stop();
+    this.osc2Octave.stop();
+}
+
 function setTempo(x) {
     tempo = x;
     bpmDelay.setTempo(tempo);
@@ -878,6 +886,11 @@ function setWaveTable1(name) {
 
     // For now, set both wavetables to the same value.
     waveTable2 = loader.getTable(name);
+    if (playMonophonic) {
+        monophonicNote.stop();
+        monophonicNote = new Note(staticAudioRouting, true);
+    }
+
 }    
 
 function setWaveTable2(name) {
