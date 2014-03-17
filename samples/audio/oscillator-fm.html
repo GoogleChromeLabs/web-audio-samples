@@ -126,9 +126,9 @@ function draw() {
     }
     
     var t = 0;
-    osc1.detune.setTargetValueAtTime(detune + d1, t, k);
-    osc2.detune.setTargetValueAtTime(detune + detune2 + d2, t, k);
-    osc3.detune.setTargetValueAtTime(detune + detune3 + d3, t, k);
+    osc1.detune.setTargetAtTime(detune + d1, t, k);
+    osc2.detune.setTargetAtTime(detune + detune2 + d2, t, k);
+    osc3.detune.setTargetAtTime(detune + detune3 + d3, t, k);
     
     window.requestAnimationFrame(draw);
 }
@@ -160,7 +160,8 @@ function createUnitySource() {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    AudioContext = AudioContext || webkitAudioContext;
+    context = new AudioContext();
 
     osc1 = context.createOscillator();
     osc2 = context.createOscillator();

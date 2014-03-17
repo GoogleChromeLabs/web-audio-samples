@@ -89,7 +89,8 @@ function loadAudioBuffer(url) {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    AudioContext = AudioContext || webkitAudioContext;
+    context = new AudioContext();
     
     source = context.createBufferSource();
     panner = context.createPanner();

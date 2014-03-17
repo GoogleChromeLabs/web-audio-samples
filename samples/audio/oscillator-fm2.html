@@ -296,16 +296,16 @@ d2 = 0;
 d3 = 0;
 
     var t = 0;
-    this.osc1.detune.setTargetValueAtTime(this.detune + d1, t, k);
-    this.osc2.detune.setTargetValueAtTime(this.detune + this.detune2 + d2, t, k);
-    this.osc3.detune.setTargetValueAtTime(this.detune + this.detune3 + d3, t, k);
+    this.osc1.detune.setTargetAtTime(this.detune + d1, t, k);
+    this.osc2.detune.setTargetAtTime(this.detune + this.detune2 + d2, t, k);
+    this.osc3.detune.setTargetAtTime(this.detune + this.detune3 + d3, t, k);
 }
 
 
 function initAudio() {
-    context = new webkitAudioContext();
+    AudioContext = AudioContext || webkitAudioContext;
+    context = new AudioContext();
 
-    // 
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;
     analyser.connect(context.destination);

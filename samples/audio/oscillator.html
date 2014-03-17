@@ -182,7 +182,7 @@ SynthNote.prototype.setFilterResonance = function(value) {
 
     // Resonance gain compensation.
     var gain = Math.pow(10, -value * 0.05);
-    this.resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
+    this.resonanceGainNode.gain.setTargetAtTime(gain, 0, 0.020);
 }
 
 SynthNote.prototype.setRandomization = function(value) {
@@ -213,9 +213,9 @@ SynthNote.prototype.handleDetune = function() {
         d3 = 0;
         --this.snapToDetune;
     }
-    this.osc1.detune.setTargetValueAtTime(this.detune + d1, t, k);
-    this.osc2.detune.setTargetValueAtTime(this.detune + d2, t, k);
-    this.osc3.detune.setTargetValueAtTime(this.detune + d3, t, k);
+    this.osc1.detune.setTargetAtTime(this.detune + d1, t, k);
+    this.osc2.detune.setTargetAtTime(this.detune + d2, t, k);
+    this.osc3.detune.setTargetAtTime(this.detune + d3, t, k);
 }
 
 
@@ -256,7 +256,8 @@ function createRandomPitchSource() {
 
 
 function initAudio() {
-    context = new webkitAudioContext();
+    AudioContext = AudioContext || webkitAudioContext;
+    context = new AudioContext();
     
     // 
     analyser = context.createAnalyser();

@@ -162,9 +162,9 @@ function draw() {
         d3 = 0;
         --snapToDetune;
     }
-    osc1.detune.setTargetValueAtTime(detune + d1, t, k);
-    osc2.detune.setTargetValueAtTime(detune + d2, t, k);
-    osc3.detune.setTargetValueAtTime(detune + d3, t, k);
+    osc1.detune.setTargetAtTime(detune + d1, t, k);
+    osc2.detune.setTargetAtTime(detune + d2, t, k);
+    osc3.detune.setTargetAtTime(detune + d3, t, k);
     
     window.requestAnimationFrame(draw);
 }
@@ -215,7 +215,8 @@ function createRandomPitchSource() {
 
 
 function initAudio() {
-    context = new webkitAudioContext();
+    AudioContext = AudioContext || webkitAudioContext;
+    context = new AudioContext();
             
     osc1 = context.createOscillator();
     osc1.type = "sine";
@@ -285,7 +286,7 @@ function initAudio() {
         
         // Resonance gain compensation.
         var gain = Math.pow(10, -value * 0.05);
-        resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
+        resonanceGainNode.gain.setTargetAtTime(gain, 0, 0.020);
     } );
 
     views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) {
