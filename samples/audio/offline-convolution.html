@@ -106,14 +106,14 @@ function loadImpulseResponse(url) {
 }
 
 function startOfflineProcessing() {
-    offlineContext = new webkitAudioContext(2, duration * sampleRate, sampleRate);
+    offlineContext = new OfflineAudioContext(2, duration * sampleRate, sampleRate);
 
     offlineContext.oncomplete = function(event) {
       var source = context.createBufferSource();
       source.buffer = event.renderedBuffer;
       
       source.connect(context.destination);
-      source.noteOn(0);
+      source.start(0);
     };
     
     var source = offlineContext.createBufferSource();
@@ -125,13 +125,13 @@ function startOfflineProcessing() {
     source.connect(convolver);
     convolver.connect(offlineContext.destination);
     
-    source.noteOn(0.0);
+    source.start(0);
 
     offlineContext.startRendering();    
 }
 
 function init() {    
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     loadSourceBuffer("sounds/drum-samples/conga-rhythm.wav");
     loadImpulseResponse("impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.wav");
