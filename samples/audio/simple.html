@@ -61,7 +61,7 @@ var context;
 var buffer;
 var convolver;
 var panner;
-var source;
+var source = null;
 var dryGainNode;
 var wetGainNode;
 
@@ -126,6 +126,17 @@ function mixToMono(buffer) {
     }
 }
 
+function startPlaying(i) {
+    if (source)
+        source.stop();
+     source = context.createBufferSource();
+     source.buffer = bufferList[i];
+     source.connect(lowFilter);
+     source.playbackRate.value = 1.0;
+     source.loop = true;
+     source.start();
+}
+
 function setAudioSource(i) {
     var buffer = bufferList[i];
 
@@ -145,8 +156,8 @@ function setAudioSource(i) {
                 request.response,
                 function(buffer) {
                     mixToMono(buffer);
-                    source.buffer = buffer;
                     bufferList[i] = buffer;  // cache it
+                    startPlaying(i);
                 },
 
                 function(buffer) {
@@ -267,7 +278,6 @@ function setSourceBuffer(buffer) {
      // Initialize audio
      context = new webkitAudioContext();
 
-     source = context.createBufferSource();
      dryGainNode = context.createGain();
      wetGainNode = context.createGain();
      panner = context.createPanner();
@@ -279,7 +289,6 @@ function setSourceBuffer(buffer) {
      convolver = context.createConvolver();
 
      // Connect audio processing graph
-     source.connect(lowFilter);
      lowFilter.connect(panner);
 
      // Connect dry mix
@@ -299,10 +308,7 @@ function setSourceBuffer(buffer) {
 
      setReverbImpulseResponse('impulse-responses/spatialized3.wav');
 
-     source.playbackRate.value = 1.0;
-
      panner.setPosition(0, 0, -4.0);
-     source.loop = true;
 
      // Load up initial sound
      setAudioSource(0);
@@ -312,9 +318,6 @@ function setSourceBuffer(buffer) {
      
      cn.y = 0.0;
      gFrontProjection.drawDotNormalized(cn);
-
-     var currentTime = context.currentTime;
-     source.start(currentTime + 0.020);
  }
 
 var gIsMouseDown = false;
