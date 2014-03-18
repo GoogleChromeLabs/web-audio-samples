@@ -93,6 +93,14 @@ BufferLoader = function(source, url) {
   this.request_ = 0;
 }
 
+BufferLoader.prototype.onFileLoaded = function(buffer) {
+  this.buffer = buffer;
+  this.source_.buffer = buffer;
+  loadCount++;
+  if (loadCount == 2) 
+    finishLoad();
+}
+
 BufferLoader.prototype.load = function() {
   // Load asynchronously
   var request = new XMLHttpRequest();
@@ -103,13 +111,8 @@ BufferLoader.prototype.load = function() {
   var bufferLoader = this;
   
   request.onload = function() { 
-    bufferLoader.buffer = context.createBuffer(request.response, false);
-    bufferLoader.source_.buffer = bufferLoader.buffer;
-
-    loadCount++;
-    
-    if (loadCount == 2) finishLoad();
-  }
+     context.decodeAudioData(request.response, this.onFileLoaded.bind(this), null);
+  }.bind(this);
 
   request.send();
 }
@@ -203,8 +206,10 @@ function setReverbImpulseResponse(url) {
   request.responseType = "arraybuffer";
 
   request.onload = function() { 
-    convolver.buffer = context.createBuffer(request.response, false);
-  }
+    context.decodeAudioData(request.response, function(buffer) {
+      convolver.buffer=buffer;
+    }, null);
+  };
   
   request.send();
 }
@@ -216,43 +221,45 @@ function loadBufferForSource(source, url) {
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
 
-  request.onload = function() {
-    // Start playing the new buffer at exactly the next 4-beat boundary
-    var currentTime = context.currentTime;
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer){
+      // Start playing the new buffer at exactly the next 4-beat boundary
+      var currentTime = context.currentTime;
 
-    // Add 120ms slop since we don't want to schedule too soon into the future.
-    // This will potentially cause us to wait 4 more beats, if we're almost exactly at the next 4-beat transition.
-    currentTime += 0.120;
+      // Add 120ms slop since we don't want to schedule too soon into the future.
+      // This will potentially cause us to wait 4 more beats, if we're almost exactly at the next 4-beat transition.
+      currentTime += 0.120;
 
-    var delta = currentTime - anchorTime;
-    var deltaBeat = (tempo / 60.0) * delta;
-    var roundedUpDeltaBeat = 4.0 + 4.0 * Math.floor(deltaBeat / 4.0);
-    var roundedUpDeltaTime = (60.0 / tempo) * roundedUpDeltaBeat;
-    var time = anchorTime + roundedUpDeltaTime;
-    
-    // Stop the current loop (when it gets to the next 4-beat boundary).
-    source.stop(time);
-    
-    // Create a new source.
-    var newSource = context.createBufferSource();
-    if (source == source1)
-        newSource.connect(source1Gain);
-    else if (source == source2)
-        newSource.connect(source2Gain);
+      var delta = currentTime - anchorTime;
+      var deltaBeat = (tempo / 60.0) * delta;
+      var roundedUpDeltaBeat = 4.0 + 4.0 * Math.floor(deltaBeat / 4.0);
+      var roundedUpDeltaTime = (60.0 / tempo) * roundedUpDeltaBeat;
+      var time = anchorTime + roundedUpDeltaTime;
+      
+      // Stop the current loop (when it gets to the next 4-beat boundary).
+      this.stop(time);
+      
+      // Create a new source.
+      var newSource = context.createBufferSource();
+      if (this == source1)
+          newSource.connect(source1Gain);
+      else if (this == source2)
+          newSource.connect(source2Gain);
 
-    // Assign the buffer to the new source.
-    newSource.buffer = context.createBuffer(request.response, false);
+      // Assign the buffer to the new source.
+      newSource.buffer = buffer;
 
-    // Start playing exactly on the next 4-beat boundary with looping.
-    newSource.loop = true;
-    newSource.start(time);
-    
-    // This new source will replace the existing source.
-    if (source == source1)
-        source1 = newSource;
-    else if (source == source2)
-        source2 = newSource;
-  }
+      // Start playing exactly on the next 4-beat boundary with looping.
+      newSource.looping = true;
+      newSource.start(time);
+      
+      // This new source will replace the existing source.
+      if (this == source1)
+          source1 = newSource;
+      else if (this == source2)
+          source2 = newSource;
+    }.bind(this) );
+  }.bind(source);
 
   request.send();  
 }

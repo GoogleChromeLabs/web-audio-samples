@@ -104,8 +104,8 @@ BufferLoader.prototype.onFileLoaded = function(buffer) {
   loadCount++;
   if (loadCount == 2) 
     finishLoad();
-
 }
+
 BufferLoader.prototype.load = function() {
   // Load asynchronously
   var request = new XMLHttpRequest();
@@ -214,9 +214,11 @@ function setReverbImpulseResponse(url) {
   request.responseType = "arraybuffer";
 
   request.onload = function() { 
-    convolver.buffer = context.createBuffer(request.response, false);
-  }
-  
+    context.decodeAudioData(request.response, function(buffer) {
+      convolver.buffer=buffer;
+    }, null);
+  };
+
   request.send();
 }
 
