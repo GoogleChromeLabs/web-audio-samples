@@ -111,7 +111,7 @@ BufferLoader.prototype.load = function() {
   var bufferLoader = this;
   
   request.onload = function() { 
-     context.decodeAudioData(request.response, this.onFileLoaded.bind(this), null);
+     context.decodeAudioData(request.response, this.onFileLoaded.bind(this), function(){console.log("error decoding file.")});
   }.bind(this);
 
   request.send();
@@ -208,7 +208,7 @@ function setReverbImpulseResponse(url) {
   request.onload = function() { 
     context.decodeAudioData(request.response, function(buffer) {
       convolver.buffer=buffer;
-    }, null);
+    }, function(){console.log("error decoding file.")});
   };
   
   request.send();
@@ -258,7 +258,7 @@ function loadBufferForSource(source, url) {
           source1 = newSource;
       else if (this == source2)
           source2 = newSource;
-    }.bind(this) );
+    }.bind(this), function(){console.log("error decoding file.")} );
   }.bind(source);
 
   request.send();  
