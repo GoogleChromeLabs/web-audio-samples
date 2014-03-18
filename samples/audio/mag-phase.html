@@ -259,12 +259,13 @@
 
       function animateCurve() {
         drawCurve();
-        webkitRequestAnimationFrame(animateCurve);
+        requestAnimationFrame(animateCurve);
       }
       
       function init () {
+        AudioContext=AudioContext||webkitAudioContext;
         // Setup biquad and other audio stuff
-        context = new webkitAudioContext();
+        context = new AudioContext();
         filter = context.createBiquadFilter();
         filter.type = 2; // Bandpass
         filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
