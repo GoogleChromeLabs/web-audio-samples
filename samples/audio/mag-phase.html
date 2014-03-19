@@ -21,7 +21,7 @@
       var cutoff = .5;
       var q = 10.0; // in dB
       var gain = 0.0; // in dB
-      var source;
+      var source = null;
       var noctaves = 8;
       var cutoffOctaves = 10;
 
@@ -210,10 +210,22 @@
         var request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.responseType = "arraybuffer";
-        request.onload = function() {
-          sound = context.createBuffer(request.response, true);
-          source.buffer = sound;
-        }
+        request.onload = function() { 
+          context.decodeAudioData(request.response, function(buffer) {
+            sound = buffer;
+            if (source) {
+              source.stop(0);
+              source = null;
+            }
+            source = context.createBufferSource();
+            source.connect(filter);
+            source.loop = true;
+            source.buffer = buffer;
+            source.start(0);
+
+          }, function(){console.log("error decoding file.")});
+        };
+
 
         request.send();
       }
@@ -280,12 +292,8 @@
 //	}
       
       
-        source = context.createBufferSource();
-        source.connect(filter);
         filter.connect(context.destination);
         loadSound("sounds/tones/pinkgood.wav");
-        source.loop = true;
-        source.start(0);
 
 
 	addSlider("cutoff");
@@ -323,15 +331,15 @@
       <div id="filtertypes" style="width:25%;float:left;">
 	<h2>Filter type</h2>
 	<form>
-	  <input type="radio" name="filtertype" value="Lowpass" onClick="setFilterType(0);">Lowpass<br/>
-	  <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType(1);">Highpass<br/>
+	  <input type="radio" name="filtertype" value="Lowpass" onClick="setFilterType('lowpass');">Lowpass<br/>
+	  <input type="radio" name="filtertype" value="Highpass" onClick="setFilterType('highpass');">Highpass<br/>
 	  <input type="radio" name="filtertype" value="Bandpass"
-	    checked="checked" onClick="setFilterType(2);">Bandpass<br/>
-	  <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType(3);">Lowshelf<br/>
-	  <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType(4);">Highshelf<br/>
-	  <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType(5);">Peaking<br/>
-	  <input type="radio" name="filtertype" value="Notch" onClick="setFilterType(6);">Notch<br/>
-	  <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType(7);">Allpass<br/>
+	    checked="checked" onClick="setFilterType('bandpass');">Bandpass<br/>
+	  <input type="radio" name="filtertype" value="Lowshelf" onClick="setFilterType('lowshelf');">Lowshelf<br/>
+	  <input type="radio" name="filtertype" value="Highshelf" onClick="setFilterType('highshelf');">Highshelf<br/>
+	  <input type="radio" name="filtertype" value="Peaking" onClick="setFilterType('peaking');">Peaking<br/>
+	  <input type="radio" name="filtertype" value="Notch" onClick="setFilterType('notch');">Notch<br/>
+	  <input type="radio" name="filtertype" value="Allpass" onClick="setFilterType('allpass');">Allpass<br/>
 	</form>
       </div>
     
