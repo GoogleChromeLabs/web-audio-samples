@@ -196,8 +196,16 @@ function loadBufferAndPlay(url) {
       context.decodeAudioData(
           request.response,
           function(buffer) {
+              if (source) {
+                source.stop(0);
+                source.disconnect();
+              }
+              source = context.createBufferSource();
+
+              source.connect(panner);
               mixToMono(buffer);
               source.buffer = buffer;
+              source.loop = true;
               source.start(0);
 
               // get rid of loading animation
@@ -302,6 +310,7 @@ function schedule() {
    gLastZ = z;
    
    panner.setVelocity(deltaX, deltaY, deltaZ);
+//   console.log( "setVelocity( " + deltaX + ", " + deltaY + ", " + deltaZ + ")");
    context.listener.dopplerFactor = dopplerFactor;
    
    draw(x, y, z);
@@ -385,8 +394,6 @@ function addSliders() {
  function init() {
      context = new webkitAudioContext();
      
-     source = context.createBufferSource();
-
      masterGainNode = context.createGain();
      dryGainNode = context.createGain();
      wetGainNode = context.createGain();
@@ -400,7 +407,6 @@ function addSliders() {
      wetGainNode.gain.value = kAmbientGain;
 
      // Connect dry mix
-     source.connect(panner);
      panner.connect(dryGainNode);
      dryGainNode.connect(masterGainNode);
      
@@ -416,15 +422,13 @@ function addSliders() {
      // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.wav');
      setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
 
-     source.playbackRate.value = 0.75;
+//     source.playbackRate.value = 0.75;
 
      x = 0;
      y = 0;
      z = -4.0;
 
      panner.setPosition(x, y, z);
-
-     source.loop = true;
 
      // Load up initial buffer
      loadBufferAndPlay("sounds/hyper-reality/white-noise-mono.wav");
@@ -495,6 +499,14 @@ Cauldron
 
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched-up-paper.wav'); highlightElement(this);">
 Crunched up Paper
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/siren.wav'); highlightElement(this);">
+Siren
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/sine.ogg'); highlightElement(this);">
+Sine Wave
 </div>
 
 </div>
