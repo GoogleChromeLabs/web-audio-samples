@@ -222,6 +222,17 @@ function loadBufferAndPlay(url) {
   request.send();
 }
 
+function useOscillator() {
+  if (source) {
+    source.stop(0);
+    source.disconnect();
+  }
+  source = context.createOscillator();
+  source.frequency.value = 110;
+  source.connect(panner);
+  source.start(0);
+}
+
 var kWhite = "rgb(255,255,255)";
 var kRed = "rgb(200,0,0)";
 var kGreen = "rgb(0,200,0)";
@@ -506,7 +517,11 @@ Siren
 </div>
 
 <div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/sine.ogg'); highlightElement(this);">
-Sine Wave
+Sine Wave (buffer-based)
+</div>
+
+<div class='bigList' onmousedown="useOscillator(); highlightElement(this);">
+OscillatorNode (not buffer-based)
 </div>
 
 </div>
