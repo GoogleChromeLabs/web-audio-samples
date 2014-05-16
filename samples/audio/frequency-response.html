@@ -195,8 +195,10 @@ function resonanceHandler(event, ui) {
 
 
 function initAudio() {
-    context = new webkitAudioContext();
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
     filter = context.createBiquadFilter();
+    filter.type = "bandpass";
     filter.Q.value = 5;
     filter.frequency.value = 2000;
     filter.connect(context.destination);
