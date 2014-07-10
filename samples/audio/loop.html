@@ -185,12 +185,12 @@ function Loop(context, globalEffects) {
     this.gain = context.createGain();
 
     this.filter = context.createBiquadFilter();
-    this.filter.type = this.filter.LOWPASS;
+    this.filter.type = "lowpass";
     this.filter.frequency.value = 24000;
     this.filter.Q.value = 6; // dB
 
     this.filter2 = context.createBiquadFilter();
-    this.filter2.type = this.filter.LOWPASS;
+    this.filter2.type = "lowpass";
     this.filter2.frequency.value = 24000;
     this.filter2.Q.value = 0; // dB
 
