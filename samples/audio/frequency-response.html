@@ -56,7 +56,8 @@ window.onload = init;
 var context;
 var filter;
 var frequency = 2000;
-var resonance = 5;
+var Q = 5;
+var gain = 2;
 
 var canvas;
 var canvasContext;
@@ -116,7 +117,7 @@ function drawCurve() {
         var f = magResponse[i];
         var response = magResponse[i];
         var dbResponse = 20.0 * Math.log(response) / Math.LN10;
-dbResponse *= 2; // simulate two chained Biquads (for 4-pole lowpass)
+        dbResponse *= 2; // simulate two chained Biquads (for 4-pole lowpass)
         
         var x = i;
         var y = dbToY(dbResponse);
@@ -169,12 +170,20 @@ dbResponse *= 2; // simulate two chained Biquads (for 4-pole lowpass)
     }
 }
 
-function frequencyHandler(event, ui) {
-  var value = ui.value;
+function cutoffToFrequency(value) {
+  var nyquist = context.sampleRate * 0.5;
+  return Math.log(value)/Math.log(nyquist);
+}
+
+function frequencyToCutoff(value) {
   var nyquist = context.sampleRate * 0.5;
   var noctaves = Math.log(nyquist / 10.0) / Math.LN2;
   var v2 = Math.pow(2.0, noctaves * (value - 1.0));
-  var cutoff = v2*nyquist;
+  return (v2*nyquist);
+}
+
+function frequencyHandler(event, ui) {
+  var cutoff = frequencyToCutoff(ui.value);
   
   var info = document.getElementById("frequency-value");
   info.innerHTML = "frequency = " + cutoff + " Hz";
@@ -183,24 +192,39 @@ function frequencyHandler(event, ui) {
   drawCurve();
 }
 
-function resonanceHandler(event, ui) {
+function QHandler(event, ui) {
   var value = ui.value;
 
-  var info = document.getElementById("resonance-value");
-  info.innerHTML = "resonance = " + value + " dB";
+  var info = document.getElementById("Q-value");
+  info.innerHTML = "Q = " + value + " dB";
   
-  filter.Q.value = value; // !! Q value not same as resonance...
+  filter.Q.value = value;
   drawCurve();
 }
 
+function gainHandler(event, ui) {
+  var value = ui.value;
+
+  var info = document.getElementById("gain-value");
+  info.innerHTML = "gain = " + value + "";
+  
+  filter.gain.value = value;
+  drawCurve();
+}
+
+function handleFilterChange(event) {
+    filter.type = event.target.value;
+    drawCurve();
+}
 
 function initAudio() {
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     context = new AudioContext();
     filter = context.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.Q.value = 5;
-    filter.frequency.value = 2000;
+    filter.type = filtertype;
+    filter.Q.value = Q;
+    filter.frequency.value = frequency;
+    filter.gain.value = gain;
     filter.connect(context.destination);
 }
 
@@ -219,9 +243,12 @@ function init() {
     
     
     addSlider("frequency");
-    addSlider("resonance");
-    configureSlider("frequency", frequency, 0, 1, frequencyHandler);
-    configureSlider("resonance", resonance, 0, 20, resonanceHandler);
+    addSlider("Q");
+    addSlider("gain");
+    configureSlider("frequency", cutoffToFrequency(frequency), 0, 1, frequencyHandler);
+    configureSlider("Q", Q, 0, 20, QHandler);
+    configureSlider("gain", gain, -10, 10, gainHandler);
+    document.getElementById('filtertype').addEventListener("change", handleFilterChange, true);
         
     drawCurve();
 }
@@ -267,6 +294,17 @@ function handleMouseMove(event) {
 <br><br>
 
 <!-- Sliders and other controls will be added here -->
+<select id="filtertype">
+    <option>lowpass</option>
+    <option>highpass</option>
+    <option>bandpass</option>
+    <option>lowshelf</option>
+    <option>highshelf</option>
+    <option>peaking</option>
+    <option>notch</option>
+    <option>allpass</option>
+</select>
+
 <div id="controls"> </div>
 
 <div id="info"> </div>
