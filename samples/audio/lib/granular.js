@@ -267,15 +267,15 @@ Granular.prototype.scheduleGrain = function() {
     // var avePeriod = this.aveDelta / sampleRate;
     if (avePeriod < 0.009 || longAvePeriod < 0.010) {
         goal *= 2;
-        console.log("*** ");
+//        console.log("*** ");
     }
     
     if (avePeriod > 0.012) {
-        console.log("^^^");
+//        console.log("^^^");
         goal = 2 * avePeriod;
     }
     
-    console.log(avePeriod + " ::: " + longAvePeriod);        
+//    console.log(avePeriod + " ::: " + longAvePeriod);        
     
     var sum = 0;
     var offset = 1;

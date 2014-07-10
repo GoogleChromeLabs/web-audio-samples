@@ -201,10 +201,10 @@ function Loop(context, globalEffects) {
     this.filter2.connect(this.filterGain);
     this.filterGain.connect(this.gain);
     
-    this.delayDry = context.createGainNode();
-    this.delayWet = context.createGainNode();
-    this.convolverDry = context.createGainNode();
-    this.convolverWet = context.createGainNode();
+    this.delayDry = context.createGain();
+    this.delayWet = context.createGain();
+    this.convolverDry = context.createGain();
+    this.convolverWet = context.createGain();
     
     this.delayDry.connect(globalEffects.compressor);
     this.convolverDry.connect(globalEffects.compressor);
@@ -397,8 +397,8 @@ function init() {
     }
 
     // loadSourceBuffer("sounds/drum-samples/hihat-short.wav");
-    // loadSourceBuffer("sounds/hyper-reality/human-voice.mp4");
-    loadSourceBuffer("sounds/DriftingDrums.mp3");
+    loadSourceBuffer("sounds/hyper-reality/human-voice.mp4");
+    //loadSourceBuffer("sounds/DriftingDrums.mp3");
     
     bufferLoader = new BufferLoader(
         context,
