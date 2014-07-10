@@ -190,7 +190,7 @@ SynthNote.prototype.noteOn = function(detune, gain) {
     noiseSource2.connect(osc2.frequency);
     noiseSource3.connect(osc3.frequency);
     
-    var gainNode = context.createGainNode();
+    var gainNode = context.createGain();
     gainNode.gain.value = 0.25 * gain;
     
     // We have 2pole mode, using the first filter, and 4pole mode chaining both biquad sections together.
@@ -347,7 +347,7 @@ function createRandomPitchSource() {
     noiseLowpass.frequency.value = cutoff;
     noiseLowpass.frequency.Q = 0;
     
-    var noiseGain = context.createGainNode();
+    var noiseGain = context.createGain();
     noiseGain.gain.value = 1;
         
     noiseSource.connect(noiseLowpass);
@@ -479,7 +479,7 @@ function initAudio() {
     masterGain = context.createGain();
     masterGain.gain.value = 1;
     
-    resonanceGainNode = context.createGainNode();
+    resonanceGainNode = context.createGain();
     
     navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
 
