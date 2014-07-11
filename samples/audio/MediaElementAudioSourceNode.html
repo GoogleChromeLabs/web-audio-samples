@@ -14,7 +14,7 @@
                 var source = context.createMediaElementSource(audioTag);
 
                 var filter = context.createBiquadFilter();
-                filter.type = filter.HIGHPASS;
+                filter.type = "highpass";
                 filter.frequency.value = 4000;
                 
                 source.connect(filter);

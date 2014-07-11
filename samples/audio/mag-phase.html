@@ -279,7 +279,7 @@
         // Setup biquad and other audio stuff
         context = new AudioContext();
         filter = context.createBiquadFilter();
-        filter.type = 2; // Bandpass
+        filter.type = "bandpass"; // Bandpass
         filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
         filter.Q.value = q;
         filter.gain.value = gain;
@@ -359,7 +359,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Mon Nov  7 12:36:55 PST 2011
+Last modified: Fri Jul 11 15:10:29 PDT 2014
 <!-- hhmts end -->
       </div>
     </div>
