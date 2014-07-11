@@ -535,7 +535,7 @@ function Note(staticAudioRouting, isMonophonic) {
 
     // Filter
     var filter = context.createBiquadFilter();
-    filter.type = 0;
+    filter.type = "lowpass";
     filter.gain.value = 0.0; // default value
 
     // Create note volume.
@@ -818,7 +818,7 @@ function StaticAudioRouting() {
 
     var subsonicFilter = context.createBiquadFilter();
     
-    subsonicFilter.type = 1; // hipass
+    subsonicFilter.type = "highpass";
     subsonicFilter.frequency.value = 10;
 
     subsonicFilter.connect(grungeWaveShaper.input);
