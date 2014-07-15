@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>
-Title
+Basic Example of Three Oscillators
 </title>
 
 <link rel="stylesheet" type="text/css" href = "style/simple.css" />
@@ -431,40 +431,40 @@ function loadWaveTable(url) {
 Frequency
 <input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
 Sonogram
-<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
 3D Sonogram
-<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
 Waveform
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'sine';" />
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="synthNote.osc1.type = 'sine';" />
 SINE
 <input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="synthNote.osc1.type = 'sawtooth';" />
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'sawtooth';" />
 SAWTOOTH
 <input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'triangle';"/>
 TRIANGLE
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'sine';" />
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="synthNote.osc2.type = 'sine';" />
 SINE
 <input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="synthNote.osc2.type = 'sawtooth';" />
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'sawtooth';" />
 SAWTOOTH
 <input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.osc2.type = 'triangle';"/>
 TRIANGLE
 
 <br>
 <!-- Waveform type -->
-<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'sine';" />
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="synthNote.osc3.type = 'sine';" />
 SINE
 <input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'square';" />
 SQUARE
-<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="synthNote.osc3.type = 'sawtooth';" />
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'sawtooth';" />
 SAWTOOTH
 <input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.osc3.type = 'triangle';"/>
 TRIANGLE
