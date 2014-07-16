@@ -103,6 +103,8 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
       slider.max = max;
       slider.value = value;
       slider.oninput = function() { handler(0, this); };
+      // Run the handler once so any additional text is displayed.
+      handler(0, {value: value});
   }
 
   function addSliderOld(name) {
