@@ -84,7 +84,7 @@ function getRelativeCoordinates(eventInfo, opt_reference) {
     var sliderText = '<div style="width:500px; height:20px;"> <input id="' + divName + '" '
      + 'type="range" min="0" max="1" step="0.01" value="0" style="height: 20px; width: 450px;"> <div id="'
      + name
-     + '-value" style="position:relative; left:30em; top:-18px;">'
+     + '-value" style="position:relative; left:480px; top:-18px;">'
      + name
      + '</div> </div> <br>  ';
 
