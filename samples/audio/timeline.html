@@ -157,7 +157,7 @@ function createCurveBuffer(length, offset) {
 
 function runTest() {
     // Create offline audio context.
-    context = new webkitAudioContext(1, sampleFrameLength, sampleRate);
+    context = new OfflineAudioContext(1, sampleFrameLength, sampleRate);
 
     // Create buffer used by the source which will have its gain controlled.
     constantOneBuffer = createConstantBuffer(context, sampleFrameLength, 1);
@@ -207,7 +207,7 @@ function runTest() {
 
 
     // Start source at time 0.
-    constantSource.noteOn(0);
+    constantSource.start(0);
 
     context.oncomplete = drawCurve;
     context.startRendering();
