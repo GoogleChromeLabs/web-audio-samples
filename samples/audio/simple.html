@@ -184,7 +184,8 @@ function pitchHandler(event, ui) {
     info.innerHTML = "pitch = " + cents + " cents";
 
     var rate = Math.pow(2.0, cents / 1200.0);
-    source.playbackRate.value = rate;
+    if (source)
+        source.playbackRate.value = rate;
 }
 
 function reverbHandler(event, ui) {
@@ -192,7 +193,8 @@ function reverbHandler(event, ui) {
     var info = document.getElementById("ambience-value");
     info.innerHTML = "ambience = " + value;
 
-    wetGainNode.gain.value = value;
+    if (wetGainNode)
+        wetGainNode.gain.value = value;
 }
 
 function influenceHandler(event, ui) {
@@ -206,7 +208,8 @@ function mainGainHandler(event, ui) {
     var info = document.getElementById("mainGain-value");
     info.innerHTML = "main gain = " + value;
 
-    dryGainNode.gain.value = value;
+    if (dryGainNode)
+        dryGainNode.gain.value = value;
 }
 
 function cutoffHandler(event, ui) {
@@ -221,7 +224,8 @@ function cutoffHandler(event, ui) {
 
     info.innerHTML = "cutoff = " + frequency + " hz";
 
-    lowFilter.frequency.value = frequency;
+    if (lowFilter)
+        lowFilter.frequency.value = frequency;
 }
 
 function addSliders() {
