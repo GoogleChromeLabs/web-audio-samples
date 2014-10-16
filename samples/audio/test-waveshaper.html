@@ -76,7 +76,8 @@ function headroomHandler(event, ui) {
     var info = document.getElementById("headroom-value");
     info.innerHTML = "headroom = " + headroom;
 
-    gainNode.gain.value = Math.pow(10, 0.05 * headroom);
+    if (gainNode)
+        gainNode.gain.value = Math.pow(10, 0.05 * headroom);
 }
 
 function finishLoad() {
@@ -168,7 +169,7 @@ function init() {
     gainNode.connect(waveshaper);
     waveshaper.connect(context.destination);
     
-    source.noteOn(0);
+    source.start(0);
 }
 
 </script>
