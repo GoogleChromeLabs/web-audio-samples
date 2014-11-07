@@ -300,8 +300,8 @@
 	addSlider("Q");
         addSlider("gain");
 	configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
-	configureSlider("Q", q, -20.0, 100.0, qHandler);
-        configureSlider("gain", gain, -10.0, 10.0, gainHandler);
+	configureSlider("Q", q, 0.0, 1000.0, qHandler);
+        configureSlider("gain", gain, -40.0, 40.0, gainHandler);
         
         // Give audio process some time initialize itself.
         drawCurve();
@@ -359,7 +359,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Fri Jul 11 15:10:29 PDT 2014
+Last modified: Fri Nov  7 10:07:02 PST 2014
 <!-- hhmts end -->
       </div>
     </div>
