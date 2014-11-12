@@ -27,7 +27,8 @@
             mediaStreamSource.connect(context.destination);
         }
 
-        getUserMedia({audio:true}, gotStream);
+        var constraints = { audio: { optional: [{ echoCancellation: false }] } };
+        getUserMedia(constraints, gotStream);
     </script>
     </body>
 </html>
