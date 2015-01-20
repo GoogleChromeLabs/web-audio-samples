@@ -60,7 +60,6 @@ if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudio
 // init() once the page has finished loading.
 window.onload = init;
 
-var isStarted = false;
 var context = 0;
 var source = 0;
 var convolver = 0;
@@ -266,16 +265,21 @@ Preset.prototype.load = function() {
 }
 
 Preset.prototype.play = function() {
+    if (source.buffer) {
+        source.stop();
+    }
+    source = context.createBufferSource();
     source.buffer = this.sampleBuffer;
     convolver.buffer = this.impulseResponseBuffer;
+
+    source.connect(gainNode1);
+    source.connect(convolver);
+    source.loop = true;
 
     gainNode1.gain.value = this.mainGain;
     gainNode2.gain.value = this.sendGain;
 
-    if (!isStarted) {
-        isStarted = true;
-        source.start(0);
-    }
+    source.start(0);
 }
 
 function highlightElement(object) {
