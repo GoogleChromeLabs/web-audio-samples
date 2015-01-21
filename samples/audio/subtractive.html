@@ -67,8 +67,7 @@ o3djs.require('o3djs.shader');
 
 window.onload = init;
 
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 var context;
 var waveshaper;
@@ -462,7 +461,7 @@ function onMIDIFailure(error) {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     noiseBuffer = createNoiseBuffer();
 

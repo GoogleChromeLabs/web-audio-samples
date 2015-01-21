@@ -24,8 +24,7 @@
     var gCount = 0;
     
     // Temporary patch until all browsers support unprefixed context.
-    if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-        window.webkitAudioContext = AudioContext;
+    AudioContext = AudioContext || webkitAudioContext;
 
     // Callback when a collision occurs
     function countContact(body1, body2) {
@@ -180,7 +179,7 @@
     function init() {
       prettyPrint();
 
-      context = new webkitAudioContext();
+      context = new AudioContext();
       
       if (context.createDynamicsCompressor) {
           // Create dynamics compressor to sweeten the overall mix.

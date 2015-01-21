@@ -49,8 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // init() once the page has finished loading.
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 window.onload = init;
 
@@ -448,7 +447,7 @@ function init() {
         
     startLoadingAssets();
 
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     var finalMixNode;
     if (context.createDynamicsCompressor) {

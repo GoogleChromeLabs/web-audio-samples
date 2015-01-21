@@ -163,8 +163,7 @@ var mediumCount = 0;
 var hardCount = 0;
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 function updateInfo() {
  var info = document.getElementById('info');
@@ -1225,7 +1224,7 @@ function initClient() {
 
 function initAudio() {
     // Audio init
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     // Create compressor to sweeten overall mix
     if (context.createDynamicsCompressor) {
