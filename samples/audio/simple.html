@@ -52,8 +52,7 @@ Panning/Reverb
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 // init() once the page has finished loading.
 window.onload = init;
@@ -281,7 +280,7 @@ function setSourceBuffer(buffer) {
      canvas2.addEventListener("mouseup", handleMouseUp, true);
 
      // Initialize audio
-     context = new webkitAudioContext();
+     context = new AudioContext();
 
      dryGainNode = context.createGain();
      wetGainNode = context.createGain();

@@ -51,8 +51,7 @@ Digital DJ
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+AudioContext = AudioContext || webkitAudioContext;
 
 // init() once the page has finished loading.
 window.onload = init;
@@ -329,7 +328,7 @@ function draw() {
 
 function init() {
     // Initialize audio
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
 
     // Create post-compressor gain node.
