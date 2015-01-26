@@ -125,11 +125,11 @@ function Asset(url, index, type) {
     this.type = type;
     this.startedLoading = false;
     this.loaded = false;
-    this.buffer = 0;
-    this.presetList = new Array();
+    this.buffer = null;
+    this.presetList = [];
 }
 
-Asset.prototype.load = function(preset) {
+Asset.prototype.load = function (preset) {
     if (this.loaded) {
         // Already loaded
         preset.assetFinishedLoading(this);
@@ -146,7 +146,7 @@ Asset.prototype.load = function(preset) {
 
     this.startedLoading = true;
 
-    alert('trying to load: ' + this.url);
+    console.log('trying to load: ' + this.url);
         
     // Load asynchronously
     var request = new XMLHttpRequest();
@@ -156,22 +156,25 @@ Asset.prototype.load = function(preset) {
     
     var asset = this;
 
-    request.onload = function() {
-        asset.buffer = context.createBuffer(request.response, false);
-        asset.loaded = true;
-        
-        var buffer = asset.buffer;
-        alert('loaded: ' + asset.url + ' :  buffer.sampleRate = ' + buffer.sampleRate + ' :  buffer.duration = ' + buffer.duration  + buffer.sampleRate + ' :  buffer.numberOfChannels = ' + buffer.numberOfChannels);
+    request.onload = function (event) {
+        context.decodeAudioData(request.response, function (buffer) {
+            asset.loaded = true;
+            asset.buffer = buffer;
+            console.log('loaded: ' + asset.url + 
+                ' : buffer.sampleRate = ' + buffer.sampleRate + 
+                ' : buffer.duration = ' + buffer.duration + 
+                ' : buffer.numberOfChannels = ' + buffer.numberOfChannels
+            );
 
-        // Tell all the presets that depend on us that we're ready
-        for (i = 0; i < asset.presetList.length; i++) {
-            var preset = asset.presetList[i];
-            preset.assetFinishedLoading(asset);
-        }
-    }
+            // Tell all the presets that depend on us that we're ready
+            for (i = 0; i < asset.presetList.length; i++) {
+                asset.presetList[i].assetFinishedLoading(asset);
+            }
+        });
+    };
 
     request.send();
-}
+};
 
 function Preset(presetIndex, title, sampleIndex, impulseResponseIndex, mainGain, sendGain) {
     this.mainGain = mainGain;
@@ -181,14 +184,15 @@ function Preset(presetIndex, title, sampleIndex, impulseResponseIndex, mainGain,
     this.divName = 'preset' + presetIndex;
     this.presetIndex = presetIndex;
     this.sampleIndex = sampleIndex;
-    this.impulseResponseIndex = impulseResponseIndex + responseOffset; // passed in index starts at 0 for responses
-    this.sampleBuffer = 0;
-    this.impulseResponseBuffer = 0;
+    // passed in index starts at 0 for responses
+    this.impulseResponseIndex = impulseResponseIndex + responseOffset; 
+    this.sampleBuffer = null;
+    this.impulseResponseBuffer = null;
 
     // Add div for this preset
     var presetListDiv = document.getElementById('presetList');
 
-    var presetDiv = '<div id="'
+    var presetDiv = '<div id="';
     presetDiv += this.divName;
     presetDiv += '">';
     var s = this.generateDivString(false);
@@ -200,9 +204,9 @@ function Preset(presetIndex, title, sampleIndex, impulseResponseIndex, mainGain,
 Preset.prototype.div = function() {
     var myDiv = document.getElementById(this.divName);
     return myDiv;
-}
+};
 
-Preset.prototype.generateDivString = function(isLoaded) {
+Preset.prototype.generateDivString = function (isLoaded) {
     var s = '<div class="bigList"';
 
     if (isLoaded) {
@@ -221,14 +225,15 @@ Preset.prototype.generateDivString = function(isLoaded) {
     s += '</div>';
 
     return s;
-}
+};
 
-Preset.prototype.assetFinishedLoading = function(asset) {
+Preset.prototype.assetFinishedLoading = function (asset) {
+
     switch (asset.type) {
         case 0: this.sampleBuffer = asset.buffer; break;
         case 1: this.impulseResponseBuffer = asset.buffer; break;
     }
-    
+
     if (this.isFullyLoaded()) {
         // Remove loading animation
         var div = document.getElementById(this.divName);
@@ -241,34 +246,36 @@ Preset.prototype.assetFinishedLoading = function(asset) {
         }
         
         // Autoplay first preset
-        if (this.presetIndex == 0) {
+        if (this.presetIndex === 0) {
             this.play();
             highlightElement(this.div());
         }
     }
-}
+};
 
-Preset.prototype.isFullyLoaded = function() {
+Preset.prototype.isFullyLoaded = function () {
     return this.sampleBuffer && this.impulseResponseBuffer;
-}
+};
 
-Preset.prototype.load = function() {
-    sampleAsset = assetList[this.sampleIndex];
-    impulseResponseAsset = assetList[this.impulseResponseIndex];
-    
-    sampleAsset.load(this);
-    impulseResponseAsset.load(this);    
-}
+Preset.prototype.load = function () {
+    assetList[this.sampleIndex].load(this);
+    assetList[this.impulseResponseIndex].load(this);
+};
 
-Preset.prototype.play = function() {
+Preset.prototype.play = function () {
+    source.disconnect();
+    source = context.createBufferSource();
     source.buffer = this.sampleBuffer;
+    source.connect(gainNode1);
+    source.connect(convolver);
+    
     convolver.buffer = this.impulseResponseBuffer;
 
     gainNode1.gain.value = this.mainGain;
     gainNode2.gain.value = this.sendGain;
-
+    
     source.start(0);
-}
+};
 
 function highlightElement(object) {
     if (hilightedElement) hilightedElement.style.backgroundColor = "white";
@@ -278,16 +285,17 @@ function highlightElement(object) {
 }
 
 function initAssets() {
-    assetList = new Array();
+    assetList = [];
     
     for (i = 0; i < fileList.length; i++) {
         var type = i < responseOffset ? 0 : 1;
         assetList[i] = new Asset(fileList[i], i, type);
     }
+
 }
 
 function initPresets() {
-    presetList = new Array();
+    presetList = [];
     
     var n = 0;
     
@@ -355,7 +363,7 @@ function initPresets() {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     convolver = context.createConvolver();
     source = context.createBufferSource();
