@@ -9,39 +9,64 @@ found in the LICENSE file.
 
 <head>
   <title>StereoPannerNode | Web Audio API sample</title>
+  <link rel="stylesheet" type="text/css" href="style/base.css">
+  <style>
+    body {
+      margin: 2rem;
+    }
+    label.btn-radio {
+      display: inline-block;
+      margin: 0.75rem 0.75rem 0.75rem 0.25rem;
+      width: 80px;
+    }
+    .tab {
+      margin-top: 0.75rem;
+    }
+    label.slider {
+      display: inline-block;
+      margin: 0.5rem;
+      width: 65px;
+    }
+    input.slider {
+      margin: 0.5rem;
+      width: 175px;
+    }
+  </style>
 </head>
 
 <body>
   
+  <h1>stereopanner.html</h1>
+
   <fieldset>
     <legend>Panner Behavior</legend>
     <input id="btn-manual" type="radio" name="behavior" checked="checked"
       onclick="onTabSwitch('tab-manual')" />
-    <label for="btn-manual">Manual</label>
+    <label class="btn-radio" for="btn-manual">Manual</label>
     <input id="btn-auto" type="radio" name="behavior" 
       onclick="onTabSwitch('tab-auto')" />
-    <label for="btn-auto">Automated</label>
+    <label class="btn-radio" for="btn-auto">Automated</label>
 
     <div id="tab-manual" class="tab">
-      <label for="slider-pan">Pan</label>
-      <input id="slider" type="range" min="-1" max="1" value="0.0" step="0.1" 
+      <label class="slider" for="slider-pan">Pan</label>
+      <input class="slider" id="slider" type="range" min="-1" max="1" value="0.0" step="0.1" 
         oninput="onPanSliderChange(value)" />
       <output for="slider-pan" id="slider-pan-value">0.0</output>
     </div>
     
     <div id="tab-auto" class="tab">
-      <label for="slider-freq">Frequency</label>
-      <input id="slider-freq" type="range" min="0.1" max="20" value="0.1" 
+      <label class="slider" for="slider-freq">Frequency</label>
+      <input class="slider" id="slider-freq" type="range" min="0.1" max="20" value="0.1" 
         step="0.1" oninput="onFreqSliderChange(value)" />
       <output for="slider-freq" id="slider-freq-value">0.1</output>
       <br>
-      <label for="slider-depth">Depth</label>
-      <input id="slider-depth" type="range" min="0.0" max="1.0" value="1.0" 
+      <label class="slider" for="slider-depth">Depth</label>
+      <input class="slider" id="slider-depth" type="range" min="0.0" max="1.0" value="1.0" 
         step="0.1" oninput="onDepthSliderChange(value)" />
       <output for="slider-depth" id="slider-depth-value">1.0</output>
       <br>
-      <label for="slider-waveform">Waveform</label>
-      <input id="slider-waveform" type="range" min="0" max="3" value="3" 
+      <label class="slider" for="slider-waveform">Waveform</label>
+      <input class="slider" id="slider-waveform" type="range" min="0" max="3" value="3" 
         step="1" oninput="onWaveformSliderChange(value)" />
       <output for="slider-waveform" id="slider-waveform-value">triangle</output>
       <br>
@@ -150,14 +175,14 @@ found in the LICENSE file.
     lfo.type = 'triangle';
 
     source.loop = true;
-    source.loopStart = 3.137;
-    source.loopEnd = 25.668;
+    source.loopStart = 0.079;
+    source.loopEnd = 5.120;
     source.start();
   }
 
   function init() {
     buildAudiograph();
-    async_loadBuffer('sounds/effects/ticking.wav');
+    async_loadBuffer('sounds/effects/ethnic8.wav');
     onTabSwitch('tab-manual');
   }
 
