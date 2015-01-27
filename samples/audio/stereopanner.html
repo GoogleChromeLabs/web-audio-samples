@@ -13,8 +13,155 @@ found in the LICENSE file.
 
 <body>
   
-  <script>
+  <fieldset>
+    <legend>Panner Behavior</legend>
+    <input id="btn-manual" type="radio" name="behavior" checked="checked"
+      onclick="onTabSwitch('tab-manual')" />
+    <label for="btn-manual">Manual</label>
+    <input id="btn-auto" type="radio" name="behavior" 
+      onclick="onTabSwitch('tab-auto')" />
+    <label for="btn-auto">Automated</label>
+
+    <div id="tab-manual" class="tab">
+      <label for="slider-pan">Pan</label>
+      <input id="slider" type="range" min="-1" max="1" value="0.0" step="0.1" 
+        oninput="onPanSliderChange(value)" />
+      <output for="slider-pan" id="slider-pan-value">0.0</output>
+    </div>
     
+    <div id="tab-auto" class="tab">
+      <label for="slider-freq">Frequency</label>
+      <input id="slider-freq" type="range" min="0.1" max="20" value="0.1" 
+        step="0.1" oninput="onFreqSliderChange(value)" />
+      <output for="slider-freq" id="slider-freq-value">0.1</output>
+      <br>
+      <label for="slider-depth">Depth</label>
+      <input id="slider-depth" type="range" min="0.0" max="1.0" value="1.0" 
+        step="0.1" oninput="onDepthSliderChange(value)" />
+      <output for="slider-depth" id="slider-depth-value">1.0</output>
+      <br>
+      <label for="slider-waveform">Waveform</label>
+      <input id="slider-waveform" type="range" min="0" max="3" value="3" 
+        step="1" oninput="onWaveformSliderChange(value)" />
+      <output for="slider-waveform" id="slider-waveform-value">triangle</output>
+      <br>
+    </div>
+
+  </fieldset>
+
+  <script>
+  var context, source, lfo, lfoDepth;
+  var pannerManual, pannerAuto, gainManual, gainAuto;
+
+  var WAVEFORM = [
+    'sinewave',
+    'square',
+    'sawtooth',
+    'triangle'
+  ];
+
+  var panSlider = document.querySelector('#slider-pan');
+  var panSliderValue = document.querySelector('#slider-pan-value');
+
+  var freqSlider = document.querySelector('#slider-freq');
+  var depthSlider = document.querySelector('#slider-depth');
+  var waveformSlider = document.querySelector('#slider-waveform');
+
+  var freqSliderValue = document.querySelector('#slider-freq-value');
+  var depthSliderValue = document.querySelector('#slider-depth-value');
+  var waveformSliderValue = document.querySelector('#slider-waveform-value');
+  
+  function onTabSwitch(id) {
+    var tabManual = document.querySelector('#tab-manual');
+    var tabAuto = document.querySelector('#tab-auto');
+    if (id === 'tab-manual') {
+      tabManual.style.display = 'block';
+      tabAuto.style.display = 'none';  
+      gainManual.gain.value = 1.0;
+      gainAuto.gain.value = 0.0;
+    } else {
+      tabManual.style.display = 'none';
+      tabAuto.style.display = 'block';  
+      gainManual.gain.value = 0.0;
+      gainAuto.gain.value = 1.0;
+    }
+  }
+
+  function onPanSliderChange(value) {
+    panSliderValue.value = value;
+    pannerManual.pan.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onFreqSliderChange(value) {
+    freqSliderValue.value = value;
+    lfo.frequency.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onDepthSliderChange(value) {
+    depthSliderValue.value = value;
+    lfoDepth.gain.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onWaveformSliderChange(value) {
+    waveformSliderValue.value = WAVEFORM[value];
+    lfo.type = WAVEFORM[value];
+  }  
+
+  function async_loadBuffer(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function (event) {
+      context.decodeAudioData(
+        xhr.response,
+        function (buffer) {
+          source.buffer = buffer;
+          console.log('Buffer loaded.');
+        }
+      );
+    };
+    xhr.send();
+  }
+
+  function buildAudiograph() {
+    context = new AudioContext();
+    source = context.createBufferSource();
+    lfo = context.createOscillator();
+    lfoDepth = context.createGain();
+    pannerManual = context.createStereoPanner();
+    pannerAuto = context.createStereoPanner();
+    gainManual = context.createGain();
+    gainAuto = context.createGain();
+    source.connect(pannerManual);
+    source.connect(pannerAuto);
+    
+    // StereoPanner's AudioParam modulation, automated panning.
+    lfo.connect(lfoDepth);
+    lfoDepth.connect(pannerAuto.pan);
+
+    pannerManual.connect(gainManual);
+    pannerAuto.connect(gainAuto);
+    gainManual.connect(context.destination);
+    gainAuto.connect(context.destination);
+
+    lfo.frequency.value = 0.1;
+    lfoDepth.gain.value = 1.0;
+    lfo.start();
+    lfo.type = 'triangle';
+
+    source.loop = true;
+    source.loopStart = 3.137;
+    source.loopEnd = 25.668;
+    source.start();
+  }
+
+  function init() {
+    buildAudiograph();
+    async_loadBuffer('sounds/effects/ticking.wav');
+    onTabSwitch('tab-manual');
+  }
+
+  window.onload = init;
   </script>
 </body>
 
