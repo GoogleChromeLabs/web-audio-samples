@@ -35,8 +35,8 @@ found in the LICENSE file.
 </head>
 
 <body>
-  
-  <h1>stereopanner.html</h1>
+  <div id="fdu-overlay"></div>
+  <h1>Stereo Panner <small>stereopanner.html</small></h1>
 
   <fieldset>
     <legend>Panner Behavior</legend>
@@ -75,6 +75,46 @@ found in the LICENSE file.
   </fieldset>
 
   <script>
+
+  // TODO: audio feature detection and dependency verification utility?
+  (function () {
+    'use strict';
+
+    var dependency = [
+      'createStereoPanner'
+    ];
+    
+    // Monkey patching for AudioContext.
+    var webkitAC = window.hasOwnProperty('webkitAudioContext');
+    var AC = window.hasOwnProperty('AudioContext');
+    var message;
+    if (!webkitAC && !AC) {
+      message = 'Web Audio API is not supported on your browser.';
+      alert(message);
+      throw new Error(message);
+    } else {
+      if (webkitAC && !AC) {
+        window.AudioContext = window.webkitAudioContext;
+      }
+    }
+
+    var audioContext = new AudioContext();
+
+    // If dependency is not resolved, alert message and halt.
+    for (var i = 0; i < dependency.length; i++) {
+      if (typeof audioContext[dependency[i]] === 'undefined') {
+        message = 'Error: "' + dependency + '" is not supported in AudioContext.';
+        alert(message);
+        throw new Error(message);
+      }
+    }
+
+    // Otherwise, unlock the overlay.
+    var overlay = document.querySelector('#fdu-overlay');
+    overlay.style.display = 'none';
+
+  })();
+
   var context, source, lfo, lfoDepth;
   var pannerManual, pannerAuto, gainManual, gainAuto;
 
