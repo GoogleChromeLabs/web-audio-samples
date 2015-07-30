@@ -1,14 +1,15 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-
+        <meta charset="UTF-8" />
+        <title>MediaElementAudioSourceNode</title>
         <script>
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
             window.onload = init;
 
-            var context;
-
             function init() {
-                context = new webkitAudioContext();
+                var context = new AudioContext();
 
                 var audioTag = document.getElementById("human-voice");
                 var source = context.createMediaElementSource(audioTag);
@@ -16,7 +17,7 @@
                 var filter = context.createBiquadFilter();
                 filter.type = "highpass";
                 filter.frequency.value = 4000;
-                
+
                 source.connect(filter);
                 filter.connect(context.destination);
             }

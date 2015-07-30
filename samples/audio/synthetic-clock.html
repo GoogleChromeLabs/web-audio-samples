@@ -50,6 +50,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -200,7 +202,7 @@ function init() {
     canvas = document.getElementById('canvasID');
     cc = canvas.getContext('2d');
 
-    context = new webkitAudioContext();
+    context = new AudioContext();
     gain = context.createGain();
     gain.connect(context.destination);
 

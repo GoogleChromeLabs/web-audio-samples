@@ -5,6 +5,8 @@
     
     <body>
     <script>
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
         function error() {
             alert('Stream generation failed.');
         }
@@ -18,7 +20,7 @@
         }
 
         function gotStream(stream) {
-            var context = new webkitAudioContext();
+            var context = new AudioContext();
 
             // Create an AudioNode from the stream.
             var mediaStreamSource = context.createMediaStreamSource(stream);

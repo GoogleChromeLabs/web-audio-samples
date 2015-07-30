@@ -50,6 +50,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Events
 // init() once the page has finished loading.
 window.onload = init;

@@ -63,6 +63,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 o3djs.require('o3djs.shader');
 
 function output(str) {
@@ -112,7 +114,7 @@ function init() {
 }
 
 function initAudio(stream) {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     analyser = context.createAnalyser();
     analyser.fftSize = 2048;

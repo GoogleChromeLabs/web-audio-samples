@@ -65,6 +65,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 o3djs.require('o3djs.shader');
 
 function output(str) {
@@ -134,7 +136,7 @@ function draw() {
 }
 
 function initAudio() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     source = context.createBufferSource();
     filterNode = context.createBiquadFilter();

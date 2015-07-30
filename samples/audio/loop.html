@@ -54,6 +54,8 @@ Title
 
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 window.onload = init;
 
 var useLiveInput = false;
@@ -380,7 +382,7 @@ function bufferLoaderFinished(buffers) {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     delay = context.createDelay(10);
     gain = context.createGain();
     delay.connect(gain);

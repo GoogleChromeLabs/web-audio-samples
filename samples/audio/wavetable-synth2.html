@@ -55,8 +55,7 @@ Title
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext'))
-    window.webkitAudioContext = AudioContext;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 window.onload = init;
 
@@ -863,7 +862,7 @@ StaticAudioRouting.prototype.setMainGrunge = function(driveDb) {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     staticAudioRouting = new StaticAudioRouting();
     monophonicNote = new Note(staticAudioRouting, true);
 

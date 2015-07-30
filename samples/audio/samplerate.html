@@ -49,6 +49,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Events
 // init() once the page has finished loading.
 
@@ -57,7 +59,7 @@ var source;
 var gain;
 
 function getSampleRate() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     source = context.createBufferSource();
     gain = context.createGain();
     source.connect(context.destination);

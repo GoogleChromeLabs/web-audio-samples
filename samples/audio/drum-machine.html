@@ -49,6 +49,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Events
 // init() once the page has finished loading.
 window.onload = init;
@@ -581,7 +583,7 @@ function finishLoading() {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     var audioBuffer = context.createBuffer(1, 1024, 44100.0);
 
