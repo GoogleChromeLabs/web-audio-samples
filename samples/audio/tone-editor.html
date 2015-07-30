@@ -51,6 +51,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 var defaultFrequency = 100;
 
 var context;
@@ -77,7 +79,7 @@ window.onload = function() {
 }
 
 function Source() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     var osc1 = context.createOscillator();
     var osc2 = context.createOscillator();

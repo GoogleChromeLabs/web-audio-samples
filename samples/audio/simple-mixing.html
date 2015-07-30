@@ -49,6 +49,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -146,7 +148,7 @@ function addSliders() {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     source1 = context.createBufferSource();
     source2 = context.createBufferSource();

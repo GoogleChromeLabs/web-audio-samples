@@ -49,6 +49,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Events
 // init() once the page has finished loading.
 window.onload = init;
@@ -129,7 +131,7 @@ function loadHihat(url) {
 }
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
     
     // Setup a delay with feedback
     delay1 = context.createDelay();

@@ -49,6 +49,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Events
 // init() once the page has finished loading.
 window.onload = init;
@@ -153,7 +155,7 @@ function init() {
     addSlider("headroom");
     configureSlider("headroom", 0, -20, 40, headroomHandler);
     
-    context = new webkitAudioContext();
+    context = new AudioContext();
     source = context.createBufferSource();
     buffer = createToneBuffer();
     curve = new Float32Array(65536);

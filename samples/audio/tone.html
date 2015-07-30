@@ -43,6 +43,8 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // init() once the page has finished loading.
 window.onload = init;
 
@@ -52,7 +54,7 @@ var duration = 2.0;
 var sampleRate = 44100.0;
 
 function init() {
-    context = new webkitAudioContext();
+    context = new AudioContext();
 
     var numberOfFrames = duration * sampleRate;
     buffer = context.createBuffer(1, numberOfFrames, sampleRate);
