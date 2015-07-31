@@ -361,14 +361,19 @@ function loadSourceBuffer(url) {
     request.onload = function() { 
         if (!useLiveInput && useTestInput) {
             var source = context.createBufferSource();
-            sourceBuffer = context.createBuffer(request.response, true);
-            source.buffer = sourceBuffer;
-            source.connect(delay);
-            source.start(0);
+
+            context.decodeAudioData(request.response, function(audioBuffer) {
+                sourceBuffer = audioBuffer;
+                source.buffer = sourceBuffer;
+                source.connect(delay);
+                source.start(0);
+            }, function(error) {
+                console.error(error);
+            });
         }
 
         finishLoad();
-    }
+    };
 
     request.send();
 }

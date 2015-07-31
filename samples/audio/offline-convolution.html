@@ -82,11 +82,15 @@ function loadSourceBuffer(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-        sourceBuffer = context.createBuffer(request.response, true);
-        isSourceBufferLoaded = true;
-        finishLoad();
-    }
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            sourceBuffer = audioBuffer;
+            isSourceBufferLoaded = true;
+            finishLoad();
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }
@@ -98,11 +102,15 @@ function loadImpulseResponse(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-        impulseResponseBuffer = context.createBuffer(request.response, false);
-        isImpulseResponseLoaded = true;
-        finishLoad();
-    }
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            impulseResponseBuffer = audioBuffer;
+            isImpulseResponseLoaded = true;
+            finishLoad();
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }

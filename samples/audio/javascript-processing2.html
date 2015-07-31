@@ -121,12 +121,16 @@ function loadSample(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        source.buffer = context.createBuffer(request.response, false);
-        source.loop = true;
-        source.noteOn(0);
-        
-        draw();
-    }
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            source.buffer = audioBuffer;
+            source.loop = true;
+            source.start(0);
+
+            draw();
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }
@@ -140,8 +144,10 @@ function initAudio() {
     context = new AudioContext();
     source = context.createBufferSource();
 
+    context.createScriptProcessor = context.createScriptProcessor || context.createJavaScriptNode;
+
     // This AudioNode will do the amplitude modulation effect directly in JavaScript
-    jsProcessor = context.createJavaScriptNode(2048);
+    jsProcessor = context.createScriptProcessor(2048);
     jsProcessor.onaudioprocess = process;
 
     analyser = context.createAnalyser();

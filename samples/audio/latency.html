@@ -97,10 +97,14 @@ function loadHihat(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-        hihatShort = context.createBuffer(request.response, true);
-        finishLoad();  // add in the slider, etc. now that we've loaded the audio
-    }
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            hihatShort = audioBuffer;
+            finishLoad();  // add in the slider, etc. now that we've loaded the audio
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }

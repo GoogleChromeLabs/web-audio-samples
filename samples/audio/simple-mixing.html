@@ -91,10 +91,15 @@ BufferLoader.prototype.loadBuffer = function(i) {
 
     var bufferLoader = this;
     request.onload = function() {
-        bufferLoader.bufferList[i] = context.createBuffer(request.response, false);
-        bufferLoader.loadCount++;
-        if (bufferLoader.loadCount == bufferLoader.bufferCount)
-            finishedLoading();
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            bufferLoader.bufferList[i] = audioBuffer;
+            bufferLoader.loadCount++;
+            if (bufferLoader.loadCount === bufferLoader.bufferCount) {
+                finishedLoading();
+            }
+        }, function(error) {
+            console.error(error);
+        });
     };
 
     request.onerror = function() {

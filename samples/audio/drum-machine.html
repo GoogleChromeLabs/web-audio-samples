@@ -433,7 +433,7 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, cutoff, resonance, n
     var finalNode;
     if (pan) {
         var panner = context.createPanner();
-        panner.panningModel = webkitAudioPannerNode.HRTF;
+        panner.panningModel = 'HRTF';
         panner.setPosition(x, y, z);
         filter.connect(panner);
         finalNode = panner;
@@ -536,11 +536,11 @@ function loadImpulseResponse(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() {
-      try {
-        convolver.buffer = context.createBuffer(request.response, false);
-      } catch(e) {
-        alert('error decoding file data: ' + url);
-      }
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            convolver.buffer = audioBuffer
+        }, function(error) {
+            console.error(error);
+        });
     }
 
     request.send();
