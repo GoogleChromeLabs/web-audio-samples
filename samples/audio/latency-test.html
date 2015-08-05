@@ -83,7 +83,7 @@ function handleKeyDown(event) {
     
     var currentTime = context.currentTime;
     var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
-    source.noteOn(playTime);
+    source.start(playTime);
 }
 
 function finishLoad() {
@@ -104,9 +104,13 @@ function loadHihat(url) {
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        hihatShort = context.createBuffer(request.response, true);
-        finishLoad();  // add in the slider, etc. now that we've loaded the audio
-    }
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            hihatShort = audioBuffer;
+            finishLoad();  // add in the slider, etc. now that we've loaded the audio
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }

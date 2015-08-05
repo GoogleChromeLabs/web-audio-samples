@@ -183,13 +183,16 @@ function loadAudioBuffer(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-        var audioBuffer = context.createBuffer(request.response, false /*true*/);
-        synthNote.source.buffer = audioBuffer;
-        synthNote.source.loop = true;
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            synthNote.source.buffer = audioBuffer;
+            synthNote.source.loop = true;
 
-        synthNote.source.start(0.0);
-    }
+            synthNote.source.start(0.0);
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }

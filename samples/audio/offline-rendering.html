@@ -50,6 +50,7 @@ Title
 <script type="text/javascript">
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
+window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
 
 // Events
 // init() once the page has finished loading.
@@ -100,10 +101,14 @@ function loadHihat(url) {
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
 
-    request.onload = function() { 
-        hihatShort = context.createBuffer(request.response, true);
-        finishLoad();  // add in the slider, etc. now that we've loaded the audio
-    }
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            hihatShort = audioBuffer;
+            finishLoad();  // add in the slider, etc. now that we've loaded the audio
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }
@@ -118,8 +123,7 @@ function playNote(context, time) {
 }
 
 function startOfflineProcessing() {
-    // offlineContext = new webkitAudioContext(2, 2 * 44100, 44100);
-    offlineContext = new webkitOfflineAudioContext(2, 2 * 44100, 44100);
+    offlineContext = new OfflineAudioContext(2, 2 * 44100, 44100);
 
     offlineContext.oncomplete = function(event) {
       var source = context.createBufferSource();

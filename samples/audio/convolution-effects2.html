@@ -159,18 +159,22 @@ Asset.prototype.load = function(preset) {
     var asset = this;
 
     request.onload = function() {
-        asset.buffer = context.createBuffer(request.response, false);
-        asset.loaded = true;
-        
-        var buffer = asset.buffer;
-        alert('loaded: ' + asset.url + ' :  buffer.sampleRate = ' + buffer.sampleRate + ' :  buffer.duration = ' + buffer.duration  + buffer.sampleRate + ' :  buffer.numberOfChannels = ' + buffer.numberOfChannels);
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            asset.buffer = audioBuffer;
+            asset.loaded = true;
 
-        // Tell all the presets that depend on us that we're ready
-        for (i = 0; i < asset.presetList.length; i++) {
-            var preset = asset.presetList[i];
-            preset.assetFinishedLoading(asset);
-        }
-    }
+            var buffer = asset.buffer;
+            alert('loaded: ' + asset.url + ' :  buffer.sampleRate = ' + buffer.sampleRate + ' :  buffer.duration = ' + buffer.duration  + buffer.sampleRate + ' :  buffer.numberOfChannels = ' + buffer.numberOfChannels);
+
+            // Tell all the presets that depend on us that we're ready
+            for (i = 0; i < asset.presetList.length; i++) {
+                var preset = asset.presetList[i];
+                preset.assetFinishedLoading(asset);
+            }
+        }, function(error) {
+            console.error(error);
+        });
+    };
 
     request.send();
 }
