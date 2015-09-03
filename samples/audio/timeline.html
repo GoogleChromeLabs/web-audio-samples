@@ -2,9 +2,15 @@
 
 <html>
 <head>
-</head>
-<body>
-
+<script type="text/javascript" src="flot/jquery.js"></script>
+<script type="text/javascript" src="flot/jquery.flot.js"></script>
+<style>
+#content {
+      width: 1300px;
+      margin: 0 auto;
+      padding: 10px;
+}
+</style>
 <script>
 
 window.onload = runTest;
@@ -35,70 +41,42 @@ function testFailed(s) {
 function drawCurve(event) {
     var renderedBuffer = event.renderedBuffer;
     var data = renderedBuffer.getChannelData(0);
-  
-    canvas = document.getElementById('canvasID');
-    ctx = canvas.getContext('2d');
-    
-    // Draw center.
-    width = canvas.width;
-    height = canvas.height;
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    var plotData = [];
+    for (var k = 0; k < data.length; ++k)
+        plotData.push([k / sampleRate, data[k]]);
 
-    ctx.fillStyle = curveColor;
-    ctx.strokeStyle = curveColor;
-    ctx.textAlign = "left";
-    ctx.font = "12pt Courier";
+    var place = $("#graph");
+    var plot = $.plot(place,
+        [ { data : plotData, label : "Timeline" } ],
+        { xaxes: [{ max: 1.01 }],
+          yaxes: [{ max: 1.01 }]
+        });
+    // Annotate the graph a little
+    var o = plot.pointOffset({x: 0.01, y: .18});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueAtTime(0.2,0)</div>");
 
-    // Draw value lines.
-    ctx.strokeStyle = gridColor;
-    for (var v = 0; v < 1; v += 0.1) {
-        ctx.beginPath();
-        
-        var y = height - height * v;
+    o = plot.pointOffset({x: 0.11, y: 0.28});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueAtTime(0.3,0.1)</div>");
 
-        ctx.strokeStyle = gridColor;
-        ctx.moveTo(50, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+    o = plot.pointOffset({x: 0.21, y: 0.44});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>linearRampToValueAtTime(0.3,1)</div>");
+      
+    o = plot.pointOffset({x: 0.32, y: 0.9});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>linearRampToValueAtTime(0.8,0.325)</div>");
 
-        ctx.strokeStyle = textColor;
-        ctx.textAlign = "center";
-        ctx.strokeText(v.toFixed(1), 25, y);
-    }
+    o = plot.pointOffset({x: 0.35, y: 0.575});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top +
+    "px;font-size:smaller'>setTargetAtTime(0.5,0.35, .5)</div>");
+      
+    o = plot.pointOffset({x: 0.45, y: 0.65});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>exponentialRamp(0.75,0.5)</div>");
 
-    // Draw times.
-    ctx.strokeStyle = gridColor;
-    for (var t = 0; t < 1; t += 0.1) {
-        ctx.beginPath();
-        
-        ctx.strokeStyle = gridColor;
-        var x = width * t;
-        ctx.moveTo(x, 30);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+    o = plot.pointOffset({x: 0.55, y: 0.2});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>exponentialRamp(0.05,0.6)</div>");
 
-        ctx.strokeStyle = textColor;
-        ctx.textAlign = "center";
-        ctx.strokeText(t.toFixed(1), x, 25);
-    }
-
-    // Draw timeline curve.
-    ctx.strokeStyle = curveColor;
-    ctx.lineWidth = 1;
-
-    var n = data.length;
-    for (var i = 0; i < n; ++i) {
-        ctx.beginPath();
-        
-        var x = width * i / n;
-        var y = height - data[i] * height;
-        
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y+1);
-        ctx.stroke();
-    }
+    o = plot.pointOffset({x: 0.75, y: 0.4});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueCurve(curve,0.7,0.3)</div>");
 }
 
 function checkResult(event) {
@@ -223,9 +201,13 @@ function runTest() {
 }
 
 </script>
-
-<canvas id="canvasID" width="1280" height="768">
-</canvas>
+</head>
+<body>
+<div id="content">
+  <div class="graph-container">
+    <div id="graph" class="graph-container" style="width:1280px;height:768px;"></div>
+  </div>
+</div>
 
 </body>
 </html>
