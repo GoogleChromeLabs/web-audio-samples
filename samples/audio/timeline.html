@@ -4,6 +4,7 @@
 <head>
 <script type="text/javascript" src="flot/jquery.js"></script>
 <script type="text/javascript" src="flot/jquery.flot.js"></script>
+<script type="text/javascript" src="flot-axislabels/jquery.flot.axislabels.js"></script>
 <style>
 #content {
       width: 1300px;
@@ -33,35 +34,35 @@ function drawCurve(event) {
 
     var place = $("#graph");
     var plot = $.plot(place,
-        [ { data : plotData, label : "Timeline" } ],
-        { xaxes: [{ max: 1.01 }],
-          yaxes: [{ max: 1.01 }]
+        [ { data : plotData, label : "Automation value" } ],
+        { xaxes: [{ max: 1.01, axisLabel: "Time, sec" }],
+          yaxes: [{ max: 1.01, axisLabel: "Automation value" }]
         });
+
     // Annotate the graph a little
     var o = plot.pointOffset({x: 0.01, y: .18});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueAtTime(0.2,0)</div>");
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>setValueAtTime(0.2,0)</div>");
 
     o = plot.pointOffset({x: 0.11, y: 0.28});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueAtTime(0.3,0.1)</div>");
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>setValueAtTime(0.3,0.1)</div>");
 
-    o = plot.pointOffset({x: 0.21, y: 0.44});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>linearRampToValueAtTime(0.3,1)</div>");
+    o = plot.pointOffset({x: 0.225, y: 0.5});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>linearRampToValueAtTime(0.3,1)</div>");
       
     o = plot.pointOffset({x: 0.32, y: 0.9});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>linearRampToValueAtTime(0.8,0.325)</div>");
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>linearRampToValueAtTime(0.8,0.325)</div>");
 
-    o = plot.pointOffset({x: 0.35, y: 0.575});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top +
-    "px;font-size:smaller'>setTargetAtTime(0.5,0.35, .5)</div>");
+    o = plot.pointOffset({x: 0.325, y: 0.575});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>setTargetAtTime(0.5,0.35,0.5)</div>");
       
-    o = plot.pointOffset({x: 0.45, y: 0.65});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>exponentialRamp(0.75,0.5)</div>");
+    o = plot.pointOffset({x: 0.40, y: 0.7});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>exponentialRampToValueAtTime(0.75,0.6)</div>");
 
-    o = plot.pointOffset({x: 0.55, y: 0.2});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>exponentialRamp(0.05,0.6)</div>");
+    o = plot.pointOffset({x: 0.475, y: 0.2});
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>exponentialRampToValueAtTime(0.05,0.7)</div>");
 
     o = plot.pointOffset({x: 0.75, y: 0.4});
-    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueCurve(curve,0.7,0.3)</div>");
+    place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-family:monospace'>setValueCurveAtTime(curve,0.7,0.3)</div>");
 }
 
 // Create a buffer of the given length having a constant value.
