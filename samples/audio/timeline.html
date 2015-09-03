@@ -23,21 +23,6 @@ var context = 0;
 var constantOneBuffer = 0;
 var linearRampBuffer = 0;
 
-var backgroundColor = "rgb(240,240,240)";
-var textColor = "rgb(100,100,100)";
-var curveColor = "rgb(0, 0, 0)";
-var gridColor = "rgb(200,200,200)";
-
-function testPassed(s) {
-    var message = "PASSED: " + s;
-    console.log(message);
-}
-
-function testFailed(s) {
-    var message = "FAILED: " + s;
-    console.log(message);
-}
-
 function drawCurve(event) {
     var renderedBuffer = event.renderedBuffer;
     var data = renderedBuffer.getChannelData(0);
@@ -79,40 +64,6 @@ function drawCurve(event) {
     place.append("<div style='position:absolute;left:" + (o.left + 4) + "px;top:" + o.top + "px;font-size:smaller'>setValueCurve(curve,0.7,0.3)</div>");
 }
 
-function checkResult(event) {
-    var renderedBuffer = event.renderedBuffer;
-    var renderedData = renderedBuffer.getChannelData(0);
-    var expectedData = constantOneBuffer.getChannelData(0);
-    var n = renderedBuffer.length;
-
-    if (n == sampleFrameLength) {
-        testPassed("Rendered signal is of correct length.");
-    } else {
-        testFailed("Rendered signal is not of correct length.");
-    }
-
-    // Check that the rendered result exactly matches the buffer used to control gain.
-    // This is because we're changing the gain of a signal having constant value 1.
-    var success = true;
-    for (var i = 0; i < n; ++i) {
-        if (renderedData[i] != expectedData[i]) {
-            success = false;
-            var message = i + " : " + renderedData[i] + " : " + expectedData[i];
-            console.log(expectedData);
-            console.log(message);
-            break;
-        }
-    }
-
-    if (success) {
-        testPassed("Rendered signal exactly matches.");
-    } else {
-        testFailed("Rendered signal differs.");
-    }
-    
-    drawCurve(renderedData);
-}
-
 // Create a buffer of the given length having a constant value.
 function createConstantBuffer(context, sampleFrameLength, constantValue) {
     var audioBuffer = context.createBuffer(1, sampleFrameLength, context.sampleRate);
@@ -149,7 +100,6 @@ function runTest() {
     gainNode.connect(context.destination);
     
     var curve = createCurveBuffer(sampleFrameLength, 0);
-    var curve2 = createCurveBuffer(sampleFrameLength, 0.2);
     
     var param = gainNode.gain;
     
