@@ -8,13 +8,7 @@
 <script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/base64.js"></script>
 <script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/canvas2image.js"></script>
 <script type="text/javascript" src="jquery.flot.saveAsImage.js/jquery.float.saveAsImage.js"></script>
-<style>
-#content {
-      width: 1300px;
-      margin: 0 auto;
-      padding: 10px;
-}
-</style>
+
 <script>
 
 window.onload = runTest;
@@ -44,7 +38,7 @@ function selectSampleRate() {
 function annotationText(place, position, text) {
     var divPrefix = "<div style='position:absolute;";
     var divPosition = "left:" + (position.left + 4) + "px;top:" + position.top + "px;";
-    var font = "font-family:monospace'>";
+    var font = "font-family:monospace;font-size:smaller'>";
     var divSuffix = "</div>";
 
     place.append(divPrefix + divPosition + font + text + divSuffix);
@@ -68,28 +62,31 @@ function drawCurve(event) {
     plot.getCanvas
     // Annotate the graph a little
     var o = plot.pointOffset({x: 0.01, y: .18});
-    annotationText(place, o, "setValueAtTime(0.2,0)");
+    annotationText(place, o, "setValue(0.2,0)");
 
     o = plot.pointOffset({x: 0.11, y: 0.28});
-    annotationText(place, o, "setValueAtTime(0.3,0.1)");
+    annotationText(place, o, "setValue(0.3,0.1)");
 
     o = plot.pointOffset({x: 0.225, y: 0.5});
-    annotationText(place, o, "linearRampToValueAtTime(0.3,1)");
+    annotationText(place, o, "linearRamp(0.3,1)");
 
     o = plot.pointOffset({x: 0.32, y: 0.9});
-    annotationText(place, o, "linearRampToValueAtTime(0.8,0.325)");
+    annotationText(place, o, "linearRamp(0.8,0.325)");
 
-    o = plot.pointOffset({x: 0.325, y: 0.575});
-    annotationText(place, o, "setTargetAtTime(0.5,0.35,0.5)");
-      
-    o = plot.pointOffset({x: 0.40, y: 0.7});
-    annotationText(place, o, "exponentialRampToValueAtTime(0.75,0.6)");
+    o = plot.pointOffset({x: 0.29, y: 0.575});
+    annotationText(place, o, "setTarget(0.5,0.325,0.5)");
 
-    o = plot.pointOffset({x: 0.475, y: 0.2});
-    annotationText(place, o, "exponentialRampToValueAtTime(0.05,0.7)");
+    o = plot.pointOffset({x: 0.43, y : 0.54});
+    annotationText(place, o, "setValue(0.552..,0.5)");
 
-    o = plot.pointOffset({x: 0.75, y: 0.4});
-    annotationText(place, o, "setValueCurveAtTime(curve,0.7,0.3)");
+    o = plot.pointOffset({x: 0.4, y: 0.7});
+    annotationText(place, o, "exponentialRamp(0.75,0.6)");
+
+    o = plot.pointOffset({x: 0.48, y: 0.15});
+    annotationText(place, o, "exponentialRamp(0.05,0.7)");
+
+    o = plot.pointOffset({x: 0.71, y: 0.1});
+    annotationText(place, o, "setValueCurve(curve,0.7,0.3)");
 
 }
 
@@ -187,7 +184,7 @@ function runTest() {
 <body>
 <div id="content">
   <div class="graph-container">
-    <div id="graph" class="graph-container" style="width:1280px;height:768px;"></div>
+    <div id="graph" class="graph-container" style="width:900px;height:540px;"></div>
   </div>
 </div>
 
