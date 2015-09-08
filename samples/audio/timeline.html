@@ -2,14 +2,24 @@
 
 <html>
 <head>
-</head>
-<body>
-
+<script type="text/javascript" src="flot/jquery.js"></script>
+<script type="text/javascript" src="flot/jquery.flot.js"></script>
+<script type="text/javascript" src="flot-axislabels/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/base64.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/canvas2image.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/jquery.float.saveAsImage.js"></script>
+<style>
+#content {
+      width: 1300px;
+      margin: 0 auto;
+      padding: 10px;
+}
+</style>
 <script>
 
 window.onload = runTest;
 
-var sampleRate = 44100.0;
+var sampleRate = 8000.0;
 var lengthInSeconds = 1;
 var sampleFrameLength = sampleRate * lengthInSeconds;
 
@@ -17,122 +27,70 @@ var context = 0;
 var constantOneBuffer = 0;
 var linearRampBuffer = 0;
 
-var backgroundColor = "rgb(240,240,240)";
-var textColor = "rgb(100,100,100)";
-var curveColor = "rgb(0, 0, 0)";
-var gridColor = "rgb(200,200,200)";
+function selectSampleRate() {
+    // Try to create an offline context with the given rate.  The first rate that succeeds wins.
+    var possibleRates = [4000, 8000, 16000, 22050];
 
-function testPassed(s) {
-    var message = "PASSED: " + s;
-    console.log(message);
+    for (var k = 0; k < possibleRates.length; ++k) {
+        try {
+            var c = new OfflineAudioContext(1, 100, possibleRates[k]);
+            return possibleRates[k];
+       } catch (e) {
+       }
+    }
+    return 22050;
 }
 
-function testFailed(s) {
-    var message = "FAILED: " + s;
-    console.log(message);
-}
+function annotationText(place, position, text) {
+    var divPrefix = "<div style='position:absolute;";
+    var divPosition = "left:" + (position.left + 4) + "px;top:" + position.top + "px;";
+    var font = "font-family:monospace'>";
+    var divSuffix = "</div>";
 
+    place.append(divPrefix + divPosition + font + text + divSuffix);
+}
+      
 function drawCurve(event) {
     var renderedBuffer = event.renderedBuffer;
     var data = renderedBuffer.getChannelData(0);
-  
-    canvas = document.getElementById('canvasID');
-    ctx = canvas.getContext('2d');
-    
-    // Draw center.
-    width = canvas.width;
-    height = canvas.height;
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    var plotData = [];
+    for (var k = 0; k < data.length; ++k)
+        plotData.push([k / sampleRate, data[k]]);
 
-    ctx.fillStyle = curveColor;
-    ctx.strokeStyle = curveColor;
-    ctx.textAlign = "left";
-    ctx.font = "12pt Courier";
+    var place = $("#graph");
+    var plot = $.plot(place,
+        [ { data : plotData, label : "Automation value" } ],
+        { xaxes: [{ max: 1.01, axisLabel: "Time, sec" }],
+          yaxes: [{ max: 1.01, axisLabel: "Automation value" }]
+        });
 
-    // Draw value lines.
-    ctx.strokeStyle = gridColor;
-    for (var v = 0; v < 1; v += 0.1) {
-        ctx.beginPath();
-        
-        var y = height - height * v;
+    plot.getCanvas
+    // Annotate the graph a little
+    var o = plot.pointOffset({x: 0.01, y: .18});
+    annotationText(place, o, "setValueAtTime(0.2,0)");
 
-        ctx.strokeStyle = gridColor;
-        ctx.moveTo(50, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+    o = plot.pointOffset({x: 0.11, y: 0.28});
+    annotationText(place, o, "setValueAtTime(0.3,0.1)");
 
-        ctx.strokeStyle = textColor;
-        ctx.textAlign = "center";
-        ctx.strokeText(v.toFixed(1), 25, y);
-    }
+    o = plot.pointOffset({x: 0.225, y: 0.5});
+    annotationText(place, o, "linearRampToValueAtTime(0.3,1)");
 
-    // Draw times.
-    ctx.strokeStyle = gridColor;
-    for (var t = 0; t < 1; t += 0.1) {
-        ctx.beginPath();
-        
-        ctx.strokeStyle = gridColor;
-        var x = width * t;
-        ctx.moveTo(x, 30);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+    o = plot.pointOffset({x: 0.32, y: 0.9});
+    annotationText(place, o, "linearRampToValueAtTime(0.8,0.325)");
 
-        ctx.strokeStyle = textColor;
-        ctx.textAlign = "center";
-        ctx.strokeText(t.toFixed(1), x, 25);
-    }
+    o = plot.pointOffset({x: 0.325, y: 0.575});
+    annotationText(place, o, "setTargetAtTime(0.5,0.35,0.5)");
+      
+    o = plot.pointOffset({x: 0.40, y: 0.7});
+    annotationText(place, o, "exponentialRampToValueAtTime(0.75,0.6)");
 
-    // Draw timeline curve.
-    ctx.strokeStyle = curveColor;
-    ctx.lineWidth = 1;
+    o = plot.pointOffset({x: 0.475, y: 0.2});
+    annotationText(place, o, "exponentialRampToValueAtTime(0.05,0.7)");
 
-    var n = data.length;
-    for (var i = 0; i < n; ++i) {
-        ctx.beginPath();
-        
-        var x = width * i / n;
-        var y = height - data[i] * height;
-        
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y+1);
-        ctx.stroke();
-    }
-}
+    o = plot.pointOffset({x: 0.75, y: 0.4});
+    annotationText(place, o, "setValueCurveAtTime(curve,0.7,0.3)");
 
-function checkResult(event) {
-    var renderedBuffer = event.renderedBuffer;
-    var renderedData = renderedBuffer.getChannelData(0);
-    var expectedData = constantOneBuffer.getChannelData(0);
-    var n = renderedBuffer.length;
-
-    if (n == sampleFrameLength) {
-        testPassed("Rendered signal is of correct length.");
-    } else {
-        testFailed("Rendered signal is not of correct length.");
-    }
-
-    // Check that the rendered result exactly matches the buffer used to control gain.
-    // This is because we're changing the gain of a signal having constant value 1.
-    var success = true;
-    for (var i = 0; i < n; ++i) {
-        if (renderedData[i] != expectedData[i]) {
-            success = false;
-            var message = i + " : " + renderedData[i] + " : " + expectedData[i];
-            console.log(expectedData);
-            console.log(message);
-            break;
-        }
-    }
-
-    if (success) {
-        testPassed("Rendered signal exactly matches.");
-    } else {
-        testFailed("Rendered signal differs.");
-    }
-    
-    drawCurve(renderedData);
 }
 
 // Create a buffer of the given length having a constant value.
@@ -156,6 +114,9 @@ function createCurveBuffer(length, offset) {
 }
 
 function runTest() {
+    sampleRate = selectSampleRate();
+    console.log("Sample rate = " + sampleRate);
+
     // Create offline audio context.
     context = new OfflineAudioContext(1, sampleFrameLength, sampleRate);
 
@@ -171,7 +132,6 @@ function runTest() {
     gainNode.connect(context.destination);
     
     var curve = createCurveBuffer(sampleFrameLength, 0);
-    var curve2 = createCurveBuffer(sampleFrameLength, 0.2);
     
     var param = gainNode.gain;
     
@@ -179,19 +139,28 @@ function runTest() {
     var t1 = 0.1;
     var t2 = 0.2;
     var t3 = 0.3;
-    var t4 = 0.4;
-    var t5 = 0.6;
-    var t6 = 0.7;
-    var t7 = 1.0;
+    var t4 = 0.325;
+    var t5 = 0.5;
+    var t6 = 0.6;
+    var t7 = 0.7;
+    var t8 = 1.0;
+    var timeConstant = 0.1;
     
     param.setValueAtTime(0.2, t0);
     param.setValueAtTime(0.3, t1);
     param.setValueAtTime(0.4, t2);
     param.linearRampToValueAtTime(1, t3);
-    param.linearRampToValueAtTime(0.15, t4);
-    param.exponentialRampToValueAtTime(0.75, t5);
-    param.exponentialRampToValueAtTime(0.05, t6);
-    param.setValueCurveAtTime(curve, t6, t7 - t6);
+    param.linearRampToValueAtTime(0.8, t4);
+    param.setTargetAtTime(.5, t4, timeConstant);
+    // Compute where the setTargetAtTime will be at time t5 so we can make
+    // the following exponential start at the right point so there's no
+    // jump discontinuity.  From the spec, we have
+    //   v(t) = 0.5 + (0.8 - 0.5)*exp(-(t-t4)/timeConstant)
+    // Thus v(t5) = 0.5 + (0.8 - 0.5)*exp(-(t5-t4)/timeConstant)
+    param.setValueAtTime(0.5 + (0.8 - 0.5)*Math.exp(-(t5 - t4)/timeConstant), t5);
+    param.exponentialRampToValueAtTime(0.75, t6);
+    param.exponentialRampToValueAtTime(0.05, t7);
+    param.setValueCurveAtTime(curve, t7, t8 - t7);
 
     // var t0 = 0;
     // var t1 = 0.1;
@@ -214,9 +183,13 @@ function runTest() {
 }
 
 </script>
-
-<canvas id="canvasID" width="1280" height="768">
-</canvas>
+</head>
+<body>
+<div id="content">
+  <div class="graph-container">
+    <div id="graph" class="graph-container" style="width:1280px;height:768px;"></div>
+  </div>
+</div>
 
 </body>
 </html>
