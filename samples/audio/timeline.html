@@ -38,7 +38,7 @@ function selectSampleRate() {
 function annotationText(place, position, text) {
     var divPrefix = "<div style='position:absolute;";
     var divPosition = "left:" + (position.left + 4) + "px;top:" + position.top + "px;";
-    var font = "font-family:monospace;font-size:smaller'>";
+    var font = "font-family:monospace;font-size:xx-small'>";
     var divSuffix = "</div>";
 
     place.append(divPrefix + divPosition + font + text + divSuffix);
@@ -66,6 +66,9 @@ function drawCurve(event) {
 
     o = plot.pointOffset({x: 0.11, y: 0.28});
     annotationText(place, o, "setValue(0.3,0.1)");
+
+    o = plot.pointOffset({x: 0.21, y: 0.39});
+    annotationText(place, o, "setValue(0.4,0.2)");
 
     o = plot.pointOffset({x: 0.225, y: 0.5});
     annotationText(place, o, "linearRamp(0.3,1)");
