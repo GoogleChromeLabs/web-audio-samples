@@ -593,7 +593,7 @@ Note.prototype.setFilterValues = function() {
     
     filter.frequency.cancelScheduledValues(0);
 
-    filter.type = 0; // Lowpass
+    filter.type = 'lowpass'; // Lowpass
     filter.Q.value = resonance; // !!FIXME: should be Q
 
     var nyquist = 0.5 * context.sampleRate;
