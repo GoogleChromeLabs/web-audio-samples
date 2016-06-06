@@ -67,7 +67,7 @@ o3djs.require('o3djs.shader');
 
 window.onload = init;
 
-AudioContext = AudioContext || webkitAudioContext;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 var context;
 var waveshaper;

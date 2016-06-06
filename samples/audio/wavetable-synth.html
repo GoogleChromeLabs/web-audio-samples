@@ -55,7 +55,7 @@ WaveTable Synth
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-AudioContext = AudioContext || webkitAudioContext;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 window.onload = init;
 

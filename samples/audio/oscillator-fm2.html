@@ -303,7 +303,7 @@ d3 = 0;
 
 
 function initAudio() {
-    AudioContext = AudioContext || webkitAudioContext;
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     context = new AudioContext();
 
     analyser = context.createAnalyser();

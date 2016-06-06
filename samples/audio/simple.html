@@ -52,7 +52,7 @@ Panning/Reverb
 <script type="text/javascript">
 
 // Temporary patch until all browsers support unprefixed context.
-AudioContext = AudioContext || webkitAudioContext;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // init() once the page has finished loading.
 window.onload = init;

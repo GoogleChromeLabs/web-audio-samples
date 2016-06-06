@@ -265,7 +265,7 @@ function loadBufferForSource(source, url) {
 }
 
 function init() {
-    AudioContext = AudioContext || webkitAudioContext;
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     // Initialize audio
     context = new AudioContext();
     

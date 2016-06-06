@@ -256,7 +256,7 @@ function createRandomPitchSource() {
 
 
 function initAudio() {
-    AudioContext = AudioContext || webkitAudioContext;
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     context = new AudioContext();
     
     // 

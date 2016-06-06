@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // init() once the page has finished loading.
 
 // Temporary patch until all browsers support unprefixed context.
-AudioContext = AudioContext || webkitAudioContext;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 window.onload = init;
 
