@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+<!-- This is used to create the audioparam automation clipping graph at
+http://webaudio.github.io/web-audio-api/#computation-of-value
+
+Be careful when changing this, and if you do, think about updating the spec with a new image.
+-->
+    <script src="flot/jquery.js"></script>
+    <script src="flot/jquery.flot.js"></script>
+    <script src="flot-axislabels/jquery.flot.axislabels.js"></script>
+    <script src="jquery.flot.saveAsImage.js/lib/base64.js"></script>
+    <script src="jquery.flot.saveAsImage.js/lib/canvas2image.js"></script>
+    <script src="jquery.flot.saveAsImage.js/jquery.flot.saveAsImage.js"></script>
+    <script src="jquery.flot.dashes.js"></script>
+  </head>
+
+  <body>
+    <div id="graph" style="width:900px;height:540px;"></div>
+    <script>
+      var peakValue = 4;
+      var sampleRate = 500;
+      var renderLength = 2;
+      var renderFrames = renderLength * sampleRate;
+
+      var t = new Float32Array(1 + renderFrames);
+      var x = new Float32Array(1 + renderFrames);
+      var clipped = new Float32Array(1 + renderFrames);
+
+      var renderHalfFrames = renderFrames / 2;
+      for (var k = 0; k < renderHalfFrames; ++k) {
+        t[k] = k / sampleRate;
+        x[k] = peakValue * t[k];
+      }
+
+      for (var k = renderHalfFrames; k <= renderFrames; ++k) {
+        t[k] = k / sampleRate;
+        x[k] = peakValue - peakValue * (t[k] - renderLength / 2);
+      }
+
+      for (var k = 0; k <= renderFrames; ++k) {
+        clipped[k] = x[k] > 1 ? 1 : x[k];
+      }
+
+      var plotData = [];
+      var clippedData = [];
+      for (var k = 0; k < t.length; ++k) {
+        plotData.push([t[k], x[k]]);
+        clippedData.push([t[k], clipped[k]]);
+      }
+
+      $.plot("#graph", [{
+        label: "Clipped automation",
+        data: clippedData,
+        lineWidth: 1,
+      }, {
+        label: "Unclipped automation",
+        data: plotData,
+        dashes: { show: true },
+        lineWidth: 1
+      },
+      ]);
+      
+    </script>
+  </body>
+</html>
