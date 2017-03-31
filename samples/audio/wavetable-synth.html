@@ -717,6 +717,13 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
         osc2Octave.start(time);
         osc1Octave.stop(offTime);
         osc2Octave.stop(offTime);
+        var cleanupDelay = offTime - osc1.context.currentTime + 1;
+//        console.log('cleanupDelay', cleanupDelay);
+        var self = this;
+        setTimeout(function() {
+            self.noteVolume.disconnect();
+//            console.log('cleanup');
+        }, cleanupDelay * 1000);
     } else {
         if (firstTime) {
             osc1.start(0);

@@ -113,6 +113,14 @@
           panner.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
 
           ping.start(0);
+          var stopTime = context.currentTime + ping.buffer.duration / rate + 1;
+          var cleanupDelay = stopTime + 1 - context.currentTime;
+          ping.stop(stopTime);
+          setTimeout(function() {
+            dryGainNode.disconnect();
+            wetGainNode.disconnect();
+            ping.disconnect();
+          }, cleanupDelay * 1000);
         }
       }
     }
