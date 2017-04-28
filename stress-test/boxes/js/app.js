@@ -69,7 +69,7 @@ const App = {
     let systemInfo = Lib.getSystemInfo();
     let div = document.getElementById('eSystemInfo');
     if (div) {
-      div.innerHTML = 
+      div.innerHTML =
           systemInfo.name + ' ' + systemInfo.version;
     }
   },
@@ -78,13 +78,13 @@ const App = {
     let div = document.getElementById('eRealtimeInfo');
     let nodeCounts = kNodeCounter.getNodeCounts();
     if (div) {
-      div.innerHTML = 'Number of Objects = ' + App.state.numberOfObjects + 
+      div.innerHTML = 'Number of Objects = ' + App.state.numberOfObjects +
           '<br>';
       for (let nodeType in nodeCounts) {
         div.innerHTML += nodeType + ' = ' + nodeCounts[nodeType] + '<br>';
       }
     }
-  }, 
+  },
 
   render: () => {
     world.Step(kFrameInterval, kNumberOfIterationPerFrame);
@@ -97,9 +97,9 @@ const App = {
     let position = Lib.getMousePosition(canvasElement, event);
     let didCreate = false;
     if (Lib.maybe()) {
-      didCreate = createBox(world, position.x, position.y, 10, 10, false);  
+      didCreate = createBox(world, position.x, position.y, 10, 10, false);
     } else {
-      didCreate = demos.top.createBall(world, position.x, position.y);  
+      didCreate = demos.top.createBall(world, position.x, position.y);
     }
 
     if (didCreate) {
@@ -114,7 +114,7 @@ const App = {
       App.createObjectOnEvent(event);
     });
     canvasElement.addEventListener('mousemove', (event) => {
-      if (App.state.mouseDown && 
+      if (App.state.mouseDown &&
           event.timeStamp - App.state.previousTimeStamp > kUIThrottleInterval) {
         App.createObjectOnEvent(event);
         App.state.previousTimeStamp = event.timeStamp;
@@ -135,7 +135,7 @@ const App = {
   onLoad: () => {
     App.updateSystemInfo();
     App.updateRealtimeInformation();
-    
+
     App.initialize();
     App.registerUIEvents();
 

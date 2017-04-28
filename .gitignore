@@ -1,2 +1,6 @@
 .DS_Store
 TODO.md
+
+package.json
+node_modules/
+node_apps/
