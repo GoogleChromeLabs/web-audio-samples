@@ -135,7 +135,6 @@ const App = {
   onLoad: () => {
     App.updateSystemInfo();
     App.updateRealtimeInformation();
-
     App.initialize();
     App.registerUIEvents();
 
