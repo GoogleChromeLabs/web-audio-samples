@@ -1,5 +1,9 @@
 # Web Audio API Samples
 
-This is a collection of [Web Audio examples](http://googlechrome.github.io/web-audio-samples/samples/audio/index.html). Note that not all of these samples are functional, many are not yet properly cross-browser, and most need to be better documented. Please feel free to file issues or submit PRs.
+This is a collection of Web Audio API examples.
 
-These Web Audio API samples were originally hosted at [here](http://chromium.googlecode.com/svn/trunk/samples/audio/index.html).
+ - [Index](http://googlechrome.github.io/web-audio-samples/samples/audio/index.html)
+ - [Raw Catalog](http://googlechrome.github.io/web-audio-samples/)
+ - [Stress Test](http://googlechrome.github.io/web-audio-samples/stress-test/boxes)
+
+__NOTE__: Some of these samples are not functional or cross-browser compatible. Please feel free to file issues or submit PRs.
