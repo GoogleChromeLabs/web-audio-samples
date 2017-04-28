@@ -312,17 +312,22 @@ function schedule() {
    }
    
    // Velocity (for doppler effect)
-   var kVelocityScale = 50.0;
-   var deltaX = kVelocityScale * (x - gLastX);
-   var deltaY = kVelocityScale * (y - gLastY);
-   var deltaZ = kVelocityScale * (z - gLastZ);
-   gLastX = x;
-   gLastY = y;
-   gLastZ = z;
+   if (panner.setVelocity) {
+     var kVelocityScale = 50.0;
+     var deltaX = kVelocityScale * (x - gLastX);
+     var deltaY = kVelocityScale * (y - gLastY);
+     var deltaZ = kVelocityScale * (z - gLastZ);
+     gLastX = x;
+     gLastY = y;
+     gLastZ = z;
    
-   panner.setVelocity(deltaX, deltaY, deltaZ);
-//   console.log( "setVelocity( " + deltaX + ", " + deltaY + ", " + deltaZ + ")");
-   context.listener.dopplerFactor = dopplerFactor;
+     panner.setVelocity(deltaX, deltaY, deltaZ);
+     // console.log( "setVelocity( " + deltaX + ", " + deltaY + ", " + deltaZ + ")");
+   }
+
+   if (context.listener.dopplerFactor) {
+     context.listener.dopplerFactor = dopplerFactor;
+   }
    
    draw(x, y, z);
    
