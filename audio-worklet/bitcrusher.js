@@ -32,7 +32,7 @@ class Bitcrusher {
   
   constructor (context, options) {
     this.context_ = context;
-    this.bits = options.bits;
+    this.bits = options.bits; 
     this.reduction = options.reduction;
     this.node_ = context.createScriptProcessor(options.bufferSize, options.inputChannel, options.outputChannel);     // context.createScriptProcessor(options.a, options.b, 44100);
 
@@ -47,7 +47,7 @@ class Bitcrusher {
     2. the sample changes every [options.reduction] samples, simulating a sample rate reduction
   */
   onaudioprocess_ (event) {
-    let scale = Math.pow(1/2, this.bits);  // TODO clarify why this works
+    let scale = Math.pow(1/2, this.bits);  // for rounding output at desired precision
    
     // bit crush each channel of input
     for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
@@ -58,7 +58,7 @@ class Bitcrusher {
       let last = input[0];
       for (let j = 0; j < event.inputBuffer.length; j++) {
         if (j % this.reduction == 0) {
-          last = Math.floor(input[j] / scale + 0.5) * scale; // TODO clarify and ensure this works
+          last = Math.floor(input[j] / scale + 0.5) * scale; // round number at desired precision
         }
         output[j] = last;
       }
@@ -73,7 +73,6 @@ class Bitcrusher {
   // connect input AudioNode to this
   connectIn(input) {
     input.connect(this.node_);
-    console.log(input);
   }
   
   disconnect (dest) {

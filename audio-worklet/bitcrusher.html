@@ -34,35 +34,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<meta name="description" content="">
 		<script src = "bitcrusher.js"></script> 
-		
-		<script> 
-			let context = new AudioContext();
-			let bits = 16; // the number of bits used to represent a sample in bitcrushed audio buffer
-			let reduction = 10; // the amount of sample reduction to apply; bitcrushed buffer will have [reduction] equal samples 
-
-			let osc = new OscillatorNode(context);
-
-			// run oscillator
-			function testOscillator() {
-				let bc = new Bitcrusher(context, 
-					{buffersize: 512, inputChannels: 2, outputChannels: 2, bits, reduction});
-				osc.frequency.value = 4000;
-				bc.connectIn(osc);
-				bc.connectOut(context.destination);
-				osc.start();
-			}
-
-			function stopOscillator() {
-				osc.stop();
-			}
-
-		</script>
+		<!-- <script src = "bitcrusher-online.js"></script> -->
+		 <script src = "bitcrusher-test.js"> </script> 
 	</head>
 	
 	<body>
-		<button onclick = "testOscillator()">Start</button>
-		<button onclick = "stopOscillator()">Stop</button> 
-	 	<input id = "test" type="range"/>
+		<table>
+			<tr>
+				<td>
+					<button onclick = "testOscillator()">Oscillate</button>
+					<input type = "number" value = "440" oninput = "changeFrequency(this.value)"> <!-- Frequency -->
+					<input type="range" min="1" max="20" step="0.1"oninput="changeBitDepth(this.value)" onchange="changeBitDepth(this.value)"> 
+					<input type="range" min="1" max="20" step="1"oninput="changeSampleRate(this.value)" onchange="changeSampleRate(this.value)"> 
+					<button onclick = "stopOscillator()">Stop</button> 
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button onclick = "playMP3()">MP3</button>
+				</td>
+			</tr>
+		</table>
+
 	</body>
 </html> 
 
