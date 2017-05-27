@@ -29,33 +29,49 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
+<!-- 
+	This code illustrates a web audio bitcrusher implementation, a musical audio effect.
+	The bitcrusher class defined in bitcrusher.js binds the script processor node's
+	onaudioprocess method to a bitcrush function, which reduces the precision of
+	individual samples and simulates a sample rate reduction by a specified factor. These
+	parameters can be modified as the source (an oscillator or loaded mp3 file) is running
+	concurrently. 
+-->
+
 <!DOCTYPE html>
 	<head>
-		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-		<meta name="description" content="">
-		<script src = "bitcrusher.js"></script> 
-		<!-- <script src = "bitcrusher-online.js"></script> -->
-		 <script src = "bitcrusher-test.js"> </script> 
+		<meta http-equiv= "content-type" content= "text/html; charset=UTF-8">
+		<meta name= "description" content = "">
+		<script src = "bitcrusher.js"> </script> 
+		<script src = "bitcrusher-controller.js"> </script> 
+
+		 <style>
+		   table, th, td { border: 1px solid black;}
+		 </style>
 	</head>
 	
 	<body>
 		<table>
-			<tr>
-				<td>
-					<button onclick = "testOscillator()">Oscillate</button>
-					<input type = "number" value = "440" oninput = "changeFrequency(this.value)"> <!-- Frequency -->
-					<input type="range" min="1" max="20" step="0.1"oninput="changeBitDepth(this.value)" onchange="changeBitDepth(this.value)"> 
-					<input type="range" min="1" max="20" step="1"oninput="changeSampleRate(this.value)" onchange="changeSampleRate(this.value)"> 
-					<button onclick = "stopOscillator()">Stop</button> 
-				</td>
+			<tr> <!-- Names and values -->
+				<td>Bit Depth: <div id = "bd"> 8.0 </div> </td>
+				<td>Sample Reduction: <div id = "sr"> 10 </div> </td>
+			</tr>			
+			<tr> <!-- Bitcrushing controls -->
+				<td><input id = "bdSlider" type="range" min = "0.1" max = "16" step= "0.1" 
+							oninput = "changeBitDepth(this.value)" onchange = "changeBitDepth(this.value)" disabled> </td>
+				<td><input id = "srSlider" type="range" min = "1" max = "20" step = "1" 
+							oninput = "changeSampleRate(this.value)"onchange="changeSampleRate(this.value)" disabled> </td>
 			</tr>
-			<tr>
-				<td>
-					<button onclick = "playMP3()">MP3</button>
-				</td>
+			<tr> <!-- Oscillation controls -->
+				<td><button onclick = "testOscillator()">Oscillate</button></td>
+				<td><input type = "number" value = "440" oninput = "changeFrequency(this.value)"></td>
+				<td><button id = "stopOscillator" onclick = "stopOscillator()" disabled>Stop</button></td> 
+			</tr>
+			<tr> <!-- MP3 controls -->
+				<td><button id = "mp3" onclick = "playMP3()" disabled>MP3</button></td>
+				<td><button id = "stopMP3" onclick = "stopMP3()" disabled>Stop</button></td>
 			</tr>
 		</table>
-
 	</body>
 </html> 
 
