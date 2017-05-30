@@ -95,7 +95,7 @@ function testOscillator() {
 
 /**
  * When mp3 button is clicked, play loaded sound source at frequency, 
- * bit depth, and sample rate reduction specified in GUI 
+ * bit depth, and sample rate reduction specified in GUI  
  */
 function playMP3() {
 	mp3Source = context.createBufferSource(); 
