@@ -29,117 +29,113 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/**
- *  Loads sound resources and initiates and configures a Web Audio graph given
- * GUI controls specified in bitcrusher.html. 
- * Sound is routed through a bitcrusher wrapper class defined in bitcrusher.js
- */
+class BitcrusherController {
+	/**
+	 * Initalizes and modifies bitcrusher_ in response to GUI input
+	 * @param  {Number} bitDepth the number of bits for each sample
+	 * @param  {Number} reduction the amount of sample rate reduction to apply
+	 * @param  {Number} gain the volume of the output
+	 */
+	constructor(bitDepth, reduction, gain) {
+		this.context = new AudioContext();
+		this.bitDepth_ = bitDepth || 24;
+		this.reduction_ = reduction || 1;
+		
+		this.gainNode_ = new GainNode(this.context);
+		this.gainNode_.gain.value = gain || 0.5;
+	}
 
-/**-----------------------------------------------------------------------------
- 	Initialize variables and retrieve song from server
-   --------------------------------------------------------------------------**/
-let context = new AudioContext();
-let bitDepth = 8.0; // the precision in bits of the final sample
-let reduction = 10; // bitcrushed buffer will have [reduction] equal samples 
+	/**
+	 * Initalize HTML elements when document has loaded
+	 * @param  {String} containerId the id of parent container
+	 */
+	initializeGUI(containerId) {
+		this.sourceButton_ = new SourceController(containerId, this.start.bind(this), 
+			this.stop.bind(this));
+		this.sourceButton_.disable();
+		
+		// Place 3 parameters in container to real-time adjust Bitcrusher_ settings
+		this.bitDepthParam_ = new ParamController(containerId, 
+			this.setBitDepth.bind(this), {type: "range", min: 1, max: 24,
+			step: 0.1, default: 24, name: "Bit Depth"});
+		this.bitDepthParam_.disable();
 
-let freq = 440; // default frequency to A4
-let oscillator; // oscillator node
-let mp3Source; // mp3 sound source
-let mp3Buffer; // the Audio Buffer of loaded mp3 track
-let bitcrusher; // script processor wrapper implementing a bit crusher node
-const songs = ["lonely-tentacle.mp3", "revenge.mp3", "it-from-bit.mp3"];
-const folder = "audio/";
-const songUrl = folder + songs[2]; // specified url will be loaded
+		this.reductionParam_ = new ParamController(containerId, 
+			this.setReduction.bind(this), {type: "range", min: 1, max: 20,
+			step: 0.1, default: 1, name: "Sample Rate Reduction"});
+		this.reductionParam_.disable();
 
+		this.gainParam = new ParamController(containerId, 
+			this.setGain.bind(this), {type: "range", min: 0, max: 1,
+			step: 0.01, default: 0.5, name: "Volume"});
 
-// Retrieve local bitcrusher mp3 file and decode as audio buffer
-fetch(songUrl).then(function(response) { 
-	return response.arrayBuffer();}).then(function(song) { 
-		context.decodeAudioData(song, function(buffer) { // decode as audio buffer
-  		mp3Buffer = buffer;
-    	document.getElementById("startMp3").disabled = false; // enable mp3 button
-  }, function (d) { console.log(d)});
-});
+		const songUrl = "audio/it-from-bit.mp3";
+		let that = this;
 
+		// Fetch song from server and decode into buffer
+		fetch(songUrl).then((response) => { 
+			return response.arrayBuffer();})
+				.then((song) => { 
+					that.context.decodeAudioData(song)
+						.then((buffer) => {
+		  				that.songBuffer = buffer;
+		  				that.sourceButton_.enable();
+		  			}, (message) => {console.error(message)});
+		});
+	}
 
-/**-----------------------------------------------------------------------------
-***GUI Controls: modify bitcrusher parameters
-***---------------------------------------------------------------------------*/
-
-/**
- * When oscillator button is clicked, run bitcrushed oscillator at
- * frequency, bit depth, and sample rate reduction specified in GUI 
- */
-function testOscillator() {
-  oscillator = new OscillatorNode(context); 
-  bitcrusher = new Bitcrusher(context, {buffersize: 512, inputChannels: 1, 
-  	outputChannels: 1, bitDepth, reduction});
-  oscillator.frequency.value = freq; 
-  
-  // reduce volume of oscillator and connect audio graph
-  let gainNode = new GainNode(context);
-  gainNode.gain.value =0.2;
-  bitcrusher.connectIn(oscillator).connectOut(gainNode);
-  gainNode.connect(context.destination); 
-
+	/**
+	 * Change bit depth (bound to event listener by a ParamController)
+	 * @param {Number} value the new bit depth
+	 */
+	setBitDepth(value) {
+		this.bitDepth_ = value || this.bitDepth_;
+		this.bitcrusher_.bitDepth = this.bitDepth_;
+	}
  
-  oscillator.start();
+  /**
+	 * Change sample rate reduction (bound to event listener by a ParamController)
+	 * @param {Number} value the new sample rate reduction
+	 */
+	setReduction(value) {
+		this.reduction_ = value || this.reduction;
+		this.bitcrusher_.reduction = this.reduction_;
+	}
+ 
+  /**
+ 	 * Change the volume
+	 * @param {Number} value the new gain
+	 */
+	setGain(value) {
+		this.gainNode_.gain.value = value || 0.5;
+	}
 
-  // activate controls
-  document.getElementById("stopOscillator").disabled = false;
-  document.getElementById("bdSlider").disabled = false;
-  document.getElementById("srSlider").disabled = false;
-  document.getElementById("startOscillator").disabled = true;
-  document.getElementById("startMp3").disabled = true;
-}
+	/**
+	 * Configure and initiate audio processing
+	 */
+	start() {
+		// Play loaded song, running samples through a bitcrusher under user control
+		this.song_ = this.context.createBufferSource(); 
+		this.song_.buffer = this.songBuffer; 
+		this.song_.start();
+		this.bitDepthParam_.enable();
+		this.reductionParam_.enable();
 
-/**
- * When mp3 button is clicked, play loaded sound source at frequency, 
- * bit depth, and sample rate reduction specified in GUI  
- */
-function playMP3() {
-	mp3Source = context.createBufferSource(); 
-	mp3Source.buffer = mp3Buffer; 
-	mp3Source.start();
-	bitcrusher = new Bitcrusher(context, {buffersize: 512, inputChannels: 1, 
-		outputChannels: 1, bitDepth, reduction});
-	bitcrusher.connectIn(mp3Source).connectOut(context.destination);
+		this.bitcrusher_ = new Bitcrusher(this.context, 
+			{inputChannels: 1, outputChannels: 1, 
+			bitDepth: this.bitDepth_, reduction: this.reduction_});
+
+		this.song_.connect(this.bitcrusher_.input);
+		this.bitcrusher_.output.connect(this.gainNode_);
+		this.gainNode_.connect(this.context.destination);
+	}
 	
-	// activate controls
-	document.getElementById("stopMP3").disabled = false;
-  document.getElementById("bdSlider").disabled = false;
-  document.getElementById("srSlider").disabled = false;
-  document.getElementById("startMp3").disabled = true;
-  document.getElementById("startOscillator").disabled = true;
-}
-
-function stopOscillator() {
-	oscillator.stop();
-	document.getElementById("stopOscillator").disabled = true;
-	document.getElementById("startMp3").disabled = false;
-	document.getElementById("startOscillator").disabled = false;
-}
-
-function stopMP3 () { 
-	mp3Source.stop();
-	document.getElementById("stopMP3").disabled = true;
-	document.getElementById("startOscillator").disabled = false;
-	document.getElementById("startMp3").disabled = false;
-}
-
-function changeBitDepth(val) {
-	bitcrusher.bitDepth = val; 
-	let div = document.getElementById('bd');
-	div.innerHTML = val;
-}
-
-function changeFrequency(val) {
-	oscillator.frequency.value = val;
-	freq = val;
-}
-
-function changeSampleRate(val) {
-	bitcrusher.reduction = val;
-	let div = document.getElementById('sr');
-	div.innerHTML = val;
+	/**
+	 * Abort audio processing
+	 */
+	stop() {
+		this.song_.stop();
+		this.bitDepthParam_.disable();
+		this.reductionParam_.disable();
+	}
 }

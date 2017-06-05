@@ -28,12 +28,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 .container {
 	position: fixed;
 	display:flex;
 	flex-direction:column;
   width: 400px;
-  height: 400px;
+  height: 300px;
   background-color:#e7e7e4;
   left: 50%;
   top: 50%;
@@ -67,6 +68,7 @@ div {
 	margin:10px;
 	border: 1px solid black;
 }
+
 .paramHeader {
 	left:40%;
 	position:relative;

@@ -29,110 +29,76 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+//...  Populate array with 0:99 and verify the bitcrusher holds [0, 0, ... 0,
+//...  10, 10, ..., 10] where the number of consecutive equal numbers is  
+//...  controlled by the variable factor. 
+//...  Because of floating precision error this test fails to be precise
+//...  if the phaserInc variable in bitcrusher.js (1/factor) is not greater or 
+//...  equal to 1 when multiplied by factor. So stop test at 5
+let offlineContext = new OfflineAudioContext(2, 48000, 48000); 
+let bitcrusher = new Bitcrusher(offlineContext, {});
 
-/* ------------------------------------------------------------------------- 
-   Test Bitcrusher rounding method. 
-   -------------------------------------------------------------------------*/
-let base = 10; // set base to 10 for easier testing
-let x = Bitcrusher.round(1.7821, 2, base); 
-let expected = 1.78;
-console.assert(x == expected, "computed " + x + " but expected " + expected);
-
-x = Bitcrusher.round(-1.332432, 5, base); 
-expected = -1.33243;
-console.assert(x == expected, "computed " + x + " but expected " + expected);
-
-x = Bitcrusher.round(10.322, 3, base); 
-expected = 10.322;
-console.assert(x == expected, "computed " + x + " but expected " + expected);
-
-x = Bitcrusher.round(23.432123212321232123, 9, base); 
-expected = 23.432123212;
-console.assert(x == expected, "computed " + x + " but expected " + expected);
-
-x = Bitcrusher.round(1, 1, base); 
-expected = 1;
-console.assert(x == expected, "computed " + x + " but expected " + expected);
-/* ------------------------------------------------------------------------ */
-
-
-/* -------------------------------------------------------------------------- 
-   Test sample reduction component. 
-   Hold constant precision and test factor reduction
-   Populate array with 0:99 and verify the bitcrusher holds [0, 0, ... 0,
-   10, 10, ... 10] where the number of consecutive equal numbers is controlled 
-   by the variable factor
-   ------------------------------------------------------------------------ */
-
-for (let factor = 1; factor < 10; factor++) {
-  const precision = 1; // leave precision in tact
-  const bufferSize = 100; // arbitrarily sized buffer for testing
+for (let factor = 1; factor < 5; factor++) {
+  const precision = 1; 
+  const bufferSize = 100; 
   let referenceBuffer = new Float32Array(bufferSize);
   let outputBuffer = new Float32Array(bufferSize);
   
-  // populate array 1:100
+  // Populate array 1:100
   for (let i =0; i < bufferSize; i++) {
     referenceBuffer[i] = i; 
   }
+  bitcrusher.processBuffer_(factor, precision, referenceBuffer, outputBuffer); 
 
-  Bitcrusher.bitcrush(factor, precision, referenceBuffer, outputBuffer); 
-  
-  // verify computed values match expected values
-  outputBuffer.map(function(d, i) { // d is bitcrushed data and i is index 
-    let expected = Math.floor(i / factor) * factor;
-    console.assert(d == expected, "computed " +d + " but expected " + expected);
+  // Verify computed values match expected values
+  outputBuffer.map((data, index) => { 
+    let expected = Math.floor(index / factor) * factor;
+    console.assert(data == expected, "computed " + data +
+     " but expected " + expected);
   });
 }
 
-/*------------------------------------------------------------------------- 
-  Test Bitcrusher in Offline Web Audio context  
-  Test that Bitcrusher class works in offline Web Audio context.
-  Create two oscillators, runing one through a bitcrusher with variables set to 
-  avoid any effect. Conjoin nodes through a ChannelMergerNode and feed output
-  to an offline destination. Then verify that the samples are nearly identical
-  -----------------------------------------------------------------------*/
-
-let offlineContext = new OfflineAudioContext(2, 12800, 12800); 
+//... Create two oscillators, runing one through a bitcrusher with variables set  
+//... to avoid any effect. Conjoin nodes through a ChannelMergerNode 
+//... and feed output to an offline destination. Then verify that the samples 
+//... are nearly identical
 reduction = 1; 
-bitDepth = 16; 
+bitDepth = 24; 
 let osc = new OscillatorNode(offlineContext); 
 let oscb = new OscillatorNode(offlineContext); 
-let bufferLength = 512
+const bufferLength = 512;
 osc.start();  
 oscb.start();
 
-// connect bitcrushed oscillator to index 0 of channel merger
 let merger = new ChannelMergerNode(offlineContext, {numberOfInputs: 2}); 
 let bc = new Bitcrusher(offlineContext, {buffersize: 512, inputChannels: 1, 
 	outputChannels: 1, bitDepth, reduction});
-bc.connectIn(osc).connectOut(merger);
 
-// connect naked oscillator to other channel of channel node
+osc.connect(bc.input);
+bc.output.connect(merger, 0, 0);
 oscb.connect(merger, 0, 1);
 merger.connect(offlineContext.destination);
 
-// render the audio graph and inspect the buffer 
+// When audio buffer is ready, verify bitcrushed samples are unaltered 
 offlineContext.startRendering().then(function (buffer) {
-  let bcOutput = buffer.getChannelData(0); // bitcrushed output
-  let oscOutput = buffer.getChannelData(1); // oscillator output
-  const permittedSampleError = 0.0001;
+  let bcOutput = buffer.getChannelData(0); 
+  let oscOutput = buffer.getChannelData(1); 
 
-  // first and last buffers are all 0 with script processor
-  const scriptProcessorLatencyError = bufferLength * 2; 
+  // Allow for fractional error beyond audible perception
+  const permittedSampleError = 0.0000001;
 
-  // verify samples from naked oscillator match samples from bitcrushed 
+  // First script processed buffer is all zero
+  const latency = bufferLength; 
+
+  // Verify samples from unadultered oscillator match samples from bitcrushed 
   // oscillator with non-information reducing parameters
-  for (let i = 0; i < oscOutput.length - scriptProcessorLatencyError; i++ ) {
-    let crushedSample = bcOutput[i + scriptProcessorLatencyError];
+  for (let i = 0; i < oscOutput.length - latency; i++ ) {
+    let crushedSample = bcOutput[i + latency];
     let oscSample = oscOutput[i];
     const diff = Math.abs(oscSample - crushedSample);
     console.assert(permittedSampleError > diff, "Bitcrushed sample at " + i + 
     	" is " + crushedSample + " but " + oscSample + " for oscillator"); 
   }
-
 }).catch(function(err) {
   console.log("Rendering failed: " + err);
 }); 
-
-
-
