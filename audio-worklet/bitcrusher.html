@@ -30,25 +30,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
 <!-- 
-	This code illustrates a web audio bitcrusher implementation, a musical audio 
-	effect. The bitcrusher class defined in bitcrusher.js binds the script 
-	processor node's onaudioprocess method to a bitcrush function, which reduces 
-	the precision of individual samples and simulates a sample rate reduction by a
-	specified factor. These parameters can be modified as the sound source is 
-	running concurrently. 
+  This code illustrates a web audio bitcrusher implementation, a musical audio 
+  effect. The bitcrusher class defined in bitcrusher.js binds the script 
+  processor node's onaudioprocess method to a bitcrush function, which reduces 
+  the precision of individual samples and simulates a sample rate reduction by a
+  specified factor. These parameters can be modified as the sound source is 
+  running concurrently. 
 -->
 <!DOCTYPE html>
 <html>
-	<head>
-	  <title>Bitcrusher</title>
-	  <link rel="stylesheet" href="style.css">
-	</head>
+  <head>
+    <title>Bitcrusher</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
 
-	<body>
-	  <div id="container" class = "container">
-	  	<div id="title"> Bit Crusher </div>
-	  </div>
-	</body>
+  <body>
+    <div id="container" class = "container">
+      <div id="title"> Bit Crusher </div>
+    </div>
+  </body>
 
   <script src="src/bitcrusher.js"></script>
   <script src="src/sourcecontroller.js"></script>
@@ -56,13 +56,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <script src="src/bitcrusher-controller.js"></script>
 
   <script> 
-  	// Default to 50% volume, maximum bit size, and no sample rate reduction
-  	let bitDepth = 24.0;
-  	let reduction = 1.0;
-  	let gain = 0.5;
-  	let controller = new BitcrusherController(bitDepth, reduction, 0.5);
+    // Default to 50% volume, maximum bit size, and no sample rate reduction
+    let bitDepth = 24.0;
+    let reduction = 1.0;
+    let gain = 0.5;
+    let controller = new BitcrusherController(bitDepth, reduction, 0.5);
 
-  	document.onload = controller.initializeGUI("container");
+    document.onload = controller.initializeGUI("container");
   </script>
 </html>
 

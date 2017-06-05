@@ -72,7 +72,7 @@ oscb.start();
 
 let merger = new ChannelMergerNode(offlineContext, {numberOfInputs: 2}); 
 let bc = new Bitcrusher(offlineContext, {buffersize: 512, inputChannels: 1, 
-	outputChannels: 1, bitDepth, reduction});
+  outputChannels: 1, bitDepth, reduction});
 
 osc.connect(bc.input);
 bc.output.connect(merger, 0, 0);
@@ -97,7 +97,7 @@ offlineContext.startRendering().then(function (buffer) {
     let oscSample = oscOutput[i];
     const diff = Math.abs(oscSample - crushedSample);
     console.assert(permittedSampleError > diff, "Bitcrushed sample at " + i + 
-    	" is " + crushedSample + " but " + oscSample + " for oscillator"); 
+      " is " + crushedSample + " but " + oscSample + " for oscillator"); 
   }
 }).catch(function(err) {
   console.log("Rendering failed: " + err);

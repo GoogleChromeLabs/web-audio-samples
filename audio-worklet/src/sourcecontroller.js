@@ -30,49 +30,49 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 class SourceController {
-	/**
-	 * Event Handler and layout for start / stop buttons
-	 * @param  {String} parentId string id for parent element
-	 * @param  {Function} audioStart callback for play button
-	 * @param  {Function} audioStop callback for stop button
-	 */
-	constructor(parentId, audioStart, audioStop) {
-		// Arrange play and stop button vertically and trigger audioStart
-		// and audioStop when these buttons are pressed
-		parent = document.getElementById(parentId);
-		this.playButton_ = document.createElement("button");
-		this.stopButton_ = document.createElement("button");
-		parent.appendChild(this.playButton_);
-		parent.appendChild(this.stopButton_);
+  /**
+   * Event Handler and layout for start / stop buttons
+   * @param  {String} parentId string id for parent element
+   * @param  {Function} audioStart callback for play button
+   * @param  {Function} audioStop callback for stop button
+   */
+  constructor(parentId, audioStart, audioStop) {
+    // Arrange play and stop button vertically and trigger audioStart
+    // and audioStop when these buttons are pressed
+    parent = document.getElementById(parentId);
+    this.playButton_ = document.createElement("button");
+    this.stopButton_ = document.createElement("button");
+    parent.appendChild(this.playButton_);
+    parent.appendChild(this.stopButton_);
 
-		this.playButton_.innerHTML = "Play";
-		this.stopButton_.innerHTML = "Stop";
-		this.stopButton_.disabled = true;
+    this.playButton_.innerHTML = "Play";
+    this.stopButton_.innerHTML = "Stop";
+    this.stopButton_.disabled = true;
 
-		this.playButton_.addEventListener("click", this.start.bind(this));
-		this.stopButton_.addEventListener("click", this.stop.bind(this));
-		this.audioStart_ = audioStart;
-		this.audioStop_ = audioStop;
-	}
+    this.playButton_.addEventListener("click", this.start.bind(this));
+    this.stopButton_.addEventListener("click", this.stop.bind(this));
+    this.audioStart_ = audioStart;
+    this.audioStop_ = audioStop;
+  }
 
-	enable() {
-		this.playButton_.disabled = false;
-	}
+  enable() {
+    this.playButton_.disabled = false;
+  }
 
-	disable() {
-		this.stopButton_.disabled = true;
-		this.playButton_.disabled = true;
-	}
-	
-	start() {
-		this.playButton_.disabled = true;
-		this.stopButton_.disabled = false;
-		this.audioStart_();
-	}
+  disable() {
+    this.stopButton_.disabled = true;
+    this.playButton_.disabled = true;
+  }
+  
+  start() {
+    this.playButton_.disabled = true;
+    this.stopButton_.disabled = false;
+    this.audioStart_();
+  }
 
-	stop() {
-		this.playButton_.disabled = false;
-		this.stopButton_.disabled = true;
-		this.audioStop_();
-	}
+  stop() {
+    this.playButton_.disabled = false;
+    this.stopButton_.disabled = true;
+    this.audioStop_();
+  }
 }

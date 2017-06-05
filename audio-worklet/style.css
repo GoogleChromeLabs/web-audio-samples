@@ -30,9 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 .container {
-	position: fixed;
-	display:flex;
-	flex-direction:column;
+  position: fixed;
+  display:flex;
+  flex-direction:column;
   width: 400px;
   height: 300px;
   background-color:#e7e7e4;
@@ -43,33 +43,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }
 
 div {
-	font: 100%/1.6 arial, georgia, serif;
+  font: 100%/1.6 arial, georgia, serif;
 }
 
 #title {
-	position:relative;
-	height: 50px;
-	left: 33%;
-	font-size: 200%;
+  position:relative;
+  height: 50px;
+  left: 33%;
+  font-size: 200%;
 }
 
 .source {
-	background-color:ghostwhite;
-	height: 100px;
-	margin: 20px;
-	border: 1px solid black;
+  background-color:ghostwhite;
+  height: 100px;
+  margin: 20px;
+  border: 1px solid black;
 }
 
 .param {
-	height:50px;
-	display:inline-flex;
-	flex-direction:column;
-	background-color:ghostwhite;
-	margin:10px;
-	border: 1px solid black;
+  height:50px;
+  display:inline-flex;
+  flex-direction:column;
+  background-color:ghostwhite;
+  margin:10px;
+  border: 1px solid black;
 }
 
 .paramHeader {
-	left:40%;
-	position:relative;
+  left:40%;
+  position:relative;
 }
