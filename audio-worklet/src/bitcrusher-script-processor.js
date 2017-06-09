@@ -1,18 +1,18 @@
-/*
-  Copyright 2017 Google Inc.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
-
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 class Bitcrusher {
   /**
    * Implements a wrapper for a ScriptProcessor object
@@ -48,9 +48,9 @@ class Bitcrusher {
     this.output = new GainNode(this.context_);
     this.input.connect(this.node_).connect(this.output);
 
-    // index and previousSample defined as globals to handle block transitions.
-    this.index = 0;
-    this.previousSample;
+    // Index and previousSample defined as globals to handle block transitions.
+    this.index_ = 0;
+    this.previousSample_;
   }
 
   /**
@@ -67,27 +67,28 @@ class Bitcrusher {
   }
 
   /**
-   * Reduce the information in given inputBuffer with specified factor and
-   * precision, placing results in outputBuffer.
-   * @param  {Number} factor the amount of sample rate reduction
-   * @param  {Number} precision the bit depth of post-processed samples
+   * Reduce the information in given inputBuffer with specified reduction and
+   * bitDepth, placing results in outputBuffer.
+   * @param  {Number} reduction the amount of sample rate reduction
+   * @param  {Number} bitDepth the bit depth of post-processed samples
    * @param  {Float32Array} inputBuffer pre-processed buffer
    * @param  {Float32Array} outputBuffer post-processed buffer
    */
-  processBuffer_(factor, precision, inputBuffer, outputBuffer) {
-    if (factor <= 0) factor = 1;
-    const scale = Math.pow(2, precision);
+  processBuffer_(reduction, bitDepth, inputBuffer, outputBuffer) {
+    if (reduction < 1) 
+      console.error("The minimum reduction rate is 1.");
+    
+    const scale = Math.pow(2, bitDepth);
 
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputBuffer.length; j++) {
-      if (this.index % factor == 0) {
+      if (this.index_ % reduction === 0) {
         // Scale up and round off low order bits.
-        let temp = inputBuffer[j] * scale;
-        let rounded = Math.round(temp);
-        this.previousSample = rounded / scale;
+        let rounded = Math.round(inputBuffer[j] * scale);
+        this.previousSample_ = rounded / scale;
       }
-      outputBuffer[j] = this.previousSample;
-      this.index++;
+      outputBuffer[j] = this.previousSample_;
+      this.index_++;
     }
   }
 }

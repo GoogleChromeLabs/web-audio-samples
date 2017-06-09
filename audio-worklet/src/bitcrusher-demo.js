@@ -1,18 +1,18 @@
-/*
-  Copyright 2017 Google Inc.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
-
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 class BitcrusherDemo {
   /**
    * Initalizes and modifies bitcrusher settings in response to GUI input.
@@ -22,8 +22,8 @@ class BitcrusherDemo {
    */
   constructor(bitDepth, reduction, gain) {
     this.context_ = new AudioContext();
-    this.gainNode_ = new GainNode(this.context_);
-    this.gainNode_.gain.value = gain || 0.5;
+    this.masterGain_ = new GainNode(this.context_);
+    this.masterGain_.gain.value = gain || 0.5;
 
     this.bitcrusher_ = new Bitcrusher(this.context_, {
       inputChannels: 1,
@@ -32,23 +32,30 @@ class BitcrusherDemo {
       reduction: reduction || 1
     });
 
-    this.bitcrusher_.output.connect(this.gainNode_);
-    this.gainNode_.connect(this.context_.destination);
+    this.bitcrusher_.output.connect(this.masterGain_);
+    this.masterGain_.connect(this.context_.destination);
 
-    const songUrl = 'audio/it-from-bit.mp3';
+    this.loadSong_('audio/it-from-bit.mp3', (song) => {
+      this.songBuffer = song;
+      this.sourceButton_.enable()
+    });
+  }
 
-    // Fetch song from server and decode into buffer.
-    fetch(songUrl).then(response => response.arrayBuffer().then(song => {
-      this.context_.decodeAudioData(song).then(buffer => {
-        this.songBuffer = buffer;
-        this.sourceButton_.enable();
-      });
-    }));
+  async loadSong_(url, enableSong) {
+    try {
+      const response = await fetch(url);
+      const song = await response.arrayBuffer();
+      const buffer = await this.context_.decodeAudioData(song);
+      enableSong(buffer);
+    }
+    catch (err) {
+      console.log('Could not retrieve song.', err);
+    }
   }
 
   /**
    * Initalize HTML elements when document has loaded.
-   * @param  {String} containerId the id of parent container
+   * @param {String} containerId the id of parent container
    */
   initializeGUI(containerId) {
     this.sourceButton_ = new SourceController(
@@ -78,14 +85,15 @@ class BitcrusherDemo {
         });
     this.reductionSlider_.disable();
 
-    this.gainSlider_ = new ParamController(containerId, this.setGain.bind(this), {
-      type: 'range',
-      min: 0,
-      max: 1,
-      step: 0.01,
-      default: 0.5,
-      name: 'Volume'
-    });
+    this.gainSlider_ =
+        new ParamController(containerId, this.setGain.bind(this), {
+          type: 'range',
+          min: 0,
+          max: 1,
+          step: 0.01,
+          default: 0.5,
+          name: 'Volume'
+        });
   }
 
   /**
@@ -98,7 +106,7 @@ class BitcrusherDemo {
   }
 
   /**
-   * Change sample rate reduction. 
+   * Change sample rate reduction.
    * This is bound to an event listener by a ParamController
    * @param {Number} value the new sample rate reduction
    */
@@ -112,7 +120,7 @@ class BitcrusherDemo {
    * @param {Number} value the new gain
    */
   setGain(value) {
-    this.gainNode_.gain.value = value;
+    this.masterGain_.gain.value = value;
   }
 
   /**

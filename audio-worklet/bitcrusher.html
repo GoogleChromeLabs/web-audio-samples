@@ -1,16 +1,16 @@
 <!--
-  Copyright 2017 Google Inc.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-  http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Copyright 2017 Google Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 -->
 
 <!-- 
@@ -25,29 +25,28 @@
 <html>
   <head>
     <title>Bitcrusher</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="src/bitcrusher.js"></script>
-    <script src="src/sourcecontroller.js"></script>
-    <script src="src/paramcontroller.js"></script>
+    <script src="src/bitcrusher-script-processor.js"></script>
+    <script src="src/source-controller.js"></script>
+    <script src="src/param-controller.js"></script>
     <script src="src/bitcrusher-demo.js"></script>
   </head>
 
   <body>
     <h1>Bitcrusher: a lo-fi audio effect</h1>
     
-    <h2>Hit play to start a song and listen to the distortive effect of 
-        modifying the bit depth and sample rate reduction parameters.
-    </h2>
+    <p>
+      Hit play to start a song and listen to the distortive effect of 
+      modifying the bit depth and sample rate reduction parameters.
+    </p>
     
-    <h3>The bit depth slider controls the number of bits used to represent
-        a given sample. The sample rate reduction slider affects the number
-        of distinct samples in the signal. Increasing this value simulates
-        sample rate reduction by making intervals of consecutive samples equal.
-    </h3>
+    <p>
+      The bit depth slider controls the number of bits used to represent
+      a given sample. The sample rate reduction slider affects the number
+      of distinct samples in the signal. Increasing this value simulates
+      sample rate reduction by making intervals of consecutive samples equal.
+    </p>
     
-    <div id="container" class="container">
-      <h1 id="title">Bit Crusher</h1>
-    </div>
+    <div id="container"></div>
 
     <script> 
       // Default to 50% volume, maximum bit depth, and no sample rate reduction.
@@ -56,9 +55,8 @@
       let gain = 0.5;
       let controller = new BitcrusherDemo(bitDepth, reduction, 0.5);
 
-      //document.onload = controller.initializeGUI('container');
       window.addEventListener('load', () => {
-        controller.initializeGUI('container');
+          controller.initializeGUI('container');
       });
     </script>
   </body>
