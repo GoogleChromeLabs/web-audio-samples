@@ -28,7 +28,7 @@ for (let factor = 1; factor < 10; factor++) {
   for (let i = 0; i < bufferSize; i++) {
     referenceBuffer[i] = i;
   }
-  
+
   bitcrusher.processBuffer_(factor, precision, referenceBuffer, outputBuffer);
 
   // Verify computed values match expected values.
@@ -64,34 +64,31 @@ output.map((data, index) => {
       data === expected, 'computed ' + data + ' but expected ' + expected);
 });
 
-// Create two oscillators, running one through a bitcrusher with variables set
-// to avoid any effect. Conjoin nodes through a ChannelMergerNode
-// and feed output to an offline destination. Then verify that the samples
-// are nearly identical.
+// Create one oscillator, and connect it to a bitcrusher with variables set
+// to avoid any effect and a delay node which compensates for the script
+// processor latency. Then verify that the samples are nearly identical.
 reduction = 1;
 bitDepth = 24;
 let bufferLength = 512;
-let bitcrusherOscillator = new OscillatorNode(context);
-let unalteredOscillator = new OscillatorNode(context);
-bitcrusherOscillator.start();
-unalteredOscillator.start();
+let oscillator = new OscillatorNode(context);
+oscillator.start();
 
 let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
 bitcrusher = new Bitcrusher(context, {
   buffersize: bufferLength,
   inputChannels: 1,
-  outputChannels: 1, 
-  bitDepth: bitDepth, 
+  outputChannels: 1,
+  bitDepth: bitDepth,
   reduction: reduction
 });
 
 // Accomodate for script processor latency by delaying the unaltered oscillator.
 let delay = context.createDelay();
-delay.delayTime.value = bufferLength / context.sampleRate; 
+delay.delayTime.value = bufferLength / context.sampleRate;
 
-bitcrusherOscillator.connect(bitcrusher.input);
+oscillator.connect(bitcrusher.input);
 bitcrusher.output.connect(merger, 0, 0);
-unalteredOscillator.connect(delay).connect(merger, 0, 1);
+oscillator.connect(delay).connect(merger, 0, 1);
 merger.connect(context.destination);
 
 // When audio buffer is ready, verify bitcrushed samples are unaltered.
@@ -101,16 +98,11 @@ context.startRendering()
       let unalteredOutput = buffer.getChannelData(1);
 
       // Allow for fractional error beyond audible perception. This error
-      // occurs because any sample passing through bitcrusher will undergo 
+      // occurs because any sample passing through bitcrusher will undergo
       // manipulation in Math.round() and will therefore be represented by a
-      // new floating point number that differs slightly from the original. 
-      // In tested  samples, the maximum observed error is on the order of 10^-7 
-      // and most frequently between 0 and 10^-8. The permitted error is set
-      // here to be 10^-6 so that tests pass.
-      const permittedSampleError = Math.pow(10,-6);
-
-      // First script-processed-buffer is all zero.
-      const latency = bufferLength;
+      // new floating point number that differs slightly from the original.
+      // In tested  samples, the maximum observed error is 3.46451997756958e-7
+      const permittedSampleError = 3.46451997756958e-7 + 1e-7;
 
       // Verify samples from unadultered oscillator match samples from
       // bitcrushed oscillator with non-information reducing parameters.
@@ -118,6 +110,14 @@ context.startRendering()
         let crushedSample = bitcrusherOutput[i];
         let unalteredSample = unalteredOutput[i];
         const diff = Math.abs(unalteredSample - crushedSample);
+
+        if (i < bufferLength) {
+          console.assert(
+              bitcrusherOutput[i] == 0,
+              'Bitcrusher sample at ' + i + 'expected to be 0 but it was ' +
+                  bitcrusherOutput[i]);
+        }
+
         console.assert(
             diff < permittedSampleError,
             'Bitcrushed sample at ' + i + ' is ' + crushedSample + ' but ' +

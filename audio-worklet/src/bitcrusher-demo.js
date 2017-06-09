@@ -44,15 +44,10 @@ class BitcrusherDemo {
   }
 
   async loadSong_(url, enableSong) {
-    try {
-      const response = await fetch(url);
-      const song = await response.arrayBuffer();
-      const buffer = await this.context_.decodeAudioData(song);
-      enableSong(buffer);
-    }
-    catch (err) {
-      console.log('Could not retrieve song.', err);
-    }
+    const response = await fetch(url);
+    const song = await response.arrayBuffer();
+    const buffer = await this.context_.decodeAudioData(song);
+    enableSong(buffer);
   }
 
   /**
