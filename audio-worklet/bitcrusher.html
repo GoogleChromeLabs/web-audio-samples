@@ -53,10 +53,10 @@ limitations under the License.
       let bitDepth = 24.0;
       let reduction = 1.0;
       let gain = 0.5;
-      let controller = new BitcrusherDemo(bitDepth, reduction, 0.5);
 
       window.addEventListener('load', () => {
-          controller.initializeGUI('container');
+          let controller = new BitcrusherDemo(
+              'container', bitDepth, reduction, 0.5);
       });
     </script>
   </body>

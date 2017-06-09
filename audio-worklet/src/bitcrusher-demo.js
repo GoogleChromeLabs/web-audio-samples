@@ -20,7 +20,7 @@ class BitcrusherDemo {
    * @param  {Number} reduction the amount of sample rate reduction to apply
    * @param  {Number} gain the volume of the output
    */
-  constructor(bitDepth, reduction, gain) {
+  constructor(containerId, bitDepth, reduction, gain) {
     this.context_ = new AudioContext();
     this.masterGain_ = new GainNode(this.context_);
     this.masterGain_.gain.value = gain || 0.5;
@@ -34,6 +34,8 @@ class BitcrusherDemo {
 
     this.bitcrusher_.output.connect(this.masterGain_);
     this.masterGain_.connect(this.context_.destination);
+
+    this.initializeGUI_(containerId);
 
     this.loadSong_('audio/it-from-bit.mp3', (song) => {
       this.songBuffer = song;
@@ -57,7 +59,7 @@ class BitcrusherDemo {
    * Initalize HTML elements when document has loaded.
    * @param {String} containerId the id of parent container
    */
-  initializeGUI(containerId) {
+  initializeGUI_(containerId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
     this.sourceButton_.disable();
