@@ -36,8 +36,7 @@ class BitcrusherDemo {
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
-    
-    this.loadSong_('audio/it-from-bit.mp3', (song) => {
+    this.loadSong_('audio/revenge.mp3', (song) => {
       this.songBuffer = song;
       this.sourceButton_.enable()
     });
@@ -124,8 +123,8 @@ class BitcrusherDemo {
    */
   start() {
     // Play song, running samples through a bitcrusher under user control.
-    this.song_ = new AudioBufferSourceNode(this.context_);
-    this.song_.buffer = this.songBuffer;
+    this.song_ =
+        new AudioBufferSourceNode(this.context_, {buffer: this.songBuffer});
     this.song_.connect(this.bitcrusher_.input);
 
     this.song_.onended = () => {

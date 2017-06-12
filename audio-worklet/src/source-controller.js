@@ -30,10 +30,10 @@ class SourceController {
     // When not in a playing state, clicking eButtonStartStop_ will trigger
     // the startCallback and otherwise it will trigger the stopCallback.
     // The text content of the button will indicate state to the user.
-    this.playing = false;
+    this.playing_ = false;
     this.eButtonStartStop_.textContent = 'Play';
     this.eButtonStartStop_.addEventListener(
-        'click', this.startOrStop_.bind(this));
+        'click', this.toggleStartStop_.bind(this));
     this.eButtonStartStop_.disabled = true;
   }
 
@@ -51,14 +51,14 @@ class SourceController {
     this.eButtonStartStop_.disabled = true;
   }
 
-  startOrStop_() {
-    if (this.playing) {
+  toggleStartStop_() {
+    if (this.playing_) {
       this.stopCallback_();
-      this.playing = false;
+      this.playing_ = false;
       this.eButtonStartStop_.textContent = 'Play';
     } else {
       this.startCallback_();
-      this.playing = true;
+      this.playing_ = true;
       this.eButtonStartStop_.textContent = 'Stop';
     }
   }
