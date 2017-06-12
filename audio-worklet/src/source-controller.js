@@ -15,48 +15,51 @@
  */
 class SourceController {
   /**
-   * Event Handler and layout for start / stop buttons
+   * Event Handler and layout for start and stop button
    * @param  {String} parentId string id for parent element
-   * @param  {Function} audioStart callback for play button
-   * @param  {Function} audioStop callback for stop button
+   * @param  {Function} startCallback callback for play button
+   * @param  {Function} stopCallback callback for stop button
    */
-  constructor(parentId, audioStart, audioStop) {
-    // Arrange play and stop button and trigger audioStart
-    // and audioStop when these buttons are pressed.
-    parent = document.getElementById(parentId);
-    this.playButton_ = document.createElement('button');
-    this.stopButton_ = document.createElement('button');
-    parent.appendChild(this.playButton_);
-    parent.appendChild(this.stopButton_);
+  constructor(parentId, startCallback, stopCallback) {
+    this.startCallback_ = startCallback;
+    this.stopCallback_ = stopCallback;
 
-    this.playButton_.innerHTML = 'Play';
-    this.stopButton_.innerHTML = 'Stop';
-    this.stopButton_.disabled = true;
+    this.eButtonStartStop_ = document.createElement('button');
+    document.getElementById(parentId).appendChild(this.eButtonStartStop_);
 
-    this.playButton_.addEventListener('click', this.start.bind(this));
-    this.stopButton_.addEventListener('click', this.stop.bind(this));
-    this.audioStart_ = audioStart;
-    this.audioStop_ = audioStop;
+    // When not in a playing state, clicking eButtonStartStop_ will trigger
+    // the startCallback and otherwise it will trigger the stopCallback.
+    // The text content of the button will indicate state to the user.
+    this.playing = false;
+    this.eButtonStartStop_.textContent = 'Play';
+    this.eButtonStartStop_.addEventListener(
+        'click', this.startOrStop_.bind(this));
+    this.eButtonStartStop_.disabled = true;
   }
 
+  /**
+   * Enable start and stop button (if, for example, media is loaded).
+   */
   enable() {
-    this.playButton_.disabled = false;
+    this.eButtonStartStop_.disabled = false;
   }
 
+  /**
+   * Disable start and stop button.
+   */
   disable() {
-    this.stopButton_.disabled = true;
-    this.playButton_.disabled = true;
+    this.eButtonStartStop_.disabled = true;
   }
 
-  start() {
-    this.playButton_.disabled = true;
-    this.stopButton_.disabled = false;
-    this.audioStart_();
-  }
-
-  stop() {
-    this.playButton_.disabled = false;
-    this.stopButton_.disabled = true;
-    this.audioStop_();
+  startOrStop_() {
+    if (this.playing) {
+      this.stopCallback_();
+      this.playing = false;
+      this.eButtonStartStop_.textContent = 'Play';
+    } else {
+      this.startCallback_();
+      this.playing = true;
+      this.eButtonStartStop_.textContent = 'Stop';
+    }
   }
 }

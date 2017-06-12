@@ -36,18 +36,18 @@ class BitcrusherDemo {
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
-
+    
     this.loadSong_('audio/it-from-bit.mp3', (song) => {
       this.songBuffer = song;
       this.sourceButton_.enable()
     });
   }
 
-  async loadSong_(url, enableSong) {
+  async loadSong_(url, loadCompletedCallback) {
     const response = await fetch(url);
     const song = await response.arrayBuffer();
     const buffer = await this.context_.decodeAudioData(song);
-    enableSong(buffer);
+    loadCompletedCallback(buffer);
   }
 
   /**
@@ -57,7 +57,6 @@ class BitcrusherDemo {
   initializeGUI_(containerId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
-    this.sourceButton_.disable();
 
     // Place 3 parameters in container to real-time adjust Bitcrusher_ settings.
     this.bitDepthSlider_ =
@@ -121,13 +120,19 @@ class BitcrusherDemo {
   }
 
   /**
-   * Start audio processing.
+   * Start audio processing and configure UI elements.
    */
   start() {
     // Play song, running samples through a bitcrusher under user control.
-    this.song_ = this.context_.createBufferSource();
+    this.song_ = new AudioBufferSourceNode(this.context_);
     this.song_.buffer = this.songBuffer;
     this.song_.connect(this.bitcrusher_.input);
+
+    this.song_.onended = () => {
+      this.sourceButton_.enable();
+      this.bitDepthSlider_.disable();
+      this.reductionSlider_.disable();
+    }
 
     this.song_.start();
     this.bitDepthSlider_.enable();
@@ -135,7 +140,7 @@ class BitcrusherDemo {
   }
 
   /**
-   * Stop audio processing.
+   * Stop audio processing and configure UI elements.
    */
   stop() {
     this.song_.stop();

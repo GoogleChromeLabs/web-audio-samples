@@ -30,24 +30,19 @@ limitations under the License.
     <script src="src/param-controller.js"></script>
     <script src="src/bitcrusher-demo.js"></script>
   </head>
-
   <body>
     <h1>Bitcrusher: a lo-fi audio effect</h1>
-    
     <p>
       Hit play to start a song and listen to the distortive effect of 
       modifying the bit depth and sample rate reduction parameters.
-    </p>
-    
+    </p> 
     <p>
       The bit depth slider controls the number of bits used to represent
       a given sample. The sample rate reduction slider affects the number
       of distinct samples in the signal. Increasing this value simulates
       sample rate reduction by making intervals of consecutive samples equal.
     </p>
-    
     <div id="container"></div>
-
     <script> 
       // Default to 50% volume, maximum bit depth, and no sample rate reduction.
       let bitDepth = 24.0;

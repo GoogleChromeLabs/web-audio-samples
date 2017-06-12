@@ -38,7 +38,7 @@ class Bitcrusher {
     let outputChannels = options.inputChannels || 1;
 
     this.node_ = this.context_.createScriptProcessor(
-        bufferSize, options.inputChannels, options.outputChannels);
+        bufferSize, inputChannels, outputChannels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
 
     // Let clients connect to bitcrusher via input and output,
@@ -49,6 +49,8 @@ class Bitcrusher {
     this.input.connect(this.node_).connect(this.output);
 
     // Index and previousSample defined as globals to handle block transitions.
+    // PreviousSample will be input[0] at specified bit depth on the first call
+    // to onaudioprocess since 0 % x == 0 
     this.index_ = 0;
     this.previousSample_;
   }
@@ -76,7 +78,7 @@ class Bitcrusher {
    */
   processBuffer_(reduction, bitDepth, inputBuffer, outputBuffer) {
     if (reduction < 1) 
-      console.error("The minimum reduction rate is 1.");
+      console.error('The minimum reduction rate is 1.');
     
     const scale = Math.pow(2, bitDepth);
 
