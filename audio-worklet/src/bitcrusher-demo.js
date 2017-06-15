@@ -64,7 +64,7 @@ class BitcrusherDemo {
           min: 1,
           max: 24,
           step: 0.1,
-          default: 24,
+          default: this.bitcrusher_.bitDepth,
           name: 'Bit Depth'
         });
     this.bitDepthSlider_.disable();
@@ -75,7 +75,7 @@ class BitcrusherDemo {
           min: 1,
           max: 20,
           step: 1,
-          default: 1,
+          default: this.bitcrusher_.reduction,
           name: 'Sample Rate Reduction'
         });
     this.reductionSlider_.disable();
@@ -86,7 +86,7 @@ class BitcrusherDemo {
           min: 0,
           max: 1,
           step: 0.01,
-          default: 0.5,
+          default: this.masterGain_.value,
           name: 'Volume'
         });
   }
