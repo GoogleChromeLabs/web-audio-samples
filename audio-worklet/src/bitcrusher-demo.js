@@ -22,12 +22,9 @@ class BitcrusherDemo {
    */
   constructor(containerId, bitDepth, reduction, gain) {
     this.context_ = new AudioContext();
-    this.masterGain_ = new GainNode(this.context_);
-    this.masterGain_.gain.value = gain || 0.5;
-
+    this.masterGain_ = new GainNode(this.context_, {gain: (gain || 0.5)});
     this.bitcrusher_ = new Bitcrusher(this.context_, {
-      inputChannels: 1,
-      outputChannels: 1,
+      channels: 1,
       bitDepth: bitDepth || 24,
       reduction: reduction || 1
     });
@@ -36,9 +33,9 @@ class BitcrusherDemo {
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
-    this.loadSong_('audio/revenge.mp3', (song) => {
+    this.loadSong_('audio/revenge.mp3').then((song) => {
       this.songBuffer = song;
-      this.sourceButton_.enable()
+      this.sourceButton_.enable();
     });
   }
 
@@ -46,7 +43,7 @@ class BitcrusherDemo {
     const response = await fetch(url);
     const song = await response.arrayBuffer();
     const buffer = await this.context_.decodeAudioData(song);
-    loadCompletedCallback(buffer);
+    return buffer;
   }
 
   /**
@@ -86,7 +83,7 @@ class BitcrusherDemo {
           min: 0,
           max: 1,
           step: 0.01,
-          default: this.masterGain_.value,
+          default: this.masterGain_.gain.value,
           name: 'Volume'
         });
   }
@@ -97,6 +94,7 @@ class BitcrusherDemo {
    * @param {Number} value the new bit depth
    */
   setBitDepth(value) {
+    if (value < 1) console.error('The minimum bit depth rate is 1.');
     this.bitcrusher_.bitDepth = value;
   }
 
@@ -106,6 +104,7 @@ class BitcrusherDemo {
    * @param {Number} value the new sample rate reduction
    */
   setReduction(value) {
+    if (value < 1) console.error('The minimum reduction rate is 1.');
     this.bitcrusher_.reduction = value;
   }
 
@@ -132,7 +131,7 @@ class BitcrusherDemo {
       this.bitDepthSlider_.disable();
       this.reductionSlider_.disable();
     }
-
+    
     this.song_.start();
     this.bitDepthSlider_.enable();
     this.reductionSlider_.enable();

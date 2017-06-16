@@ -48,7 +48,6 @@ class ParamController {
     this.controller_.value = options.default || 1;
     this.onChangeCallback_ = onChangeCallback;
 
-    // TODO: implement more controller types.
     if (this.controller_.type == 'range') {
       this.controller_.className += 'slider';
     } else {

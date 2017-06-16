@@ -25,7 +25,8 @@ class Bitcrusher {
    * @param {Number} options.reduction the degree of reduction
    */
   constructor(context, options) {
-    if (context == null) throw 'No AudioContext given';
+    if (!(context instanceof BaseAudioContext)) 
+      throw context + ' is not a valid audio context.';
     if (options == null) options = {};
     this.context_ = context;
 
@@ -34,15 +35,14 @@ class Bitcrusher {
     this.bitDepth = options.bitDepth || 24;
     this.reduction = options.reduction || 1;
     let bufferSize = options.bufferSize || 0;
-    let inputChannels = options.inputChannels || 1;
-    let outputChannels = options.inputChannels || 1;
+    let channels = options.channels || 1;
 
     this.node_ = this.context_.createScriptProcessor(
-        bufferSize, inputChannels, outputChannels);
+        bufferSize, channels, channels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
 
     // Let clients connect to bitcrusher via input and output,
-    // e.g oscillator.connect(bitcrusher.input) or
+    // e.g. oscillator.connect(bitcrusher.input) or
     // bitcrusher.output.connect(context.destination).
     this.input = new GainNode(this.context_);
     this.output = new GainNode(this.context_);
@@ -61,7 +61,7 @@ class Bitcrusher {
   onaudioprocess_(event) {
     for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
       this.processBuffer_(
-          this.reduction, this.bitDepth, event.inputBuffer.getChannelData(i),
+          event.inputBuffer.getChannelData(i),
           event.outputBuffer.getChannelData(i));
     }
   }
@@ -74,17 +74,12 @@ class Bitcrusher {
    * @param  {Float32Array} inputBuffer pre-processed buffer
    * @param  {Float32Array} outputBuffer post-processed buffer
    */
-  processBuffer_(reduction, bitDepth, inputBuffer, outputBuffer) {
-    if (reduction < 1) 
-      console.error('The minimum reduction rate is 1.');
-    if (bitDepth < 1)
-      console.error('The minimum bit depth rate is 1.');
-
-    const scale = Math.pow(2, bitDepth);
+  processBuffer_(inputBuffer, outputBuffer) {
+    const scale = Math.pow(2, this.bitDepth);
 
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputBuffer.length; j++) {
-      if (this.index_ % reduction === 0) {
+      if (this.index_ % this.reduction === 0) {
         // Scale up and round off low order bits.
         let rounded = Math.round(inputBuffer[j] * scale);
         this.previousSample_ = rounded / scale;
