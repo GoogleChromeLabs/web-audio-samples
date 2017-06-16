@@ -75,13 +75,15 @@ const App = {
   },
 
   updateRealtimeInformation: () => {
-    let div = document.getElementById('eRealtimeInfo');
-    let nodeCounts = kNodeCounter.getNodeCounts();
-    if (div) {
-      div.innerHTML = 'Number of Objects = ' + App.state.numberOfObjects +
-          '<br>';
-      for (let nodeType in nodeCounts) {
-        div.innerHTML += nodeType + ' = ' + nodeCounts[nodeType] + '<br>';
+    if (gNodeCounter.isChanged()) {
+      let div = document.getElementById('eRealtimeInfo');
+      let nodeCounts = gNodeCounter.getNodeCounts();
+      if (div) {
+        div.innerHTML = 'Number of Objects = ' + App.state.numberOfObjects +
+            '<br>';
+        for (let nodeType in nodeCounts) {
+          div.innerHTML += nodeType + ' = ' + nodeCounts[nodeType] + '<br>';
+        }
       }
     }
   },
@@ -90,6 +92,7 @@ const App = {
     world.Step(kFrameInterval, kNumberOfIterationPerFrame);
     canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
     drawWorld(world, canvasContext);
+    App.updateRealtimeInformation();
     requestAnimationFrame(App.render);
   },
 
@@ -104,7 +107,6 @@ const App = {
 
     if (didCreate) {
       App.state.numberOfObjects += 1;
-      App.updateRealtimeInformation();
     }
   },
 
