@@ -1,4 +1,43 @@
 body {
   font-family: "Roboto", sans-serif;
-  background-color: #ECEFF1;
+  background-color: #FAFAFA;
+  margin: 26px;
+}
+
+a, a:active, a:visited {
+  text-decoration: none;
+  color: #03a9f4;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a.link-small {
+  font-size: 12px;
+}
+
+ul {
+  list-style: none;
+  padding-left: 26px;
+}
+
+ul > li {
+  line-height: 26px;
+}
+
+#libaudioworklet-reporter {
+  font-size: 14px;
+}
+
+#libaudioworklet-reporter .error {
+  color: #F44336;
+}
+
+#libaudioworklet-reporter .warning {
+  color: #FF9800;
+}
+
+#libaudioworklet-reporter .info {
+  color: #455A64;
 }
