@@ -49,8 +49,13 @@ class Bitcrusher {
     this.input.connect(this.node_).connect(this.output);
 
     // Index and previousSample defined as globals to handle block transitions.
-    this.index_ = 0;
-    this.previousSample_ = 0;
+    // There is one of each for every channel to handle multi-channel input.
+    this.indexes_ = new Array();
+    this.previousSamples_ = new Array();
+    for (let i = 0; i < channels; i++) {
+      this.indexes_.push(0);
+      this.previousSamples_.push(0);
+    }
   }
 
   /**
@@ -62,7 +67,7 @@ class Bitcrusher {
     for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
       this.processBuffer_(
           event.inputBuffer.getChannelData(i),
-          event.outputBuffer.getChannelData(i));
+          event.outputBuffer.getChannelData(i), i);
     }
   }
 
@@ -74,18 +79,17 @@ class Bitcrusher {
    * @param  {Float32Array} inputBuffer pre-processed buffer
    * @param  {Float32Array} outputBuffer post-processed buffer
    */
-  processBuffer_(inputBuffer, outputBuffer) {
+  processBuffer_(inputBuffer, outputBuffer, channelNum) {
     const scale = Math.pow(2, this.bitDepth);
-
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputBuffer.length; j++) {
-      if (this.index_ % this.reduction === 0) {
+      if (this.indexes_[channelNum] % this.reduction === 0) {
         // Scale up and round off low order bits.
-        let rounded = Math.round(inputBuffer[j] * scale);
-        this.previousSample_ = rounded / scale;
+        const rounded = Math.round(inputBuffer[j] * scale);
+        this.previousSamples_[channelNum] = rounded / scale;
       }
-      outputBuffer[j] = this.previousSample_;
-      this.index_++;
+      outputBuffer[j] = this.previousSamples_[channelNum];
+      this.indexes_[channelNum]++;
     }
   }
 }

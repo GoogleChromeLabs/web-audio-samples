@@ -42,8 +42,7 @@ class BitcrusherDemo {
   async loadSong_(url, loadCompletedCallback) {
     const response = await fetch(url);
     const song = await response.arrayBuffer();
-    const buffer = await this.context_.decodeAudioData(song);
-    return buffer;
+    return this.context_.decodeAudioData(song);
   }
 
   /**
@@ -131,7 +130,6 @@ class BitcrusherDemo {
       this.bitDepthSlider_.disable();
       this.reductionSlider_.disable();
     }
-    
     this.song_.start();
     this.bitDepthSlider_.enable();
     this.reductionSlider_.enable();
