@@ -31,7 +31,6 @@ class NoiseGate {
     if (!(context instanceof BaseAudioContext)) 
       throw context + ' is not a valid audio context.';
     if (options == null) options = {};
-    
     this.context_ = context;
     let channels = options.channels || 1;
     let bufferSize = options.bufferSize || 0;
@@ -54,7 +53,7 @@ class NoiseGate {
     this.input = new GainNode(this.context_);
     this.output = new GainNode(this.context_);
     this.input.connect(this.node_).connect(this.output);
-    // The last envelope level of a given buffer is encoded as 0 
+    // The last envelope level of a given buffer is initialized as 0 
     // for between-block memory.
     this.lastLevel = 0;
     // The last weight (between 0 and 1) assigned, where 1 means the gate 
@@ -74,7 +73,7 @@ class NoiseGate {
       let input = event.inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
       let weights = this.computeGain(envelope);
-      
+
       for (let j = 0; j < input.length; j++) {
         output[j] = weights[j] * input[j];
       }
@@ -83,7 +82,7 @@ class NoiseGate {
 
   /**
    * Detect level using the difference equation for the Root Mean Squared 
-   * value of the input signal
+   * value of the input signal.
    * @param  {AudioBuffer} inputBuffer input audio buffer
    * @return {Float32Array} envelope the registered level of the input             
    */
@@ -110,7 +109,6 @@ class NoiseGate {
           (1 - this.alpha_) * Math.pow(channel[j], 2);
     }
     this.lastLevel = envelope[envelope.length - 1];
-
     // Scale the envelope levels back to the original magnitude.
     for (let k = 0; k < envelope.length; k++) {
       envelope[k] = Math.sqrt(envelope[k]) * (1 / 0.7);
@@ -144,7 +142,7 @@ class NoiseGate {
       releaseSteps = Math.ceil(this.context_.sampleRate * this.release);
       releaseGainPerStep = 1 / releaseSteps;
     }
-    // Computes an array of weights which will be multiplied with the channel.
+    // Compute an array of weights which will be multiplied with the channel.
     // Based on the detected level and indexes which persist between subsequent
     // calls to onaudioprocess, the noise gate at iteration i is in one of 
     // four states: open, closed, attacking (between open and closed), or 
