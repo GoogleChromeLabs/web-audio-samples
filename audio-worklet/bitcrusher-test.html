@@ -59,8 +59,9 @@ limitations under the License.
        * margin when parameterized to avoid information reduction.
        */
       function testBitcrusherInAudioContext() {
-        // Sample Rate held at an artifically low power of two to avoid sample
-        // interpolation from the delay node.  
+        // Sample Rate is held at a power of two to avoid sample interpolation
+        // from the delay node. It is artificially low for easy inspection of
+        // buffers.   
         const sampleRate = 4096;
         let context = new OfflineAudioContext(2, sampleRate, sampleRate);
         const reduction = 1;
@@ -68,16 +69,16 @@ limitations under the License.
         // BufferSize should be a power of two for synchronization with
         // the delayed oscillator.
         const bufferSize = 512;
-        // Channels represents both the number of input and output channels to
-        // the bitcrusher.
-        const channels = 1;
+        // ChannelCount represents both the number of input and output channels 
+        // to the bitcrusher.
+        const channelCount = 1;
         // Create one oscillator, and connect it to a bitcrusher with variables 
         // set to avoid any effect and a delay node which compensates for the 
         // script processor latency.
         let oscillator = new OscillatorNode(context);
         let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
         let bitcrusher = new Bitcrusher(
-            context, {bufferSize, channels, bitDepth, reduction});
+            context, {bufferSize, channelCount, bitDepth, reduction});
         // Accomodate for script processor latency by delaying the oscillator.
         let delay = new DelayNode(context, {
             delayTime: (bufferSize * 2 / context.sampleRate)
@@ -117,8 +118,9 @@ limitations under the License.
                       maxError + ', exceeds the maximum permitted error, ' +
                       permittedSampleError);
 
-              // Verify samples from original oscillator match samples from
-              // bitcrushed oscillator with non-information reducing parameters.
+              // Verify that samples from original oscillator match samples from
+              // bitcrushed oscillator with minimally information reducing 
+              // parameters.
               for (let i = 0; i < originalOutput.length; i++) {
                 const crushedSample = bitcrusherOutput[i];
                 const originalSample = originalOutput[i];
@@ -156,8 +158,8 @@ limitations under the License.
        * requires bitcrusher memory.)
        */
       function testMultipleChannels() {
-        let channels = 2;
-        let context = new OfflineAudioContext(channels, 44100, 44100);
+        const channelCount = 2;
+        let context = new OfflineAudioContext(channelCount, 44100, 44100);
         // Reduction should not be a factor of bufferSize for full coverage.
         const reduction = 7; 
         const bitDepth = 24;
@@ -168,7 +170,7 @@ limitations under the License.
         let oscillator2 = new OscillatorNode(context, {frequency: 231});
         let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
         let bitcrusher = new Bitcrusher(
-            context, {bufferSize, channels, bitDepth, reduction});
+            context, {bufferSize, channelCount, bitDepth, reduction});
         
         oscillator.connect(merger, 0, 0);
         oscillator2.connect(merger, 0, 1);
@@ -189,7 +191,7 @@ limitations under the License.
                 'The first two channels have identical contents');
             
             const latency = bufferSize * 2;
-            for (let c = 0; c < channels; c++) {
+            for (let c = 0; c < channelCount; c++) {
               let channel = buffer.getChannelData(c);
               for (let i = 0; i < latency; i++) {
                  console.assert(

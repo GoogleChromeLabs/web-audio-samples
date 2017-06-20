@@ -24,7 +24,7 @@ class BitcrusherDemo {
     this.context_ = new AudioContext();
     this.masterGain_ = new GainNode(this.context_, {gain: (gain || 0.5)});
     this.bitcrusher_ = new Bitcrusher(this.context_, {
-      channels: 1,
+      channelCount: 1,
       bitDepth: bitDepth || 24,
       reduction: reduction || 1
     });

@@ -34,11 +34,11 @@ class Bitcrusher {
     // buffersize unless specified.
     this.bitDepth = options.bitDepth || 24;
     this.reduction = options.reduction || 1;
-    let bufferSize = options.bufferSize || 0;
-    let channels = options.channels || 1;
+    const bufferSize = options.bufferSize || 0;
+    const channelCount = options.channelCount || 1;
 
     this.node_ = this.context_.createScriptProcessor(
-        bufferSize, channels, channels);
+        bufferSize, channelCount, channelCount);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
 
     // Let clients connect to bitcrusher via input and output,
@@ -49,9 +49,11 @@ class Bitcrusher {
     this.input.connect(this.node_).connect(this.output);
 
     // Index and previousSample defined as globals to handle block transitions.
+    // For each channel, index is set to the number of samples that have
+    // been processed and previousSample holds the last sample processed.
     // There is one of each for every channel to handle multi-channel input.
-    this.indexes_ = new Array(channels).fill(0);
-    this.previousSamples_ = new Array(channels).fill(0);
+    this.indexes_ = new Array(channelCount).fill(0);
+    this.previousSamples_ = new Float32Array(channelCount);
   }
 
   /**
