@@ -22,16 +22,18 @@ limitations under the License.
       testIllegalInput();
 
       /**
-       * Populate array with 0:99 and verify the bitcrusher holds an array
-       * where the number of consecutive equal numbers is controlled by the 
-       * variable factor. This verfies the sample rate reduction component
-       * of bitcrusher operating outside of an audio context.
+       * Verify the sample rate reduction component of the bitcrusher operating
+       * outside of an audio context. A bitcrushed array generated from an 
+       * arbitrary sequence of numbers should hold sequences of consecutive 
+       * equal numbers, controlled by the variable factor.
        */
       function testSampleReduction() {
         let context = new OfflineAudioContext(1, 44100, 44100);
 
         for (let reduction = 1; reduction < 10; reduction++) {
-          const bufferSize = 5;
+          // BufferSize chosen arbitrarily and can be any value greater than
+          // reduction to perform the test.
+          const bufferSize = 20;
           let referenceBuffer = new Float32Array(bufferSize);
           let outputBuffer = new Float32Array(bufferSize);
           let bitcrusher =
@@ -53,24 +55,32 @@ limitations under the License.
       }
 
       /**
-       * Create one oscillator, and connect it to a bitcrusher with variables 
-       * set to avoid any effect and a delay node which compensates for the 
-       * script processor latency. Then verify that the samples are nearly
-       * identical.
+       * Verify that the bitcrusher does not alter samples beyond an acceptable 
+       * margin when parameterized to avoid information reduction.
        */
-      function testBitcrusherInAudioContext() { 
-        let context = new OfflineAudioContext(2, 44100, 44100);
+      function testBitcrusherInAudioContext() {
+        // Sample Rate held at an artifically low power of two to avoid sample
+        // interpolation from the delay node.  
+        const sampleRate = 4096;
+        let context = new OfflineAudioContext(2, sampleRate, sampleRate);
         const reduction = 1;
         const bitDepth = 24;
+        // BufferSize should be a power of two for synchronization with
+        // the delayed oscillator.
         const bufferSize = 512;
+        // Channels represents both the number of input and output channels to
+        // the bitcrusher.
         const channels = 1;
+        // Create one oscillator, and connect it to a bitcrusher with variables 
+        // set to avoid any effect and a delay node which compensates for the 
+        // script processor latency.
         let oscillator = new OscillatorNode(context);
         let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
         let bitcrusher = new Bitcrusher(
             context, {bufferSize, channels, bitDepth, reduction});
         // Accomodate for script processor latency by delaying the oscillator.
         let delay = new DelayNode(context, {
-            delayTime: (bufferSize / context.sampleRate)
+            delayTime: (bufferSize * 2 / context.sampleRate)
         });
 
         oscillator.connect(bitcrusher.input);
@@ -79,7 +89,8 @@ limitations under the License.
         merger.connect(context.destination);
         oscillator.start();
 
-        // When audio buffer is ready, verify bitcrushed samples are unaltered.
+        // When audio buffer is ready, verify bitcrushed samples differ from
+        // the original oscillator by only a small margin.
         context.startRendering()
             .then((buffer) => {
               let bitcrusherOutput = buffer.getChannelData(0);
@@ -89,38 +100,42 @@ limitations under the License.
               // error occurs because any sample passing through bitcrusher will 
               // undergo manipulation in Math.round() and will therefore be 
               // represented by a new floating point number that differs
-              // slightly from the original.In tested samples and at a sample 
-              // rate of 44,1k, the maximum observed error is 
-              // 6.183981895446777e-7.
-              const permittedSampleError = 6.1840e-7;
+              // slightly from the original. In tested samples and at a sample 
+              // rate of 4096, the maximum observed error is 
+              // 2.9802322387695312e-8.
+              const permittedSampleError = 2.98025e-8;
               let maxError = 0;
+
               for (let i = 0; i < bitcrusherOutput.length; i++) {
-                let diff = Math.abs(bitcrusherOutput[i] - originalOutput);
+                const diff = Math.abs(bitcrusherOutput[i] - originalOutput[i]);
                 maxError = Math.max(diff, maxError);  
               }
+
               console.assert(
                   maxError < permittedSampleError,
                   'The maximum error between bitcrusher and original output, ' +
                       maxError + ', exceeds the maximum permitted error, ' +
                       permittedSampleError);
 
-              // Verify samples from unaltered oscillator match samples from
+              // Verify samples from original oscillator match samples from
               // bitcrushed oscillator with non-information reducing parameters.
               for (let i = 0; i < originalOutput.length; i++) {
                 const crushedSample = bitcrusherOutput[i];
                 const originalSample = originalOutput[i];
                 const diff = Math.abs(originalSample - crushedSample);
-                if (i < bufferSize) {
+                // Up to the script processory delay, all samples are zero.
+                if (i < bufferSize * 2) {
                   console.assert(
                       bitcrusherOutput[i] === 0,
                       'Bitcrusher sample at ' + i + 'expected to be 0 but it'
                       + ' was ' + bitcrusherOutput[i]);
+                } else {
+                  console.assert(
+                      diff < permittedSampleError,
+                      'Bitcrushed sample at ' + i + ' is ' + crushedSample + 
+                      ' but ' + originalSample + ' for oscillator');
                 }
-                console.assert(
-                    diff < permittedSampleError,
-                    'Bitcrushed sample at ' + i + ' is ' + crushedSample + 
-                    ' but ' + originalSample + ' for oscillator');
-              }
+              } 
             });
       }
 
@@ -165,8 +180,10 @@ limitations under the License.
         context.startRendering().then((buffer) => {  
             let channelsDiffer = false;
             for (let i = 0; i < buffer.getChannelData(0).length; i++) {
-              if (buffer.getChannelData(0)[i] != buffer.getChannelData(1)[i])
+              if (buffer.getChannelData(0)[i] != buffer.getChannelData(1)[i]) {
                 channelsDiffer = true;
+                break;
+              }
             }
             console.assert(channelsDiffer, 
                 'The first two channels have identical contents');

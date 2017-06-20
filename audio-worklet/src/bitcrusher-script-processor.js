@@ -50,12 +50,8 @@ class Bitcrusher {
 
     // Index and previousSample defined as globals to handle block transitions.
     // There is one of each for every channel to handle multi-channel input.
-    this.indexes_ = new Array();
-    this.previousSamples_ = new Array();
-    for (let i = 0; i < channels; i++) {
-      this.indexes_.push(0);
-      this.previousSamples_.push(0);
-    }
+    this.indexes_ = new Array(channels).fill(0);
+    this.previousSamples_ = new Array(channels).fill(0);
   }
 
   /**
