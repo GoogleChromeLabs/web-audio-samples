@@ -67,7 +67,9 @@ limitations under the License.
         const reduction = 1;
         const bitDepth = 24;
         // BufferSize needs to be a power of two higher than 256 and lower
-        // than half the sample rate in order to work with the script processor.
+        // than 16384 to work with the script processor. It also cannot be 
+        // larger than sampleRate / 2 for this test because the first 
+        // bufferSize * 2 samples will all be zero.
         const bufferSize = 512;
         // ChannelCount represents both the number of input and output channels 
         // to the bitcrusher.
