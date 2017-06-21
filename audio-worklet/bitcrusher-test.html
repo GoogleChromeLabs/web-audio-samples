@@ -66,8 +66,8 @@ limitations under the License.
         let context = new OfflineAudioContext(2, sampleRate, sampleRate);
         const reduction = 1;
         const bitDepth = 24;
-        // BufferSize should be a power of two for synchronization with
-        // the delayed oscillator.
+        // BufferSize needs to be a power of two higher than 256 and lower
+        // than half the sample rate in order to work with the script processor.
         const bufferSize = 512;
         // ChannelCount represents both the number of input and output channels 
         // to the bitcrusher.
