@@ -1,0 +1,506 @@
+<!--
+Copyright 2017 Google Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+  <head>
+    <script type="text/javascript" 
+        src="https://www.gstatic.com/charts/loader.js">
+    </script>
+    <script src="test/testharness.js"></script>
+    <script src="test/testharnessreport.js"></script>
+    <script src="test/audit-util.js"></script>
+    <script src="test/audit.js"></script>
+    <script src="src/noisegate-script-processor.js"></script>
+    <script id="noisegate-test-code">
+      // Sample rate is a power of two to avoid interpolation from delay node.
+      // It is held artificially low for easy inspection of audio buffers.
+      const sampleRate = 4096;
+      const testDurationSec = 1;
+      const testFrames = testDurationSec * sampleRate;
+      const bufferSize = 512;
+      const scriptProcessorLatency = bufferSize * 2;
+      // An appropriate default setting for alpha depends on the frequency
+      // spectrum of the signal and its signal gain relative to the threshold.
+      // When the signal is below the threshold, the gate should be closed. But
+      // with lower frequency signals, the gate will not stay fully closed if it
+      // is very near the threshold. For example, if the oscillator frequency is
+      // set to 40 and alpha is set to 0.90, then the gate won't remain fully
+      // closed at a signal gain greater than 82% of the threshold. In this
+      // test, alpha is optimized for frequencies of 440Hz, corresponding to the
+      // standard 'stuttgart pitch'. With this pitch and with alpha set to 0.90,
+      // the gate will remain closed with a signal gain of 97% of the threshold.
+
+      // A lower alpha leads to a lower envelope latency and a smaller
+      // difference between when the gate is expected to be fully closed and
+      // when it actually is fully closed. When frequency is 440Hz and the
+      // signal gain is 90% of the threshold, optimal alpha is (0.64 to 0.68)
+      // but with an alpha of 0.63 the noise gate will not fully close because
+      // of high frequency oscillation. Thus, 0.64 -> 0.68 is an unstable
+      // setting for alpha, and it is wiser to chose a value higher. When the
+      // frequency of the oscillator is is set to 220, optimal but 'risky' alpha
+      // is 0.82, and when the oscillator oscillates at 110, it is 0.92. Thus
+      // barring a method which adapts alpha depending on a known frequency
+      // range, we set alpha at 0.90, where we expect slight delay but the noise
+      // gate should take action even when lower frequency sounds are near the
+      // threshold.
+      const alpha = 0.90;
+      // The threshold for envelope and attack and release tests is some number
+      // between the aboveThresholdGain and belowThresholdGain. If the threshold
+      // is close to the belowThresholdGain, then the gate may flutter between
+      // opened and closed, causing the test to fail.
+      const threshold = 0.2;
+      const aboveThresholdGain = threshold * 1.25;
+      const belowThresholdGain = threshold * 0.75;
+
+      let audit = Audit.createTaskRunner();
+
+      // Verify that the noise gate gradually mutes the signal according to the
+      // attack parameter, and that it gradually returns the signal to its
+      // original value according to the release parameter. Precise timing is
+      // not confirmed in this test and is separately investigated in the gain
+      // computer tests.
+      audit.define('attack-and-release', (task, should) => { 
+        let context = new OfflineAudioContext(2, testFrames, sampleRate);
+        // Attack and release are set to be larger than buffer size to ensure
+        // that the test success depends on proper noise gate memory between
+        // blocks.
+        const attackAndReleaseSteps = bufferSize + 128;
+        const attack = _toTime(attackAndReleaseSteps, sampleRate) * 1000;
+        const release = attack;
+        let firstDecreasingIndex = attackAndReleaseSteps;
+        const startOfDrop = _toTime(firstDecreasingIndex, sampleRate);
+        // The amount of time it takes for gain to move from a value above the
+        // threshold to a value beneath the threshold is set to be larger than
+        // the intended amount of attack and release steps so that a linear
+        // decrease can be verified for the attacking phase.
+        const gainChangeTime = _toTime(attackAndReleaseSteps, sampleRate); 
+        const endOfDrop = startOfDrop + gainChangeTime;
+        // The signal will rise some number of indexes later than
+        // startOfDrop to allow time to inspect the fully closed gate.
+        const startOfRise = endOfDrop + _toTime(bufferSize, sampleRate);
+        const endOfRise = startOfRise + gainChangeTime;
+        const gain = new GainNode(context, {gain:aboveThresholdGain});
+        gain.gain.linearRampToValueAtTime(aboveThresholdGain, startOfDrop);
+        gain.gain.linearRampToValueAtTime(belowThresholdGain, endOfDrop);
+        gain.gain.linearRampToValueAtTime(belowThresholdGain, startOfRise);
+        gain.gain.linearRampToValueAtTime(aboveThresholdGain, endOfRise);
+
+        let noisegate = new NoiseGate(
+            context, {bufferSize, attack, release, threshold, alpha});
+        let delay = new DelayNode(
+            context, {delayTime : _toTime(scriptProcessorLatency, sampleRate)});
+        let oscillator = new OscillatorNode(context);
+        let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
+
+        oscillator.connect(gain).connect(noisegate.input);
+        gain.connect(delay);
+        noisegate.output.connect(merger, 0, 0);
+        delay.connect(merger, 0, 1);
+        merger.connect(context.destination);
+
+        // Drop the bass! 
+        oscillator.start();
+
+        context.startRendering().then((buffer) => {
+          const noiseGateOutput = buffer.getChannelData(0);
+          const originalOutput = buffer.getChannelData(1);
+
+          // Verify 6 phases of the output:
+          // 1. Latency Phase: all zeros until scriptProcessorLatency
+          // 2. Open Phase 1: unaffected until firstDecreasingIndex
+          // 3. Attacking Phase: decreasing over time until 0
+          // 4. Closed Phase: all zeros until firstReleaseIndex
+          // 5. Releasing Phase: increasing until identical to original output
+          // 6. Open phase 2: unaffected until the last sample
+          
+          // 1. Latency phase
+          let latencyPhase 
+              = noiseGateOutput.slice(0, scriptProcessorLatency);
+          should(latencyPhase, 'The script processor latency phase')
+              .beConstantValueOf(0);
+
+          // 2. Open Phase 1: the signal is unaltered.
+          firstDecreasingIndex += scriptProcessorLatency;
+          let openPhase1 = noiseGateOutput.slice(scriptProcessorLatency,
+                                                 firstDecreasingIndex);
+          let openPhase1Reference = originalOutput.slice(scriptProcessorLatency,
+                                                         firstDecreasingIndex);
+          // The first k samples run through the noise gate will be somewhat
+          // altered. This effect occurs since the envelope does not
+          // immediately respond to the level of the signal and it will be
+          // beneath the threshold for the first k samples which causes the
+          // noise gate to enter an attacking state and slightly diminish the
+          // volume of the oscillator.
+          const numberOfAlteredSamples =
+              _getFirstIndexBeforeRemainingSamplesMatch(openPhase1,
+                                                        openPhase1Reference);
+          // With current settings, delayInSeconds is slightly below 0.007.
+          const delayInSeconds = _toTime(numberOfAlteredSamples, sampleRate);
+          should(delayInSeconds,
+                 'The envelope delay for the very first samples')
+              .beLessThan(0.007);
+              
+          openPhase1 =
+              openPhase1.slice(numberOfAlteredSamples, openPhase1.length);
+          openPhase1Reference = openPhase1Reference.slice(
+              numberOfAlteredSamples, openPhase1Reference.length);
+          should(openPhase1, 'The open phase of noise gate output')
+              .beEqualToArray(
+                  openPhase1Reference,
+                  'the original samples generated by the oscillator');
+
+          // 3. Attacking phase: the signal should decreases until 0.
+          const firstReleaseIndex =
+              _toIndex(startOfRise, sampleRate) + scriptProcessorLatency;
+          let decreasingAndClosedPhase =
+              noiseGateOutput.slice(firstDecreasingIndex, firstReleaseIndex);
+          let changeLength =
+              _getFirstIndexBeforeRemainderIs(decreasingAndClosedPhase, 0);
+          let gainReducingPhase =
+              decreasingAndClosedPhase.slice(0, changeLength);
+          let closedPhase =
+              decreasingAndClosedPhase.slice(changeLength, firstReleaseIndex);
+
+          should(changeLength, 'The number of steps when the signal reduces').beGreaterThanOrEqualTo(attackAndReleaseSteps, 'the number of programmed attack and release steps.');
+
+          // The gain reduction phase is represented as k averaged amplitudes
+          // and should decrease over time. K is set as ten as an arbitrary
+          // value large enough to suggest a linear decrease over time. Some
+          // tests may fail if k is set any higher.
+          let amplitudes = _getAveragedAmplitudes(gainReducingPhase, 10);
+          let lastAmplitude = amplitudes[0];
+          for (let i = 1; i < amplitudes.length; i++) {
+            should(amplitudes[i], 'The attacking amplitude at iteration ' + i)
+                .beLessThan(amplitudes[i - 1],
+                            'the attacking amplitude at iteration ' + (i - 1));
+          }
+
+          // 4. Closed Phase: the signal must remain at 0 for a non-trivial
+          // period of time.
+          should(closedPhase, 'The closed phase').beConstantValueOf(0);
+          should(closedPhase.length, 'The closed phase')
+              .beGreaterThanOrEqualTo(100);
+
+          // 5. Releasing Phase: the noisegate signal increases until it matches
+          // the original signal.
+          let fromClosedToEndPhase =
+              noiseGateOutput.slice(firstReleaseIndex, noiseGateOutput.length);
+          let fromClosedToEndPhaseReference =
+              originalOutput.slice(firstReleaseIndex, noiseGateOutput.length);
+          let openIndex = _getFirstIndexBeforeRemainingSamplesMatch(
+              fromClosedToEndPhase, fromClosedToEndPhaseReference);
+          let gainIncreasingPhase = fromClosedToEndPhase.slice(0, openIndex);
+          let openPhase2 =
+              fromClosedToEndPhase.slice(openIndex, firstReleaseIndex);
+          let openPhase2Reference =
+              fromClosedToEndPhaseReference.slice(openIndex, firstReleaseIndex);
+
+          should(gainIncreasingPhase.length, 'The number of steps when the signal is increasing').beGreaterThanOrEqualTo(attackAndReleaseSteps, 'the number of programmed attack and release steps.');
+
+          amplitudes = _getAveragedAmplitudes(gainIncreasingPhase, 10);
+          lastAmplitude = amplitudes[0];
+          for (let i = 1; i < amplitudes.length; i++) {
+            should(amplitudes[i], 'The attacking amplitude at iteration ' + i).beGreaterThan(amplitudes[i-1], 'the attacking amplitude at iteration ' + (i-1));
+          }
+
+          // 6. Open Phase 2: The gate eventually re-opens.
+          should(openPhase2.length, 'The second open phase').beGreaterThanOrEqualTo(100);
+          should(openPhase2, 'The second open phase of noise gate output')
+              .beEqualToArray(
+                  openPhase2Reference,
+                  'the original samples generated by the oscillator');
+
+          }).then(() => task.done());
+      }) 
+      
+      
+      // Verify that the noise gate computes an envelope for an audio signal
+      // that is on the same scale as web audio's gain node. If the gain of a
+      // signal is set to be beneath the threshold, then the signal should be
+      // muted. The gain of an oscillator is gradually decreased to some 
+      // threshold T at timeToThreshold, and the output of the noise gate 
+      // should be 0 after timeToThreshold and unaltered before timeToThreshold
+      // within an acceptable margin of error.
+      audit.define('envelope-and-threshold', (task, should) => {
+        let context = new OfflineAudioContext(2, testFrames, sampleRate);
+        // TimeToThreshold should be between 0 and 1.
+        const timeToThreshold = 0.25;
+
+        // Attack and release are both 0.
+        let noisegate = new NoiseGate(context, {bufferSize, threshold, alpha});
+        let gain = new GainNode(context, {gain : 1});
+        let merger = new ChannelMergerNode(context, {numberOfInputs : 2});
+        // The delay node offsets the script processor latency.
+        let delay = new DelayNode(
+            context, {delayTime : _toTime(scriptProcessorLatency, sampleRate)});
+        let osc = new OscillatorNode(context);
+
+        osc.connect(gain).connect(noisegate.input);
+        gain.connect(delay);
+        noisegate.output.connect(merger, 0, 0);
+        delay.connect(merger, 0, 1);
+        merger.connect(context.destination);
+
+        // Gain node should be stable until ~1 sample before the threshold, and
+        // then it should drop to a value clearly beneath it.
+        gain.gain.linearRampToValueAtTime(
+            1, timeToThreshold - (1 / context.sampleRate));
+        gain.gain.linearRampToValueAtTime(belowThresholdGain, timeToThreshold);
+
+        // Drop the bass!
+        osc.start();
+
+        context.startRendering().then((buffer) => {
+          let noiseGateOutput = buffer.getChannelData(0);
+          let originalOutput = buffer.getChannelData(1);
+          const closedIndex =
+              _toIndex(timeToThreshold, sampleRate) + scriptProcessorLatency;
+
+          // The output is divided into a latency phase, an unaltered phase, and
+          // a closed phase.
+          let latencyPhase = noiseGateOutput.slice(0, scriptProcessorLatency);
+          let unalteredPhase =
+              noiseGateOutput.slice(scriptProcessorLatency, closedIndex);
+          let unalteredPhaseReference =
+              originalOutput.slice(scriptProcessorLatency, closedIndex);
+
+          // Based on knowledge of when the signal goes beneath the threshold,
+          // it is possible to predict when the signal should be muted. However,
+          // this calculation is imperfect since the  envelope detection
+          // algorithm has a delay. This delay is characterized and the alpha
+          // parameter can be tweaked to minimize it.
+          let ideallyClosedPhase =
+              noiseGateOutput.slice(closedIndex, buffer.length);
+          // The delay is measured at 0.013427734375s
+          let closeDelay =
+              _getFirstIndexBeforeRemainderIs(ideallyClosedPhase, 0);
+          should(
+              _toTime(closeDelay, sampleRate),
+              'The delay between when the envelope is expected to be closed and when it is closed')
+              .beLessThan(0.0135);
+          let closedPhase = ideallyClosedPhase.slice(closeDelay, buffer.length);
+
+          should(latencyPhase, 'The latency phase of noise gate output')
+              .beConstantValueOf(0);
+          should(unalteredPhase, 'The noise gate values prior to the threshold')
+              .beEqualToArray(unalteredPhaseReference,
+                              'those values in the unaltered oscillator');
+          should(closedPhase, 'The closed phase of the noise gate output')
+              .beConstantValueOf(0);
+        }).then(() => task.done());
+      });
+
+      // When processing two channels, the noise gate should compute only one 
+      // envelope from the average of those two
+      // channels but apply gain computation separately for both channels.
+      audit.define('multi-channel', (task, should) => {
+        const numberOfChannels = 2;
+        const threshold = 0.5;
+        let context = new OfflineAudioContext(numberOfChannels, testFrames, sampleRate);
+        let oscillator = new OscillatorNode(context);
+        let oscillator2 = new OscillatorNode(context);
+        let gain = new GainNode(context, {gain: 1});
+        let noisegate = new NoiseGate(context, 
+            {threshold, numberOfChannels, alpha, bufferSize});
+        let merger = new ChannelMergerNode(context);
+        
+        // One oscillator is connected to a gain node which makes it
+        // less than the threshold half way through buffer.
+        oscillator.connect(gain);
+        gain.connect(merger, 0, 0);
+        oscillator2.connect(merger, 0, 1);
+        merger.connect(noisegate.input);
+        noisegate.output.connect(context.destination);
+        gain.gain.linearRampToValueAtTime(0, 1);
+        
+        // Drop the basses!
+        oscillator.start();
+        oscillator2.start();
+
+        context.startRendering().then((buffer) => {
+            let firstChannel = buffer.getChannelData(0);
+            let secondChannel = buffer.getChannelData(1);
+            // If the gain of one channel decreases linearly to 0 over the 
+            // course of one second of data but the other channel has a steady 
+            // gain at one, then the noise gate (basing decisions on an average 
+            // of the two channels) should cut out the signal approximately 
+            // 3/4 of the way through the buffer. 
+            const expectedCutoffIndex =
+                0.75 * sampleRate;
+            const cutoffIndex1 =
+                _getFirstIndexBeforeRemainderIs(firstChannel, 0);
+            const cutoffIndex2 =
+                _getFirstIndexBeforeRemainderIs(secondChannel, 0);
+
+            should(cutoffIndex1, 'The noise-gate cutoff of the first channel')
+                .beEqualTo(cutoffIndex2,
+                           'the noise-gate cutoff of the second channel');
+
+            // Delay is 0.021484375.
+            const delay = cutoffIndex1 - expectedCutoffIndex;
+            should(
+                _toTime(delay, sampleRate),
+                'The difference between the gate was expected to close and when it closed')
+                .beLessThan(0.215);
+        }).then(() => task.done()); 
+      });
+
+      // Verify that the gain computer opens and closes gate (as witnessed
+      // through changes in its weights) according to attack and release
+      // settings.
+      audit.define('gain-computer', (task, should) => { 
+        // All envelope values below threshold will receive 
+        // a zero weight and all values above will receive a weight of one 
+        // when attack and release are both 0. 
+        let context = new OfflineAudioContext(1, testFrames, sampleRate);
+        // Envelope[i] = i.
+        const length = 100;
+        let envelope = Array.apply(null, {length}).map((data, index) => index);
+        const threshold = 50;
+        let noisegate = new NoiseGate(context, {threshold});
+        let weights = noisegate.computeGain(envelope);
+        let closedWeights = weights.slice(0, threshold);
+        let openWeights = weights.slice(threshold, length);
+        
+        should(closedWeights, 'Weight array before threshold')
+            .beConstantValueOf(0);
+        should(openWeights, 'Weight array after the threshold')
+            .beConstantValueOf(1);
+        
+        // Verify that the gain computer generates a sequence of increasing or 
+        // decreasing weights between 0 and 1 at threshold transitions. 
+        // TransitionSteps must be less than half the envelope length so that
+        // both attack and release fit in the evaluation.
+        const transitionSteps = 10;
+        attack = _toTime(transitionSteps, sampleRate) * 1000;
+        release = attack;
+        noisegate = new NoiseGate(context, {attack, release, threshold});
+        weights = noisegate.computeGain(envelope);
+
+        let attackWeights = weights.slice(0, transitionSteps);
+        closedWeights = weights.slice(transitionSteps, threshold);
+        let releaseWeights =
+            weights.slice(threshold, threshold + transitionSteps);
+        openWeights =
+            weights.slice(threshold + transitionSteps, weights.length);
+        let expectedAttackWeights = new Float32Array(transitionSteps);
+        let expectedReleaseWeights = new Float32Array(transitionSteps);
+        
+        // Expected weights should align with noise gates weights. Attack
+        // weights increase and release weights decrease.
+        for (let j = 0; j < transitionSteps; j++) {
+          // The first attack weight is 1 - (1 / transitionSteps).
+          expectedAttackWeights[j] = 1 - ((j + 1) / transitionSteps);
+          // Similarly, the first release weight is 1 / transitionSteps.
+          expectedReleaseWeights[j] =  (j + 1) / transitionSteps; 
+        }
+        // Allow for a small error (set experimentally) since the exact change 
+        // in weight is computed differently here and in noisegate.computeGain.
+        const errorThreshold = 1e-6;
+        should(attackWeights, 'Attacking weights')
+            .beCloseToArray(expectedAttackWeights, {absoluteThreshold: 1e-6});
+        should(releaseWeights, 'Releasing weights')
+            .beCloseToArray(expectedReleaseWeights, {absoluteThreshold: 1e-6});
+        should(closedWeights, 'Weight array before threshold')
+            .beConstantValueOf(0);
+        should(openWeights, 'Weight array after the threshold')
+            .beConstantValueOf(1);
+        task.done();
+      }); 
+
+    audit.run(); 
+    
+    // End of test cases. Testing utility functions below!
+
+    function _getAveragedAmplitudes(signal, numberOfAmplitudes) {
+      // GoingUp is true if current value is greater than last value.
+      let amplitudes = new Array();
+      let goingUp = signal[1] > signal[0] ? true : false;
+      // Peak is where transitions goingUp changes state and amplitude is recorded.
+      let peak = signal[0];
+      for (let i = 2; i < signal.length; i++) {
+        if (signal[i] <  signal[i-1]) {
+          if (goingUp) {
+            amplitudes.push(Math.abs(signal[i] - peak));
+            peak = signal[i];
+            goingUp = false;
+          }
+        } else {
+          if (!goingUp) {
+            amplitudes.push(Math.abs(signal[i] - peak));
+            peak = signal[i];
+            goingUp = true;
+          }
+        }
+      }
+
+      if (amplitudes.length < numberOfAmplitudes)
+        throw 'Cannot request ' + numberOfAmplitudes +
+            ' since there were only ' + amplitudes.length +
+            ' distinct amplitudes in the signal.';
+
+      // Return an array of specified number of amplitudes, 
+      // where each amplitude represents an average of adjacent amplitudes. 
+      numberOfAmplitudes++; 
+      const amplitudesToAverage = Math.floor(amplitudes.length / numberOfAmplitudes);
+      averagedAmplitudes = new Array();
+
+      // Start at 1 since first amplitude is shortened.
+      for (let i = 1; i < amplitudes.length - amplitudesToAverage; i+= amplitudesToAverage) {
+        let sum = 0;
+        for (let j = 0; j < amplitudesToAverage; j++ ) {
+          sum += amplitudes[j+i];
+        }
+        averagedAmplitudes.push(sum / amplitudesToAverage);
+      }
+
+      return averagedAmplitudes;
+    }
+
+    function _toIndex(time, sampleRate) {
+      if (sampleRate == null || time == null) throw ('Illegal parameters');
+      return Math.floor(time * sampleRate);
+    }
+
+    function _toTime(index, sampleRate) {
+      if (sampleRate == null || index == null) throw ('Illegal parameters');
+      return index * (1 / sampleRate);
+    }
+
+    function _getFirstIndexBeforeRemainderIs(buffer, value) {
+      let firstIndex = buffer.length;
+      for (let i = 0; i < buffer.length; i++) {
+        const diff = Math.abs(buffer[i] - value);
+        if (diff > 0) {
+          firstIndex = buffer.length;
+        } else 
+          firstIndex = (i < firstIndex) ? i : firstIndex;
+      }
+      return firstIndex;
+    }
+
+    function _getFirstIndexBeforeRemainingSamplesMatch(buffer, reference) {
+      let firstIndex = buffer.length;
+      for (let i = 0; i < buffer.length; i++) {
+        let diff = Math.abs(buffer[i] - reference[i]);
+        if (diff > 0) {
+          firstIndex = buffer.length;
+        } else
+          firstIndex = (i < firstIndex) ? i : firstIndex;
+      }
+      return firstIndex;
+    }
+  </script>
+  </head>
+</html>
