@@ -20,69 +20,72 @@ class NoiseGate {
    * @param  {BaseAudioContext} context the audio context
    * @param  {Number} options.channels the number of input and output 
    *                                   channels, a maximum of two
-   * @param  {Number} options.attack milliseconds for gate to fully close  
-   * @param  {Number} options.attack milliseconds for gate to fully open
+   * @param  {Object} options parameters for the noise gate                                  
+   * @param  {Number} options.attack seconds for gate to fully close  
+   * @param  {Number} options.release seconds for gate to fully open
    * @param  {Number} options.bufferSize the size of an onaudioprocess window
    * @param  {Number} options.threshold gain level beneath which sound is muted
-   * @param  {Number} options.alpha weight for envelope follower affecting
+   * @param  {Number} options.alpha weight for the envelop follower affecting
    *                                the tradeoff between delay and smoothness
    */
   constructor(context, options) {
     if (!(context instanceof BaseAudioContext)) 
       throw context + ' is not a valid audio context.';
-    const minimumSampleRate = 3000; // todo: throw error?
-    if (options == null) options = {};
+    if (!options) options = {};
+    const numberOfChannels = options.numberOfChannels || 1; 
+    if (numberOfChannels > 2) 
+      throw 'The maximum supported number of channels is two.';
+
     this.context_ = context;
-    let numberOfChannels = options.numberOfChannels || 1;
-    let bufferSize = options.bufferSize || 0;
+    const bufferSize = options.bufferSize || 0;
     this.threshold = options.threshold || 1;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
+
     // Alpha controls a tradeoff between the smoothness of the 
     // envelope and its delay, with a higher value giving more smoothness at 
     // the expense of delay and vice versa. It has been set experimentally to
     // control this tradeoff.
     this.alpha_ = options.alpha || 0.90;
-    // In the level detection code, alpha controls the weight given to the 
-    // current sample relative to the value in the previous iteration of 
-    // the envelope. An appropriate setting to alpha thus depends on the 
-    // number of samples in a second. Alpha is therefore normalized. 
-    // The minimum supported sample rate is 3000, and alpha is unaltered at that
-    // rate. If the sample rate is twice the miniumum and alpha is 0.90, 
-    // then the new alpha rate will be 0.95 since the contribution of the
-    // current sample (1 - alpha) is doubled.
-    this.alpha_ = 1 -
-        ((1 - this.alpha_) / (this.context_.sampleRate / minimumSampleRate));
 
-    if (numberOfChannels > 2) 
-      throw 'The maximum supported number of channels is two.';
+    // Alpha is normalized around the minimum sample rate of an offline audio
+    // context (3000). 
+    this.alpha_ = 1 -
+        ((1 - this.alpha_) / (this.context_.sampleRate / 3000));
 
     this.node_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
+
     // The noise gate is connected to and from by dummy input and output nodes.
     this.input = new GainNode(this.context_);
     this.output = new GainNode(this.context_);
     this.input.connect(this.node_).connect(this.output);
+
     // The last envelope level of a given buffer.
-    this.lastLevel = 0;
+    this.lastLevel_ = 0;
+
     // The last weight (between 0 and 1) assigned, where 1 means the gate 
     // is open and 0 means it is closed and the sample in the output buffer is
     // muted.
-    this.lastWeight = 1;
+    this.lastWeight_ = 1.0;
+    this.channel_ = new Float32Array(this.node_.bufferSize);
+    this.envelope_ = new Float32Array(this.node_.bufferSize);
+    this.weights_ = new Float32Array(this.node_.bufferSize);
   }
 
   /**
    * Gradually mutes input which registers beneath specified threshold.
-   * @param  {AudioProcessingEvent} event input and output buffers
+   * @param  {AudioProcessingEvent} event event object containing 
+   *                                      input and output buffers
    */
   onaudioprocess_(event) {
-    let envelope = this.detectLevel(event.inputBuffer);
+    let envelope = this.detectLevel_(event.inputBuffer);
 
     for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
       let input = event.inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
-      let weights = this.computeGain(envelope);
+      let weights = this.computeGain_(envelope);
 
       for (let j = 0; j < input.length; j++) {
         output[j] = weights[j] * input[j];
@@ -94,67 +97,67 @@ class NoiseGate {
    * Detect level using the difference equation for the Root Mean Squared 
    * value of the input signal.
    * @param  {AudioBuffer} inputBuffer input audio buffer
-   * @return {Float32Array} envelope the registered level of the input             
+   * @return {Float32Array} the level of the signal
    */
-  detectLevel(inputBuffer) {
-    let channel = new Float32Array(inputBuffer.getChannelData(0).length);
+  detectLevel_(inputBuffer) {
     // Stereo input is downmixed to mono input via averaging.
-    if (channel.numberOfChannels == 2) {
-      for (let i = 0; i < inputBuffer.getChannelData(0).length; i++) {
-        channel[i] = (inputBuffer.getChannelData(0)[i] +
+    if (this.channel_.numberOfChannels === 2) {
+      for (let i = 0; i < inputBuffer.length; i++) {
+        this.channel_[i] = (inputBuffer.getChannelData(0)[i] +
                           inputBuffer.getChannelData(1)[i]) / 2;
       }
     } else {
-      channel = inputBuffer.getChannelData(0);
+      this.channel_ = inputBuffer.getChannelData(0);
     }
-    // Set the value at each index of the envelope to be a positive value
-    // that combines the current and previous value according to alpha.
-    // The signal level is determined by computing its root-mean-square
-    // (RMS) value. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for 
+    
+    // The signal level is determined by filtering high frequency oscillation
+    // with exponential smoothing. 
+    // This is equivalent to computing the root-mean-square (RMS) value
+    // of the signal. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for 
     // details.
-    let envelope = new Float32Array(channel.length); 
-    envelope[0] = this.alpha_ * this.lastLevel +
-        (1 - this.alpha_) * Math.pow(channel[0], 2);
+    this.envelope_[0] = this.alpha_ * this.lastLevel_ +
+        (1 - this.alpha_) * Math.pow(this.channel_[0], 2);
 
-    for (let j = 1; j < channel.length; j++) {
-      envelope[j] = this.alpha_ * envelope[j - 1] +
-          (1 - this.alpha_) * Math.pow(channel[j], 2);
+    for (let j = 1; j < this.channel_.length; j++) {
+      this.envelope_[j] = this.alpha_ * this.envelope_[j - 1] +
+          (1 - this.alpha_) * Math.pow(this.channel_[j], 2);
     }
-    this.lastLevel = envelope[envelope.length - 1];
-    // Scale the envelope levels back to the original magnitude. 
-    for (let k = 0; k < envelope.length; k++) {
-      envelope[k] = Math.sqrt(envelope[k]) * Math.sqrt(2);
+    this.lastLevel_ = this.envelope_[this.envelope_.length - 1];
+    
+    // Scale the envelope levels back to the original amplitude. 
+    for (let k = 0; k < this.envelope_.length; k++) {
+      this.envelope_[k] = Math.sqrt(this.envelope_[k]) * Math.sqrt(2);
     }
-    return envelope;
+    return this.envelope_;
   }
 
   /**
    * Computes an array of weights which determines what samples are silenced.
-   * @param  {Float32Array} envelope the level of the input
+   * @param  {Float32Array} envelope_ the level of the input
    * @return {Float32Array} weights numbers in the range 0 to 1 set in 
    *                                accordance with the threshold, the envelope,
    *                                and attack and release                             
    */
-  computeGain(envelope) {
-    let weights = new Float32Array(envelope.length);
+  computeGain_(envelope) {    
     // When attack or release are 0, the weight changes between 0 and 1
     // in one step.
     let attackSteps = 1;
     let releaseSteps = 1;
     let attackLossPerStep = 1;
     let releaseGainPerStep = 1;
+
     // When attack or release are > 0, the associated weight changes between 0 
     // and 1 in the number of steps corresponding to the millisecond attack 
     // or release time parameters.
     if (this.attack > 0) {
-      attackSteps = Math.ceil(this.context_.sampleRate * this.attack / 1000);
+      attackSteps = Math.ceil(this.context_.sampleRate * this.attack);
       attackLossPerStep = 1 / attackSteps;  
     }
     if (this.release > 0) {
-      releaseSteps = Math.ceil(this.context_.sampleRate * this.release / 1000);
+      releaseSteps = Math.ceil(this.context_.sampleRate * this.release);
       releaseGainPerStep = 1 / releaseSteps;
     }
-
+    
     // Compute an array of weights which will be multiplied with the channel.
     // Based on the detected level and indexes which persist between subsequent
     // calls to onaudioprocess, the noise gate at iteration i is in one of 
@@ -162,15 +165,15 @@ class NoiseGate {
     // releasing (between closed and open).  
     for (let i = 0; i < envelope.length; i++) {
       if (envelope[i] < this.threshold) {
-          const weight = this.lastWeight - attackLossPerStep;
-          weights[i] = weight > 0 ? weight : 0;
+        const weight = this.lastWeight_ - attackLossPerStep;
+        this.weights_[i] = weight > 0 ? weight : 0;
       }
       else {
-          const weight = this.lastWeight + releaseGainPerStep;
-          weights[i] = weight < 1 ? weight : 1;
+        const weight = this.lastWeight_ + releaseGainPerStep;
+        this.weights_[i] = weight < 1 ? weight : 1;
       }
-      this.lastWeight = weights[i];
+      this.lastWeight_ = this.weights_[i];
     }
-    return weights;
+    return this.weights_;
   }
 }
