@@ -1,41 +1,40 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>AudioWorklet AudioParam Modulation | Chrome WebAudio Samples</title>
-  <link rel="stylesheet" href="../../resources/base.css">
-  <script src="../lib/audio-worklet-base.js"></script>
-</head>
-<body>
-  <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
-  <h1>Demo: AudioParam Modulation</h1>
-  <script>
-    // Global GC Hack...
-    let noiseGain;
+  <head>
+    <title>
+      AudioWorklet: AudioParam Modulation | Chrome WebAudio Samples
+    </title>
+    <link rel="stylesheet" href="../../resources/base.css">
+    <script src="../lib/audio-worklet-helper.js"></script>
+  </head>
+  <body>
+    <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
+    <h1>
+      Demo: AudioParam Modulation
+    </h1>
+    <script>
+    // TODO(hoch): remove this GC hack when it is implemented properly.
+    let paramAmp;
 
-    function runDemo() {
-      const context = new AudioContext();
-      let modulator = new OscillatorNode(context);
-      let noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
-      noiseGain = noiseGenerator.parameters.get('gain');
+    // Run NoiseGenerator node. The demo code here is to demonstrate the
+    // parameter modulation (a-rate) via AudioParam.
+    function runNoiseGeneratorDemo() {
+      window.audioWorklet.addModule('js/noise-generator.js').then(() => {
+        const context = new AudioContext();
+        let modulator = new OscillatorNode(context);
+        let noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
+        noiseGenerator.connect(context.destination);
 
-      noiseGenerator.connect(context.destination);
-      modulator.connect(noiseGain);
-      
-      modulator.frequency.value = 1;
-      modulator.start();
-    }
-    
-    window.addEventListener('load', () => {
-      LibAudioWorklet.initializeReporter();
-      if (LibAudioWorklet.isAvailable()) {
-        LibAudioWorklet.reportMessage('info',
-            'AudioWorklet is available. Start running demo...');
-        window.audioWorklet.addModule('js/noise-generator.js').then(runDemo);
-      } else {
-        LibAudioWorklet.reportMessage('error',
-            'The browser does not support AudioWorklet yet.');
-      }
-    });
-  </script>
-</body>
+        // Connect the osicllator to 'amplitude' AudioParam.
+        paramAmp = noiseGenerator.parameters.get('amplitude');
+        modulator.connect(paramAmp);
+        
+        modulator.frequency.value = 1;
+        modulator.start();
+      });
+    } 
+
+    AudioWorkletHelper.startDemo(runNoiseGeneratorDemo);
+    </script>
+  </body>
 </html>
