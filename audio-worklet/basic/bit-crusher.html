@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      AudioWorklet: BitCrusher | Chrome WebAudio Samples
+    </title>
+    <link rel="stylesheet" href="../../resources/base.css">
+    <script src="../lib/audio-worklet-helper.js"></script>
+  </head>
+  <body>
+    <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
+    <h1>
+      Demo: BitCrusher
+    </h1>
+    <script>
+    // TODO(hoch): remove this GC hack when it is implemented properly.
+    let paramBitDepth;
+    let paramReduction;
+
+    // Run BitCrusher node, that is largely based on the example on in the spec,
+    // to demonstrate AudioParam automation.
+    function runBitCrusherDemo() {
+      window.audioWorklet.addModule('js/bit-crusher.js').then(() => {
+        const context = new AudioContext();
+        let oscillator = new OscillatorNode(context);
+        let bitCrusher = new AudioWorkletNode(context, 'bit-crusher');
+        oscillator.connect(bitCrusher).connect(context.destination);
+        
+        paramBitDepth = bitCrusher.parameters.get('bitDepth');
+        paramReduction = bitCrusher.parameters.get('frequencyReduction');
+        
+        paramBitDepth.setValueAtTime(1, 0);
+
+        // The target reduction values are determinded experimentally.
+        paramReduction.setValueAtTime(0.01, 0);
+        paramReduction.linearRampToValueAtTime(0.1, 4);
+        paramReduction.exponentialRampToValueAtTime(0.01, 8);
+
+        // Play the tone for 8 seconds.
+        oscillator.start();
+        oscillator.stop(8);
+      });
+    }
+
+    AudioWorkletHelper.startDemo(runBitCrusherDemo);
+    </script>
+  </body>
+</html>
