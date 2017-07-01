@@ -29,13 +29,14 @@ limitations under the License.
     <script src="src/source-controller.js"></script>
     <script src="src/param-controller.js"></script>
     <script src="src/bitcrusher-demo.js"></script>
+    <script src="lib/audio-worklet-helper.js"></script>
   </head>
   <body>
     <h1>Bitcrusher: a lo-fi audio effect</h1>
     <p>
-      Hit play to start a song and listen to the distortive effect of 
+      Hit play to start a song and listen to the distortive effect of
       modifying the bit depth and sample rate reduction parameters.
-    </p> 
+    </p>
     <p>
       The bit depth slider controls the number of bits used to represent
       a given sample. The sample rate reduction slider affects the number
@@ -43,16 +44,21 @@ limitations under the License.
       sample rate reduction by making intervals of consecutive samples equal.
     </p>
     <div id="container"></div>
-    <script> 
+    <script>
       // Default to 50% volume, maximum bit depth, and no sample rate reduction.
       let bitDepth = 24.0;
       let reduction = 1.0;
       let gain = 0.5;
-
+      const useAudioWorklet = true;
       window.addEventListener('load', () => {
-          let controller = new BitcrusherDemo(
-              'container', bitDepth, reduction, gain);
+          window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
+              .then(() => {
+                  const context = new AudioContext();
+                  let demo = new BitcrusherDemo(context, 'container', bitDepth,
+                                              reduction, gain, useAudioWorklet);
+              });
       });
-    </script>
+
+      </script>
   </body>
 </html>

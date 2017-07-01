@@ -20,20 +20,27 @@ class BitcrusherDemo {
    * @param  {Number} reduction the amount of sample rate reduction to apply
    * @param  {Number} gain the volume of the output
    */
-  constructor(containerId, bitDepth, reduction, gain) {
-    this.context_ = new AudioContext();
+  constructor(context, containerId, bitDepth, reduction, gain, useAudioWorklet) {
+    this.context_ = context;
     this.masterGain_ = new GainNode(this.context_, {gain: (gain || 0.5)});
-    this.bitcrusher_ = new Bitcrusher(this.context_, {
-      channelCount: 1,
-      bitDepth: bitDepth || 24,
-      reduction: reduction || 1
-    });
+    this.useAudioWorklet_ = useAudioWorklet;
 
-    this.bitcrusher_.output.connect(this.masterGain_);
+    if (this.useAudioWorklet_) {
+      this.bitcrusher_ = new AudioWorkletNode(
+          this.context_, 'bitcrusher-audio-worklet',
+          {bitDepth: 24, reduction: 1});
+    } else {
+      this.bitcrusher_ = new Bitcrusher(this.context_, {
+          channelCount: 1,
+          bitDepth: bitDepth || 24,
+          reduction: reduction || 1
+      });
+      this.bitcrusher_.output.connect(this.masterGain_);
+    }
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
-    this.loadSong_('audio/revenge.mp3').then((song) => {
+    this.loadSong_('audio/revenge.ogg').then((song) => {
       this.songBuffer = song;
       this.sourceButton_.enable();
     });
@@ -123,7 +130,12 @@ class BitcrusherDemo {
     // Play song, running samples through a bitcrusher under user control.
     this.song_ =
         new AudioBufferSourceNode(this.context_, {buffer: this.songBuffer});
-    this.song_.connect(this.bitcrusher_.input);
+    if (this.useAudioWorklet_) {
+      this.song_.connect(this.bitcrusher_).connect(this.masterGain_);
+    }
+    else {
+      this.song_.connect(this.bitcrusher_.input);
+    }
 
     this.song_.onended = () => {
       this.sourceButton_.enable();
