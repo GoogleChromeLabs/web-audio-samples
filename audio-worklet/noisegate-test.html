@@ -15,11 +15,16 @@ limitations under the License.
 <!DOCTYPE html>
   <head>
     <script src="test/testharness.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="test/testharnessreport.js"></script>
     <script src="test/audit-util.js"></script>
     <script src="test/audit.js"></script>
     <script src="src/noisegate-script-processor.js"></script>
     <script id="noisegate-test-code">
+      google.charts.load('current', {'packages':['line']});
+      google.charts.setOnLoadCallback(tests); 
+
+      function tests() {
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers. With
       // a higher sample rate, there may be trivial failures to certain tests.
@@ -37,13 +42,19 @@ limitations under the License.
       // between the aboveThresholdGain and belowThresholdGain. If the threshold
       // is close to the belowThresholdGain, then the gate may flutter between
       // opened and closed, causing the test to fail.
+      // TimeToThreshold should be between 0 and 1.
       const linearThreshold = 0.2;
-      const threshold = toDecibel_(linearThreshold);
+
+      // The threshold is divided by the square root of two to compensate for
+      // sine-wave specific processing done by the level
+      //const threshold = toDecibel_(linearThreshold * Math.sqrt(2));
+      const threshold = linearThreshold * Math.sqrt(2);
       const aboveThresholdGain = linearThreshold * 1.25;
       const belowThresholdGain = linearThreshold * 0.75;
-
+      
       let audit = Audit.createTaskRunner();
       
+      /*
       // Verify that the noise gate gradually mutes the signal according to the
       // attack parameter, and that it gradually returns the signal to its
       // original value according to the release parameter. Precise timing is
@@ -220,7 +231,7 @@ limitations under the License.
 
           }).then(() => task.done());
       })
-      
+       */
       // Verify that the noise gate computes an envelope for an audio signal
       // that is on the same scale as web audio's gain node. If the gain of a
       // signal is set to be beneath the threshold, then the signal should be
@@ -233,32 +244,28 @@ limitations under the License.
       // envelope delay to be directly quantified, and the bandwidth of the
       // envelope detection exponential smoothing filter to be experimentally
       // adjusted to minimize envelope delay while avoiding the gate fluttering
-      // between open and closed.
+      // between open and closed. 
+       /*
       audit.define('envelope-and-threshold', (task, should) => {
         let context = new OfflineAudioContext(2, testFrames, sampleRate);
-        // TimeToThreshold should be between 0 and 1.
         const timeToThreshold = 0.25;
 
         // Attack and release are both 0.
         let noisegate = new NoiseGate(context, {bufferSize, threshold});
         let gain = new GainNode(context, {gain : 1});
         let merger = new ChannelMergerNode(context, {numberOfInputs : 2});
+        
         // The delay node offsets the script processor latency.
         let delay = new DelayNode(
             context, {delayTime : toTime_(scriptProcessorLatency, sampleRate)});
-        let osc = new OscillatorNode(context);
-
+        let osc = new ConstantSourceNode(context, {offset: 1});
         osc.connect(gain).connect(noisegate.input);
         gain.connect(delay);
         noisegate.output.connect(merger, 0, 0);
         delay.connect(merger, 0, 1);
         merger.connect(context.destination);
 
-        // Gain node should be stable until ~1 sample before the threshold, and
-        // then it should drop to a value clearly beneath it.
-        gain.gain.linearRampToValueAtTime(
-            1, timeToThreshold - (1 / context.sampleRate));
-        gain.gain.linearRampToValueAtTime(belowThresholdGain, timeToThreshold);
+        gain.gain.setValueAtTime(belowThresholdGain, timeToThreshold);
 
         // Drop the bass!
         osc.start();
@@ -266,6 +273,26 @@ limitations under the License.
         context.startRendering().then((buffer) => {
           let noiseGateOutput = buffer.getChannelData(0);
           let originalOutput = buffer.getChannelData(1);
+          draw(noiseGateOutput);
+
+          console.log(noiseGateOutput[1024]);
+          console.log(originalOutput[1024]);
+          console.log(threshold, noisegate.alpha_);
+          console.log(noiseGateOutput);
+
+
+          const envelopeDelay = Math.floor(
+              (Math.log10(1 - threshold) / Math.log10(noisegate.alpha_)) - 1);
+
+          let n = 40;
+          const env = Math.pow(noisegate.alpha_, n) + 
+              - Math.pow(noisegate.alpha_, 2) + 1;
+          
+          const d = 1 - Math.pow(noisegate.alpha_, n+1);
+
+          console.log(d);
+
+         
           const closedIndex =
               toIndex_(timeToThreshold, sampleRate) + scriptProcessorLatency;
 
@@ -283,7 +310,11 @@ limitations under the License.
           // algorithm has a delay.
           let ideallyClosedPhase =
               noiseGateOutput.slice(closedIndex, buffer.length);
-
+          console.log(unalteredPhase);
+          console.log(threshold);
+          let n = Math.log10(1 - threshold) / Math.log10(noisegate.alpha_);
+          console.log(n);*/ 
+          /*
           // The difference between when the gate is expected to be closed and
           // is closed) is measured at 0.009033203125s. If settings change, then
           // closeDelay can be inspected and the assertions can compare to this
@@ -307,10 +338,10 @@ limitations under the License.
               .beEqualToArray(unalteredPhaseReference,
                               'those values in the unaltered oscillator');
           should(closedPhase, 'The closed phase of the noise gate output')
-              .beConstantValueOf(0);
+              .beConstantValueOf(0); 
         }).then(() => task.done());
-      });
-
+      });*/
+      
       // When processing two channels, the noise gate should compute only one
       // envelope from the average of those two
       // channels but apply gain computation separately for both channels.
@@ -370,7 +401,54 @@ limitations under the License.
                 'close and when it closed')
                 .beCloseTo(0.02, {threshold: 0.05});
         }).then(() => task.done());
+      }); 
+
+      // From a constant source of 1's followed by 0's, the envelope follower
+      // should return an array which eventually reach a value slightly beneath
+      // 1 * sqrt(2). When the constant source changes to zeros, the envelope
+      // follower should  reach a value slightly larger than 0 * sqrt(2). This
+      // test verifies that these two delays agree with what is predicted given
+      // alpha.
+      audit.define('envelope-follower', (task, should) => {
+        const halfOfLength = 256;
+        let ones = new Array(halfOfLength).fill(1);
+        let zeros = new Array(halfOfLength).fill(0);
+        let channel = ones.concat(zeros);
+        let context =
+            new OfflineAudioContext(1, testFrames, sampleRate);
+        let noisegate = new NoiseGate(context, {bufferSize: halfOfLength * 2});
+        let envelope = noisegate.detectLevel_(channel);
+
+        // The envelope is scaled up by the square root of two since it is 
+        // tuned to sine waves. It will only approach the actual signal 
+        // envelope so the anticipated open envelope needs to be set 
+        // slightly lower.
+        const openLevel = 1 * Math.sqrt(2) * 0.99;
+
+        let openIndex =
+            Math.floor(Math.log10(1 - (Math.pow(openLevel, 2) / 2)) /
+                       Math.log10(noisegate.alpha_)) - 1;
+
+        // Since the expected open value is set to be smaller than the actual
+        // open value, perfect correspondance won't exist in the computed 
+        // envelope. 
+        should(envelope[openIndex]).beCloseTo(openLevel, {threshold: 0.0002});
+
+        // The envelope will never reach exactly 0
+        const closedLevel = 0.01 * Math.sqrt(2);
+        const c = 1;
+        const closedIndex =
+            Math.floor(Math.log10(Math.pow(closedLevel, 2) * c / 2) /
+                       Math.log10(noisegate.alpha_)) + halfOfLength - 1;
+
+        let secondHalf = envelope.slice(halfOfLength, envelope.length);
+        should(envelope[closedIndex]).beCloseTo(closedLevel, {threshold: 0.03});
+
+        task.done();
       });
+
+/*
+
 
       // Verify that the gain computer opens and closes gate (as witnessed
       // through changes in its weights) according to attack and release
@@ -435,7 +513,7 @@ limitations under the License.
         should(openWeights, 'Weight array after the threshold')
             .beConstantValueOf(1);
         task.done();
-      });
+      }); */
 
     audit.run();
     
@@ -490,7 +568,6 @@ limitations under the License.
       return averagedAmplitudes;
     }
 
-
     function toDecibel_(linearValue) {
       return 20 * Math.log10(linearValue);
     }
@@ -526,6 +603,32 @@ limitations under the License.
       }
       return firstIndex;
     }
+  }
+
+  function draw(input) {
+    let table = this.toGoogleChart(input);
+    let chart = new google.charts.Line(document.getElementById('curve_chart'));
+    chart.draw(table);
+  }
+
+  function toGoogleChart(x, y) {
+    let table = new google.visualization.DataTable();
+    table.addColumn('number', 'x')
+    table.addColumn('number', 'y');
+
+    let inc = 1;
+
+    for (let i = 0; i < x.length; i += inc) {
+      if (y != null)
+        table.addRow([x[i], y[i]]);
+      else
+        table.addRow([i, x[i]]);
+    }
+    return table;
+  }
   </script>
   </head>
+  <body>
+  <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
 </html>

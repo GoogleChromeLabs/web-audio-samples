@@ -21,10 +21,10 @@ class NoiseGate {
    * @param {Number} options.channels the number of input and output
    *                                  channels, a maximum of two
    * @param {Object} options parameters for the noise gate                                
-   * @param {Number} options.attack seconds for gate to fully close 
+   * @param {Number} options.attack seconds for gate to fully close
    * @param {Number} options.release seconds for gate to fully open
    * @param {Number} options.bufferSize the size of an onaudioprocess window
-   * @param {Number} options.threshold decibel level beneath which sound is 
+   * @param {Number} options.threshold decibel level beneath which sound is
    *                                   muted
    */
   constructor(context, options) {
@@ -46,9 +46,10 @@ class NoiseGate {
     // the expense of delay and vice versa. The bandwidth of the filter
     // has been set experimentally to minimize delay while still adequately
     // suppressing high frequency oscillation.
-    const bandwidth = 70;
-    this.alpha_ = this.getNormalizedAlpha_(bandwidth);
-
+    //this.alpha_ = this.getNormalizedAlpha_(70);
+    this.alpha_ = //this.getTimeConstant_(0.0001);
+    this.alpha_ = 0.9;
+    console.log(this.alpha_);
     this.node_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
@@ -76,7 +77,17 @@ class NoiseGate {
    *                                     input and output buffers
    */
   onaudioprocess_(event) {
-    let envelope = this.detectLevel_(event.inputBuffer);
+    // Stereo input is downmixed to mono input via averaging.
+    if (event.inputBuffer.numberOfChannels === 2) {
+      for (let i = 0; i < event.inputBuffer.length; i++) {
+        this.channel_[i] = (event.inputBuffer.getChannelData(0)[i] +
+                           event.inputBuffer.getChannelData(1)[i]) / 2;
+      }
+    } else {
+      this.channel_ = event.inputBuffer.getChannelData(0);
+    }
+
+    let envelope = this.detectLevel_(this.channel_);
 
     for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
       let input = event.inputBuffer.getChannelData(i);
@@ -92,37 +103,29 @@ class NoiseGate {
   /**
    * Detect level using the difference equation for the Root Mean Squared
    * value of the input signal.
-   * @param {AudioBuffer} inputBuffer input audio buffer
+   * @param {Float32Array} input audio buffer
    * @return {Float32Array} the level of the signal
    */
-  detectLevel_(inputBuffer) {
-    // Stereo input is downmixed to mono input via averaging.
-    if (this.channel_.numberOfChannels === 2) {
-      for (let i = 0; i < inputBuffer.length; i++) {
-        this.channel_[i] = (inputBuffer.getChannelData(0)[i] +
-                           inputBuffer.getChannelData(1)[i]) / 2;
-      }
-    } else {
-      this.channel_ = inputBuffer.getChannelData(0);
-    }
-    
+  detectLevel_(channel) {
     // The signal level is determined by filtering high frequency oscillation
     // with exponential smoothing.
     // This is equivalent to computing the root-mean-square (RMS) value
     // of the signal. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for
     // details.
     this.envelope_[0] = this.alpha_ * this.lastLevel_ +
-        (1 - this.alpha_) * Math.pow(this.channel_[0], 2);
+        (1 - this.alpha_) * Math.pow(channel[0], 2);
 
-    for (let j = 1; j < this.channel_.length; j++) {
+    for (let j = 1; j < channel.length; j++) {
       this.envelope_[j] = this.alpha_ * this.envelope_[j - 1] +
-          (1 - this.alpha_) * Math.pow(this.channel_[j], 2);
+          (1 - this.alpha_) * Math.pow(channel[j], 2);
     }
     this.lastLevel_ = this.envelope_[this.envelope_.length - 1];
-    
-    // Scale the envelope levels back to the original amplitude.
+
+    // For sine waves, the envelope eventually reaches an average power of
+    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
+    // but other waveforms or constant sources can only be approximated.
     for (let k = 0; k < this.envelope_.length; k++) {
-      this.envelope_[k] = Math.sqrt(this.envelope_[k]) * Math.sqrt(2);
+      this.envelope_[k] =  Math.sqrt(this.envelope_[k]) * Math.sqrt(2);
     }
     return this.envelope_;
   }
@@ -153,7 +156,7 @@ class NoiseGate {
       releaseSteps = Math.ceil(this.context_.sampleRate * this.release);
       releaseGainPerStep = 1 / releaseSteps;
     }
-    
+
     // Compute an array of weights which will be multiplied with the channel.
     // Based on the detected level and indexes which persist between subsequent
     // calls to onaudioprocess, the noise gate at iteration i is in one of
@@ -161,6 +164,7 @@ class NoiseGate {
     // releasing (between closed and open).
     for (let i = 0; i < envelope.length; i++) {
       if (toDecibel_(envelope[i]) < this.threshold) {
+     // if (envelope[i] < this.threshold) {
         const weight = this.lastWeight_ - attackLossPerStep;
         this.weights_[i] = weight > 0 ? weight : 0;
       }
@@ -171,6 +175,10 @@ class NoiseGate {
       this.lastWeight_ = this.weights_[i];
     }
     return this.weights_;
+  }
+
+  getTimeConstant_(timeConstant) {
+    return 1 - Math.exp(-1 / (this.context_.sampleRate * timeConstant));
   }
 
   getNormalizedAlpha_(bandwidth){
