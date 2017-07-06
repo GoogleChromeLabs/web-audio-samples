@@ -20,15 +20,17 @@ class BitcrusherDemo {
    * @param  {Number} reduction the amount of sample rate reduction to apply
    * @param  {Number} gain the volume of the output
    */
-  constructor(context, containerId, bitDepth, reduction, gain, useAudioWorklet) {
+  constructor(context, containerId, paramBitDepth, paramReduction, gain, useAudioWorklet) {
     this.context_ = context;
     this.masterGain_ = new GainNode(this.context_, {gain: (gain || 0.5)});
     this.useAudioWorklet_ = useAudioWorklet;
 
     if (this.useAudioWorklet_) {
-      this.bitcrusher_ = new AudioWorkletNode(
-          this.context_, 'bitcrusher-audio-worklet',
-          {bitDepth: 24, reduction: 1});
+      this.bitcrusher_ = new AudioWorkletNode(this.context_, 'bit-crusher');
+
+      paramBitDepth = this.bitcrusher_.parameters.get('bitDepth');
+      paramReduction = this.bitcrusher_.parameters.get('frequencyReduction');
+
     } else {
       this.bitcrusher_ = new Bitcrusher(this.context_, {
           channelCount: 1,
@@ -59,7 +61,7 @@ class BitcrusherDemo {
   initializeGUI_(containerId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
-
+    /*
     // Place 3 parameters in container to real-time adjust Bitcrusher_ settings.
     this.bitDepthSlider_ =
         new ParamController(containerId, this.setBitDepth.bind(this), {
@@ -92,6 +94,7 @@ class BitcrusherDemo {
           default: this.masterGain_.gain.value,
           name: 'Volume'
         });
+        */
   }
 
   /**
@@ -100,8 +103,8 @@ class BitcrusherDemo {
    * @param {Number} value the new bit depth
    */
   setBitDepth(value) {
-    if (value < 1) console.error('The minimum bit depth rate is 1.');
-    this.bitcrusher_.bitDepth = value;
+    //if (value < 1) console.error('The minimum bit depth rate is 1.');
+    //this.bitcrusher_.bitDepth = value;
   }
 
   /**
@@ -110,8 +113,8 @@ class BitcrusherDemo {
    * @param {Number} value the new sample rate reduction
    */
   setReduction(value) {
-    if (value < 1) console.error('The minimum reduction rate is 1.');
-    this.bitcrusher_.reduction = value;
+    //if (value < 1) console.error('The minimum reduction rate is 1.');
+    //this.bitcrusher_.reduction = value;
   }
 
   /**
@@ -132,6 +135,7 @@ class BitcrusherDemo {
         new AudioBufferSourceNode(this.context_, {buffer: this.songBuffer});
     if (this.useAudioWorklet_) {
       this.song_.connect(this.bitcrusher_).connect(this.masterGain_);
+      //this.song_.connect(this.masterGain_);
     }
     else {
       this.song_.connect(this.bitcrusher_.input);
@@ -143,8 +147,8 @@ class BitcrusherDemo {
       this.reductionSlider_.disable();
     }
     this.song_.start();
-    this.bitDepthSlider_.enable();
-    this.reductionSlider_.enable();
+    //this.bitDepthSlider_.enable();
+    //this.reductionSlider_.enable();
   }
 
   /**

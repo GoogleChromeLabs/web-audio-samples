@@ -28,10 +28,10 @@ registerProcessor('bitcrusher-audio-worklet', class BitcrusherAudioWorklet exten
       minValue: 1,
       maxValue: 24
     }, {
-      name: 'reduction',
-      defaultValue: 1,
-      minValue: 1,
-      maxValue: 10
+      name: 'frequencyReduction',
+      defaultValue: 0.5,
+      minValue: 0,
+      maxValue: 1
     }];
   }
 
@@ -42,7 +42,6 @@ registerProcessor('bitcrusher-audio-worklet', class BitcrusherAudioWorklet exten
     this.index_ = 0;
     this.previousSample_ = 0;
   }
-
   
   /**
    * Bit crush upon receiving input audio signal, applying signal distortion
@@ -54,6 +53,9 @@ registerProcessor('bitcrusher-audio-worklet', class BitcrusherAudioWorklet exten
     let outputChannelData = output.getChannelData(0);
     const scale = Math.pow(2, parameters.bitDepth);
 
+    console.log(parameters.reduction[10]);
+    console.log(parameters.reduction[0]);
+    //console.log(parameters[0], [parameters[100]]);
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputChannelData.length; j++) {
       if (this.index_ % parameters.reduction === 0) {

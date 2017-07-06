@@ -15,12 +15,36 @@ limitations under the License.
 <!DOCTYPE html>
   <head>
     <script src="src/bitcrusher-script-processor.js"></script> 
-    <script>
-      testSampleReduction();
-      testBitcrusherInAudioContext();
-      testMultipleChannels();
-      testIllegalInput();
 
+    <script src="src/BitDepth.js"></script> 
+    <!--<script src="basic/js/bit-crusher.js"></script> -->
+    <script>
+
+     // testSampleReduction();
+      //testBitcrusherInAudioContext();
+      //testMultipleChannels();
+      //testIllegalInput();
+      //testAudioWorkletBitcrusher();
+
+      testARateAudioParams();
+      function testARateAudioParams() {
+        let context = new OfflineAudioContext(1, 44100, 44100);
+        
+        let a = new AudioParam(context);
+        
+        console.log(a);
+      }
+      /*
+      function testAudioWorkletBitcrusher() {
+        let context = new OfflineAudioContext(1, 44100, 44100);
+         window.audioWorklet.addModule('js/bit-crusher.js').then(() => {
+          let oscillator = new OscillatorNode(context);
+           
+          let bitCrusher = new AudioWorkletNode(context, 'bit-crusher');
+          oscillator.connect(bitCrusher).connect(context.destination);
+          
+        });
+      } */
       /**
        * Verify the sample rate reduction component of the bitcrusher operating
        * outside of an audio context. A bitcrushed array generated from an 

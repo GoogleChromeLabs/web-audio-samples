@@ -48,14 +48,17 @@ limitations under the License.
       // Default to 50% volume, maximum bit depth, and no sample rate reduction.
       let bitDepth = 24.0;
       let reduction = 1.0;
+      let paramBitDepth;
+      let paramReduction;
+      
       let gain = 0.5;
       const useAudioWorklet = true;
       window.addEventListener('load', () => {
-          window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
+          window.audioWorklet.addModule('basic/js/bit-crusher.js')
               .then(() => {
                   const context = new AudioContext();
-                  let demo = new BitcrusherDemo(context, 'container', bitDepth,
-                                              reduction, gain, useAudioWorklet);
+                  let demo = new BitcrusherDemo(context, 'container', paramBitDepth,
+                                              paramReduction, gain, useAudioWorklet);
               });
       });
 
