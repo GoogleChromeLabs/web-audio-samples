@@ -20,10 +20,12 @@ class NoiseGate {
    * @param {BaseAudioContext} context the audio context
    * @param {Number} options.channels the number of input and output
    *                                  channels, a maximum of two
-   * @param {Object} options parameters for the noise gate                                
+   * @param {Object} options parameters for the noise gate
    * @param {Number} options.attack seconds for gate to fully close
    * @param {Number} options.release seconds for gate to fully open
    * @param {Number} options.bufferSize the size of an onaudioprocess window
+   * @param {Number} options.bandwidth the bandwidth of the smoothing filter
+   *                                   for the envelope follower
    * @param {Number} options.threshold decibel level beneath which sound is
    *                                   muted
    */
@@ -46,10 +48,9 @@ class NoiseGate {
     // the expense of delay and vice versa. The bandwidth of the filter
     // has been set experimentally to minimize delay while still adequately
     // suppressing high frequency oscillation.
-    //this.alpha_ = this.getNormalizedAlpha_(70);
-    this.alpha_ = //this.getTimeConstant_(0.0001);
-    this.alpha_ = 0.9;
-    console.log(this.alpha_);
+    const bandwidth = options.bandwidth || 70;
+    this.alpha_ = this.getNormalizedAlpha_(bandwidth);
+
     this.node_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
@@ -95,7 +96,7 @@ class NoiseGate {
       let weights = this.computeGain_(envelope);
 
       for (let j = 0; j < input.length; j++) {
-        output[j] = weights[j] * input[j];
+        output[j] =  weights[j] * input[j];
       }
     }
   }
@@ -163,8 +164,7 @@ class NoiseGate {
     // four states: open, closed, attacking (between open and closed), or
     // releasing (between closed and open).
     for (let i = 0; i < envelope.length; i++) {
-      if (toDecibel_(envelope[i]) < this.threshold) {
-     // if (envelope[i] < this.threshold) {
+      if (this.toDecibel_(envelope[i]) < this.threshold) {
         const weight = this.lastWeight_ - attackLossPerStep;
         this.weights_[i] = weight > 0 ? weight : 0;
       }
@@ -175,10 +175,6 @@ class NoiseGate {
       this.lastWeight_ = this.weights_[i];
     }
     return this.weights_;
-  }
-
-  getTimeConstant_(timeConstant) {
-    return 1 - Math.exp(-1 / (this.context_.sampleRate * timeConstant));
   }
 
   getNormalizedAlpha_(bandwidth){
