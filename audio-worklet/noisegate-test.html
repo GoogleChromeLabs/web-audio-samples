@@ -19,13 +19,8 @@ limitations under the License.
     <script src="test/audit-util.js"></script>
     <script src="test/audit.js"></script>
     <script src="src/noisegate-script-processor.js"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <script id="noisegate-test-code">
-      google.charts.load('current', {'packages':['line']});
-      google.charts.setOnLoadCallback(tests); 
-
-      function tests() {
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
       const sampleRate = 4096;
@@ -432,33 +427,6 @@ limitations under the License.
     function toTime_(index, sampleRate) {
       return index  / sampleRate;
     }
-
-  function draw(input) {
-    let table = toGoogleChart(input);
-    let chart = new google.charts.Line(document.getElementById('curve_chart'));
-    chart.draw(table);
-  }
-
-  function toGoogleChart(x, y) {
-    let table = new google.visualization.DataTable();
-    table.addColumn('number', 'x')
-    table.addColumn('number', 'y');
-
-    let inc = 1;
-
-    for (let i = 0; i < x.length; i += inc) {
-      if (y != null)
-        table.addRow([x[i], y[i]]);
-      else
-        table.addRow([i, x[i]]);
-    }
-    return table;
-  }
-  }
   </script>
   </head>
-
-  <body>
-  <div id="curve_chart" style="width: 900px; height: 500px"></div>
-  </body>
 </html>
