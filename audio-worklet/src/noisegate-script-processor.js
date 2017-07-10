@@ -24,8 +24,8 @@ class NoiseGate {
    * @param {Number} options.attack seconds for gate to fully close
    * @param {Number} options.release seconds for gate to fully open
    * @param {Number} options.bufferSize the size of an onaudioprocess window
-   * @param {Number} options.bandwidth the bandwidth of the smoothing filter
-   *                                   for the envelope follower
+   * @param {Number} options.alpha seconds for envelope follower's smoothing
+   *                                   filter alpha weight
    * @param {Number} options.threshold decibel level beneath which sound is
    *                                   muted
    */
@@ -45,12 +45,11 @@ class NoiseGate {
 
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
-    // the expense of delay and vice versa. The bandwidth of the filter
+    // the expense of delay and vice versa. The time constant of the filter
     // has been set experimentally to minimize delay while still adequately
     // suppressing high frequency oscillation.
-    const bandwidth = options.bandwidth || 70;
-    this.alpha_ = this.getNormalizedAlpha_(bandwidth);
-
+    this.alpha_ = this.getTimeConstant_(0.0025);
+   
     this.node_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
     this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
@@ -96,7 +95,7 @@ class NoiseGate {
       let weights = this.computeGain_(envelope);
 
       for (let j = 0; j < input.length; j++) {
-        output[j] =  weights[j] * input[j];
+        output[j] = weights[j] * input[j];
       }
     }
   }
@@ -177,14 +176,8 @@ class NoiseGate {
     return this.weights_;
   }
 
-  getNormalizedAlpha_(bandwidth){
-    const wc =
-        2 * Math.PI * bandwidth / this.context_.sampleRate;
-    
-    const alpha =
-        2 - Math.cos(wc) -
-        Math.sqrt(3 - 4 * Math.cos(wc) + Math.pow(Math.cos(wc), 2));
-    
+  getTimeConstant_(timeConstant) {
+    let alpha = Math.exp(-1 / (this.context_.sampleRate * timeConstant));
     return alpha;
   }
 

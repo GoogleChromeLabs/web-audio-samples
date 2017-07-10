@@ -19,8 +19,13 @@ limitations under the License.
     <script src="test/audit-util.js"></script>
     <script src="test/audit.js"></script>
     <script src="src/noisegate-script-processor.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <script id="noisegate-test-code">
+      google.charts.load('current', {'packages':['line']});
+      google.charts.setOnLoadCallback(tests); 
+
+      function tests() {
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
       const sampleRate = 4096;
@@ -66,17 +71,16 @@ limitations under the License.
 
         context.startRendering().then((buffer) => {
           let channel = buffer.getChannelData(0);
-
+          
           // With a constant source, the number of steps it takes for the
           // envelope to open and close is a function of alpha relative
           // to the threshold.
           const numOpeningSteps =
               getNumStepsFromZeroUpTo_(linearThreshold, noisegate.alpha_);
 
-          // 1 is added to compensate for rounding. If settings change and one
-          // test fails, then remove this addition.
+          // If sample rate or alpha changes, add one to numClosingSteps change.
           const numClosingSteps =
-              getNumStepsFromOneDownTo_(linearThreshold, noisegate.alpha_) + 1;
+              getNumStepsFromOneDownTo_(linearThreshold, noisegate.alpha_);
 
           const openIndex = numOpeningSteps + scriptProcessorLatency;
           
@@ -105,11 +109,11 @@ limitations under the License.
                                   .fill(beneathThresholdGain),
                               {relativeThreshold : 1e-7});
 
-          // With current settings, the opening delay is 0.00048828125s
+          // With current settings, the opening delay is 0.00049s
           console.log('The opening delay is ' +
                       toTime_(numOpeningSteps, sampleRate));
 
-          // With current settings, the closing delay is 0.003173828125s
+          // With current settings, the closing delay is 0.0034s
           console.log('The closing delay is ' +
                       toTime_(numClosingSteps, sampleRate));
 
@@ -128,7 +132,7 @@ limitations under the License.
       // The bandwidth can be adjusted to minimize envelope delay while
       // avoiding the gate rapidly changing between open and closed when the
       // sample value is near the threshold.
-      audit.define('filter-has-appropriate-bandwidth', (task, should) => {
+      audit.define('envelope-has-appropriate-alpha', (task, should) => {
         let context = new OfflineAudioContext(2, testFrames, sampleRate);
         const timeToThreshold = 0.25;
 
@@ -188,11 +192,12 @@ limitations under the License.
               getFirstIndexBeforeRemainingSamplesMatch_(
                   unalteredPhase, unalteredPhaseReference);
 
-          // With current settings, delayInSeconds is 0.00048828125s.
+
+          // With current settings, delayInSeconds is Got 0.000732421875.
           const delayInSeconds = toTime_(numberOfAlteredSamples, sampleRate);
           should(delayInSeconds,
                  'The envelope delay for the very first samples')
-              .beCloseTo(0.00048, {threshold: 0.05});
+              .beCloseTo(0.00073, {threshold: 0.17});
 
           unalteredPhase = unalteredPhase.slice(numberOfAlteredSamples,
                                                 unalteredPhase.length);
@@ -207,7 +212,7 @@ limitations under the License.
               noiseGateOutput.slice(closedIndex, buffer.length);
           
           // The difference between when the gate is expected to be closed and
-          // is closed) is measured at 0.004638671875. If settings change, then
+          // is closed) is measured at 0.00537109375s. If settings change, then
           // closeDelay can be inspected and the assertions can compare to this
           // benchmark instead. The delay occurs due to envelope lag and
           // changes based on alpha. Slight delay may be problematic if the
@@ -220,7 +225,7 @@ limitations under the License.
               toTime_(closeDelay, sampleRate),
               'The delay between when the envelope is expected to be closed and'
               + ' when it is closed')
-              .beCloseTo(0.0046, {threshold: 0.05});
+              .beCloseTo(0.0053, {threshold: 0.17});
           let closedPhase = ideallyClosedPhase.slice(closeDelay, buffer.length);
 
           should(latencyPhase, 'The latency phase of noise gate output')
@@ -427,6 +432,33 @@ limitations under the License.
     function toTime_(index, sampleRate) {
       return index  / sampleRate;
     }
+
+  function draw(input) {
+    let table = toGoogleChart(input);
+    let chart = new google.charts.Line(document.getElementById('curve_chart'));
+    chart.draw(table);
+  }
+
+  function toGoogleChart(x, y) {
+    let table = new google.visualization.DataTable();
+    table.addColumn('number', 'x')
+    table.addColumn('number', 'y');
+
+    let inc = 1;
+
+    for (let i = 0; i < x.length; i += inc) {
+      if (y != null)
+        table.addRow([x[i], y[i]]);
+      else
+        table.addRow([i, x[i]]);
+    }
+    return table;
+  }
+  }
   </script>
   </head>
+
+  <body>
+  <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
 </html>
