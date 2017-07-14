@@ -15,7 +15,6 @@ limitations under the License.
 <!DOCTYPE html>
   <head>
     <script src="test/testharness.js"></script>
-    <script src="test/testharnessreport.js"></script>
     <script src="test/audit-util.js"></script>
     <script src="test/audit.js"></script>
     <script src="src/noisegate-script-processor.js"></script>
@@ -23,34 +22,44 @@ limitations under the License.
     <script id="noisegate-test-code">
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
-      const sampleRate = 4096;
+      // All tests pass for all legal powers in the range [3000, 384000].
+      const sampleRate = Math.pow(2,12);
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
       const bufferSize = 512;
+      const timeConstant = 0.0025;
       const scriptProcessorLatency = bufferSize * 2;
       let audit = Audit.createTaskRunner();
-      
-      // With a threshold of t and a constant source of some value above t,
-      // followed by a sequence of values beneath t, an ideal envelope
-      // follower would make the noise gate output equal to the input. But
-      // a proper envelope can only be approximated. This test verifies
-      // that the envelope delay is mathematically correct given alpha.
+              
+      // With a threshold of linearThreshold and a constant source of some value
+      // above linearThreshold, followed by a sequence of values beneath
+      // linearThreshold, an ideal envelope follower would make the noise gate
+      // output equal to the input. But a proper envelope can only be
+      // approximated. This test verifies that the envelope delay is
+      // mathematically correct given a timeConstant.
       audit.define('envelope-is-mathematically-correct', (task, should) => {
-        let context = new OfflineAudioContext(2, testFrames, sampleRate);
-        const timeToThreshold = 0.25;
-
-        // The threshold is scaled up by the square root of two since the
-        // envelope is tuned to sine waves.
-        const linearThreshold = 0.5 * Math.sqrt(2);
+        let context = new OfflineAudioContext(1, testFrames, sampleRate);
+        
+        // Time to threshold should be large enough so that the envelope will
+        // settle near 1 (it never reaches 1) before the constant
+        // source node is scheduled to drop to 0.
+        const timeToThreshold =
+            getTimeToTarget_(0, 1, timeConstant, 1 - Math.exp(-10));
+        
+        // The noise gate scales values for sine waves, which reach an
+        // an average power of a^2 / 2.
+        const linearThreshold = 0.5;
+        const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
 
         // The noise gate bases muting decisions on a decibel scale.
-        const threshold = toDecibel_(linearThreshold);
+        const threshold = toDecibel_(scaledThreshold);
 
         // Attack and release are both 0.
-        let noisegate = new NoiseGate(context, {bufferSize, threshold});
+        let noisegate =
+            new NoiseGate(context, {bufferSize, threshold, timeConstant});
 
         // The signal should be all 1's prior to timeToThreshold to simplify
-        // the math that relates the closing index to alpha.
+        // the math that relates the closing index to the timeConstant.
         let gain = new GainNode(context, {gain : 1});
         let osc = new ConstantSourceNode(context, {offset: 1});
         osc.connect(gain).connect(noisegate.input);
@@ -60,73 +69,76 @@ limitations under the License.
         // It must be greater than 0; otherwise samples will immediately
         // be 0 after the threshold, and there will be no inspectable delay.
         const beneathThresholdGain = 0.1;
-        gain.gain.setValueAtTime(0.1, timeToThreshold);
+        gain.gain.setValueAtTime(beneathThresholdGain, timeToThreshold);
         
         osc.start();
 
+        // The noise gate output should contain four phases:
+        //   beforeOpenPhase (all 0) with a length determined by timeConstant.
+        //   openPhase (all 1) which ends at timeToThreshold.
+        //   betweenOpenAndClosePhase (all beneathThresholdGain) with a length
+        //       determined by timeConstant.
+        //   closePhase (all 0) for the remainder of the channel.
         context.startRendering().then((buffer) => {
           let channel = buffer.getChannelData(0);
           
           // With a constant source, the number of steps it takes for the
-          // envelope to open and close is a function of alpha relative
-          // to the threshold.
-          const numOpeningSteps =
-              getNumStepsFromZeroUpTo_(linearThreshold, noisegate.alpha_);
+          // envelope to open and close is a function of the time constant
+          // relative to the threshold.
+          const numOpeningFrames =
+              toIndex_(getTimeToTarget_(0, 1, timeConstant,
+                                        linearThreshold), sampleRate);
+          const numClosingFrames =
+              toIndex_(getTimeToTarget_(1, Math.pow(beneathThresholdGain, 2),
+                                        timeConstant, linearThreshold),
+                       sampleRate);
 
-          // If sample rate or alpha changes, add one to numClosingSteps change.
-          const numClosingSteps =
-              getNumStepsFromOneDownTo_(linearThreshold, noisegate.alpha_);
-
-          const openIndex = numOpeningSteps + scriptProcessorLatency;
+          const openIndex = numOpeningFrames + scriptProcessorLatency;
           
           const sourceBeneathThresholdIndex =
-              testFrames * timeToThreshold + scriptProcessorLatency;
+              testFrames * timeToThreshold + scriptProcessorLatency + 1;
 
           let beforeOpenPhase =
               channel.slice(scriptProcessorLatency, openIndex);
+          
           let openPhase = channel.slice(openIndex, sourceBeneathThresholdIndex);
-          let closePhase = channel.slice(
-              sourceBeneathThresholdIndex + numClosingSteps, channel.length);
+
           let betweenOpenAndClosePhase =
               channel.slice(sourceBeneathThresholdIndex,
-                            sourceBeneathThresholdIndex + numClosingSteps);
-
+                            sourceBeneathThresholdIndex + numClosingFrames);
+          
+          let closePhase = channel.slice(
+              sourceBeneathThresholdIndex + numClosingFrames);
+          
           should(beforeOpenPhase, 'The samples before the gate opens')
               .beConstantValueOf(0);
+          
           should(openPhase, 'The open phase').beConstantValueOf(1);
-          should(closePhase, 'The closed phase').beConstantValueOf(0);
-
-          // The relativeThreshold is set experimentally, and exists because
-          // of the imperfection of floating pointing multiplication. This
-          // test may fail for one sample if settings (e.g. alpha) change.
+          
           should(betweenOpenAndClosePhase, 'The samples before the gate closes')
               .beCloseToArray(new Array(betweenOpenAndClosePhase.length)
-                                  .fill(beneathThresholdGain),
-                              {relativeThreshold : 1e-7});
+                                  .fill(Math.fround(beneathThresholdGain)));
 
-          // With current settings, the opening delay is 0.00049s
-          console.log('The opening delay is ' +
-                      toTime_(numOpeningSteps, sampleRate));
-
-          // With current settings, the closing delay is 0.0034s
-          console.log('The closing delay is ' +
-                      toTime_(numClosingSteps, sampleRate));
-
+          should(closePhase, 'The closed phase').beConstantValueOf(0);
+          
+          should(toTime_(numOpeningFrames, sampleRate), 'The opening delay')
+              .beCloseTo('0.0017', {threshold : 0.1});
+          
+          should(toTime_(numClosingFrames, sampleRate), 'The closing delay')
+              .beCloseTo('0.0017', {threshold : 0.1});
         }).then(() => task.done());
       });
 
-      // Verify that the noise gate computes an envelope for an audio signal
-      // that is on the same scale as web audio's gain node. If the gain of a
-      // signal is set to be beneath the threshold, then the signal should be
-      // muted. The gain of an oscillator is gradually decreased to some
-      // threshold T at timeToThreshold, and the output of the noise gate
-      // should be 0 after timeToThreshold and unaltered before timeToThreshold
-      // within an acceptable margin of error. This test quantifies
-      // delay on oscillators, and allows for the bandwidth of the filter to be
-      // experimentally determined in a somewhat realistic scenario.
-      // The bandwidth can be adjusted to minimize envelope delay while
+      // This test quantifies delay on oscillators, and allows for the
+      // timeConstant of the filter to be experimentally determined.
+      // The time constant can be adjusted to minimize envelope delay while
       // avoiding the gate rapidly changing between open and closed when the
-      // sample value is near the threshold.
+      // sample value is near the threshold. To explore the effect of different
+      // time constants, set timeConstant to the desired value and inspect the
+      // envelope's open and closing delay. The default value of 0.0025 was
+      // chosen through trial and error to minimize this delay, but also by
+      // visual inspection of the envelope output to suppress residual
+      // high frequency oscillation for different oscillator frequencies.
       audit.define('envelope-has-appropriate-alpha', (task, should) => {
         let context = new OfflineAudioContext(2, testFrames, sampleRate);
         const timeToThreshold = 0.25;
@@ -134,18 +146,18 @@ limitations under the License.
         // The threshold is between the aboveThresholdGain and
         // belowThresholdGain. If the threshold is close to the
         // belowThresholdGain, then the gate may oscillate between opened and
-        // closed, causing the test to fail.
+        // closed, causing the test to fail. The choice of 0.5 for threshold
+        // is arbitrary and can be any positive value.
         const linearThreshold = 0.5;
         const threshold = toDecibel_(linearThreshold);
         const aboveThresholdGain = linearThreshold * 1.25;
         const belowThresholdGain = linearThreshold * 0.75;
 
         // Attack and release are both 0.
-        const bandwidth = 70;
         let noisegate =
-            new NoiseGate(context, {bufferSize, threshold, bandwidth});
-        let gain = new GainNode(context, {gain : 1});
-        let merger = new ChannelMergerNode(context, {numberOfInputs : 2});
+            new NoiseGate(context, {bufferSize, threshold, timeConstant});
+        let gain = new GainNode(context, {gain: aboveThresholdGain});
+        let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
         
         // The delay node offsets the script processor latency.
         let delay = new DelayNode(
@@ -178,26 +190,25 @@ limitations under the License.
           let unalteredPhaseReference =
               originalOutput.slice(scriptProcessorLatency, closedIndex);
 
-          // The first k samples run through the noise gate will be somewhat
-          // altered. This effect occurs since the envelope does not
-          // immediately respond to the level of the signal and it will be
-          // beneath the threshold for the first k samples which causes the
-          // noise gate to mute the signal.
-          const numberOfAlteredSamples =
+          // The first samples run through the noise gate will be muted because
+          // of envelope delay.
+          const openingDelay =
               getFirstIndexBeforeRemainingSamplesMatch_(
                   unalteredPhase, unalteredPhaseReference);
-
-
-          // With current settings, delayInSeconds is Got 0.000732421875.
-          const delayInSeconds = toTime_(numberOfAlteredSamples, sampleRate);
+          
+          // The observed delay of the envelope is 0.002685546875s, and changes
+          // depending on choice of time constant. Unlike the test above, the
+          // delay cannot be easily predicted since the envelope measures
+          // a sine wave.
+          const delayInSeconds = toTime_(openingDelay, sampleRate);
           should(delayInSeconds,
                  'The envelope delay for the very first samples')
-              .beCloseTo(0.00073, {threshold: 0.17});
+              .beCloseTo(0.0026, {threshold: 0.1});
 
-          unalteredPhase = unalteredPhase.slice(numberOfAlteredSamples,
+          unalteredPhase = unalteredPhase.slice(openingDelay,
                                                 unalteredPhase.length);
           unalteredPhaseReference = unalteredPhaseReference.slice(
-              numberOfAlteredSamples, unalteredPhaseReference.length);
+              openingDelay, unalteredPhaseReference.length);
 
           // Based on knowledge of when the signal goes beneath the threshold,
           // it is possible to predict when the signal should be muted. However,
@@ -207,11 +218,11 @@ limitations under the License.
               noiseGateOutput.slice(closedIndex, buffer.length);
           
           // The difference between when the gate is expected to be closed and
-          // is closed) is measured at 0.00537109375s. If settings change, then
+          // is closed) is measured at 0.002197265625s. If settings change, then
           // closeDelay can be inspected and the assertions can compare to this
           // benchmark instead. The delay occurs due to envelope lag and
-          // changes based on alpha. Slight delay may be problematic if the
-          // noise gate is intended to immediately mute sound
+          // changes based on timeConstant. Slight delay may be problematic if
+          // the noise gate is intended to immediately mute sound
           // upon hitting a threshold and less problematic if a smooth
           // transition to silence is desired.
           let closeDelay =
@@ -220,7 +231,7 @@ limitations under the License.
               toTime_(closeDelay, sampleRate),
               'The delay between when the envelope is expected to be closed and'
               + ' when it is closed')
-              .beCloseTo(0.0053, {threshold: 0.17});
+              .beCloseTo(0.0022, {threshold: 0.1});
           let closedPhase = ideallyClosedPhase.slice(closeDelay, buffer.length);
 
           should(latencyPhase, 'The latency phase of noise gate output')
@@ -240,14 +251,15 @@ limitations under the License.
         const numberOfChannels = 2;
 
         // The beneathThresholdGain and linearThreshold are set so that
-        // (1 * sqrt(2) + beneathThresholdGain * sqrt(2)) / 2 < linearThreshold
-        // since the envelope will scale up values by the square root of two and
-        // the test is designed so that signals after timeToThreshold are muted
-        // in both channels.
-        const linearThreshold = 0.7 * Math.sqrt(2);
+        // (1 * sqrt(2) + beneathThresholdGain^2 * sqrt(2)) / 2
+        // < linearThreshold since the envelope will scale up values by the
+        // square root of two and the test is designed so that signals after
+        // timeToThreshold are muted in both channels.
         const beneathThresholdGain = 0.1;
-        const threshold = toDecibel_(linearThreshold);
         const timeToThreshold = 0.5;
+        const linearThreshold = 0.5;
+        const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
+        const threshold = toDecibel_(scaledThreshold);
 
         let context =
             new OfflineAudioContext(numberOfChannels, testFrames, sampleRate);
@@ -255,7 +267,7 @@ limitations under the License.
         let constantSource2 = new ConstantSourceNode(context, {offset: 1});
         let gain = new GainNode(context, {gain: 1});
         let noisegate = new NoiseGate(context,
-            {threshold, numberOfChannels, bufferSize});
+            {threshold, numberOfChannels, bufferSize, timeConstant});
         let merger = new ChannelMergerNode(context);
         
         // One constant source is connected to a gain node which makes it
@@ -277,35 +289,37 @@ limitations under the License.
 
             const firstSourceIsBeneathGainIndex =
                 timeToThreshold * testFrames + scriptProcessorLatency;
-            const numOpeningSteps =
-                getNumStepsFromZeroUpTo_(linearThreshold, noisegate.alpha_);
+            
+            const numOpeningFrames =
+                toIndex_(getTimeToTarget_(0, 1, timeConstant,
+                                        linearThreshold), sampleRate);
 
-            // numClosingSteps is multiplied by two since only one channel
-            // is decreasing.
-            const numClosingSteps =
-                getNumStepsFromOneDownTo_(linearThreshold, noisegate.alpha_) *
-                2;
-
-            const openIndex = scriptProcessorLatency + numOpeningSteps;
+            const numClosingFrames = 2 *
+                toIndex_(getTimeToTarget_(1, beneathThresholdGain *
+                    Math.pow(beneathThresholdGain, 2), timeConstant,
+                    linearThreshold), sampleRate);
+            
+            const openIndex = scriptProcessorLatency + numOpeningFrames;
+            
             const closingIndex =
-                numClosingSteps + firstSourceIsBeneathGainIndex;
+                numClosingFrames + firstSourceIsBeneathGainIndex;
 
             let openPhaseFirstChannel =
                 firstChannel.slice(openIndex, firstSourceIsBeneathGainIndex);
             let openPhaseSecondChannel =
                 secondChannel.slice(openIndex, firstSourceIsBeneathGainIndex);
             let closePhaseFirstChannel =
-                firstChannel.slice(closingIndex, firstChannel.length);
+                firstChannel.slice(closingIndex);
             let closePhaseSecondChannel =
-                secondChannel.slice(closingIndex, secondChannel.length);
+                secondChannel.slice(closingIndex);
 
             should(openPhaseFirstChannel, 'The open phase of channel one')
                 .beConstantValueOf(1);
             should(openPhaseSecondChannel, 'The open phase of channel two')
                 .beConstantValueOf(1);
-            should(closePhaseFirstChannel, 'The closed phase')
+            should(closePhaseFirstChannel, 'The closed phase of channel one')
                 .beConstantValueOf(0);
-            should(closePhaseSecondChannel, 'The closed phase')
+            should(closePhaseSecondChannel, 'The closed phase of channel two')
                 .beConstantValueOf(0);
             
         }).then(() => task.done());
@@ -324,7 +338,7 @@ limitations under the License.
         const length = 100;
         let envelope = Array.apply(null, {length}).map((data, index) => index);
         const transitionIndex = length / 2;
-        const threshold = toDecibel_(length / 2);
+        const threshold = length / 2;
         let noisegate = new NoiseGate(context, {threshold});
         let weights = noisegate.computeGain_(envelope);
         let closedWeights = weights.slice(0, transitionIndex);
@@ -371,9 +385,9 @@ limitations under the License.
             .beCloseToArray(expectedAttackWeights, {absoluteThreshold: 1e-6});
         should(releaseWeights, 'Releasing weights')
             .beCloseToArray(expectedReleaseWeights, {absoluteThreshold: 1e-6});
-        should(closedWeights, 'Weight array before threshold')
+        should(closedWeights, 'The weight array before threshold')
             .beConstantValueOf(0);
-        should(openWeights, 'Weight array after the threshold')
+        should(openWeights, 'The weight array after the threshold')
             .beConstantValueOf(1);
         task.done();
       });
@@ -382,28 +396,31 @@ limitations under the License.
 
     // End of test cases. Testing utility functions below!
 
-    function getNumStepsFromZeroUpTo_(threshold, alpha) {
-      return Math.floor(Math.log10(1 - (Math.pow(threshold, 2) / 2)) /
-                        Math.log10(alpha));
+    // This function solves setTargetAtTime for time. See
+    // AudioParam/setTargetAtTime in the specs
+    // https://webaudio.github.io/web-audio-api/
+    function getTimeToTarget_(initialValue, finalValue, timeConstant,
+                             targetValue) {
+      return -timeConstant * Math.log((targetValue - finalValue) / (initialValue
+          - finalValue));
     }
 
-    function getNumStepsFromOneDownTo_(threshold, alpha) {
-      return Math.floor(Math.log10(Math.pow(threshold, 2) / 2) /
-                            Math.log10(alpha));
-    }
-
+    // Given an array and a value, this function returns the first index before
+    // the remaining samples are value.
     function getFirstIndexBeforeRemainderIs_(buffer, value) {
       let firstIndex = buffer.length;
       for (let i = 0; i < buffer.length; i++) {
         const diff = Math.abs(buffer[i] - value);
-        if (diff > 0) {
+        if (diff > 0)
           firstIndex = buffer.length;
-        } else
+        else
           firstIndex = (i < firstIndex) ? i : firstIndex;
       }
       return firstIndex;
     }
 
+    // Given two arrays, returns the first index before the remaining content
+    // of the two arrays is identical.
     function getFirstIndexBeforeRemainingSamplesMatch_(buffer, reference) {
       let firstIndex = buffer.length;
       for (let i = 0; i < buffer.length; i++) {

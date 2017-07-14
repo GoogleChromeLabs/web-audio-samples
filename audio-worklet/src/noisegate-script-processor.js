@@ -24,8 +24,8 @@ class NoiseGate {
    * @param {Number} options.attack seconds for gate to fully close
    * @param {Number} options.release seconds for gate to fully open
    * @param {Number} options.bufferSize the size of an onaudioprocess window
-   * @param {Number} options.alpha seconds for envelope follower's smoothing
-   *                                   filter alpha weight
+   * @param {Number} options.timeConstant seconds for envelope follower's
+   *                                   smoothing filter alpha weight
    * @param {Number} options.threshold decibel level beneath which sound is
    *                                   muted
    */
@@ -33,6 +33,7 @@ class NoiseGate {
     if (!(context instanceof BaseAudioContext))
       throw 'Not a valid audio context.';
     if (!options) options = {};
+    
     const numberOfChannels = options.numberOfChannels || 1;
     if (numberOfChannels > 2)
       throw 'The maximum supported number of channels is two.';
@@ -42,13 +43,14 @@ class NoiseGate {
     this.threshold = options.threshold || 0;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
+    const timeConstant = options.timeConstant || 0.0025;
 
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
     // the expense of delay and vice versa. The time constant of the filter
     // has been set experimentally to minimize delay while still adequately
     // suppressing high frequency oscillation.
-    this.alpha_ = this.getTimeConstant_(0.0025);
+    this.alpha_ = this.getFilterCoefficient_(timeConstant);
    
     this.node_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
@@ -77,20 +79,30 @@ class NoiseGate {
    *                                     input and output buffers
    */
   onaudioprocess_(event) {
+    let inputBuffer = event.inputBuffer;
+    let channel0 = inputBuffer.getChannelData(0);
+
     // Stereo input is downmixed to mono input via averaging.
-    if (event.inputBuffer.numberOfChannels === 2) {
-      for (let i = 0; i < event.inputBuffer.length; i++) {
-        this.channel_[i] = (event.inputBuffer.getChannelData(0)[i] +
-                           event.inputBuffer.getChannelData(1)[i]) / 2;
+    if (inputBuffer.numberOfChannels === 2) {
+      let channel1 = inputBuffer.getChannelData(1);
+      for (let i = 0; i < channel1.length; i++) {
+        this.channel_[i] = (channel0[i] + channel1[i]) / 2;
       }
     } else {
-      this.channel_ = event.inputBuffer.getChannelData(0);
+      this.channel_ = channel0;
     }
 
     let envelope = this.detectLevel_(this.channel_);
 
-    for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
-      let input = event.inputBuffer.getChannelData(i);
+    // For sine waves, the envelope eventually reaches an average power of
+    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
+    // but other waveforms or constant sources can only be approximated.
+    for (let k = 0; k < this.envelope_.length; k++) {
+      envelope[k] =  this.toDecibel_(Math.sqrt(envelope[k]) * Math.sqrt(2));
+    }
+
+    for (let i = 0; i < inputBuffer.numberOfChannels; i++) {
+      let input = inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
       let weights = this.computeGain_(envelope);
 
@@ -120,13 +132,7 @@ class NoiseGate {
           (1 - this.alpha_) * Math.pow(channel[j], 2);
     }
     this.lastLevel_ = this.envelope_[this.envelope_.length - 1];
-
-    // For sine waves, the envelope eventually reaches an average power of
-    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
-    // but other waveforms or constant sources can only be approximated.
-    for (let k = 0; k < this.envelope_.length; k++) {
-      this.envelope_[k] =  Math.sqrt(this.envelope_[k]) * Math.sqrt(2);
-    }
+    
     return this.envelope_;
   }
 
@@ -163,20 +169,20 @@ class NoiseGate {
     // four states: open, closed, attacking (between open and closed), or
     // releasing (between closed and open).
     for (let i = 0; i < envelope.length; i++) {
-      if (this.toDecibel_(envelope[i]) < this.threshold) {
+      if (envelope[i] < this.threshold) {
         const weight = this.lastWeight_ - attackLossPerStep;
-        this.weights_[i] = weight > 0 ? weight : 0;
+        this.weights_[i] = Math.max(weight, 0);
       }
       else {
         const weight = this.lastWeight_ + releaseGainPerStep;
-        this.weights_[i] = weight < 1 ? weight : 1;
+        this.weights_[i] = Math.min(weight, 1);
       }
       this.lastWeight_ = this.weights_[i];
     }
     return this.weights_;
   }
 
-  getTimeConstant_(timeConstant) {
+  getFilterCoefficient_(timeConstant) {
     let alpha = Math.exp(-1 / (this.context_.sampleRate * timeConstant));
     return alpha;
   }
