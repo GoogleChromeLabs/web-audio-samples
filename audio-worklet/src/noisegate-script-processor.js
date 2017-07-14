@@ -40,7 +40,9 @@ class NoiseGate {
 
     this.context_ = context;
     const bufferSize = options.bufferSize || 0;
-    this.threshold = options.threshold || 0;
+    // The default threshold is 140 decibels (loudest sound a human can hear
+    // without pain) so that the noise gate does not mute signals by default.
+    this.threshold = options.threshold || 140;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
     const timeConstant = options.timeConstant || 0.0025;

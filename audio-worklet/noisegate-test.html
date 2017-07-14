@@ -61,8 +61,8 @@ limitations under the License.
         // The signal should be all 1's prior to timeToThreshold to simplify
         // the math that relates the closing index to the timeConstant.
         let gain = new GainNode(context, {gain : 1});
-        let osc = new ConstantSourceNode(context, {offset: 1});
-        osc.connect(gain).connect(noisegate.input);
+        let constantSource = new ConstantSourceNode(context, {offset: 1});
+        constantSource.connect(gain).connect(noisegate.input);
         noisegate.output.connect(context.destination);
 
         // The post-threshold gain should make samples less than the threshold.
@@ -71,7 +71,7 @@ limitations under the License.
         const beneathThresholdGain = 0.1;
         gain.gain.setValueAtTime(beneathThresholdGain, timeToThreshold);
         
-        osc.start();
+        constantSource.start();
 
         // The noise gate output should contain four phases:
         //   beforeOpenPhase (all 0) with a length determined by timeConstant.
