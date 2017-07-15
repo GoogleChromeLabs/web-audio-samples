@@ -61,7 +61,7 @@ class BitcrusherDemo {
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
-    this.loadSong_('audio/revenge.ogg').then((song) => {
+    this.loadSong_('sound/revenge.ogg').then((song) => {
       this.songBuffer = song;
       this.sourceButton_.enable();
     });
