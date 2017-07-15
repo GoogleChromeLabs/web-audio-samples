@@ -13,13 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-<!-- 
-  This code illustrates a web audio bitcrusher implementation, a musical audio 
-  effect. The bitcrusher class defined in bitcrusher.js binds the script 
-  processor node's onaudioprocess method to a bitcrush function, which reduces 
-  the precision of individual samples and simulates a sample rate reduction by a
-  specified factor. These parameters can be modified as the sound source is 
-  running concurrently. 
+<!--
+  This code illustrates a web audio bitcrusher implementation, a musical audio
+  effect. There are two bitcrusher classes. One is defined in
+  bitcrusher-script-processor.js which binds the script
+  processor node's onaudioprocess method to a bitcrush function.
+  The other bitcrusher is defined in bitcrusher-audio-worklet.js and uses
+  the audio worklet node. The user can switch between the two as audio is
+  played. Both implementations enable a user to alter the bitDepth of individual
+  samples as well change the sample rate by a specified factor.
 -->
 <!DOCTYPE html>
 <html>
@@ -45,23 +47,14 @@ limitations under the License.
     </p>
     <div id="container"></div>
     <script>
-      // Default to 50% volume, maximum bit depth, and no sample rate reduction.
-      let bitDepth = 24.0;
-      let reduction = 1.0;
-      let paramBitDepth;
-      let paramReduction;
-      
-      let gain = 0.5;
-      const useAudioWorklet = true;
-      window.addEventListener('load', () => {
-          window.audioWorklet.addModule('basic/js/bit-crusher.js')
+      function runBitcrusherDemo() {
+          window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
               .then(() => {
                   const context = new AudioContext();
-                  let demo = new BitcrusherDemo(context, 'container', paramBitDepth,
-                                              paramReduction, gain, useAudioWorklet);
+                  let demo = new BitcrusherDemo(context, 'container');
               });
-      });
-
-      </script>
+      }
+      AudioWorkletHelper.startDemo(runBitcrusherDemo);
+    </script>
   </body>
 </html>

@@ -16,29 +16,48 @@
 class BitcrusherDemo {
   /**
    * Initalizes and modifies bitcrusher settings in response to GUI input.
-   * @param  {Number} bitDepth the number of bits for each sample
-   * @param  {Number} reduction the amount of sample rate reduction to apply
-   * @param  {Number} gain the volume of the output
+   * @param {AudioContext} context the Audio Context
+   * @param {String} containerId container for GUI elements
    */
-  constructor(context, containerId, paramBitDepth, paramReduction, gain, useAudioWorklet) {
+  constructor(context, containerId) {
     this.context_ = context;
-    this.masterGain_ = new GainNode(this.context_, {gain: (gain || 0.5)});
-    this.useAudioWorklet_ = useAudioWorklet;
+    this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
 
-    if (this.useAudioWorklet_) {
-      this.bitcrusher_ = new AudioWorkletNode(this.context_, 'bit-crusher');
+    // Create a bit crusher with the audio worklet node.
+    this.bitcrusherAudioWorklet_ =
+        new AudioWorkletNode(this.context_, 'bitcrusher-audio-worklet');
+    this.paramBitDepth_ =
+        this.bitcrusherAudioWorklet_.parameters.get('bitDepth');
+    this.paramReduction_ =
+        this.bitcrusherAudioWorklet_.parameters.get('reduction');
 
-      paramBitDepth = this.bitcrusher_.parameters.get('bitDepth');
-      paramReduction = this.bitcrusher_.parameters.get('frequencyReduction');
+    // GUI default settings depend on parameter values defined in audio-worklet.
+    this.bitDepthMaxValue_ = this.paramBitDepth_.maxValue;
+    this.bitDepthMinValue_ = this.paramBitDepth_.minValue;
+    this.bitDepthDefaultValue_ = this.paramBitDepth_.defaultValue;
+    this.reductionMaxValue_ = this.paramReduction_.maxValue;
+    this.reductionMinValue_ = this.paramReduction_.minValue;
+    this.reductionDefaultValue_ = this.paramReduction_.defaultValue;
 
-    } else {
-      this.bitcrusher_ = new Bitcrusher(this.context_, {
-          channelCount: 1,
-          bitDepth: bitDepth || 24,
-          reduction: reduction || 1
-      });
-      this.bitcrusher_.output.connect(this.masterGain_);
-    }
+    // For the audio worklet, the bit depth and reduction parameters are
+    // modulated by changing the offset to connected constant source nodes.
+    this.bitDepthOffsetNode_ = new ConstantSourceNode(context, {offset:0});
+    this.reductionOffsetNode_ = new ConstantSourceNode(context, {offset:0});
+    this.bitDepthOffsetNode_.connect(this.paramBitDepth_);
+    this.reductionOffsetNode_.connect(this.paramReduction_);
+    this.bitDepthOffsetNode_.start();
+    this.reductionOffsetNode_.start();
+
+    // The user can swap between the bitcrusher and audio worklet node
+    // by checking and unchecking useAudioWorkletCheckBox_.
+    this.bitcrusherScriptProcessor_ = new Bitcrusher(this.context_, {
+        channelCount: 1,
+        bitDepth: this.bitDepthDefaultValue_,
+        reduction: this.reductionDefaultValue_
+    });
+    
+    // The audio worklet bitcrusher is used by default.
+    this.bitcrusherAudioWorklet_.connect(this.masterGain_);
     this.masterGain_.connect(this.context_.destination);
 
     this.initializeGUI_(containerId);
@@ -61,15 +80,15 @@ class BitcrusherDemo {
   initializeGUI_(containerId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
-    /*
-    // Place 3 parameters in container to real-time adjust Bitcrusher_ settings.
+
+    // Place 3 parameters in container to real-time adjust Bitcrusher settings.
     this.bitDepthSlider_ =
         new ParamController(containerId, this.setBitDepth.bind(this), {
           type: 'range',
-          min: 1,
-          max: 24,
+          min: this.bitDepthMinValue_,
+          max: this.bitDepthMaxValue_,
           step: 0.1,
-          default: this.bitcrusher_.bitDepth,
+          default: this.bitDepthDefaultValue_,
           name: 'Bit Depth'
         });
     this.bitDepthSlider_.disable();
@@ -77,10 +96,10 @@ class BitcrusherDemo {
     this.reductionSlider_ =
         new ParamController(containerId, this.setReduction.bind(this), {
           type: 'range',
-          min: 1,
-          max: 20,
+          min: this.reductionMinValue_,
+          max: this.reductionMaxValue_,
           step: 1,
-          default: this.bitcrusher_.reduction,
+          default: this.reductionDefaultValue_,
           name: 'Sample Rate Reduction'
         });
     this.reductionSlider_.disable();
@@ -94,17 +113,50 @@ class BitcrusherDemo {
           default: this.masterGain_.gain.value,
           name: 'Volume'
         });
-        */
+
+    // GUI controls allow switching between audio worklet and script processor.
+    // The audio worklet node is used by default.
+    this.useAudioWorkletCheckBox_ = document.createElement('input');
+    this.useAudioWorkletCheckBox_.type = 'checkbox';
+    this.useAudioWorkletCheckBox_.checked = true;
+    const audioworkletLabel = document.createElement('label');
+    audioworkletLabel.textContent =
+        'Use Audio Worklet (if unchecked, use Script Processor Bitcrusher).';
+
+    this.useAudioWorkletCheckBox_.addEventListener(
+        'change', this.switchBitcrusherNode.bind(this));
+
+    let container = document.getElementById(containerId);
+    container.appendChild(this.useAudioWorkletCheckBox_);
+    container.appendChild(audioworkletLabel);
+  }
+
+  /**
+   * Switch between whether the audio worklet node or script processor node
+   * connects to the master gain node.
+   */
+  switchBitcrusherNode() {
+    if (this.useAudioWorkletCheckBox_.checked) {
+       this.bitcrusherScriptProcessor_.output.connect(this.masterGain_);
+       this.bitcrusherAudioWorklet_.disconnect();
+    } else {
+       this.bitcrusherAudioWorklet_.connect(this.masterGain_);
+       this.bitcrusherScriptProcessor_.output.disconnect();
+     }
   }
 
   /**
    * Change bit depth.
-   * This bound to event listener by a ParamController.
+   * This is bound to an event listener by a ParamController.
    * @param {Number} value the new bit depth
    */
   setBitDepth(value) {
-    //if (value < 1) console.error('The minimum bit depth rate is 1.');
-    //this.bitcrusher_.bitDepth = value;
+    if (value < 1) console.error('The minimum bit depth rate is 1.');
+    
+    this.bitDepthOffsetNode_.offset.value =
+          value - this.bitDepthDefaultValue_;
+
+    this.bitcrusherScriptProcessor_.bitDepth = value;
   }
 
   /**
@@ -113,8 +165,12 @@ class BitcrusherDemo {
    * @param {Number} value the new sample rate reduction
    */
   setReduction(value) {
-    //if (value < 1) console.error('The minimum reduction rate is 1.');
-    //this.bitcrusher_.reduction = value;
+    if (value < 1) console.error('The minimum reduction rate is 1.');
+    
+    this.reductionOffsetNode_.offset.value =
+          value - this.reductionDefaultValue_;
+
+    this.bitcrusherScriptProcessor_.reduction = value;
   }
 
   /**
@@ -133,22 +189,19 @@ class BitcrusherDemo {
     // Play song, running samples through a bitcrusher under user control.
     this.song_ =
         new AudioBufferSourceNode(this.context_, {buffer: this.songBuffer});
-    if (this.useAudioWorklet_) {
-      this.song_.connect(this.bitcrusher_).connect(this.masterGain_);
-      //this.song_.connect(this.masterGain_);
-    }
-    else {
-      this.song_.connect(this.bitcrusher_.input);
-    }
+    
+    this.song_.connect(this.bitcrusherAudioWorklet_);
+    this.song_.connect(this.bitcrusherScriptProcessor_.input);
 
     this.song_.onended = () => {
       this.sourceButton_.enable();
       this.bitDepthSlider_.disable();
       this.reductionSlider_.disable();
     }
+
     this.song_.start();
-    //this.bitDepthSlider_.enable();
-    //this.reductionSlider_.enable();
+    this.bitDepthSlider_.enable();
+    this.reductionSlider_.enable();
   }
 
   /**

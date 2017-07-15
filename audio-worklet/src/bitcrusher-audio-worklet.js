@@ -19,19 +19,20 @@
  * @extends AudioWorkletProcessor
  * The bitcrusher reduces the sample rate and bit depth of an audiobuffer.
  */
-registerProcessor('bitcrusher-audio-worklet', class BitcrusherAudioWorklet extends AudioWorkletProcessor {
+registerProcessor('bitcrusher-audio-worklet',
+                  class BitcrusherAudioWorklet extends AudioWorkletProcessor {
 
-  static get parameterDescriptors () {
+  static get parameterDescriptors() {
     return [{
       name: 'bitDepth',
-      defaultValue: 16,
+      defaultValue: 24,
       minValue: 1,
       maxValue: 24
     }, {
-      name: 'frequencyReduction',
-      defaultValue: 0.5,
-      minValue: 0,
-      maxValue: 1
+      name: 'reduction',
+      defaultValue: 1,
+      minValue: 1,
+      maxValue: 20
     }];
   }
 
@@ -42,31 +43,31 @@ registerProcessor('bitcrusher-audio-worklet', class BitcrusherAudioWorklet exten
     this.index_ = 0;
     this.previousSample_ = 0;
   }
-  
+
   /**
    * Bit crush upon receiving input audio signal, applying signal distortion
    * effects to the output buffer.
-   * @param  {AudioProcessingEvent} event holds input and output buffers
+   * @param {AudioBuffer} input input audio data
+   * @param {AudioBuffer} output output audio data
+   * @param {Float32Array} parameters.bitDepth bitDepth for each sample
+   * @param {Float32Array} parameters.reduction sample rate reduction
+   *                                            for each sample
    */
   process(input, output, parameters) {
     let inputChannelData = input.getChannelData(0);
     let outputChannelData = output.getChannelData(0);
-    const scale = Math.pow(2, parameters.bitDepth);
-
-    console.log(parameters.reduction[10]);
-    console.log(parameters.reduction[0]);
-    //console.log(parameters[0], [parameters[100]]);
+    
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputChannelData.length; j++) {
-      if (this.index_ % parameters.reduction === 0) {
+      if (this.index_ % parameters.reduction[j] === 0) {
+        
         // Scale up and round off low order bits.
+        const scale = Math.pow(2, parameters.bitDepth[j]);
         const rounded = Math.round(inputChannelData[j] * scale);
         this.previousSample_ = rounded / scale;
       }
       outputChannelData[j] = this.previousSample_;
       this.index_++;
     }
-    //console.log(outputChannelData);
-    //console.log(inputChannelData, outputChannelData, parameters);
   }
 });
