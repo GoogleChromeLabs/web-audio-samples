@@ -30,7 +30,7 @@ limitations under the License.
       const timeConstant = 0.0025;
       const scriptProcessorLatency = bufferSize * 2;
       let audit = Audit.createTaskRunner();
-              
+      
       // With a threshold of linearThreshold and a constant source of some value
       // above linearThreshold, followed by a sequence of values beneath
       // linearThreshold, an ideal envelope follower would make the noise gate
@@ -86,8 +86,9 @@ limitations under the License.
           // envelope to open and close is a function of the time constant
           // relative to the threshold.
           const numOpeningFrames =
-              toIndex_(getTimeToTarget_(0, 1, timeConstant,
-                                        linearThreshold), sampleRate);
+              toIndex_(getTimeToTarget_(0, 1, timeConstant, linearThreshold),
+                       sampleRate);
+          
           const numClosingFrames =
               toIndex_(getTimeToTarget_(1, Math.pow(beneathThresholdGain, 2),
                                         timeConstant, linearThreshold),
@@ -340,7 +341,7 @@ limitations under the License.
         const transitionIndex = length / 2;
         const threshold = length / 2;
         let noisegate = new NoiseGate(context, {threshold});
-        let weights = noisegate.computeGain_(envelope);
+        let weights = noisegate.computeWeights_(envelope);
         let closedWeights = weights.slice(0, transitionIndex);
         let openWeights = weights.slice(transitionIndex, length);
         
@@ -357,7 +358,7 @@ limitations under the License.
         attack = toTime_(transitionSteps, sampleRate);
         release = attack;
         noisegate = new NoiseGate(context, {attack, release, threshold});
-        weights = noisegate.computeGain_(envelope);
+        weights = noisegate.computeWeights_(envelope);
 
         let attackWeights = weights.slice(0, transitionSteps);
         closedWeights = weights.slice(transitionSteps, transitionIndex);

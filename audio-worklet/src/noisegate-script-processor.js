@@ -16,18 +16,30 @@
 class NoiseGate {
   /**
    * A Noise gate allows audio signals to pass only when the registered volume
-   * is above a specified threshold.
+   * is above a specified threshold. This class is a wrapper around the script
+   * processor node.
+   * @class  NoiseGate
+   * @constructor
    * @param {BaseAudioContext} context the audio context
    * @param {Number} options.channels the number of input and output
-   *                                  channels, a maximum of two
+   *                                  channels. The default value is one, and
+   *                                  the implementation supports
+   *                                  a maximum of two channels.
    * @param {Object} options parameters for the noise gate
-   * @param {Number} options.attack seconds for gate to fully close
-   * @param {Number} options.release seconds for gate to fully open
-   * @param {Number} options.bufferSize the size of an onaudioprocess window
+   * @param {Number} options.attack seconds for gate to fully close. The default
+   *                                is zero.
+   * @param {Number} options.release seconds for gate to fully open. The default
+   *                                 is zero.
+   * @param {Number} options.bufferSize the size of an onaudioprocess window.
+   *                                    The default lets the script processor
+   *                                    decide.
    * @param {Number} options.timeConstant seconds for envelope follower's
-   *                                   smoothing filter alpha weight
+   *                                   smoothing filter alpha weight. The
+   *                                   default has been set experimentally to
+   *                                   0.0025s.
    * @param {Number} options.threshold decibel level beneath which sound is
-   *                                   muted
+   *                                   muted. The default is the maximum level
+   *                                   in dBFS, which is 0.
    */
   constructor(context, options) {
     if (!(context instanceof BaseAudioContext))
@@ -40,39 +52,39 @@ class NoiseGate {
 
     this.context_ = context;
     const bufferSize = options.bufferSize || 0;
-    // The default threshold is 140 decibels (loudest sound a human can hear
-    // without pain) so that the noise gate does not mute signals by default.
-    this.threshold = options.threshold || 140;
+    this.threshold = options.threshold || 0;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
+    
+    // The time constant of the filter has been set experimentally to minimize
+    // delay while still adequately suppressing high frequency oscillation.
     const timeConstant = options.timeConstant || 0.0025;
 
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
-    // the expense of delay and vice versa. The time constant of the filter
-    // has been set experimentally to minimize delay while still adequately
-    // suppressing high frequency oscillation.
-    this.alpha_ = this.getFilterCoefficient_(timeConstant);
-   
-    this.node_ = this.context_.createScriptProcessor(
+    // the expense of delay and vice versa.
+    this.alpha_ = NoiseGate.getAlphaFromTimeConstant_(
+        timeConstant, this.context_.sampleRate);
+
+    this.noiseGateKernel_ = this.context_.createScriptProcessor(
         bufferSize, numberOfChannels, numberOfChannels);
-    this.node_.onaudioprocess = this.onaudioprocess_.bind(this);
+    this.noiseGateKernel_.onaudioprocess = this.onaudioprocess_.bind(this);
 
     // The noise gate is connected to and from by dummy input and output nodes.
     this.input = new GainNode(this.context_);
     this.output = new GainNode(this.context_);
-    this.input.connect(this.node_).connect(this.output);
+    this.input.connect(this.noiseGateKernel_).connect(this.output);
 
-    // The last envelope level of a given buffer.
-    this.lastLevel_ = 0;
+    // The previous envelope level, a float representing signal amplitude.
+    this.previousLevel_ = 0;
 
     // The last weight (between 0 and 1) assigned, where 1 means the gate
     // is open and 0 means it is closed and the sample in the output buffer is
     // muted.
-    this.lastWeight_ = 1.0;
-    this.channel_ = new Float32Array(this.node_.bufferSize);
-    this.envelope_ = new Float32Array(this.node_.bufferSize);
-    this.weights_ = new Float32Array(this.node_.bufferSize);
+    this.previousWeight_ = 1.0;
+    this.channel_ = new Float32Array(this.noiseGateKernel_.bufferSize);
+    this.envelope_ = new Float32Array(this.noiseGateKernel_.bufferSize);
+    this.weights_ = new Float32Array(this.noiseGateKernel_.bufferSize);
   }
 
   /**
@@ -95,18 +107,12 @@ class NoiseGate {
     }
 
     let envelope = this.detectLevel_(this.channel_);
-
-    // For sine waves, the envelope eventually reaches an average power of
-    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
-    // but other waveforms or constant sources can only be approximated.
-    for (let k = 0; k < this.envelope_.length; k++) {
-      envelope[k] =  this.toDecibel_(Math.sqrt(envelope[k]) * Math.sqrt(2));
-    }
+    envelope = this.convertEnvelopeToSineNormalizedDecibelScale_(envelope);
 
     for (let i = 0; i < inputBuffer.numberOfChannels; i++) {
       let input = inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
-      let weights = this.computeGain_(envelope);
+      let weights = this.computeWeights_(envelope);
 
       for (let j = 0; j < input.length; j++) {
         output[j] = weights[j] * input[j];
@@ -117,8 +123,8 @@ class NoiseGate {
   /**
    * Detect level using the difference equation for the Root Mean Squared
    * value of the input signal.
-   * @param {Float32Array} input audio buffer
-   * @return {Float32Array} the level of the signal
+   * @param {Float32Array} channel input channel data
+   * @return {Float32Array} the level of the signal, the signal's amplitude.
    */
   detectLevel_(channel) {
     // The signal level is determined by filtering high frequency oscillation
@@ -126,26 +132,28 @@ class NoiseGate {
     // This is equivalent to computing the root-mean-square (RMS) value
     // of the signal. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for
     // details.
-    this.envelope_[0] = this.alpha_ * this.lastLevel_ +
+    this.envelope_[0] = this.alpha_ * this.previousLevel_ +
         (1 - this.alpha_) * Math.pow(channel[0], 2);
 
     for (let j = 1; j < channel.length; j++) {
       this.envelope_[j] = this.alpha_ * this.envelope_[j - 1] +
           (1 - this.alpha_) * Math.pow(channel[j], 2);
     }
-    this.lastLevel_ = this.envelope_[this.envelope_.length - 1];
+    this.previousLevel_ = this.envelope_[this.envelope_.length - 1];
     
     return this.envelope_;
   }
 
   /**
    * Computes an array of weights which determines what samples are silenced.
-   * @param {Float32Array} envelope_ the level of the input
+   * @param {Float32Array} envelope array of amplitudes from envelope follower
    * @return {Float32Array} weights numbers in the range 0 to 1 set in
    *                                accordance with the threshold, the envelope,
-   *                                and attack and release
+   *                                and attack and release. These will be
+   *                                multiplied by by the corresponding
+   *                                value in the input.
    */
-  computeGain_(envelope) {
+  computeWeights_(envelope) {
     // When attack or release are 0, the weight changes between 0 and 1
     // in one step.
     let attackSteps = 1;
@@ -172,24 +180,47 @@ class NoiseGate {
     // releasing (between closed and open).
     for (let i = 0; i < envelope.length; i++) {
       if (envelope[i] < this.threshold) {
-        const weight = this.lastWeight_ - attackLossPerStep;
+        const weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
       }
       else {
-        const weight = this.lastWeight_ + releaseGainPerStep;
+        const weight = this.previousWeight_ + releaseGainPerStep;
         this.weights_[i] = Math.min(weight, 1);
       }
-      this.lastWeight_ = this.weights_[i];
+      this.previousWeight_ = this.weights_[i];
     }
     return this.weights_;
   }
 
-  getFilterCoefficient_(timeConstant) {
-    let alpha = Math.exp(-1 / (this.context_.sampleRate * timeConstant));
+  /**
+   * Sets the envelope's alpha weight.
+   * @param  {Number} timeConstant the time in seconds for filter to reach
+   *                               1 - 1/e of its value given a transition from
+   *                               0 to 1.
+   * @param  {Number} sampleRate the number of samples per second
+   * @return {Number} alpha weight governing envelope response
+   */
+  static getAlphaFromTimeConstant_(timeConstant, sampleRate) {
+    let alpha = Math.exp(-1 / (sampleRate * timeConstant));
     return alpha;
   }
 
-  toDecibel_(linearValue) {
+  /**
+   * Converts number into decibel measure.
+   * @param  {Number} linearValue the amplitude of the signal
+   * @return {Number} decibelValue the dBFS of the amplitude level
+   */
+  static toDecibel_(linearValue) {
     return 20 * Math.log10(linearValue);
+  }
+
+  convertEnvelopeToSineNormalizedDecibelScale_(envelope) {
+    // For sine waves, the envelope eventually reaches an average power of
+    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
+    // but other waveforms or constant sources can only be approximated.
+    for (let k = 0; k < envelope.length; k++) {
+      envelope[k] =  NoiseGate.toDecibel_(Math.sqrt(envelope[k]) * Math.sqrt(2));
+    }
+    return envelope;
   }
 }
