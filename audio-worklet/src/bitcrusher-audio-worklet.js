@@ -17,7 +17,8 @@
 /**
  * @class Bitcrusher
  * @extends AudioWorkletProcessor
- * The bitcrusher reduces the sample rate and bit depth of an audiobuffer.
+ * The bitcrusher reduces the sample rate and bit depth of an incoming audio
+ * stream.
  */
 registerProcessor('bitcrusher-audio-worklet',
                   class BitcrusherAudioWorklet extends AudioWorkletProcessor {
@@ -45,11 +46,12 @@ registerProcessor('bitcrusher-audio-worklet',
   }
 
   /**
-   * Bit crush upon receiving input audio signal, applying signal distortion
-   * effects to the output buffer.
+   * Bit crush upon receiving input AudioBuffer, applying lo-fi effects to the
+   * output buffer.
    * @param {AudioBuffer} input input audio data
    * @param {AudioBuffer} output output audio data
-   * @param {Float32Array} parameters.bitDepth bitDepth for each sample
+   * @param {Object} parameters
+   * @param {Float32Array} parameters.bitDepth bit depth for each sample
    * @param {Float32Array} parameters.reduction sample rate reduction
    *                                            for each sample
    */

@@ -108,7 +108,7 @@ class BitcrusherDemo {
     this.useAudioWorkletCheckBox_.checked = true;
     const audioworkletLabel = document.createElement('label');
     audioworkletLabel.textContent =
-        'Use Audio Worklet (if unchecked, use Script Processor Bitcrusher).';
+        'Use AudioWorklet (if unchecked, use ScriptProcessor Bitcrusher).';
 
     this.useAudioWorkletCheckBox_.addEventListener(
         'change', this.switchBitcrusherNode.bind(this));
@@ -133,13 +133,14 @@ class BitcrusherDemo {
       this.bitcrusherScriptProcessor_.output.disconnect();
     }
   }
+
   /**
    * Change bit depth.
    * This is bound to an event listener by a ParamController.
    * @param {Number} value the new bit depth
    */
   setBitDepth(value) {
-    if (value < 1) console.error('The minimum bit depth rate is 1.');
+    if (value < 1) throw 'The minimum bit depth rate is 1.';
     this.paramBitDepth_.value = value;
     this.bitcrusherScriptProcessor_.bitDepth = value;
   }
@@ -150,7 +151,7 @@ class BitcrusherDemo {
    * @param {Number} value the new sample rate reduction
    */
   setReduction(value) {
-    if (value < 1) console.error('The minimum reduction rate is 1.');
+    if (value < 1) throw 'The minimum reduction rate is 1.';
     this.paramReduction_.value = value;
     this.bitcrusherScriptProcessor_.reduction = value;
   }
@@ -169,19 +170,19 @@ class BitcrusherDemo {
    */
   start() {
     // Play song, running samples through a bitcrusher under user control.
-    this.song_ =
+    this.bufferSource_ =
         new AudioBufferSourceNode(this.context_, {buffer: this.songBuffer});
     
-    this.song_.connect(this.bitcrusherAudioWorklet_);
-    this.song_.connect(this.bitcrusherScriptProcessor_.input);
+    this.bufferSource_.connect(this.bitcrusherAudioWorklet_);
+    this.bufferSource_.connect(this.bitcrusherScriptProcessor_.input);
 
-    this.song_.onended = () => {
+    this.bufferSource_.onended = () => {
       this.sourceButton_.enable();
       this.bitDepthSlider_.disable();
       this.reductionSlider_.disable();
     }
 
-    this.song_.start();
+    this.bufferSource_.start();
     this.bitDepthSlider_.enable();
     this.reductionSlider_.enable();
   }
@@ -190,7 +191,7 @@ class BitcrusherDemo {
    * Stop audio processing and configure UI elements.
    */
   stop() {
-    this.song_.stop();
+    this.bufferSource_.stop();
     this.bitDepthSlider_.disable();
     this.reductionSlider_.disable();
   }
