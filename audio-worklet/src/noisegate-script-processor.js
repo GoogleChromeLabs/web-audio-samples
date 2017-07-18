@@ -34,12 +34,11 @@ class NoiseGate {
    *                                    The default lets the script processor
    *                                    decide.
    * @param {Number} options.timeConstant seconds for envelope follower's
-   *                                   smoothing filter alpha weight. The
+   *                                   smoothing filter delay. The
    *                                   default has been set experimentally to
    *                                   0.0025s.
    * @param {Number} options.threshold decibel level beneath which sound is
-   *                                   muted. The default is the maximum level
-   *                                   in dBFS, which is 0.
+   *                                   muted. The default is 0 dBFS.
    */
   constructor(context, options) {
     if (!(context instanceof BaseAudioContext))
@@ -56,8 +55,8 @@ class NoiseGate {
     this.attack = options.attack || 0;
     this.release = options.release || 0;
     
-    // The time constant of the filter has been set experimentally to minimize
-    // delay while still adequately suppressing high frequency oscillation.
+    // The time constant of the filter has been set experimentally to balance
+    // roughly delay for high frequency suppression.
     const timeConstant = options.timeConstant || 0.0025;
 
     // Alpha controls a tradeoff between the smoothness of the
@@ -80,7 +79,8 @@ class NoiseGate {
 
     // The last weight (between 0 and 1) assigned, where 1 means the gate
     // is open and 0 means it is closed and the sample in the output buffer is
-    // muted.
+    // muted. When attacking, the weight will linearly decrease from 1 to 0, and
+    // when releasing the weight linearly increase from 0 to 1. 
     this.previousWeight_ = 1.0;
     this.channel_ = new Float32Array(this.noiseGateKernel_.bufferSize);
     this.envelope_ = new Float32Array(this.noiseGateKernel_.bufferSize);
@@ -108,11 +108,11 @@ class NoiseGate {
 
     let envelope = this.detectLevel_(this.channel_);
     envelope = this.convertEnvelopeToSineNormalizedDecibelScale_(envelope);
-
+    let weights = this.computeWeights_(envelope);
+    
     for (let i = 0; i < inputBuffer.numberOfChannels; i++) {
       let input = inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
-      let weights = this.computeWeights_(envelope);
 
       for (let j = 0; j < input.length; j++) {
         output[j] = weights[j] * input[j];
@@ -193,7 +193,7 @@ class NoiseGate {
   }
 
   /**
-   * Sets the envelope's alpha weight.
+   * Computes the filter coefficent for the envelope filter.
    * @param  {Number} timeConstant the time in seconds for filter to reach
    *                               1 - 1/e of its value given a transition from
    *                               0 to 1.
@@ -201,8 +201,7 @@ class NoiseGate {
    * @return {Number} alpha weight governing envelope response
    */
   static getAlphaFromTimeConstant_(timeConstant, sampleRate) {
-    let alpha = Math.exp(-1 / (sampleRate * timeConstant));
-    return alpha;
+    return Math.exp(-1 / (sampleRate * timeConstant));
   }
 
   /**
