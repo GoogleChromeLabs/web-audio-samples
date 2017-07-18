@@ -47,14 +47,24 @@ limitations under the License.
     </p>
     <div id="container"></div>
     <script>
-      function runBitcrusherDemo() {
-          window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
-              .then(() => {
-                  const context = new AudioContext();
-                  let demo = new BitcrusherDemo(context, 'container');
-              });
+      // If the browser implements AudioWorklet, the demo enables the user to
+      // switch between audio worklet and script processor implementations of
+      // the bitcrusher.
+      const useAudioWorkletAndScriptProcessor = window.audioWorklet &&
+          typeof window.audioWorklet.addModule === 'function';
+
+      if (useAudioWorkletAndScriptProcessor) {
+        window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
+            .then(() => {
+                const context = new AudioContext();
+                let demo = new BitcrusherDemo(
+                    context, 'container', useAudioWorkletAndScriptProcessor);
+            });
+      } else {
+        const context = new AudioContext();
+        let demo = new BitcrusherDemo(
+            context, 'container', useAudioWorkletAndScriptProcessor);
       }
-      AudioWorkletHelper.startDemo(runBitcrusherDemo);
     </script>
   </body>
 </html>
