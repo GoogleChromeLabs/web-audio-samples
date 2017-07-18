@@ -31,9 +31,8 @@ class BitcrusherDemo {
     this.paramReduction_ =
         this.bitcrusherAudioWorklet_.parameters.get('reduction');
 
-    // The script processor will have a delay relative to the audio worklet node
-    // proportional to the size of its buffersize. This delay can be heard as
-    // a glitch as the user switches node.
+    // The script processor will have a delay proportional to the size of its
+    // buffersize, which can be heard as a glitch as the user switches node.
     const scriptProcessorBufferSize = 4096;
 
     // The user can swap between the script processor and audio worklet node

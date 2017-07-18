@@ -40,7 +40,8 @@ registerProcessor('bitcrusher-audio-worklet',
   constructor(options) {
     super(options);
 
-    // Index_ and previousSample_ are globals to handle block transitions.
+    // Index_ and previousSample_ are member variables to handle block
+    // transitions.
     this.index_ = 0;
     this.previousSample_ = 0;
   }
