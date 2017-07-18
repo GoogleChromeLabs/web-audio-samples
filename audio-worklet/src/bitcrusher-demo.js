@@ -37,17 +37,6 @@ class BitcrusherDemo {
     this.reductionMax_ = 20;
     this.reductionMin_ = 1;
 
-    // The script processor will have a delay proportional to the size of its
-    // buffersize, which can be heard as a glitch as the user switches node.
-    const scriptProcessorBufferSize = 4096;
-
-    this.bitcrusherScriptProcessor_ = new Bitcrusher(this.context_, {
-        channelCount: 1,
-        bufferSize: scriptProcessorBufferSize,
-        bitDepth: this.bitDepthDefault_,
-        reduction: this.reductionDefault_
-    });
-
     // The user can swap between the script processor and audio worklet node
     // by checking and unchecking useScriptProcessorCheckBox_.
     if (this.useWorkletAndScriptProcessor_) {
@@ -67,6 +56,16 @@ class BitcrusherDemo {
       this.reductionMax_ = this.paramReduction_.maxValue;
       this.reductionMin_ = this.paramReduction_.minValue;
     }
+
+    // The script processor will have a delay proportional to the size of its
+    // buffersize, which can be heard as a glitch as the user switches node.
+    const scriptProcessorBufferSize = 4096;
+    this.bitcrusherScriptProcessor_ = new Bitcrusher(this.context_, {
+        channelCount: 1,
+        bufferSize: scriptProcessorBufferSize,
+        bitDepth: this.bitDepthDefault_,
+        reduction: this.reductionDefault_
+    });
 
     this.bitcrusherScriptProcessor_.output.connect(this.masterGain_);
     this.masterGain_.connect(this.context_.destination);
@@ -153,7 +152,6 @@ class BitcrusherDemo {
     // The function is called after the checkbox switches state.
     const changeToAudioWorklet = !this.useScriptProcessorCheckBox_.checked;
     if (changeToAudioWorklet) {
-      console.log('changing to worklet');
       this.bitcrusherAudioWorklet_.connect(this.masterGain_);
       this.bitcrusherScriptProcessor_.output.disconnect();
     } else {
