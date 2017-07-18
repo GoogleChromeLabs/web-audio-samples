@@ -61,8 +61,7 @@ registerProcessor('bitcrusher-audio-worklet',
     
     // Add new bit crushed sample to outputBuffer at specified interval.
     for (let j = 0; j < inputChannelData.length; j++) {
-      if (this.index_ % parameters.reduction[j] === 0) {
-        
+      if (this.index_ % Math.round(parameters.reduction[j]) === 0) {
         // Scale up and round off low order bits.
         const scale = Math.pow(2, parameters.bitDepth[j]);
         const rounded = Math.round(inputChannelData[j] * scale);

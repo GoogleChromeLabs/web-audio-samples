@@ -141,7 +141,7 @@ class BitcrusherDemo {
    */
   setBitDepth(value) {
     if (value < 1) throw 'The minimum bit depth rate is 1.';
-    this.paramBitDepth_.value = value;
+    this.paramBitDepth_.value = parseFloat(value);
     this.bitcrusherScriptProcessor_.bitDepth = value;
   }
 
@@ -152,7 +152,7 @@ class BitcrusherDemo {
    */
   setReduction(value) {
     if (value < 1) throw 'The minimum reduction rate is 1.';
-    this.paramReduction_.value = value;
+    this.paramReduction_.value = parseInt(value);
     this.bitcrusherScriptProcessor_.reduction = value;
   }
 
