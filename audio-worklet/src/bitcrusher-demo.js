@@ -17,16 +17,15 @@ class BitcrusherDemo {
   /**
    * Initalizes and modifies bitcrusher settings in response to GUI input.
    * @param {AudioContext} context the Audio Context
-   * @param {String} containerId container for GUI elements
-   * @param {Boolean} useWorkletAndScriptProcessor switch depending on browser
+   * @param {Boolean} useWorklet switch depending on browser
    *                  which determines if both script processor and audio
    *                  worklet should be used. If false, only the script
    *                  processor will be used.
    */
-  constructor(context, containerId, useWorkletAndScriptProcessor) {
+  constructor(context,  useWorklet) {
     this.context_ = context;
     this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
-    this.useWorkletAndScriptProcessor_ = useWorkletAndScriptProcessor;
+    this.useWorklet_ = useWorklet;
 
     // These default values will be overriden if the browser supports
     // AudioWorklet.
@@ -37,9 +36,8 @@ class BitcrusherDemo {
     this.reductionMax_ = 20;
     this.reductionMin_ = 1;
 
-    // The user can swap between the script processor and audio worklet node
-    // by checking and unchecking useScriptProcessorCheckBox_.
-    if (this.useWorkletAndScriptProcessor_) {
+    // The user can swap between the script processor and audio worklet node.
+    if (this.useWorklet_) {
       this.bitcrusherAudioWorklet_ =
           new AudioWorkletNode(this.context_, 'bitcrusher-audio-worklet');
       this.paramBitDepth_ =
@@ -55,10 +53,14 @@ class BitcrusherDemo {
       this.reductionDefault_ = this.paramReduction_.defaultValue;
       this.reductionMax_ = this.paramReduction_.maxValue;
       this.reductionMin_ = this.paramReduction_.minValue;
-    }
 
-    // The script processor will have a delay proportional to the size of its
-    // buffersize, which can be heard as a glitch as the user switches node.
+      // The script processor is used by default, and if workletGain_.gain is 0,
+      // then scriptProcessorGain_.gain is 1, and vice versa.
+      this.workletGain_ = new GainNode(this.context_, {gain: 0});
+      this.bitcrusherAudioWorklet_.connect(this.workletGain_)
+          .connect(this.masterGain_);
+      }
+
     const scriptProcessorBufferSize = 4096;
     this.bitcrusherScriptProcessor_ = new Bitcrusher(this.context_, {
         channelCount: 1,
@@ -66,11 +68,12 @@ class BitcrusherDemo {
         bitDepth: this.bitDepthDefault_,
         reduction: this.reductionDefault_
     });
-
-    this.bitcrusherScriptProcessor_.output.connect(this.masterGain_);
-    this.masterGain_.connect(this.context_.destination);
-    this.initializeGUI_(containerId);
     
+    this.scriptProcessorGain_ = new GainNode(this.context_);
+    this.bitcrusherScriptProcessor_.output.connect(this.scriptProcessorGain_)
+        .connect(this.masterGain_);
+    this.masterGain_.connect(this.context_.destination);
+
     this.loadSong_('sound/revenge.ogg').then((song) => {
       this.songBuffer = song;
       this.sourceButton_.enable();
@@ -85,9 +88,11 @@ class BitcrusherDemo {
 
   /**
    * Initalize HTML elements when document has loaded.
-   * @param {String} containerId the id of parent container
+   * @param {String} containerId id of parent container
+   * @param {String} workletButtonId id of worklet radio button
+   * @param {String} scriptProcessorButtonId id of scriptProcessor radio button
    */
-  initializeGUI_(containerId) {
+  initializeGUI(containerId, workletButtonId, scriptProcessorButtonId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
 
@@ -124,40 +129,26 @@ class BitcrusherDemo {
           name: 'Volume'
         });
 
-    // GUI controls allow switching between audio worklet and script processor.
-    // The script processor node is used by default, and switching is not
-    // enabled if the browser does not support audio worklet.
-    if (this.useWorkletAndScriptProcessor_) {
-      this.useScriptProcessorCheckBox_ = document.createElement('input');
-      this.useScriptProcessorCheckBox_.type = 'checkbox';
-      this.useScriptProcessorCheckBox_.checked = true;
-      const audioworkletLabel = document.createElement('label');
-      audioworkletLabel.textContent =
-          'Use ScriptProcessor (if unchecked, use AudioWorklet Bitcrusher).';
-
-      this.useScriptProcessorCheckBox_.addEventListener(
-          'change', this.switchBitcrusherNode.bind(this));
-
-      let container = document.getElementById(containerId);
-      container.appendChild(this.useScriptProcessorCheckBox_);
-      container.appendChild(audioworkletLabel);
-    }
+    let workletButton = document.getElementById(workletButtonId);
+    if (this.useWorklet_)
+      workletButton.addEventListener('click', this.workletSelected.bind(this));
+    else workletButton.disabled = true;
+    
+    document.getElementById(scriptProcessorButtonId)
+        .addEventListener('click', this.scriptProcessorSelected.bind(this));
   }
 
-  /**
-   * Switch between whether the audio worklet node or script processor node
-   * connects to the master gain node.
-   */
-  switchBitcrusherNode() {
-    // The function is called after the checkbox switches state.
-    const changeToAudioWorklet = !this.useScriptProcessorCheckBox_.checked;
-    if (changeToAudioWorklet) {
-      this.bitcrusherAudioWorklet_.connect(this.masterGain_);
-      this.bitcrusherScriptProcessor_.output.disconnect();
-    } else {
-      this.bitcrusherScriptProcessor_.output.connect(this.masterGain_);
-      this.bitcrusherAudioWorklet_.disconnect();
-    }
+  workletSelected() {
+    // Switching occurs 10ms into the future for thread synchronization.
+    this.workletGain_.gain.setValueAtTime(1, this.context_.currentTime + 0.01);
+    this.scriptProcessorGain_.gain.setValueAtTime(
+        0, this.context_.currentTime + 0.01);
+  }
+
+  scriptProcessorSelected() {
+    this.scriptProcessorGain_.gain.setValueAtTime(
+        1, this.context_.currentTime + 0.01);
+    this.workletGain_.gain.setValueAtTime(0, this.context_.currentTime + 0.01);
   }
 
   /**
@@ -166,10 +157,12 @@ class BitcrusherDemo {
    * @param {Number} value the new bit depth
    */
   setBitDepth(value) {
-    if (value < 1) throw 'The minimum bit depth rate is 1.';
-    if (this.useWorkletAndScriptProcessor_)
-      this.paramBitDepth_.value = parseFloat(value);
-    this.bitcrusherScriptProcessor_.bitDepth = value;
+    const numericValue = parseFloat(value);
+    if (numericValue < 1) throw 'The minimum bit depth rate is 1.';
+    
+    if (this.useWorklet_)
+      this.paramBitDepth_.value = numericValue;
+    this.bitcrusherScriptProcessor_.bitDepth = numericValue;
   }
 
   /**
@@ -178,10 +171,12 @@ class BitcrusherDemo {
    * @param {Number} value the new sample rate reduction
    */
   setReduction(value) {
-    if (value < 1) throw 'The minimum reduction rate is 1.';
-    if (this.useWorkletAndScriptProcessor_)
-      this.paramReduction_.value = parseInt(value);
-    this.bitcrusherScriptProcessor_.reduction = value;
+    const numericValue = parseInt(value);
+    if (numericValue < 1) throw 'The minimum reduction rate is 1.';
+    
+    if (this.useWorklet_)
+      this.paramReduction_.value = numericValue;
+    this.bitcrusherScriptProcessor_.reduction = numericValue;
   }
 
   /**
@@ -190,7 +185,7 @@ class BitcrusherDemo {
    * @param {Number} value the new gain
    */
   setGain(value) {
-    this.masterGain_.gain.value = value;
+    this.masterGain_.gain.value = parseFloat(value);
   }
 
   /**
@@ -203,7 +198,7 @@ class BitcrusherDemo {
     
     this.bufferSource_.connect(this.bitcrusherScriptProcessor_.input);
 
-    if (this.useWorkletAndScriptProcessor_)
+    if (this.useWorklet_)
       this.bufferSource_.connect(this.bitcrusherAudioWorklet_);
 
     this.bufferSource_.onended = () => {

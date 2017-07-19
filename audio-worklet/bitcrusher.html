@@ -45,25 +45,37 @@ limitations under the License.
       of distinct samples in the signal. Increasing this value simulates
       sample rate reduction by making intervals of consecutive samples equal.
     </p>
+    <p>
+      If your browser supports the AudioWorklet node, you can switch between 
+      the ScriptProcessor and AudioWorklet Bitcrusher implementations,
+      but if switching occurs as audio is played, there will be an audible
+      glitch, resulting from the ScriptProcessor's delay.
+    </p>
     <div id="container"></div>
+    <form>
+      <input type="radio" name="node" id="scriptProcessorButton" checked>
+          Script Processor<br>
+      <input type="radio" name="node" id="workletButton" value="worklet">
+          Audio Worklet<br>
+    </form>
     <script>
       // If the browser implements AudioWorklet, the demo enables the user to
       // switch between audio worklet and script processor implementations of
       // the bitcrusher.
-      const useAudioWorkletAndScriptProcessor = window.audioWorklet &&
-          typeof window.audioWorklet.addModule === 'function';
-
-      if (useAudioWorkletAndScriptProcessor) {
+      const useWorklet = AudioWorkletHelper.isAvailable();
+      if (useWorklet) {
         window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
             .then(() => {
                 const context = new AudioContext();
-                let demo = new BitcrusherDemo(
-                    context, 'container', useAudioWorkletAndScriptProcessor);
+                let demo = new BitcrusherDemo(context, useWorklet);
+                demo.initializeGUI('container', 'workletButton',
+                                   'scriptProcessorButton');
             });
       } else {
         const context = new AudioContext();
-        let demo = new BitcrusherDemo(
-            context, 'container', useAudioWorkletAndScriptProcessor);
+        let demo = new BitcrusherDemo(context, useWorklet);
+        demo.initializeGUI('container', 'workletButton',
+                           'scriptProcessorButton');
       }
     </script>
   </body>

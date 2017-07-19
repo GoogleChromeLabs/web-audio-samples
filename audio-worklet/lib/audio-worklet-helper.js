@@ -37,7 +37,6 @@ const AudioWorkletHelper = (() => {
   }
 
   return {
-
     /**
      * Sniff AudioWorklet interface and run demo function if possible.
      * @param {Function} demoFunc Function contains demo script.
@@ -46,7 +45,7 @@ const AudioWorkletHelper = (() => {
       window.addEventListener('load', () => {
         initializeReporter_();
         if (isAvailable_()) {
-          reportMessage_('info', 
+          reportMessage_('info',
                          'AudioWorklet is available. Start running demo...');
           demoFunc();
         } else {
@@ -54,8 +53,7 @@ const AudioWorkletHelper = (() => {
                          'The browser does not support AudioWorklet yet.');
         }
       });
-    }
-
+    },
+    isAvailable: isAvailable_
   };
-
 })();
