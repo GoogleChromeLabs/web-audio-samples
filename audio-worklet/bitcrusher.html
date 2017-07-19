@@ -48,7 +48,7 @@ limitations under the License.
     <p>
       If your browser supports the AudioWorklet node, you can switch between 
       the ScriptProcessor and AudioWorklet Bitcrusher implementations,
-      but if switching occurs as audio is played, there will be an audible
+      but if switching occurs as audio is played, there may be an audible
       glitch, resulting from the ScriptProcessor's delay.
     </p>
     <div id="container"></div>
@@ -62,18 +62,18 @@ limitations under the License.
       // If the browser implements AudioWorklet, the demo enables the user to
       // switch between audio worklet and script processor implementations of
       // the bitcrusher.
-      const useWorklet = AudioWorkletHelper.isAvailable();
-      if (useWorklet) {
+      const enableWorklet = AudioWorkletHelper.isAvailable();
+      if (enableWorklet) {
         window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
             .then(() => {
                 const context = new AudioContext();
-                let demo = new BitcrusherDemo(context, useWorklet);
+                let demo = new BitcrusherDemo(context, enableWorklet);
                 demo.initializeGUI('container', 'workletButton',
                                    'scriptProcessorButton');
             });
       } else {
         const context = new AudioContext();
-        let demo = new BitcrusherDemo(context, useWorklet);
+        let demo = new BitcrusherDemo(context, enableWorklet);
         demo.initializeGUI('container', 'workletButton',
                            'scriptProcessorButton');
       }
