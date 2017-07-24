@@ -13,46 +13,70 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-<!-- 
-  This code illustrates a web audio bitcrusher implementation, a musical audio 
-  effect. The bitcrusher class defined in bitcrusher.js binds the script 
-  processor node's onaudioprocess method to a bitcrush function, which reduces 
-  the precision of individual samples and simulates a sample rate reduction by a
-  specified factor. These parameters can be modified as the sound source is 
-  running concurrently. 
+<!--
+  This code illustrates a web audio bitcrusher implementation, a musical audio
+  effect. There are two bitcrusher classes. One is defined in
+  bitcrusher-script-processor.js which binds the script
+  processor node's onaudioprocess method to a bitcrush function.
+  The other bitcrusher is defined in bitcrusher-audio-worklet.js and uses
+  the audio worklet node. The user can switch between the two as audio is
+  played. Both implementations enable a user to alter the bitDepth of individual
+  samples as well change the sample rate by a specified factor.
 -->
 <!DOCTYPE html>
 <html>
   <head>
     <title>Bitcrusher</title>
     <script src="src/bitcrusher-script-processor.js"></script>
-    <script src="src/source-controller.js"></script>
-    <script src="src/param-controller.js"></script>
+    <script src="lib/source-controller.js"></script>
+    <script src="lib/param-controller.js"></script>
     <script src="src/bitcrusher-demo.js"></script>
+    <script src="lib/audio-worklet-helper.js"></script>
   </head>
   <body>
     <h1>Bitcrusher: a lo-fi audio effect</h1>
     <p>
-      Hit play to start a song and listen to the distortive effect of 
+      Hit play to start a song and listen to the distortive effect of
       modifying the bit depth and sample rate reduction parameters.
-    </p> 
+    </p>
     <p>
       The bit depth slider controls the number of bits used to represent
       a given sample. The sample rate reduction slider affects the number
       of distinct samples in the signal. Increasing this value simulates
       sample rate reduction by making intervals of consecutive samples equal.
     </p>
+    <p>
+      If your browser supports the AudioWorklet node, you can switch between 
+      the ScriptProcessor and AudioWorklet Bitcrusher implementations,
+      but if switching occurs as audio is played, there may be an audible
+      glitch, resulting from the ScriptProcessor's delay.
+    </p>
     <div id="container"></div>
-    <script> 
-      // Default to 50% volume, maximum bit depth, and no sample rate reduction.
-      let bitDepth = 24.0;
-      let reduction = 1.0;
-      let gain = 0.5;
-
-      window.addEventListener('load', () => {
-          let controller = new BitcrusherDemo(
-              'container', bitDepth, reduction, gain);
-      });
+    <form>
+      <input type="radio" name="node" id="scriptProcessorButton" checked>
+          Script Processor<br>
+      <input type="radio" name="node" id="workletButton" value="worklet">
+          Audio Worklet<br>
+    </form>
+    <script>
+      // If the browser implements AudioWorklet, the demo enables the user to
+      // switch between audio worklet and script processor implementations of
+      // the bitcrusher.
+      const enableWorklet = AudioWorkletHelper.isAvailable();
+      if (enableWorklet) {
+        window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
+            .then(() => {
+                const context = new AudioContext();
+                let demo = new BitcrusherDemo(context, enableWorklet);
+                demo.initializeGUI('container', 'workletButton',
+                                   'scriptProcessorButton');
+            });
+      } else {
+        const context = new AudioContext();
+        let demo = new BitcrusherDemo(context, enableWorklet);
+        demo.initializeGUI('container', 'workletButton',
+                           'scriptProcessorButton');
+      }
     </script>
   </body>
 </html>

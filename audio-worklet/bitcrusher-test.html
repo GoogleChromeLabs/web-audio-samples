@@ -14,8 +14,11 @@ limitations under the License.
 -->
 <!DOCTYPE html>
   <head>
-    <script src="src/bitcrusher-script-processor.js"></script> 
+    <script src="src/bitcrusher-script-processor.js"></script>
     <script>
+      // This file tests correctness of the bitcrusher on the script processor.
+      // These test will be modified to test the AudioWorklet when
+      // AudioWorkletNode works in an OfflineAudioContext.
       testSampleReduction();
       testBitcrusherInAudioContext();
       testMultipleChannels();
@@ -23,8 +26,8 @@ limitations under the License.
 
       /**
        * Verify the sample rate reduction component of the bitcrusher operating
-       * outside of an audio context. A bitcrushed array generated from an 
-       * arbitrary sequence of numbers should hold sequences of consecutive 
+       * outside of an audio context. A bitcrushed array generated from an
+       * arbitrary sequence of numbers should hold sequences of consecutive
        * equal numbers, controlled by the variable factor.
        */
       function testSampleReduction() {
@@ -48,34 +51,34 @@ limitations under the License.
           outputBuffer.map((data, index) => {
             let expected = Math.floor(index / reduction) * reduction;
             console.assert(
-                data === expected, 
+                data === expected,
                 'computed ' + data + ' but expected ' + expected);
           });
         }
       }
 
       /**
-       * Verify that the bitcrusher does not alter samples beyond an acceptable 
+       * Verify that the bitcrusher does not alter samples beyond an acceptable
        * margin when parameterized to avoid information reduction.
        */
       function testBitcrusherInAudioContext() {
         // Sample Rate is held at a power of two to avoid sample interpolation
         // from the delay node. It is artificially low for easy inspection of
-        // buffers.   
+        // buffers.
         const sampleRate = 4096;
         let context = new OfflineAudioContext(2, sampleRate, sampleRate);
         const reduction = 1;
         const bitDepth = 24;
         // BufferSize needs to be a power of two higher than 256 and lower
-        // than 16384 to work with the script processor. It also cannot be 
-        // larger than sampleRate / 2 for this test because the first 
+        // than 16384 to work with the script processor. It also cannot be
+        // larger than sampleRate / 2 for this test because the first
         // bufferSize * 2 samples will all be zero.
         const bufferSize = 512;
-        // ChannelCount represents both the number of input and output channels 
+        // ChannelCount represents both the number of input and output channels
         // to the bitcrusher.
         const channelCount = 1;
-        // Create one oscillator, and connect it to a bitcrusher with variables 
-        // set to avoid any effect and a delay node which compensates for the 
+        // Create one oscillator, and connect it to a bitcrusher with variables
+        // set to avoid any effect and a delay node which compensates for the
         // script processor latency.
         let oscillator = new OscillatorNode(context);
         let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
@@ -99,19 +102,19 @@ limitations under the License.
               let bitcrusherOutput = buffer.getChannelData(0);
               let originalOutput = buffer.getChannelData(1);
 
-              // Allow for fractional error beyond audible perception. This 
-              // error occurs because any sample passing through bitcrusher will 
-              // undergo manipulation in Math.round() and will therefore be 
+              // Allow for fractional error beyond audible perception. This
+              // error occurs because any sample passing through bitcrusher will
+              // undergo manipulation in Math.round() and will therefore be
               // represented by a new floating point number that differs
-              // slightly from the original. In tested samples and at a sample 
-              // rate of 4096, the maximum observed error is 
+              // slightly from the original. In tested samples and at a sample
+              // rate of 4096, the maximum observed error is
               // 2.9802322387695312e-8.
               const permittedSampleError = 2.98025e-8;
               let maxError = 0;
 
               for (let i = 0; i < bitcrusherOutput.length; i++) {
                 const diff = Math.abs(bitcrusherOutput[i] - originalOutput[i]);
-                maxError = Math.max(diff, maxError);  
+                maxError = Math.max(diff, maxError);
               }
 
               console.assert(
@@ -121,7 +124,7 @@ limitations under the License.
                       permittedSampleError);
 
               // Verify that samples from original oscillator match samples from
-              // bitcrushed oscillator with minimally information reducing 
+              // bitcrushed oscillator with minimally information reducing
               // parameters.
               for (let i = 0; i < originalOutput.length; i++) {
                 const crushedSample = bitcrusherOutput[i];
@@ -136,10 +139,10 @@ limitations under the License.
                 } else {
                   console.assert(
                       diff < permittedSampleError,
-                      'Bitcrushed sample at ' + i + ' is ' + crushedSample + 
+                      'Bitcrushed sample at ' + i + ' is ' + crushedSample +
                       ' but ' + originalSample + ' for oscillator');
                 }
-              } 
+              }
             });
       }
 
@@ -155,17 +158,17 @@ limitations under the License.
       }
 
       /**
-       * Verify that bitcrusher applies sample reduction on multiple channels of 
-       * input, and that sample reduction works across multiple buffers (which 
+       * Verify that bitcrusher applies sample reduction on multiple channels of
+       * input, and that sample reduction works across multiple buffers (which
        * requires bitcrusher memory.)
        */
       function testMultipleChannels() {
         const channelCount = 2;
         let context = new OfflineAudioContext(channelCount, 44100, 44100);
         // Reduction should not be a factor of bufferSize for full coverage.
-        const reduction = 7; 
+        const reduction = 7;
         const bitDepth = 24;
-        const bufferSize = 512; 
+        const bufferSize = 512;
         // The two signals should differ to verify that the bitcrusher does not
         // place the results from one channel to another.
         let oscillator = new OscillatorNode(context, {frequency: 112});
@@ -177,11 +180,11 @@ limitations under the License.
         oscillator.connect(merger, 0, 0);
         oscillator2.connect(merger, 0, 1);
         merger.connect(bitcrusher.input);
-        bitcrusher.output.connect(context.destination); 
+        bitcrusher.output.connect(context.destination);
         oscillator.start();
         oscillator2.start();
 
-        context.startRendering().then((buffer) => {  
+        context.startRendering().then((buffer) => {
             let channelsDiffer = false;
             for (let i = 0; i < buffer.getChannelData(0).length; i++) {
               if (buffer.getChannelData(0)[i] != buffer.getChannelData(1)[i]) {
@@ -189,7 +192,7 @@ limitations under the License.
                 break;
               }
             }
-            console.assert(channelsDiffer, 
+            console.assert(channelsDiffer,
                 'The first two channels have identical contents');
             
             const latency = bufferSize * 2;
@@ -212,9 +215,9 @@ limitations under the License.
                     ', did not match expectation ' + last);
                 index++;
               }
-            } 
-        }); 
+            }
+        });
       }
-    </script> 
+    </script>
   </head>
 </html>
