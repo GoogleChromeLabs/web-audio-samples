@@ -15,6 +15,8 @@
  */
 class PolySynthVoice {
   /**
+   * @class  PolySynthVoice
+   * @constructor
    * A voice generates a waveform and filters it, exposing the sound through
    * this.output.
    * @param {AudioContext} context the audio context

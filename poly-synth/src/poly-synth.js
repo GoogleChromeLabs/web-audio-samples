@@ -15,8 +15,9 @@
  */
 class PolySynth {
   /**
+   * @class  PolySynth
+   * @constructor
    * PolySynth manages the life cycle of voices.
-   * to audio params.
    * @param {AudioContext} context the audio context
    */
   constructor(context) {
@@ -39,7 +40,7 @@ class PolySynth {
 
   /**
    * Create a new voice and add it to the map of active voices.
-   * @param {String} note the note to be played, e.g. A4 for an octave 4 A
+   * @param {String} note the note to be played, e.g. A4 for an octave four A
    * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
   playNote(note, frequency) {

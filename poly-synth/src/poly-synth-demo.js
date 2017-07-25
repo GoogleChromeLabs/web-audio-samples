@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class SubtractiveSynthDemo {
+class PolySynthDemo {
+  /**
+   * @class
+   * @constructor
+   * Triggers synthesizer events based on GUI input.
+   * @param {AudioContext} context the audio context
+   */
   constructor(context) {
     this.masterGain_ = new GainNode(context, {gain: 0.5});
     this.polySynth_ = new PolySynth(context);
     this.polySynth_.output.connect(this.masterGain_)
         .connect(context.destination);
 
-    // Initialize a QWERTY keyboard defined in qwerty-hancock.min.js
+    // Initialize a QWERTY keyboard defined in qwerty-hancock.min.js.
     // The key A on a computer keyboard maps onto the note C, and the letters
     // to the right of A (SDFGHJ) map onto the notes above C in a C major scale
     // (DEFGAB). The letters WETYU map onto the black keys of a piano.
