@@ -14,46 +14,46 @@
  * limitations under the License.
  */
 class SubtractiveSynthDemo {
-	constructor(context) {
-		this.maxCutoff_ = 5000;
-		this.masterGain_ = new GainNode(context, {gain: 0.5});
-		
-		this.synthesizer_ = new Synthesizer(context, {
-				maxCutoff: this.maxCutoff_,
-		});
+  constructor(context) {
+    this.maxCutoff_ = 5000;
+    this.masterGain_ = new GainNode(context, {gain: 0.5});
+    
+    this.synthesizer_ = new Synthesizer(context, {
+        maxCutoff: this.maxCutoff_,
+    });
 
-		this.synthesizer_.output.connect(this.masterGain_)
-				.connect(context.destination);
+    this.synthesizer_.output.connect(this.masterGain_)
+        .connect(context.destination);
 
-		// Initialize a QWERTY keyboard defined in qwerty-hancock.min.js
-		// The key A on a computer keyboard maps onto the note C, and the letters
-		// to the right of A (SDFGHJ) map onto the notes above C in a C major scale
-		// (DEFGAB). The letters WETYU map onto the black keys of a piano.
-		this.keyboard_ = new QwertyHancock({
-	    id: 'keyboard',
-	    width: 600,
-	    height: 150,
-	    octaves: 2
-		});
+    // Initialize a QWERTY keyboard defined in qwerty-hancock.min.js
+    // The key A on a computer keyboard maps onto the note C, and the letters
+    // to the right of A (SDFGHJ) map onto the notes above C in a C major scale
+    // (DEFGAB). The letters WETYU map onto the black keys of a piano.
+    this.keyboard_ = new QwertyHancock({
+      id: 'keyboard',
+      width: 600,
+      height: 150,
+      octaves: 2
+    });
 
-		this.keyboard_.keyDown = this.keyDown.bind(this);
-		this.keyboard_.keyUp = this.keyUp.bind(this);
-	}
+    this.keyboard_.keyDown = this.keyDown.bind(this);
+    this.keyboard_.keyUp = this.keyUp.bind(this);
+  }
 
-	/**
-	 * Initialize GUI components
-	 * @param {String} containerId the id of the HTML container
-	 */
-	initializeGUI(containerId) {
-		this.lowPassCutoffSlider_ =
+  /**
+   * Initialize GUI components
+   * @param {String} containerId the id of the HTML container
+   */
+  initializeGUI(containerId) {
+    this.lowPassCutoffSlider_ =
         new ParamController(containerId,
-	        	this.synthesizer_.setLowPass.bind(this.synthesizer_), {
-		          type: 'range',
-		          min: 0,
-		          max: this.maxCutoff_,
-		          step: 1,
-		          default: this.maxCutoff_,
-		          name: 'Low Pass Cutoff'
+            this.synthesizer_.setLowPass.bind(this.synthesizer_), {
+              type: 'range',
+              min: 0,
+              max: this.maxCutoff_,
+              step: 1,
+              default: this.maxCutoff_,
+              name: 'Low Pass Cutoff'
         });
 
     this.gainSlider_ =
@@ -65,7 +65,7 @@ class SubtractiveSynthDemo {
           default: this.masterGain_.gain.value,
           name: 'Volume'
         });
-	}
+  }
 
   /**
    * Change the volume.
@@ -78,19 +78,19 @@ class SubtractiveSynthDemo {
 
   /**
    * Play a note when a mapped key is pressed.
-	 * @param {String} note the note to be played, e.g. A4 for an octave 4 A
-	 * @param {Number} frequency the corresponding frequency of the note, e.g 440
+   * @param {String} note the note to be played, e.g. A4 for an octave 4 A
+   * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
-	keyDown(note, frequency) {
-		this.synthesizer_.playNote(note, frequency);
-	}
+  keyDown(note, frequency) {
+    this.synthesizer_.playNote(note, frequency);
+  }
 
-	/**
-	 * Release the note.
-	 * @param {String} note the note to be played, e.g. A4 for an octave 4 A
-	 * @param {Number} frequency the corresponding frequency of the note, e.g 440
-	 */
-	keyUp(note, frequency) {
-		this.synthesizer_.releaseNote(note, frequency);
-	}
+  /**
+   * Release the note.
+   * @param {String} note the note to be played, e.g. A4 for an octave 4 A
+   * @param {Number} frequency the corresponding frequency of the note, e.g 440
+   */
+  keyUp(note, frequency) {
+    this.synthesizer_.releaseNote(note, frequency);
+  }
 }

@@ -15,24 +15,24 @@ limitations under the License.
 <!DOCTYPE html>
   <head>
     <title>Polyphonic Subtractive Synth</title>
-  	<script src="lib/qwerty-hancock.min.js"></script>
+    <script src="lib/qwerty-hancock.min.js"></script>
     <script src="src/param-controller.js"></script> <!--TODO change to lib/-->
     <script src="src/subtractive-synth-demo.js"></script>
     <script src="src/synthesizer.js"></script>
     <script src="src/voice.js"></script>
   </head>
   <body>
-  	<p>
-  	 The key A on your computer keyboard maps onto the note C, and the letters
-		 to the right of A (SDFGHJ) map onto the notes above C in a C major scale
-		 (DEFGAB). The letters WETYU map onto the black keys of a piano.
-  	</p>
-  	<div id="keyboard"></div>
-		<div id="container"></div>
+    <p>
+     The key A on your computer keyboard maps onto the note C, and the letters
+     to the right of A (SDFGHJ) map onto the notes above C in a C major scale
+     (DEFGAB). The letters WETYU map onto the black keys of a piano.
+    </p>
+    <div id="keyboard"></div>
+    <div id="container"></div>
     <script>
-    	const context = new AudioContext();
-    	let synthesizerDemo = new SubtractiveSynthDemo(context);
-    	synthesizerDemo.initializeGUI('container');
+      const context = new AudioContext();
+      let synthesizerDemo = new SubtractiveSynthDemo(context);
+      synthesizerDemo.initializeGUI('container');
     </script>
   </body>
 </html>
