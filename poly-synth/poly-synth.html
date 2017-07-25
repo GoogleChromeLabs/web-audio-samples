@@ -15,10 +15,10 @@ limitations under the License.
 <!DOCTYPE html>
   <head>
     <title>Polyphonic Subtractive Synth</title>
-    <script src="lib/qwerty-hancock.min.js"></script>
-    <script src="src/param-controller.js"></script> <!--TODO change to lib/-->
-    <script src="src/subtractive-synth-demo.js"></script>
-    <script src="src/synthesizer.js"></script>
+    <script src="third-party/qwerty-hancock.min.js"></script>
+    <script src="../audio-worklet/src/param-controller.js"></script>
+    <script src="src/poly-synth-demo.js"></script>
+    <script src="src/poly-synth.js"></script>
     <script src="src/voice.js"></script>
   </head>
   <body>
@@ -29,6 +29,10 @@ limitations under the License.
     </p>
     <div id="keyboard"></div>
     <div id="container"></div>
+    <p>
+      Credit to Stuart Memo for the
+      <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
+    </p>
     <script>
       const context = new AudioContext();
       let synthesizerDemo = new SubtractiveSynthDemo(context);

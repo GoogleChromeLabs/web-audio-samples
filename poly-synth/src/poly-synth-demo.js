@@ -15,14 +15,9 @@
  */
 class SubtractiveSynthDemo {
   constructor(context) {
-    this.maxCutoff_ = 5000;
     this.masterGain_ = new GainNode(context, {gain: 0.5});
-
-    this.synthesizer_ = new Synthesizer(context, {
-      maxCutoff: this.maxCutoff_,
-    });
-
-    this.synthesizer_.output.connect(this.masterGain_)
+    this.polySynth_ = new PolySynth(context);
+    this.polySynth_.output.connect(this.masterGain_)
         .connect(context.destination);
 
     // Initialize a QWERTY keyboard defined in qwerty-hancock.min.js
@@ -42,20 +37,22 @@ class SubtractiveSynthDemo {
    */
   initializeGUI(containerId) {
     this.lowPassCutoffSlider_ = new ParamController(
-        containerId, this.synthesizer_.setLowPass.bind(this.synthesizer_), {
+        containerId, this.polySynth_.setLowPass.bind(this.polySynth_), {
           type: 'range',
-          min: 0,
-          max: this.maxCutoff_,
+          min: this.polySynth_.lowPassMinCutoff,
+          max: this.polySynth_.lowPassMaxCutoff,
           step: 1,
-          default: this.maxCutoff_,
+          default: this.polySynth_.lowPassMaxCutoff,
           name: 'Low Pass Cutoff'
         });
 
+    // The maximum gain is set to be larger than 1 to allow for highly filtered
+    // sounds to be audible. It is up to the user to avoid distortion.
     this.gainSlider_ =
         new ParamController(containerId, this.setGain.bind(this), {
           type: 'range',
           min: 0,
-          max: 1,
+          max: 5,
           step: 0.01,
           default: this.masterGain_.gain.value,
           name: 'Volume'
@@ -72,20 +69,22 @@ class SubtractiveSynthDemo {
   }
 
   /**
-   * Play a note when a mapped key is pressed.
-   * @param {String} note the note to be played, e.g. A4 for an octave 4 A
+   * Play a note when a mapped key is pressed. This method implements a function
+   * triggered in qwerty-hancock.min.js.
+   * @param {String} note the note to be played, e.g. A4 for an octave four A
    * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
   keyDown(note, frequency) {
-    this.synthesizer_.playNote(note, frequency);
+    this.polySynth_.playNote(note, frequency);
   }
 
   /**
-   * Release the note.
+   * Release the note. This method implements a function triggered in
+   * qwerty-hancock.min.js
    * @param {String} note the note to be played, e.g. A4 for an octave 4 A
    * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
   keyUp(note, frequency) {
-    this.synthesizer_.releaseNote(note, frequency);
+    this.polySynth_.releaseNote(note, frequency);
   }
 }
