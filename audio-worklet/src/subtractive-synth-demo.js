@@ -17,9 +17,9 @@ class SubtractiveSynthDemo {
   constructor(context) {
     this.maxCutoff_ = 5000;
     this.masterGain_ = new GainNode(context, {gain: 0.5});
-    
+
     this.synthesizer_ = new Synthesizer(context, {
-        maxCutoff: this.maxCutoff_,
+      maxCutoff: this.maxCutoff_,
     });
 
     this.synthesizer_.output.connect(this.masterGain_)
@@ -29,12 +29,8 @@ class SubtractiveSynthDemo {
     // The key A on a computer keyboard maps onto the note C, and the letters
     // to the right of A (SDFGHJ) map onto the notes above C in a C major scale
     // (DEFGAB). The letters WETYU map onto the black keys of a piano.
-    this.keyboard_ = new QwertyHancock({
-      id: 'keyboard',
-      width: 600,
-      height: 150,
-      octaves: 2
-    });
+    this.keyboard_ = new QwertyHancock(
+        {id: 'keyboard', width: 600, height: 150, octaves: 2});
 
     this.keyboard_.keyDown = this.keyDown.bind(this);
     this.keyboard_.keyUp = this.keyUp.bind(this);
@@ -45,15 +41,14 @@ class SubtractiveSynthDemo {
    * @param {String} containerId the id of the HTML container
    */
   initializeGUI(containerId) {
-    this.lowPassCutoffSlider_ =
-        new ParamController(containerId,
-            this.synthesizer_.setLowPass.bind(this.synthesizer_), {
-              type: 'range',
-              min: 0,
-              max: this.maxCutoff_,
-              step: 1,
-              default: this.maxCutoff_,
-              name: 'Low Pass Cutoff'
+    this.lowPassCutoffSlider_ = new ParamController(
+        containerId, this.synthesizer_.setLowPass.bind(this.synthesizer_), {
+          type: 'range',
+          min: 0,
+          max: this.maxCutoff_,
+          step: 1,
+          default: this.maxCutoff_,
+          name: 'Low Pass Cutoff'
         });
 
     this.gainSlider_ =

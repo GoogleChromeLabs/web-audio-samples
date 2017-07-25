@@ -39,15 +39,11 @@ class Voice {
     this.release_ = options.release || 0;
 
     // TODO: add second oscillator
-    this.oscillatorA_ = new OscillatorNode(this.context_, {
-        frequency: frequency,
-        type: waveform
-    });
+    this.oscillatorA_ = new OscillatorNode(
+        this.context_, {frequency: frequency, type: waveform});
 
-    this.lowPassFilter = new BiquadFilterNode(this.context_, {
-        frequency: lowPassCutoff_,
-        type: 'lowpass'
-    });
+    this.lowPassFilter = new BiquadFilterNode(
+        this.context_, {frequency: lowPassCutoff_, type: 'lowpass'});
 
     this.output = new GainNode(this.context_);
     this.oscillatorA_.connect(this.lowPassFilter).connect(this.output);
@@ -61,12 +57,13 @@ class Voice {
     this.output.gain.setValueAtTime(0, this.context_.currentTime);
     this.output.gain.linearRampToValueAtTime(
         1, this.context_.currentTime + this.attack_ / 1000);
-    this.output.gain.linearRampToValueAtTime(this.sustain_,
+    this.output.gain.linearRampToValueAtTime(
+        this.sustain_,
         this.context_.currentTime + ((this.attack_ + this.decay_) / 1000));
-    
+
     this.oscillatorA_.start();
   }
-  
+
   /**
    * On key release, stop the note according to this.release_.
    */
@@ -75,6 +72,6 @@ class Voice {
     this.output.gain.cancelAndHoldAtTime(this.context_.currentTime);
     this.output.gain.linearRampToValueAtTime(
         0, this.context_.currentTime + this.release_ / 1000);
-    //TODO: should I stop the oscillator at a future point too?
+    // TODO: should I stop the oscillator at a future point too?
   }
 }

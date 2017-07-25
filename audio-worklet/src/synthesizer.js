@@ -34,10 +34,9 @@ class Synthesizer {
    * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
   playNote(note, frequency) {
-    let voice = new Voice(this.context_, frequency, {
-        maxCutoff: this.lowPassCutoff_
-    });
-    
+    let voice =
+        new Voice(this.context_, frequency, {maxCutoff: this.lowPassCutoff_});
+
     voice.output.connect(this.output);
     this.voices_[note] = voice;
     voice.start();
