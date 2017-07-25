@@ -43,8 +43,8 @@ class PolySynth {
    * @param {Number} frequency the corresponding frequency of the note, e.g 440
    */
   playNote(note, frequency) {
-    let voice =
-        new Voice(this.context_, frequency, this.lowPassCutoff_, this, {});
+    let voice = new PolySynthVoice(
+        this.context_, frequency, this.lowPassCutoff_, this, {});
     voice.output.connect(this.output);
     this.sustainedVoices_[note] = voice;
     voice.start();
@@ -82,7 +82,7 @@ class PolySynth {
     for (let voice in this.sustainedVoices_) {
       this.sustainedVoices_[voice].lowPassFilter.frequency.value =
           this.lowPassCutoff_;
-    }
+      }
     for (let voice in this.releasedVoices_) {
       this.releasedVoices_[voice].lowPassFilter.frequency.value =
           this.lowPassCutoff_;
