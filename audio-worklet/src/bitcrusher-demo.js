@@ -15,6 +15,8 @@
  */
 class BitcrusherDemo {
   /**
+   * @class BitcrusherDemo
+   * @constructor
    * Initalizes and modifies bitcrusher settings in response to GUI input.
    * @param {AudioContext} context the Audio Context
    * @param {Boolean} enableWorklet switch depending on browser
@@ -28,7 +30,9 @@ class BitcrusherDemo {
     this.enableWorklet_ = enableWorklet;
 
     // These default values will be overriden if the browser supports
-    // AudioWorklet.
+    // AudioWorklet. If not, these values must be defined here since they
+    // cannot be fetched from the getParameterDescriptors method of
+    // bitcrusher-audio-worklet.js
     this.bitDepthDefault_ = 24;
     this.bitDepthMax_ = 24;
     this.bitDepthMin_ = 1;
@@ -59,7 +63,7 @@ class BitcrusherDemo {
       this.workletGain_ = new GainNode(this.context_, {gain: 0});
       this.bitcrusherAudioWorklet_.connect(this.workletGain_)
           .connect(this.masterGain_);
-      }
+    }
 
     const scriptProcessorBufferSize = 4096;
     this.bitcrusherScriptProcessor_ = new Bitcrusher(this.context_, {

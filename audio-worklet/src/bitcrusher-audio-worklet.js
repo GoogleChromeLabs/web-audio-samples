@@ -17,8 +17,8 @@
 /**
  * @class Bitcrusher
  * @extends AudioWorkletProcessor
- * The bitcrusher reduces the sample rate and bit depth of an incoming audio
- * stream.
+ * @description The bitcrusher reduces the sample rate and bit depth of an
+ * incoming audio stream.
  */
 registerProcessor('bitcrusher-audio-worklet',
                   class BitcrusherAudioWorklet extends AudioWorkletProcessor {
@@ -36,7 +36,7 @@ registerProcessor('bitcrusher-audio-worklet',
       maxValue: 20
     }];
   }
-
+  
   constructor(options) {
     super(options);
 
