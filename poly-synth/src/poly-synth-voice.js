@@ -20,6 +20,7 @@ class PolySynthVoice {
    * A voice generates a waveform and filters it, exposing the sound through
    * this.output.
    * @param {AudioContext} context the audio context
+   * @param {String} note the note corresponding to the frequency
    * @param {Number} frequency the frequency corresponding to the voice's note
    * @param {Number} cutoff the cutoff frequency for the lowpass filter
    * @param {PolySynth} parentSynthesizer the synthesizer that manages this
@@ -33,7 +34,7 @@ class PolySynthVoice {
    * @param {Number} options.release milliseconds between the release of a note
    *                                 and zero amplitude
    */
-  constructor(context, frequency, cutoff, parentSynthesizer, options) {
+  constructor(context, note, frequency, cutoff, parentSynthesizer, options) {
     if (!(context instanceof AudioContext))
       throw context + ' is not a valid audio context.';
     if (options == null) options = {};
@@ -45,6 +46,7 @@ class PolySynthVoice {
     this.sustain_ = options.sustain || 0.1;
     this.release_ = options.release || 0;
     this.parentSynthesizer_ = parentSynthesizer;
+    this.note_ = note;
 
     // TODO: add second oscillator
     this.oscillatorA_ = new OscillatorNode(
@@ -84,6 +86,6 @@ class PolySynthVoice {
 
     // Trigger the parent synthesizer to remove its reference to the voice when
     // the oscillator has stopped.
-    window.setTimeout(this.parentSynthesizer_.endNote(), this.release_);
+    window.setTimeout(this.parentSynthesizer_.endNote(this.note_), this.release_);
   }
 }
