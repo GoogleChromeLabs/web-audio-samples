@@ -40,11 +40,10 @@ limitations under the License.
       audit.define('envelope-is-mathematically-correct', (task, should) => {
         let context = new OfflineAudioContext(1, testFrames, sampleRate);
         
-        // Time to threshold should be large enough so that the envelope will
-        // settle near 1 (it never reaches 1) before the constant
-        // source node is scheduled to drop to 0.
-        const timeToThreshold =
-            getTimeToTarget_(0, 1, timeConstant, 1 - Math.exp(-10));
+        // A timeToThreshold ten times larger than the timeConstant should get
+        // the envelope close enough to 1 (it never reaches 1) before the
+        // constant source node is scheduled to drop to 0.
+        const timeToThreshold = 10 * timeConstant;
         
         // The noise gate scales values for sine waves, which reach an
         // an average power of a^2 / 2.
@@ -329,7 +328,7 @@ limitations under the License.
       // Verify that the gain computer opens and closes gate (as witnessed
       // through changes in its weights) according to attack and release
       // settings.
-      audit.define('gain-computer-has-attack-and-release', (task, should) => {
+      audit.define('compute-weights-has-attack-and-release', (task, should) => {
         // All envelope values below threshold will receive
         // a zero weight and all values above will receive a weight of one
         // when attack and release are both 0.
@@ -339,7 +338,11 @@ limitations under the License.
         const length = 100;
         let envelope = Array.apply(null, {length}).map((data, index) => index);
         const transitionIndex = length / 2;
-        const threshold = length / 2;
+
+        // Compute weights uses a sine normalized decibel scale.
+        const threshold = NoiseGate.toDecibel_(
+            Math.sqrt(envelope[length / 2]) * Math.sqrt(2));
+
         let noisegate = new NoiseGate(context, {threshold});
         let weights = noisegate.computeWeights_(envelope);
         let closedWeights = weights.slice(0, transitionIndex);
@@ -350,7 +353,7 @@ limitations under the License.
         should(openWeights, 'Weight array after the threshold')
             .beConstantValueOf(1);
         
-        // Verify that the gain computer generates a sequence of increasing or
+        // The gain computer should generate a sequence of increasing or
         // decreasing weights between 0 and 1 at threshold transitions.
         // TransitionSteps must be less than half the envelope length so that
         // both attack and release fit in the evaluation.

@@ -18,7 +18,7 @@ class NoiseGate {
    * A Noise gate allows audio signals to pass only when the registered volume
    * is above a specified threshold. This class is a wrapper around the script
    * processor node.
-   * @class  NoiseGate
+   * @class NoiseGate
    * @constructor
    * @param {BaseAudioContext} context the audio context
    * @param {Number} options.channels the number of input and output
@@ -80,7 +80,7 @@ class NoiseGate {
     // The last weight (between 0 and 1) assigned, where 1 means the gate
     // is open and 0 means it is closed and the sample in the output buffer is
     // muted. When attacking, the weight will linearly decrease from 1 to 0, and
-    // when releasing the weight linearly increase from 0 to 1. 
+    // when releasing the weight linearly increase from 0 to 1.
     this.previousWeight_ = 1.0;
     this.channel_ = new Float32Array(this.noiseGateKernel_.bufferSize);
     this.envelope_ = new Float32Array(this.noiseGateKernel_.bufferSize);
@@ -89,7 +89,7 @@ class NoiseGate {
 
   /**
    * Gradually mutes input which registers beneath specified threshold.
-   * @param {AudioProcessingEvent} event event object containing
+   * @param {AudioProcessingEvent} event object containing
    *                                     input and output buffers
    */
   onaudioprocess_(event) {
@@ -107,7 +107,6 @@ class NoiseGate {
     }
 
     let envelope = this.detectLevel_(this.channel_);
-    envelope = this.convertEnvelopeToSineNormalizedDecibelScale_(envelope);
     let weights = this.computeWeights_(envelope);
     
     for (let i = 0; i < inputBuffer.numberOfChannels; i++) {
@@ -150,7 +149,7 @@ class NoiseGate {
    * @return {Float32Array} weights numbers in the range 0 to 1 set in
    *                                accordance with the threshold, the envelope,
    *                                and attack and release. These will be
-   *                                multiplied by by the corresponding
+   *                                multiplied by the corresponding
    *                                value in the input.
    */
   computeWeights_(envelope) {
@@ -173,13 +172,16 @@ class NoiseGate {
       releaseGainPerStep = 1 / releaseSteps;
     }
 
-    // Compute an array of weights which will be multiplied with the channel.
-    // Based on the detected level and indexes which persist between subsequent
-    // calls to onaudioprocess, the noise gate at iteration i is in one of
-    // four states: open, closed, attacking (between open and closed), or
-    // releasing (between closed and open).
+    // Compute an array of weights between 0 and 1 which will be multiplied with
+    // the channel depending on if the noise gate is open, attacking, releasing,
+    // or closed.
     for (let i = 0; i < envelope.length; i++) {
-      if (envelope[i] < this.threshold) {
+      // For sine waves, the envelope eventually reaches an average power of
+      // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
+      // but other waveforms or constant sources can only be approximated.
+      const scaledEnvelopeValue =
+          NoiseGate.toDecibel_(Math.sqrt(envelope[i]) * Math.sqrt(2));
+      if (scaledEnvelopeValue < this.threshold) {
         const weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
       }
@@ -211,15 +213,5 @@ class NoiseGate {
    */
   static toDecibel_(linearValue) {
     return 20 * Math.log10(linearValue);
-  }
-
-  convertEnvelopeToSineNormalizedDecibelScale_(envelope) {
-    // For sine waves, the envelope eventually reaches an average power of
-    // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
-    // but other waveforms or constant sources can only be approximated.
-    for (let k = 0; k < envelope.length; k++) {
-      envelope[k] =  NoiseGate.toDecibel_(Math.sqrt(envelope[k]) * Math.sqrt(2));
-    }
-    return envelope;
   }
 }
