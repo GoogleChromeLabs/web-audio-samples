@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @class PolySynth
+ * @descriptor manages the life cycle of voices.
+ */
 class PolySynth {
   /**
-   * @class  PolySynth
    * @constructor
-   * PolySynth manages the life cycle of voices.
    * @param {AudioContext} context the audio context
    */
   constructor(context) {
@@ -25,7 +27,7 @@ class PolySynth {
       throw context + ' is not a valid audio context.';
 
     this.context_ = context;
-    this.sustainedVoices_ = [];
+    this.activeVoices_ = [];
     this.releasedVoices_ = [];
 
     // The default maximum cutoff is set near the upper edge of human hearing
@@ -38,40 +40,51 @@ class PolySynth {
     this.output = new GainNode(this.context_);
   }
 
+  getParameters() {
+    // TODO: Add Q, and other parameters. Let ADSR be controlled by variables.
+    return {
+      lowPassCutoff: this.lowPassCutoff_,
+      attack: 0,
+      decay: 0,
+      sustain: 0.1,
+      release: 0
+    }
+  }
+
   /**
    * Create a new voice and add it to the map of active voices.
-   * @param {String} note the note to be played, e.g. A4 for an octave four A
-   * @param {Number} frequency the corresponding frequency of the note, e.g 440
+   * @param {String} noteName the note to be played, e.g. A4 for an octave 4 A
+   * @param {Number} pitch the corresponding pitch of the note, e.g 440
    */
-  playNote(note, frequency) {
+  playVoice(noteName, pitch) {
     let voice = new PolySynthVoice(
-        this.context_, note, frequency, this.lowPassCutoff_, this, {});
+        context, this, noteName, pitch, this.getParameters());
     voice.output.connect(this.output);
-    this.sustainedVoices_[note] = voice;
+    this.activeVoices_[noteName] = voice;
     voice.start();
   }
 
   /**
    * Release the note.
    * @param {String} note the name of the note released which corresponds to its
-   *                      key in this.sustainedVoices_
+   *                      key in this.activeVoices_
    */
-  releaseNote(note) {
+  releaseVoice(noteName) {
     // Move reference to voice to the released voice map.
-    let voice = this.sustainedVoices_[note];
-    this.releasedVoices_[note] = voice;
+    let voice = this.activeVoices_[noteName];
+    this.releasedVoices_[noteName] = voice;
     voice.release();
-    delete this.sustainedVoices_[note];
+    delete this.activeVoices_[noteName];
   }
 
   /**
    * Remove references to the voice (corresponding to note). The voice triggers
    * this event.
-   * @param {String} note the name of the note released which corresponds to its
-   *                      key in this.releasedVoices_
+   * @param {String} noteName the name of the note released which corresponds to
+   *                          its key in this.releasedVoices_
   */
-  endNote(note) {
-    delete this.releasedVoices_[note];
+  endVoice(noteName) {
+    delete this.releasedVoices_[noteName];
   }
 
   /**
@@ -80,13 +93,11 @@ class PolySynth {
    */
   setLowPass(value) {
     this.lowPassCutoff_ = value;
-    for (let voice in this.sustainedVoices_) {
-      this.sustainedVoices_[voice].lowPassFilter.frequency.value =
-          this.lowPassCutoff_;
+    for (let voiceId in this.activeVoices_) {
+      this.activeVoices_[voiceId].lowPassCutoff = this.lowPassCutoff_;
     }
-    for (let voice in this.releasedVoices_) {
-      this.releasedVoices_[voice].lowPassFilter.frequency.value =
-          this.lowPassCutoff_;
+    for (let voiceId in this.releasedVoices_) {
+      this.releasedVoices_[voiceId].lowPassCutoff = this.lowPassCutoff_;
     }
   }
 }

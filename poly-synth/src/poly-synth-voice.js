@@ -13,50 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @class PolySynthVoice
+ * @descriptor A voice generates a waveform and filters it, exposing the
+ *             sound through this.output.
+ */
 class PolySynthVoice {
   /**
-   * @class  PolySynthVoice
    * @constructor
-   * A voice generates a waveform and filters it, exposing the sound through
-   * this.output.
    * @param {AudioContext} context the audio context
-   * @param {String} note the note corresponding to the frequency
-   * @param {Number} frequency the frequency corresponding to the voice's note
-   * @param {Number} cutoff the cutoff frequency for the lowpass filter
-   * @param {PolySynth} parentSynthesizer the synthesizer that manages this
-   *                                      voice.
-   * @param {Object} options optional parameters
-   * @param {String} options.waveform the oscillator's waveform
-   * @param {Number} options.attack milliseconds until full amplitude
-   * @param {Number} options.decay milliseconds until sustain level
-   * @param {Number} options.sustain the steady amplitude of the note as it is
-   *                                 pressed
-   * @param {Number} options.release milliseconds between the release of a note
-   *                                 and zero amplitude
+   * @param {PolySynth} synth the synthesizer that manages this voice
+   * @param {String} noteName the name of the note corresponding to the pitch
+   * @param {Number} pitch the frequency corresponding to the voice's note
+   * @param {Object} parameters voice settings which will not change as a
+   *                            voice is played
+   * @param {Number} parameters.cutoff the cutoff for the lowpass filter
+   * @param {Number} parameters.attack seconds until full amplitude
+   * @param {Number} parameters.decay seconds until sustain level
+   * @param {Number} parameters.sustain the steady amplitude of the note as it
+   *                                    is pressed
+   * @param {Number} parameters.release seconds between the release of a note
+   *                                    and zero amplitude
    */
-  constructor(context, note, frequency, cutoff, parentSynthesizer, options) {
-    if (!(context instanceof AudioContext))
-      throw context + ' is not a valid audio context.';
-    if (options == null) options = {};
-
+  constructor(context, synth, modulators, settings) {
+    if (settings == null) settings = {};
+    if (modulators == null) modulators = {};
     this.context_ = context;
-    const waveform = options.waveform || 'sawtooth';
-    this.attack_ = options.attack || 0;
-    this.decay_ = options.decay || 0;
-    this.sustain_ = options.sustain || 0.1;
-    this.release_ = options.release || 0;
-    this.parentSynthesizer_ = parentSynthesizer;
-    this.note_ = note;
+    this.attack_ = settings.attack || 0;
+    this.decay_ = settings.decay || 0;
+    this.sustain_ = settings.sustain || 0.1;
+    this.release_ = settings.release || 0;
+
+    this.cutoff_ = modulators.cutoff || 12000;
+
+    this.synth_ = synth;
+
+    // The name of the note is used as an argument in the |this.synth_.endNote|
+    // callback.
+    this.noteName_ = noteName;
 
     // TODO: add second oscillator
     this.oscillatorA_ = new OscillatorNode(
-        this.context_, {frequency: frequency, type: waveform});
-
-    this.lowPassFilter = new BiquadFilterNode(
-        this.context_, {frequency: cutoff, type: 'lowpass'});
+        this.context_, {frequency: pitch, type: 'sawtooth'});
+    this.lowPassFilter_ = new BiquadFilterNode(
+        this.context_, {frequency: t, type: 'lowpass'});
 
     this.output = new GainNode(this.context_);
-    this.oscillatorA_.connect(this.lowPassFilter).connect(this.output);
+    this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
+    this.oscillatorA_.start();
+  }
+
+  set cutoff(cutoff) {
+    this.lowPassFilter_.frequency.value = cutoff;
   }
 
   /**
@@ -65,27 +74,27 @@ class PolySynthVoice {
   start() {
     // Ramp to full amplitude in attack (ms) and to sustain in decay (ms).
     const t = this.context_.currentTime;
-    const timeToFullAmplitude = t + this.attack_ / 1000;
-    const timeToSustain = timeToFullAmplitude + this.decay_ / 1000;
+    const timeToFullAmplitude = t + this.attack_;
+    const timeToSustain = timeToFullAmplitude + this.decay_;
     this.output.gain.setValueAtTime(0, t);
     this.output.gain.linearRampToValueAtTime(1, timeToFullAmplitude);
     this.output.gain.linearRampToValueAtTime(this.sustain_, timeToSustain);
-    this.oscillatorA_.start();
   }
 
   /**
    * On key release, stop the note according to this.release_.
    */
   release() {
-    // Cancel scheduled audio param changes, and fade note according to release.
+    // Cancel scheduled audio param changes, and fade note according to
+    // release time.
     const t = this.context_.currentTime;
-    const timeToZeroAmplitude = t + this.release_ / 1000;
+    const timeToZeroAmplitude = t + this.release_;
     this.output.gain.cancelAndHoldAtTime(t);
     this.output.gain.linearRampToValueAtTime(0, timeToZeroAmplitude);
     this.oscillatorA_.stop(timeToZeroAmplitude);
 
     // Trigger the parent synthesizer to remove its reference to the voice when
     // the oscillator has stopped.
-    window.setTimeout(this.parentSynthesizer_.endNote(this.note_), this.release_);
+    this.oscillatorA_.onended = this.synth_.endNote(this.noteName_);
   }
 }

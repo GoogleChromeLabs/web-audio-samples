@@ -78,19 +78,19 @@ class PolySynthDemo {
    * Play a note when a mapped key is pressed. This method implements a function
    * triggered in qwerty-hancock.min.js.
    * @param {String} note the note to be played, e.g. A4 for an octave four A
-   * @param {Number} frequency the corresponding frequency of the note, e.g 440
+   * @param {Number} pitch the corresponding pitch of the note, e.g 440
    */
-  keyDown(note, frequency) {
-    this.polySynth_.playNote(note, frequency);
+  keyDown(note, pitch) {
+    this.polySynth_.playVoice(note, pitch);
   }
 
   /**
    * Release the note. This method implements a function triggered in
    * qwerty-hancock.min.js
    * @param {String} note the note to be played, e.g. A4 for an octave 4 A
-   * @param {Number} frequency the corresponding frequency of the note, e.g 440
+   * @param {Number} pitch the corresponding pitch of the note, e.g 440
    */
-  keyUp(note, frequency) {
-    this.polySynth_.releaseNote(note, frequency);
+  keyUp(note, pitch) {
+    this.polySynth_.releaseVoice(note, pitch);
   }
 }
