@@ -26,15 +26,13 @@ class PolySynthVoice {
    * @param {PolySynth} synth The synthesizer that manages this voice.
    * @param {String} noteName The name of the note corresponding to the pitch.
    * @param {Number} pitch The frequency corresponding to the voice's note
-   * @param {Object} parameters Voice settings which will not change as a
-   *                            voice is played.
    */
   constructor(noteName, pitch, synth) {
     this.synth_ = synth;
     this.context_ = synth.context;
-    this.parameters_ = synth.getParameters();
-    this.settings_ = synth.getSettings();
-
+    this.onlineParams_ = synth.getOnlineParams();
+    this.offlineParams_ = synth.getOfflineParams();
+    
     // The name of the note is used as an argument in the |this.synth_.endNote|
     // callback.
     this.noteName_ = noteName;
@@ -50,7 +48,11 @@ class PolySynthVoice {
     this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
     this.oscillatorA_.start();
   }
-
+  
+  /**
+   * Sets the cutoff frequency for the low pass filter.
+   * @param  {Number} cutoff The new cutoff for the low pass filter.
+   */
   set cutoff(cutoff) {
     this.lowPassFilter_.frequency.value = cutoff;
   }
@@ -61,22 +63,22 @@ class PolySynthVoice {
   start() {
     // Ramp to full amplitude in attack (ms) and to sustain in decay (ms).
     const t = this.context_.currentTime;
-    const timeToFullAmplitude = t + this.settings_.attack;
-    const timeToSustain = timeToFullAmplitude + this.settings_.decay;
+    const timeToFullAmplitude = t + this.offlineParams_.attack;
+    const timeToSustain = timeToFullAmplitude + this.offlineParams_.decay;
     this.output.gain.setValueAtTime(0, t);
     this.output.gain.linearRampToValueAtTime(1, timeToFullAmplitude);
     this.output.gain.linearRampToValueAtTime(
-        this.settings_.sustain, timeToSustain);
+        this.offlineParams_.sustain, timeToSustain);
   }
 
   /**
-   * On key release, stop the note according to this.release_.
+   * On key release, stop the note according to |this.release_|.
    */
   release() {
     // Cancel scheduled audio param changes, and fade note according to
     // release time.
     const t = this.context_.currentTime;
-    const timeToZeroAmplitude = t + this.synth_.getSettings().release;
+    const timeToZeroAmplitude = t + this.offlineParams_.release;
     this.output.gain.cancelAndHoldAtTime(t);
     this.output.gain.linearRampToValueAtTime(0, timeToZeroAmplitude);
     this.oscillatorA_.stop(timeToZeroAmplitude);

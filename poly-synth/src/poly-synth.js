@@ -30,6 +30,17 @@ class PolySynth {
     this.activeVoices_ = [];
     this.releasedVoices_ = [];
 
+    this.offlineParams_ = {
+      attack: 0,
+      decay: 0,
+      sustain: 0.1,
+      release: 0
+    };
+
+    this.onlineParams_ = {
+
+    }
+
     // The default maximum cutoff is set below the upper edge of human
     // hearing and the minimum cutoff is above the lower edge of human hearing.
     // Frequencies at either extreme are not typically used in electronic music.
@@ -78,8 +89,29 @@ class PolySynth {
     delete this.releasedVoices_[noteName];
   }
 
+  setParameterValue(value, id, online) {
+    
+    if (online) {
+      if (typeof(this.onlineParams_[id]) === 'undefined')
+        throw('The parameter ' + id + ' is not supported');
+
+      this.onlineParams_[id] = value;
+
+      // for each voice
+
+    } else {
+      if (typeof(this.offlineParams_[id]) === 'undefined')
+        throw('The parameter ' + id + ' is not supported');
+
+      this.offlineParams_[id] = value;
+      
+
+    }
+
+  }
+
   /**
-   * @typedef {Object} Parameters which can change the output of
+   * @typedef {Object} OnlineParams which can change the output of
    *                   a voice while it is active. These values are mapped to
    *                   Audio Params in each voice.
    * @property {Number} lowPassCutoff The lowpass filter's cutoff.
@@ -90,11 +122,8 @@ class PolySynth {
    * produced during the life cycle of a voice.
    * @returns {Parameters}
    */
-  getParameters() {
-    // TODO: Add Q, and other parameters. Let ADSR be controlled by variables.
-    return {
-      lowPassCutoff: this.lowPassCutoff_
-    }
+  getOnlineParameters() {
+    return this.onlineParameters_;
   }
 
   /**
@@ -114,14 +143,10 @@ class PolySynth {
    * the sound produced by a voice as it is played.
    * @returns {Settings} settings
    */
-  getSettings() {
-    return {
-      attack: 0,
-      decay: 0,
-      sustain: 0.1,
-      release: 0
-    }
+  getOfflineParameters() {
+    return this.offlineParameters_;
   }
+
 
   /**
    * Set the low pass filter cutoff for each voice.

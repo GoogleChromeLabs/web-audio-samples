@@ -16,14 +16,18 @@
 class ParamController {
   /**
    * Event handler and layout for audio parameters with numeric input values
-   * @param  {String} parentId id for parent element
-   * @param  {Function} onChangeCallback callback to trigger on input
-   * @param  {String} options.name the name of the parameter
-   * @param  {String} options.type the type of input (only support for range)
-   * @param  {String} options.min the minimum possible value
-   * @param  {String} options.max the maximum possible value
-   * @param  {String} options.step the parameter's increment value
-   * @param  {String} options.default the default value of the parameter
+   * @param {String} parentId id for parent element.
+   * @param {Function} onChangeCallback Callback to trigger on input.
+   * @param {Object} options
+   * @param {String} options.name The name of the parameter.
+   * @param {String} options.id A variable name associated with the parameter.
+   * @param {String} options.type The type of input (only support for range).
+   * @param {String} options.min The minimum possible value.
+   * @param {String} options.max The maximum possible value.
+   * @param {String} options.step The parameter's increment value.
+   * @param {String} options.default The default value of the parameter.
+   * @param {Boolean} options.online True if changing the parameter affects
+   *                                 currently playing (online) audio.
    */
   constructor(parentId, onChangeCallback, options) {
     if (options == null) options = {};
@@ -36,17 +40,19 @@ class ParamController {
     this.header_ = document.createElement('div');
     this.name_ = options.name || 'Parameter';
     this.header_.textContent = this.name_ + ': ';
-    this.header_.textContent += options.default || 1;
+    this.header_.textContent += options.default || 0;
     container.appendChild(this.header_);
 
     // Default to percentage scale for input unless specified in options.
     this.controller_ = document.createElement('input');
     this.controller_.type = options.type || 'range';
     this.controller_.min = options.min || 0;
-    this.controller_.max = options.max || 100;
-    this.controller_.step = options.step || 1;
-    this.controller_.value = options.default || 1;
+    this.controller_.max = options.max || 0;
+    this.controller_.step = options.step || 0;
+    this.controller_.value = options.default || 0;
     this.onChangeCallback_ = onChangeCallback;
+    this.id_ = options.id || this.name_;
+    this.online_ = options.online || false;
 
     if (this.controller_.type == 'range') {
       this.controller_.className += 'slider';
@@ -75,6 +81,6 @@ class ParamController {
   change_() {
     this.header_.textContent = this.name_ + ': ';
     this.header_.textContent += this.controller_.value;
-    this.onChangeCallback_(this.controller_.value);
+    this.onChangeCallback_(this.controller_.value, this.id_, this.online_);
   }
 }
