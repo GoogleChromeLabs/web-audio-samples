@@ -23,14 +23,14 @@ limitations under the License.
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
       // All tests pass for all legal powers in the range [3000, 384000].
-      const sampleRate = Math.pow(2,12);
+      const sampleRate = Math.pow(2, 12);
 
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
       const bufferSize = 512;
       const timeConstant = 0.0025;
-
       const scriptProcessorLatency = bufferSize * 2;
+
       let audit = Audit.createTaskRunner();
       
       // With a threshold of linearThreshold and a constant source of some value
@@ -50,10 +50,10 @@ limitations under the License.
         // The noise gate scales values for sine waves, which reach an
         // an average power of a^2 / 2.
         const linearThreshold = 0.5;
-        const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
+        const scaledThreshold = 2 * linearThreshold;
 
         // The noise gate bases muting decisions on a decibel scale.
-        const threshold = NoiseGate.toDecibel_(scaledThreshold);
+        const threshold = NoiseGate.toDecibel(scaledThreshold);
 
         // Attack and release are both 0.
         let noisegate =
@@ -151,9 +151,10 @@ limitations under the License.
         // closed, causing the test to fail. The choice of 0.5 for threshold
         // is arbitrary and can be any positive value.
         const linearThreshold = 0.5;
-        const threshold = NoiseGate.toDecibel_(linearThreshold);
-        const aboveThresholdGain = linearThreshold * 1.25;
-        const belowThresholdGain = linearThreshold * 0.75;
+        const scaledThreshold = linearThreshold * 2;
+        const threshold = NoiseGate.toDecibel(scaledThreshold);
+        const aboveThresholdGain = scaledThreshold * 1.25;
+        const belowThresholdGain = scaledThreshold * 0.75;
 
         // Attack and release are both 0.
         let noisegate =
@@ -253,15 +254,15 @@ limitations under the License.
         const numberOfChannels = 2;
 
         // The beneathThresholdGain and linearThreshold are set so that
-        // (1 * sqrt(2) + beneathThresholdGain^2 * sqrt(2)) / 2
-        // < linearThreshold since the envelope will scale up values by the
-        // square root of two and the test is designed so that signals after
-        // timeToThreshold are muted in both channels.
+        // (1 * 2 + beneathThresholdGain * 2) / 2 < linearThreshold since the
+        // envelope will be scale up by a factor of 2 and the test
+        // is designed so that signals after timeToThreshold are muted in both
+        // channels.
         const beneathThresholdGain = 0.1;
         const timeToThreshold = 0.5;
         const linearThreshold = 0.5;
-        const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
-        const threshold = NoiseGate.toDecibel_(scaledThreshold);
+        const scaledThreshold = 2 * linearThreshold;
+        const threshold = NoiseGate.toDecibel(scaledThreshold);
 
         let context =
             new OfflineAudioContext(numberOfChannels, testFrames, sampleRate);
@@ -342,8 +343,7 @@ limitations under the License.
         const transitionIndex = length / 2;
 
         // Compute weights uses a sine normalized decibel scale.
-        const threshold = NoiseGate.toDecibel_(
-            Math.sqrt(envelope[transitionIndex]) * Math.sqrt(2));
+        const threshold = NoiseGate.toDecibel(2 * envelope[transitionIndex]);
 
         let noisegate = new NoiseGate(context, {threshold});
         let weights = noisegate.computeWeights_(envelope);

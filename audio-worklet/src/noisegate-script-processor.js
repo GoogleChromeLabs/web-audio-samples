@@ -16,9 +16,9 @@
 
 /**
  * @class NoiseGate
- * A noise gate allows audio signals to pass only when the registered volume is
- * above a specified threshold. This class is a wrapper around the script
- * processor node.
+ * @description  A noise gate allows audio signals to pass only when the
+ * registered volume is above a specified threshold. This class is a wrapper
+ * around the script processor node.
  */
 class NoiseGate {
   /**
@@ -65,7 +65,7 @@ class NoiseGate {
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
     // the expense of delay and vice versa.
-    this.alpha_ = NoiseGate.getAlphaFromTimeConstant_(
+    this.alpha_ = this.getAlphaFromTimeConstant_(
         timeConstant, this.context_.sampleRate);
 
     this.noiseGateKernel_ = this.context_.createScriptProcessor(
@@ -180,10 +180,10 @@ class NoiseGate {
     // or closed.
     for (let i = 0; i < envelope.length; i++) {
       // For sine waves, the envelope eventually reaches an average power of
-      // a^2 / 2. Sine waves are therefore scaled back to the original amplitude,
-      // but other waveforms or constant sources can only be approximated.
-      const scaledEnvelopeValue =
-          NoiseGate.toDecibel_(Math.sqrt(envelope[i]) * Math.sqrt(2));
+      // a^2 / 2. Sine waves are therefore scaled back to the original
+      // amplitude, but other waveforms or constant sources can only be
+      // approximated.
+      const scaledEnvelopeValue = NoiseGate.toDecibel(2 * envelope[i]);
       if (scaledEnvelopeValue < this.threshold) {
         const weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
@@ -203,18 +203,19 @@ class NoiseGate {
    *                               1 - 1/e of its value given a transition from
    *                               0 to 1.
    * @param  {Number} sampleRate The number of samples per second.
-   * @return {Number} Alpha weight governing envelope response.
+   * @return {Number} Weight governing envelope response.
    */
-  static getAlphaFromTimeConstant_(timeConstant, sampleRate) {
+  getAlphaFromTimeConstant_(timeConstant, sampleRate) {
     return Math.exp(-1 / (sampleRate * timeConstant));
   }
 
   /**
    * Converts number into decibel measure.
-   * @param  {Number} linearAmplitude The amplitude of the signal.
-   * @return {Number} decibelValue The dBFS of the amplitude level.
+   * @param  {Number} powerLevel The power level of the signal.
+   * @return {Number} The dBFS of the power level.
    */
-  static toDecibel_(linearAmplitude) {
-    return 10 * Math.log10(linearAmplitude);
+  static toDecibel(powerLevel) {
+    return 10 * Math.log10(powerLevel);
   }
 }
+
