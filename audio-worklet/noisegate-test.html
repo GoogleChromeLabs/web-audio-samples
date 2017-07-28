@@ -24,10 +24,12 @@ limitations under the License.
       // It is held artificially low for easy inspection of audio buffers.
       // All tests pass for all legal powers in the range [3000, 384000].
       const sampleRate = Math.pow(2,12);
+
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
       const bufferSize = 512;
       const timeConstant = 0.0025;
+
       const scriptProcessorLatency = bufferSize * 2;
       let audit = Audit.createTaskRunner();
       
@@ -51,7 +53,7 @@ limitations under the License.
         const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
 
         // The noise gate bases muting decisions on a decibel scale.
-        const threshold = toDecibel_(scaledThreshold);
+        const threshold = NoiseGate.toDecibel_(scaledThreshold);
 
         // Attack and release are both 0.
         let noisegate =
@@ -149,7 +151,7 @@ limitations under the License.
         // closed, causing the test to fail. The choice of 0.5 for threshold
         // is arbitrary and can be any positive value.
         const linearThreshold = 0.5;
-        const threshold = toDecibel_(linearThreshold);
+        const threshold = NoiseGate.toDecibel_(linearThreshold);
         const aboveThresholdGain = linearThreshold * 1.25;
         const belowThresholdGain = linearThreshold * 0.75;
 
@@ -259,7 +261,7 @@ limitations under the License.
         const timeToThreshold = 0.5;
         const linearThreshold = 0.5;
         const scaledThreshold = Math.sqrt(linearThreshold) * Math.sqrt(2);
-        const threshold = toDecibel_(scaledThreshold);
+        const threshold = NoiseGate.toDecibel_(scaledThreshold);
 
         let context =
             new OfflineAudioContext(numberOfChannels, testFrames, sampleRate);
@@ -341,7 +343,7 @@ limitations under the License.
 
         // Compute weights uses a sine normalized decibel scale.
         const threshold = NoiseGate.toDecibel_(
-            Math.sqrt(envelope[length / 2]) * Math.sqrt(2));
+            Math.sqrt(envelope[transitionIndex]) * Math.sqrt(2));
 
         let noisegate = new NoiseGate(context, {threshold});
         let weights = noisegate.computeWeights_(envelope);
@@ -435,10 +437,6 @@ limitations under the License.
           firstIndex = (i < firstIndex) ? i : firstIndex;
       }
       return firstIndex;
-    }
-
-    function toDecibel_(linearValue) {
-      return 20 * Math.log10(linearValue);
     }
 
     function toIndex_(time, sampleRate) {

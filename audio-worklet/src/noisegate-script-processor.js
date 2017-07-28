@@ -13,31 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @class NoiseGate
+ * A noise gate allows audio signals to pass only when the registered volume is
+ * above a specified threshold. This class is a wrapper around the script
+ * processor node.
+ */
 class NoiseGate {
   /**
-   * A Noise gate allows audio signals to pass only when the registered volume
-   * is above a specified threshold. This class is a wrapper around the script
-   * processor node.
-   * @class NoiseGate
    * @constructor
-   * @param {BaseAudioContext} context the audio context
-   * @param {Number} options.channels the number of input and output
+   * @param {BaseAudioContext} context The audio context
+   * @param {Object} options Parameters for the noise gate.
+   * @param {Number} options.channels The number of input and output
    *                                  channels. The default value is one, and
    *                                  the implementation supports
    *                                  a maximum of two channels.
-   * @param {Object} options parameters for the noise gate
-   * @param {Number} options.attack seconds for gate to fully close. The default
+   * @param {Number} options.attack Seconds for gate to fully close. The default
    *                                is zero.
-   * @param {Number} options.release seconds for gate to fully open. The default
+   * @param {Number} options.release Seconds for gate to fully open. The default
    *                                 is zero.
-   * @param {Number} options.bufferSize the size of an onaudioprocess window.
+   * @param {Number} options.bufferSize The size of an onaudioprocess window.
    *                                    The default lets the script processor
    *                                    decide.
-   * @param {Number} options.timeConstant seconds for envelope follower's
-   *                                   smoothing filter delay. The
-   *                                   default has been set experimentally to
-   *                                   0.0025s.
-   * @param {Number} options.threshold decibel level beneath which sound is
+   * @param {Number} options.timeConstant Seconds for envelope follower's
+   *                                      smoothing filter delay. The
+   *                                      default has been set experimentally to
+   *                                      0.0025s.
+   * @param {Number} options.threshold Decibel level beneath which sound is
    *                                   muted. The default is 0 dBFS.
    */
   constructor(context, options) {
@@ -88,8 +91,8 @@ class NoiseGate {
   }
 
   /**
-   * Gradually mutes input which registers beneath specified threshold.
-   * @param {AudioProcessingEvent} event object containing
+   * Control the dynamic range of input based on specified threshold.
+   * @param {AudioProcessingEvent} event An Event object containing
    *                                     input and output buffers
    */
   onaudioprocess_(event) {
@@ -122,21 +125,21 @@ class NoiseGate {
   /**
    * Detect level using the difference equation for the Root Mean Squared
    * value of the input signal.
-   * @param {Float32Array} channel input channel data
-   * @return {Float32Array} the level of the signal, the signal's amplitude.
+   * @param {Float32Array} channelData Input channel data.
+   * @return {Float32Array} The level of the signal, the signal's amplitude.
    */
-  detectLevel_(channel) {
+  detectLevel_(channelData) {
     // The signal level is determined by filtering high frequency oscillation
     // with exponential smoothing.
     // This is equivalent to computing the root-mean-square (RMS) value
     // of the signal. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for
     // details.
     this.envelope_[0] = this.alpha_ * this.previousLevel_ +
-        (1 - this.alpha_) * Math.pow(channel[0], 2);
+        (1 - this.alpha_) * Math.pow(channelData[0], 2);
 
-    for (let j = 1; j < channel.length; j++) {
+    for (let j = 1; j < channelData.length; j++) {
       this.envelope_[j] = this.alpha_ * this.envelope_[j - 1] +
-          (1 - this.alpha_) * Math.pow(channel[j], 2);
+          (1 - this.alpha_) * Math.pow(channelData[j], 2);
     }
     this.previousLevel_ = this.envelope_[this.envelope_.length - 1];
     
@@ -145,8 +148,8 @@ class NoiseGate {
 
   /**
    * Computes an array of weights which determines what samples are silenced.
-   * @param {Float32Array} envelope array of amplitudes from envelope follower
-   * @return {Float32Array} weights numbers in the range 0 to 1 set in
+   * @param {Float32Array} envelope Array of amplitudes from envelope follower.
+   * @return {Float32Array} weights Numbers in the range 0 to 1 set in
    *                                accordance with the threshold, the envelope,
    *                                and attack and release. These will be
    *                                multiplied by the corresponding
@@ -196,11 +199,11 @@ class NoiseGate {
 
   /**
    * Computes the filter coefficent for the envelope filter.
-   * @param  {Number} timeConstant the time in seconds for filter to reach
+   * @param  {Number} timeConstant The time in seconds for filter to reach
    *                               1 - 1/e of its value given a transition from
    *                               0 to 1.
-   * @param  {Number} sampleRate the number of samples per second
-   * @return {Number} alpha weight governing envelope response
+   * @param  {Number} sampleRate The number of samples per second.
+   * @return {Number} Alpha weight governing envelope response.
    */
   static getAlphaFromTimeConstant_(timeConstant, sampleRate) {
     return Math.exp(-1 / (sampleRate * timeConstant));
@@ -208,10 +211,10 @@ class NoiseGate {
 
   /**
    * Converts number into decibel measure.
-   * @param  {Number} linearValue the amplitude of the signal
-   * @return {Number} decibelValue the dBFS of the amplitude level
+   * @param  {Number} linearAmplitude The amplitude of the signal.
+   * @return {Number} decibelValue The dBFS of the amplitude level.
    */
-  static toDecibel_(linearValue) {
-    return 20 * Math.log10(linearValue);
+  static toDecibel_(linearAmplitude) {
+    return 10 * Math.log10(linearAmplitude);
   }
 }
