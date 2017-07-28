@@ -40,16 +40,15 @@ registerProcessor('bitcrusher-audio-worklet',
   constructor(options) {
     super(options);
 
-    // index_ and previousSample_ are member variables to handle block
-    // transitions. index_ refers to the current position in the input
-    // AudioBuffer, and previousSample_ refers to the corresponding sample.
+    // |index_| and |previousSample_| are member variables to handle block
+    // transitions. |index_| refers to the current position in the input
+    // AudioBuffer, and |previousSample_| refers to the corresponding sample.
     this.index_ = 0;
     this.previousSample_ = 0;
   }
 
   /**
-   * Bit crush upon receiving input AudioBuffer, applying lo-fi effects to the
-   * contents of the output buffer.
+   * Bitcrush upon receiving input AudioBuffer.
    * @param {AudioBuffer} input input audio data
    * @param {AudioBuffer} output output audio data
    * @param {Object} parameters

@@ -62,18 +62,20 @@ limitations under the License.
       // If the browser implements AudioWorklet, the demo enables the user to
       // switch between audio worklet and script processor implementations of
       // the bitcrusher.
-      const enableWorklet = AudioWorkletHelper.isAvailable();
-      if (enableWorklet) {
+      const workletIsAvailable = AudioWorkletHelper.isAvailable();
+      
+      if (workletIsAvailable) {
         window.audioWorklet.addModule('src/bitcrusher-audio-worklet.js')
             .then(() => {
-                const context = new AudioContext();
-                let demo = new BitcrusherDemo(context, enableWorklet);
-                demo.initializeGUI('container', 'workletButton',
-                                   'scriptProcessorButton');
+                beginBitcrusherDemo();
             });
       } else {
+        beginBitcrusherDemo();
+      }
+
+      function beginBitcrusherDemo() {
         const context = new AudioContext();
-        let demo = new BitcrusherDemo(context, enableWorklet);
+        let demo = new BitcrusherDemo(context, workletIsAvailable);
         demo.initializeGUI('container', 'workletButton',
                            'scriptProcessorButton');
       }

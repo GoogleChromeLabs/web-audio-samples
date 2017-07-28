@@ -19,19 +19,19 @@ limitations under the License.
       // This file tests correctness of the bitcrusher on the script processor.
       // These test will be modified to test the AudioWorklet when
       // AudioWorkletNode works in an OfflineAudioContext.
-      testSampleReduction();
-      testBitcrusherInAudioContext();
+      testSampleRateReduction();
+      testBitcrusherInOfflineAudioContext();
       testMultipleChannels();
       testIllegalInput();
 
-      /**
-       * Verify the sample rate reduction component of the bitcrusher operating
-       * outside of an audio context. A bitcrushed array generated from an
-       * arbitrary sequence of numbers should hold sequences of consecutive
-       * equal numbers, controlled by the variable factor.
-       */
-      function testSampleReduction() {
-        let context = new OfflineAudioContext(1, 44100, 44100);
+      // Verify the sample rate reduction component of the bitcrusher operating
+      // outside of an audio context. A bitcrushed array generated from an
+      // arbitrary sequence of numbers should hold sequences of consecutive
+      // equal numbers, controlled by the variable factor.
+      function testSampleRateReduction() {
+        const sampleRate = 44100;
+        const renderLength = 44100;
+        let context = new OfflineAudioContext(1, sampleRate, renderLength);
 
         for (let reduction = 1; reduction < 10; reduction++) {
           // BufferSize chosen arbitrarily and can be any value greater than
@@ -57,16 +57,15 @@ limitations under the License.
         }
       }
 
-      /**
-       * Verify that the bitcrusher does not alter samples beyond an acceptable
-       * margin when parameterized to avoid information reduction.
-       */
-      function testBitcrusherInAudioContext() {
+      // Verify that the bitcrusher does not alter samples beyond an acceptable
+      // margin when parameterized to avoid information reduction.
+      function testBitcrusherInOfflineAudioContext() {
         // Sample Rate is held at a power of two to avoid sample interpolation
         // from the delay node. It is artificially low for easy inspection of
         // buffers.
         const sampleRate = 4096;
-        let context = new OfflineAudioContext(2, sampleRate, sampleRate);
+        const renderLength = 4096;
+        let context = new OfflineAudioContext(2, sampleRate, renderLength);
         const reduction = 1;
         const bitDepth = 24;
         // BufferSize needs to be a power of two higher than 256 and lower
@@ -146,9 +145,7 @@ limitations under the License.
             });
       }
 
-      /**
-       * Verify that bitcrusher handles illegal input correctly.
-       */
+      // Verify that bitcrusher handles illegal input correctly.
       function testIllegalInput() {
         try {
           let bitcrusher = new Bitcrusher(0);
@@ -157,22 +154,24 @@ limitations under the License.
         catch (error) {}
       }
 
-      /**
-       * Verify that bitcrusher applies sample reduction on multiple channels of
-       * input, and that sample reduction works across multiple buffers (which
-       * requires bitcrusher memory.)
-       */
+      // Verify that bitcrusher applies sample reduction on multiple channels of
+      // input, and that sample reduction works across multiple buffers (which
+      // requires bitcrusher memory.)
       function testMultipleChannels() {
         const channelCount = 2;
-        let context = new OfflineAudioContext(channelCount, 44100, 44100);
+        const sampleRate = 44100;
+        const renderLength = 44100;
+        let context =
+            new OfflineAudioContext(channelCount, sampleRate, renderLength);
         // Reduction should not be a factor of bufferSize for full coverage.
         const reduction = 7;
         const bitDepth = 24;
         const bufferSize = 512;
         // The two signals should differ to verify that the bitcrusher does not
-        // place the results from one channel to another.
-        let oscillator = new OscillatorNode(context, {frequency: 112});
-        let oscillator2 = new OscillatorNode(context, {frequency: 231});
+        // place the results from one channel into another. The two selected
+        // frequencies 100 and 200 are arbitrary and can be any value.
+        let oscillator = new OscillatorNode(context, {frequency: 100});
+        let oscillator2 = new OscillatorNode(context, {frequency: 200});
         let merger = new ChannelMergerNode(context, {numberOfInputs: 2});
         let bitcrusher = new Bitcrusher(
             context, {bufferSize, channelCount, bitDepth, reduction});

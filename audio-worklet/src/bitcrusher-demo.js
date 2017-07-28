@@ -16,23 +16,23 @@
 class BitcrusherDemo {
   /**
    * @class BitcrusherDemo
-   * @constructor
-   * Initalizes and modifies bitcrusher settings in response to GUI input.
+   * @constructor Initializes and modifies bitcrusher settings in response to
+   * GUI input.
    * @param {AudioContext} context the Audio Context
-   * @param {Boolean} enableWorklet switch depending on browser
+   * @param {Boolean} workletIsAvailable switch depending on browser
    *                  which determines if both script processor and audio
    *                  worklet should be used. If false, only the script
    *                  processor will be used.
    */
-  constructor(context,  enableWorklet) {
+  constructor(context, workletIsAvailable) {
     this.context_ = context;
     this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
-    this.enableWorklet_ = enableWorklet;
+    this.workletIsAvailable_ = workletIsAvailable;
 
     // These default values will be overriden if the browser supports
     // AudioWorklet. If not, these values must be defined here since they
     // cannot be fetched from the getParameterDescriptors method of
-    // bitcrusher-audio-worklet.js
+    // bitcrusher-audio-worklet.js.
     this.bitDepthDefault_ = 24;
     this.bitDepthMax_ = 24;
     this.bitDepthMin_ = 1;
@@ -41,7 +41,7 @@ class BitcrusherDemo {
     this.reductionMin_ = 1;
 
     // The user can swap between the script processor and audio worklet node.
-    if (this.enableWorklet_) {
+    if (this.workletIsAvailable_) {
       this.bitcrusherAudioWorklet_ =
           new AudioWorkletNode(this.context_, 'bitcrusher-audio-worklet');
       this.paramBitDepth_ =
@@ -134,7 +134,7 @@ class BitcrusherDemo {
         });
 
     let workletButton = document.getElementById(workletButtonId);
-    if (this.enableWorklet_)
+    if (this.workletIsAvailable_)
       workletButton.addEventListener('click', this.workletSelected.bind(this));
     else
       workletButton.disabled = true;
@@ -165,7 +165,7 @@ class BitcrusherDemo {
     const numericValue = parseFloat(value);
     if (numericValue < 1) throw 'The minimum bit depth rate is 1.';
     
-    if (this.enableWorklet_)
+    if (this.workletIsAvailable_)
       this.paramBitDepth_.value = numericValue;
     this.bitcrusherScriptProcessor_.bitDepth = numericValue;
   }
@@ -179,7 +179,7 @@ class BitcrusherDemo {
     const numericValue = parseInt(value);
     if (numericValue < 1) throw 'The minimum reduction rate is 1.';
     
-    if (this.enableWorklet_)
+    if (this.workletIsAvailable_)
       this.paramReduction_.value = numericValue;
     this.bitcrusherScriptProcessor_.reduction = numericValue;
   }
@@ -203,7 +203,7 @@ class BitcrusherDemo {
     
     this.bufferSource_.connect(this.bitcrusherScriptProcessor_.input);
 
-    if (this.enableWorklet_)
+    if (this.workletIsAvailable_)
       this.bufferSource_.connect(this.bitcrusherAudioWorklet_);
 
     this.bufferSource_.onended = () => {

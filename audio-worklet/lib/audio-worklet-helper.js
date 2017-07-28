@@ -54,6 +54,11 @@ const AudioWorkletHelper = (() => {
         }
       });
     },
+    
+    /**
+     * Check if the browser supports AudioWorklet.
+     * @return {Boolean} true if the browser supports AudioWorklet.
+     */
     isAvailable: isAvailable_
   };
 })();
