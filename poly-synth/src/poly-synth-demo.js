@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * @class PolySynthDemo
+ * @description  Triggers synthesizer events based on GUI input.
+ */
 class PolySynthDemo {
   /**
-   * @class
    * @constructor
-   * Triggers synthesizer events based on GUI input.
    * @param {AudioContext} context the audio context
    */
   constructor(context) {
@@ -43,7 +45,7 @@ class PolySynthDemo {
    */
   initializeGUI(containerId) {
     this.lowPassCutoffSlider_ = new ParamController(
-        containerId, this.polySynth_.setLowPass.bind(this.polySynth_), {
+        containerId, this.polySynth_.setCutoff.bind(this.polySynth_), {
           type: 'range',
           min: this.polySynth_.lowPassMinCutoff,
           max: this.polySynth_.lowPassMaxCutoff,
