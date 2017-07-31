@@ -254,8 +254,8 @@ limitations under the License.
         const numberOfChannels = 2;
 
         // The beneathThresholdGain and linearThreshold are set so that
-        // (1 * 2 + beneathThresholdGain * 2) / 2 < linearThreshold since the
-        // envelope will be scale up by a factor of 2 and the test
+        // (1 + beneathThresholdGain) < linearThreshold since the
+        // envelope will be scaled up by a factor of 2 and the test
         // is designed so that signals after timeToThreshold are muted in both
         // channels.
         const beneathThresholdGain = 0.1;
@@ -342,7 +342,7 @@ limitations under the License.
         let envelope = Array.apply(null, {length}).map((data, index) => index);
         const transitionIndex = length / 2;
 
-        // Compute weights uses a sine normalized decibel scale.
+        // |computeWeights_| uses a sine normalized decibel scale.
         const threshold = NoiseGate.toDecibel(2 * envelope[transitionIndex]);
 
         let noisegate = new NoiseGate(context, {threshold});

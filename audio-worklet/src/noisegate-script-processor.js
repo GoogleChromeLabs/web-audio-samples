@@ -203,7 +203,7 @@ class NoiseGate {
    *                               1 - 1/e of its value given a transition from
    *                               0 to 1.
    * @param  {Number} sampleRate The number of samples per second.
-   * @return {Number} Weight governing envelope response.
+   * @return {Number} Coefficient governing envelope response.
    */
   getAlphaFromTimeConstant_(timeConstant, sampleRate) {
     return Math.exp(-1 / (sampleRate * timeConstant));
