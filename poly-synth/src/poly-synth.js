@@ -15,31 +15,20 @@
  */
 /**
  * @class PolySynth
- * @description  Manages the life cycle of voices.
+ * @description Manages the life cycle of voices.
  */
 class PolySynth {
   /**
    * @constructor
-   * @param {AudioContext} context the audio context
+   * @param {AudioContext} context The audio context.
    */
   constructor(context) {
     if (!(context instanceof AudioContext))
       throw context + ' is not a valid audio context.';
 
-    this.context = context;
+    this.context_ = context;
     this.activeVoices_ = [];
     this.releasedVoices_ = [];
-
-    this.offlineParams_ = {
-      attack: 0,
-      decay: 0,
-      sustain: 0.1,
-      release: 0
-    };
-
-    this.onlineParams_ = {
-
-    }
 
     // The default maximum cutoff is set below the upper edge of human
     // hearing and the minimum cutoff is above the lower edge of human hearing.
@@ -47,32 +36,70 @@ class PolySynth {
     this.lowPassMaxCutoff = 12000;
     this.lowPassMinCutoff = 60;
 
-    // By default, the filter should not affect audible frequencies.
-    this.lowPassCutoff_ = this.lowPassMaxCutoff;
+    // The meaning of each parameter is defined in |getParameters()|.
+    this.parameters_ = {
+      cutoff: this.lowPassMaxCutoff,
+      attack: 0,
+      decay: 0,
+      sustain: 0.1,
+      release: 0
+    };
 
-    // The client is responsible for connecting [this.output] to a destination.
-    this.output = new GainNode(this.context);
+    // The client is responsible for connecting |this.output| to a destination.
+    this.output = new GainNode(this.context_);
   }
 
   /**
-   * Create a new voice and add it to the map of active voices.
+   * @typedef {Object} Parameters Parameters which affect the output of a voice
+   *                              if set before the voice is constructed.
+   * @property {Number} attack Seconds until full amplitude.
+   * @property {Number} decay Seconds until sustain level.
+   * @property {Number} sustain The steady amplitude of the note as it
+   *                            is pressed.
+   * @property {Number} release Seconds between the release of a note
+   *                            and zero amplitude.
+   * @property {Number} release Seconds between the release of a note
+   *                            and zero amplitude.
+   */
+  /**
+   * Returns parameters that affect how a voice is constructed.
+   * @returns {Parameters}
+   */
+  getParameters() {
+    return this.parameters_;
+  }
+
+  /**
+   * Sets |this.parameters_[id]| to value.
+   * @param {Number} value The new value.
+   * @param {String} id The name of the parameter to set.
+   */
+  setParameter(value, id) {
+    if (typeof(this.parameters_[id]) === 'undefined')
+      throw('The parameter ' + id + ' is not supported');
+
+    this.parameters_[id] = parseFloat(value);
+  }
+
+  /**
+   * Create a new voice and add it to |this.activeVoices_|.
    * @param {String} noteName The note to be played, e.g. A4 for an octave 4 A.
    * @param {Number} pitch The corresponding pitch of the note, e.g 440.
    */
   playVoice(noteName, pitch) {
-    let voice = new PolySynthVoice(noteName, pitch, this);
+    let voice = new PolySynthVoice(this.context_, noteName, pitch, this);
     voice.output.connect(this.output);
     this.activeVoices_[noteName] = voice;
     voice.start();
   }
 
   /**
-   * Release the note.
+   * Release the note, moving its reference to voice to |this.releasedVoices_|.
    * @param {String} note The name of the note released which corresponds to its
-   *                      key in this.activeVoices_.
+   *                      key in |this.activeVoices_|.
    */
   releaseVoice(noteName) {
-    // Move reference to voice to the released voice map.
+    // Move reference to voice to |this.releasedVoices_|.
     let voice = this.activeVoices_[noteName];
     this.releasedVoices_[noteName] = voice;
     voice.release();
@@ -80,85 +107,12 @@ class PolySynth {
   }
 
   /**
-   * Remove references to the voice (corresponding to note). Voice trigger
+   * Remove references to the voice, corresponding to |noteName|. Voice triggers
    * this event.
    * @param {String} noteName The name of the note released which corresponds to
-   *                          its key in this.releasedVoices_.
+   *                          its key in |this.releasedVoices_|.
   */
   endVoice(noteName) {
     delete this.releasedVoices_[noteName];
-  }
-
-  setParameterValue(value, id, online) {
-    
-    if (online) {
-      if (typeof(this.onlineParams_[id]) === 'undefined')
-        throw('The parameter ' + id + ' is not supported');
-
-      this.onlineParams_[id] = value;
-
-      // for each voice
-
-    } else {
-      if (typeof(this.offlineParams_[id]) === 'undefined')
-        throw('The parameter ' + id + ' is not supported');
-
-      this.offlineParams_[id] = value;
-      
-
-    }
-
-  }
-
-  /**
-   * @typedef {Object} OnlineParams which can change the output of
-   *                   a voice while it is active. These values are mapped to
-   *                   Audio Params in each voice.
-   * @property {Number} lowPassCutoff The lowpass filter's cutoff.
-   */
-  
-  /**
-   * Returns parameters that can be modulated by the user to affect audio
-   * produced during the life cycle of a voice.
-   * @returns {Parameters}
-   */
-  getOnlineParameters() {
-    return this.onlineParameters_;
-  }
-
-  /**
-   * @typedef {Object} Settings Parameters which can change only affect the
-   *                            output of a voice if set before the voice is
-   *                            constructed.
-   * @property {Number} attack Seconds until full amplitude.
-   * @property {Number} decay Seconds until sustain level.
-   * @property {Number} sustain The steady amplitude of the note as it
-   *                            is pressed.
-   * @property {Number} release Seconds between the release of a note
-   *                            and zero amplitude.
-   */
-  
-  /**
-   * Returns settings that affect how a voice is constructed but do not alter
-   * the sound produced by a voice as it is played.
-   * @returns {Settings} settings
-   */
-  getOfflineParameters() {
-    return this.offlineParameters_;
-  }
-
-
-  /**
-   * Set the low pass filter cutoff for each voice.
-   * @param {Number} value the cutoff of the lowpass filter for each voice.
-   */
-  setCutoff(value) {
-    this.lowPassCutoff_ = value;
-    for (let voiceId in this.activeVoices_) {
-      this.activeVoices_[voiceId].cutoff = this.lowPassCutoff_;
-    }
-    for (let voiceId in this.releasedVoices_) {
-      this.releasedVoices_[voiceId].cutoff = this.lowPassCutoff_;
-    }
   }
 }

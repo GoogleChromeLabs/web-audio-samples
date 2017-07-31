@@ -26,8 +26,6 @@ class ParamController {
    * @param {String} options.max The maximum possible value.
    * @param {String} options.step The parameter's increment value.
    * @param {String} options.default The default value of the parameter.
-   * @param {Boolean} options.online True if changing the parameter affects
-   *                                 currently playing (online) audio.
    */
   constructor(parentId, onChangeCallback, options) {
     if (options == null) options = {};
@@ -52,7 +50,6 @@ class ParamController {
     this.controller_.value = options.default || 0;
     this.onChangeCallback_ = onChangeCallback;
     this.id_ = options.id || this.name_;
-    this.online_ = options.online || false;
 
     if (this.controller_.type == 'range') {
       this.controller_.className += 'slider';
@@ -81,6 +78,6 @@ class ParamController {
   change_() {
     this.header_.textContent = this.name_ + ': ';
     this.header_.textContent += this.controller_.value;
-    this.onChangeCallback_(this.controller_.value, this.id_, this.online_);
+    this.onChangeCallback_(this.controller_.value, this.id_);
   }
 }

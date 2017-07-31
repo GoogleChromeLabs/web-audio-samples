@@ -17,58 +17,49 @@
 /**
  * @class PolySynthVoice
  * @description A voice generates a waveform and filters it, exposing the
- *              sound through this.output.
+ *              sound through |this.output|.
  */
 class PolySynthVoice {
   /**
    * @constructor
    * @param {AudioContext} context The audio context.
-   * @param {PolySynth} synth The synthesizer that manages this voice.
    * @param {String} noteName The name of the note corresponding to the pitch.
-   * @param {Number} pitch The frequency corresponding to the voice's note
+   * @param {Number} pitch The frequency corresponding to the voice's note.
+   * @param {PolySynth} synth The synthesizer that manages this voice.
    */
-  constructor(noteName, pitch, synth) {
+  constructor(context, noteName, pitch, synth) {
     this.synth_ = synth;
-    this.context_ = synth.context;
-    this.onlineParams_ = synth.getOnlineParams();
-    this.offlineParams_ = synth.getOfflineParams();
+    this.context_ = context;
+    this.parameters_ = synth.getParameters();
     
     // The name of the note is used as an argument in the |this.synth_.endNote|
     // callback.
     this.noteName_ = noteName;
 
-    // TODO: add second oscillator
+    // TODO: Add second oscillator, modulating this oscillator's detune.
     this.oscillatorA_ =
         new OscillatorNode(this.context_, {frequency: pitch, type: 'sawtooth'});
     this.lowPassFilter_ = new BiquadFilterNode(
         this.context_,
-        {frequency: this.parameters_.lowPassCutoff, type: 'lowpass'});
+        {frequency: this.parameters_.cutoff, type: 'lowpass'});
 
     this.output = new GainNode(this.context_);
     this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
     this.oscillatorA_.start();
-  }
-  
-  /**
-   * Sets the cutoff frequency for the low pass filter.
-   * @param  {Number} cutoff The new cutoff for the low pass filter.
-   */
-  set cutoff(cutoff) {
-    this.lowPassFilter_.frequency.value = cutoff;
   }
 
   /**
    * Play a note according to ADSR settings.
    */
   start() {
-    // Ramp to full amplitude in attack (ms) and to sustain in decay (ms).
+    // Ramp to full amplitude in attack (s) and to sustain in decay (s).
     const t = this.context_.currentTime;
-    const timeToFullAmplitude = t + this.offlineParams_.attack;
-    const timeToSustain = timeToFullAmplitude + this.offlineParams_.decay;
+    const timeToFullAmplitude = t + this.parameters_.attack;
+    const timeToSustain = timeToFullAmplitude + this.parameters_.decay;
     this.output.gain.setValueAtTime(0, t);
     this.output.gain.linearRampToValueAtTime(1, timeToFullAmplitude);
     this.output.gain.linearRampToValueAtTime(
-        this.offlineParams_.sustain, timeToSustain);
+        this.parameters_.sustain, timeToSustain);
   }
 
   /**
@@ -78,7 +69,7 @@ class PolySynthVoice {
     // Cancel scheduled audio param changes, and fade note according to
     // release time.
     const t = this.context_.currentTime;
-    const timeToZeroAmplitude = t + this.offlineParams_.release;
+    const timeToZeroAmplitude = t + this.parameters_.release;
     this.output.gain.cancelAndHoldAtTime(t);
     this.output.gain.linearRampToValueAtTime(0, timeToZeroAmplitude);
     this.oscillatorA_.stop(timeToZeroAmplitude);

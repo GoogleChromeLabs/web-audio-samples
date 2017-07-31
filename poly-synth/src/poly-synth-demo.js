@@ -15,12 +15,12 @@
  */
 /**
  * @class PolySynthDemo
- * @description  Triggers synthesizer events based on GUI input.
+ * @description Triggers synthesizer events based on GUI input.
  */
 class PolySynthDemo {
   /**
    * @constructor
-   * @param {AudioContext} context the audio context
+   * @param {AudioContext} context The audio context.
    */
   constructor(context) {
     this.masterGain_ = new GainNode(context, {gain: 0.5});
@@ -40,18 +40,17 @@ class PolySynthDemo {
   }
 
   /**
-   * Initialize GUI components
+   * Initialize GUI components.
    * @param {String} containerId the id of the HTML container
    */
-  initializeGUI(containerId, parametersId, settingsId) {
+  initializeGUI(containerId) {
     let lowPassSlider_ = new ParamController(
-        parametersId, this.polySynth_.setCutoff.bind(this.polySynth_), {
+        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
           type: 'range',
           min: this.polySynth_.lowPassMinCutoff,
           max: this.polySynth_.lowPassMaxCutoff,
           step: 1,
           default: this.polySynth_.lowPassMaxCutoff,
-          online: true,
           id: 'cutoff',
           name: 'Cutoff'
         });
@@ -65,22 +64,8 @@ class PolySynthDemo {
           max: 5,
           step: 0.01,
           default: this.masterGain_.gain.value,
-          online: true,
           id: 'masterGain',
           name: 'Volume'
-        });
-
-    // Gain ADSR settings
-    let voiceGainAttackSlider_ = new ParamController(
-        parametersId, this.polySynth_.setParameterValue.bind(this.polySynth_), {
-          type: 'range',
-          min: 0,
-          max: 10,
-          step: 0.1,
-          default: 0,
-          online: false,
-          id: 'attacks',
-          name: 'Attack'
         });
   }
 
