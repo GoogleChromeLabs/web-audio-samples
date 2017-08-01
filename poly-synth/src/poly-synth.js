@@ -33,7 +33,7 @@ class PolySynth {
     // The default maximum cutoff is set below the upper edge of human
     // hearing and the minimum cutoff is above the lower edge of human hearing.
     // Frequencies at either extreme are not typically used in electronic music.
-    this.lowPassMaxCutoff = 12000;
+    this.lowPassMaxCutoff = 16000;
     this.lowPassMinCutoff = 60;
 
     // The meaning of each parameter is defined in |getParameters()|.
@@ -61,6 +61,7 @@ class PolySynth {
    * @property {Number} release Seconds between the release of a note
    *                            and zero amplitude.
    */
+  
   /**
    * Returns parameters that affect how a voice is constructed.
    * @returns {Parameters}
@@ -78,16 +79,16 @@ class PolySynth {
     if (typeof(this.parameters_[id]) === 'undefined')
       throw('The parameter ' + id + ' is not supported');
 
-    this.parameters_[id] = parseFloat(value);
+    this.parameters_[id] = value;
   }
 
   /**
    * Create a new voice and add it to |this.activeVoices_|.
    * @param {String} noteName The note to be played, e.g. A4 for an octave 4 A.
-   * @param {Number} pitch The corresponding pitch of the note, e.g 440.
+   * @param {Number} frequency The corresponding pitch of the note, e.g 440.
    */
-  playVoice(noteName, pitch) {
-    let voice = new PolySynthVoice(this.context_, noteName, pitch, this);
+  playVoice(noteName, frequency) {
+    let voice = new PolySynthVoice(this.context_, noteName, frequency, this);
     voice.output.connect(this.output);
     this.activeVoices_[noteName] = voice;
     voice.start();
@@ -107,8 +108,8 @@ class PolySynth {
   }
 
   /**
-   * Remove references to the voice, corresponding to |noteName|. Voice triggers
-   * this event.
+   * Remove references to the voice, corresponding to |noteName|. |Voice()|
+   * triggers this event.
    * @param {String} noteName The name of the note released which corresponds to
    *                          its key in |this.releasedVoices_|.
   */

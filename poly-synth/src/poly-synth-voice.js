@@ -24,21 +24,21 @@ class PolySynthVoice {
    * @constructor
    * @param {AudioContext} context The audio context.
    * @param {String} noteName The name of the note corresponding to the pitch.
-   * @param {Number} pitch The frequency corresponding to the voice's note.
+   * @param {Number} frequency The corresponding frequency of the note, e.g 440.
    * @param {PolySynth} synth The synthesizer that manages this voice.
    */
-  constructor(context, noteName, pitch, synth) {
+  constructor(context, noteName, frequency, synth) {
     this.synth_ = synth;
     this.context_ = context;
     this.parameters_ = synth.getParameters();
     
-    // The name of the note is used as an argument in the |this.synth_.endNote|
-    // callback.
+    // The name of the note is used as an argument in the
+    // |this.synth_.endNote()| callback.
     this.noteName_ = noteName;
+    this.frequency_ = frequency;
 
-    // TODO: Add second oscillator, modulating this oscillator's detune.
-    this.oscillatorA_ =
-        new OscillatorNode(this.context_, {frequency: pitch, type: 'sawtooth'});
+    this.oscillatorA_ = new OscillatorNode(
+        this.context_, {frequency: frequency, type: 'sawtooth'});
     this.lowPassFilter_ = new BiquadFilterNode(
         this.context_,
         {frequency: this.parameters_.cutoff, type: 'lowpass'});

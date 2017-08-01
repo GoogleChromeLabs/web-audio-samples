@@ -46,33 +46,33 @@ class PolySynthDemo {
   initializeGUI(containerId) {
     let lowPassSlider_ = new ParamController(
         containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Cutoff',
+          id: 'cutoff',
           type: 'range',
           min: this.polySynth_.lowPassMinCutoff,
           max: this.polySynth_.lowPassMaxCutoff,
           step: 1,
           default: this.polySynth_.lowPassMaxCutoff,
-          id: 'cutoff',
-          name: 'Cutoff'
         });
 
     // The maximum gain is set to be larger than 1 to allow for highly filtered
     // sounds to be audible. It is up to the user to avoid distortion.
     let masterGainSlider_ =
         new ParamController(containerId, this.setGain.bind(this), {
+          name: 'Volume',
+          id: 'masterGain',
           type: 'range',
           min: 0,
           max: 5,
           step: 0.01,
           default: this.masterGain_.gain.value,
-          id: 'masterGain',
-          name: 'Volume'
         });
   }
 
   /**
    * Change the volume.
    * This is bound to an event listener by a ParamController.
-   * @param {Number} value the new gain
+   * @param {Number} value The new gain.
    */
   setGain(value) {
     this.masterGain_.gain.value = parseFloat(value);
@@ -81,20 +81,20 @@ class PolySynthDemo {
   /**
    * Play a note when a mapped key is pressed. This method implements a function
    * triggered in qwerty-hancock.min.js.
-   * @param {String} note the note to be played, e.g. A4 for an octave four A
-   * @param {Number} pitch the corresponding pitch of the note, e.g 440
+   * @param {String} noteName The note to be played, e.g. A4 for an octave 4 A.
+   * @param {Number} frequency The corresponding pitch of the note, e.g 440.
    */
-  keyDown(note, pitch) {
-    this.polySynth_.playVoice(note, pitch);
+  keyDown(noteName, frequency) {
+    this.polySynth_.playVoice(noteName, frequency);
   }
 
   /**
    * Release the note. This method implements a function triggered in
-   * qwerty-hancock.min.js
-   * @param {String} note the note to be played, e.g. A4 for an octave 4 A
-   * @param {Number} pitch the corresponding pitch of the note, e.g 440
+   * qwerty-hancock.min.js.
+   * @param {String} noteName The note to be played, e.g. A4 for an octave 4 A.
+   * @param {Number} frequency The corresponding pitch of the note, e.g 440.
    */
-  keyUp(note, pitch) {
-    this.polySynth_.releaseVoice(note, pitch);
+  keyUp(noteName, frequency) {
+    this.polySynth_.releaseVoice(noteName, frequency);
   }
 }
