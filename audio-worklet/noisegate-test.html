@@ -23,7 +23,7 @@ limitations under the License.
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
       // All tests pass for all legal powers in the range [3000, 384000].
-      const sampleRate = Math.pow(2, 12);
+      const sampleRate = Math.pow(2, 18);
 
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
@@ -38,7 +38,7 @@ limitations under the License.
       // linearThreshold, an ideal envelope follower would make the noise gate
       // output equal to the input. But a proper envelope can only be
       // approximated. This test verifies that the envelope delay is
-      // mathematically correct given a timeConstant.
+      // mathematically correct given |timeConstant|.
       audit.define('envelope-is-mathematically-correct', (task, should) => {
         let context = new OfflineAudioContext(1, testFrames, sampleRate);
         
@@ -62,7 +62,7 @@ limitations under the License.
         // The signal should be all 1's prior to timeToThreshold to simplify
         // the math that relates the closing index to the timeConstant.
         let gain = new GainNode(context, {gain : 1});
-        let constantSource = new ConstantSourceNode(context, {offset: 1});
+        let constantSource = new ConstantSourceNode(context, {gain: 1});
         constantSource.connect(gain).connect(noisegate.input);
         noisegate.output.connect(context.destination);
 
@@ -118,16 +118,15 @@ limitations under the License.
           should(openPhase, 'The open phase').beConstantValueOf(1);
           
           should(betweenOpenAndClosePhase, 'The samples before the gate closes')
-              .beCloseToArray(new Array(betweenOpenAndClosePhase.length)
-                                  .fill(Math.fround(beneathThresholdGain)));
+              .beConstantValueOf(Math.fround(beneathThresholdGain));
 
           should(closePhase, 'The closed phase').beConstantValueOf(0);
           
           should(toTime_(numOpeningFrames, sampleRate), 'The opening delay')
-              .beCloseTo('0.0017', {threshold : 0.1});
+              .beCloseTo('0.001708984375', {threshold : 0.05});
           
           should(toTime_(numClosingFrames, sampleRate), 'The closing delay')
-              .beCloseTo('0.0017', {threshold : 0.1});
+              .beCloseTo('0.001708984375', {threshold : 0.05});
         }).then(() => task.done());
       });
 
@@ -206,7 +205,7 @@ limitations under the License.
           const delayInSeconds = toTime_(openingDelay, sampleRate);
           should(delayInSeconds,
                  'The envelope delay for the very first samples')
-              .beCloseTo(0.0026, {threshold: 0.1});
+              .beCloseTo(0.002685546875, {threshold: 0.05});
 
           unalteredPhase = unalteredPhase.slice(openingDelay,
                                                 unalteredPhase.length);
@@ -234,7 +233,7 @@ limitations under the License.
               toTime_(closeDelay, sampleRate),
               'The delay between when the envelope is expected to be closed and'
               + ' when it is closed')
-              .beCloseTo(0.0022, {threshold: 0.1});
+              .beCloseTo(0.002197265625, {threshold: 0.05});
           let closedPhase = ideallyClosedPhase.slice(closeDelay, buffer.length);
 
           should(latencyPhase, 'The latency phase of noise gate output')

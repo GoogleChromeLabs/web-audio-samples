@@ -25,7 +25,7 @@ class NoiseGate {
    * @constructor
    * @param {BaseAudioContext} context The audio context
    * @param {Object} options Parameters for the noise gate.
-   * @param {Number} options.channels The number of input and output
+   * @param {Number} options.numberOfChannels The number of input and output
    *                                  channels. The default value is one, and
    *                                  the implementation supports
    *                                  a maximum of two channels.
@@ -123,17 +123,14 @@ class NoiseGate {
   }
 
   /**
-   * Detect level using the difference equation for the Root Mean Squared
-   * value of the input signal.
+   * Compute an envelope follower for the signal.
    * @param {Float32Array} channelData Input channel data.
-   * @return {Float32Array} The level of the signal, the signal's amplitude.
+   * @return {Float32Array} The level of the signal.
    */
   detectLevel_(channelData) {
-    // The signal level is determined by filtering high frequency oscillation
-    // with exponential smoothing.
-    // This is equivalent to computing the root-mean-square (RMS) value
-    // of the signal. See http://www.aes.org/e-lib/browse.cfm?elib=16354 for
-    // details.
+    // The signal level is determined by filtering the square of the signal
+    // with exponential smoothing. See
+    // http://www.aes.org/e-lib/browse.cfm?elib=16354 for details.
     this.envelope_[0] = this.alpha_ * this.previousLevel_ +
         (1 - this.alpha_) * Math.pow(channelData[0], 2);
 
@@ -148,12 +145,10 @@ class NoiseGate {
 
   /**
    * Computes an array of weights which determines what samples are silenced.
-   * @param {Float32Array} envelope Array of amplitudes from envelope follower.
+   * @param {Float32Array} envelope The output from envelope follower.
    * @return {Float32Array} weights Numbers in the range 0 to 1 set in
    *                                accordance with the threshold, the envelope,
-   *                                and attack and release. These will be
-   *                                multiplied by the corresponding
-   *                                value in the input.
+   *                                and attack and release.
    */
   computeWeights_(envelope) {
     // When attack or release are 0, the weight changes between 0 and 1
