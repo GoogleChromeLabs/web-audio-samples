@@ -23,7 +23,7 @@ limitations under the License.
       // Sample rate is a power of two to avoid interpolation from delay node.
       // It is held artificially low for easy inspection of audio buffers.
       // All tests pass for all legal powers in the range [3000, 384000].
-      const sampleRate = Math.pow(2, 18);
+      const sampleRate = Math.pow(2, 12);
 
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
