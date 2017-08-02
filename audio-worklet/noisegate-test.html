@@ -61,8 +61,8 @@ limitations under the License.
 
         // The signal should be all 1's prior to timeToThreshold to simplify
         // the math that relates the closing index to the timeConstant.
-        let gain = new GainNode(context, {gain : 1});
-        let constantSource = new ConstantSourceNode(context, {gain: 1});
+        let gain = new GainNode(context, {gain: 1});
+        let constantSource = new ConstantSourceNode(context, {offset: 1});
         constantSource.connect(gain).connect(noisegate.input);
         noisegate.output.connect(context.destination);
 
@@ -121,12 +121,6 @@ limitations under the License.
               .beConstantValueOf(Math.fround(beneathThresholdGain));
 
           should(closePhase, 'The closed phase').beConstantValueOf(0);
-          
-          should(toTime_(numOpeningFrames, sampleRate), 'The opening delay')
-              .beCloseTo('0.001708984375', {threshold : 0.05});
-          
-          should(toTime_(numClosingFrames, sampleRate), 'The closing delay')
-              .beCloseTo('0.001708984375', {threshold : 0.05});
         }).then(() => task.done());
       });
 
