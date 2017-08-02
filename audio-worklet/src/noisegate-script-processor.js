@@ -158,6 +158,10 @@ class NoiseGate {
     let attackLossPerStep = 1;
     let releaseGainPerStep = 1;
 
+    // TODO: Replace this weights-based approach for enabling attack/release
+    // parameters with the method described on page 22 in
+    // "Signal Processing Techniques for Digital Audio Effects".
+
     // When attack or release are > 0, the associated weight changes between 0
     // and 1 in the number of steps corresponding to the millisecond attack
     // or release time parameters.
