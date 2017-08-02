@@ -5,7 +5,7 @@ const filePath = {
 };
 
 
-class AudioEngineInspector {
+class AudioNodeCounter {
 
   constructor () {
     this.nodeCounts_ = {
@@ -16,15 +16,24 @@ class AudioEngineInspector {
       Gain: 0,
       Panner: 0
     };
+
+    this.changed_ = false;
   }
 
   addNode (nodeType) {
     this.nodeCounts_[nodeType]++;
+    this.changed_ = true;
   }
 
   getNodeCounts () {
+    this.changed_ = false;
     return this.nodeCounts_;
   }
+
+  isChanged () {
+    return this.changed_;
+  }
+
 }
 
 
@@ -37,7 +46,7 @@ let compressor;
 let pingBuffer;
 let gCount = 0;
 
-let kNodeCounter = new AudioEngineInspector();
+let gNodeCounter = new AudioNodeCounter();
 
 /**
  * Collision event callback.
@@ -71,7 +80,7 @@ function countContact(body1, body2) {
 
   if (gCount > 0) {
     let ping = context.createBufferSource();
-    kNodeCounter.addNode('BufferSource');
+    gNodeCounter.addNode('BufferSource');
 
     if (ping) {
       let isQuiet = (gain < 0.5);
@@ -80,14 +89,14 @@ function countContact(body1, body2) {
       // Use biquad filter API if available.
       let filter = context.createBiquadFilter();
       let panner = context.createPanner();
-      kNodeCounter.addNode('BiquadFilter');
-      kNodeCounter.addNode('Panner');
+      gNodeCounter.addNode('BiquadFilter');
+      gNodeCounter.addNode('Panner');
 
       // Create inputs to dry/wet mixers
       let dryGainNode = context.createGain();
       let wetGainNode = context.createGain();
-      kNodeCounter.addNode('Gain');
-      kNodeCounter.addNode('Gain');
+      gNodeCounter.addNode('Gain');
+      gNodeCounter.addNode('Gain');
 
       ping.connect(filter);
       filter.connect(panner);
@@ -213,9 +222,8 @@ function loadImpulseResponse(url) {
 }
 
 
-
 /**
- *
+ * Entry point.
  */
 function initWebAudio() {
   context = new AudioContext();
@@ -223,7 +231,7 @@ function initWebAudio() {
   if (context.createDynamicsCompressor) {
     // Create dynamics compressor to sweeten the overall mix.
     compressor = context.createDynamicsCompressor();
-    kNodeCounter.addNode('DynamicsCompressor');
+    gNodeCounter.addNode('DynamicsCompressor');
 
     compressor.connect(context.destination);
   } else {
@@ -233,7 +241,7 @@ function initWebAudio() {
   }
 
   convolver = context.createConvolver();
-  kNodeCounter.addNode('Convolver');
+  gNodeCounter.addNode('Convolver');
 
   convolver.connect(compressor);
 
