@@ -35,7 +35,17 @@ class ParamController {
     this.id_ = options.id || this.name_;
     this.controller_.type = options.type || 'range';
     this.controller_.min = options.min || 0;
-    this.controller_.max = options.max || 0;
+
+    if (options.max == null)
+      this.controller_.max = 1;
+    else
+      this.controller_.max = options.max;
+
+    if (options.step == null)
+      this.controller_.step = 0.1;
+    else
+      this.controller_.step = options.step;
+
     this.controller_.step = options.step || 0;
     this.controller_.value = options.default || 0;
     this.onChangeCallback_ = onChangeCallback;
@@ -52,7 +62,7 @@ class ParamController {
     if (this.controller_.type == 'range')
       this.controller_.className += 'slider';
     else
-      console.error(type + ' not defined');
+      throw (type + ' not defined');
     
     container.appendChild(this.controller_);
     this.controller_.addEventListener('input', this.change_.bind(this));

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
  * @class PolySynthDemo
  * @description Triggers synthesizer events based on GUI input.

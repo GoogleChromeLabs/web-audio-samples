@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
  * @class PolySynth
  * @description Manages the life cycle of voices.
@@ -48,23 +49,17 @@ class PolySynth {
     // The client is responsible for connecting |this.output| to a destination.
     this.output = new GainNode(this.context_);
   }
-
-  /**
-   * @typedef {Object} Parameters Parameters which affect the output of a voice
-   *                              if set before the voice is constructed.
-   * @property {Number} attack Seconds until full amplitude.
-   * @property {Number} decay Seconds until sustain level.
-   * @property {Number} sustain The steady amplitude of the note as it
-   *                            is pressed.
-   * @property {Number} release Seconds between the release of a note
-   *                            and zero amplitude.
-   * @property {Number} release Seconds between the release of a note
-   *                            and zero amplitude.
-   */
   
   /**
    * Returns parameters that affect how a voice is constructed.
-   * @returns {Parameters}
+   * @returns {Object} parameters Parameters which affect the output of a voice
+   *                              if set before the voice is constructed.
+   * @returns {Number} parameters.attack Seconds until full amplitude.
+   * @returns {Number} parameters.decay Seconds until sustain level.
+   * @returns {Number} parameters.sustain The steady amplitude of the note as it
+   *                                      is pressed.
+   * @returns {Number} parameters.release Seconds between the release of a note
+   *                                      and zero amplitude.
    */
   getParameters() {
     return this.parameters_;
@@ -112,7 +107,7 @@ class PolySynth {
    * triggers this event.
    * @param {String} noteName The name of the note released which corresponds to
    *                          its key in |this.releasedVoices_|.
-  */
+   */
   endVoice(noteName) {
     delete this.releasedVoices_[noteName];
   }
