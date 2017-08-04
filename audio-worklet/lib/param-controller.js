@@ -39,17 +39,10 @@ class ParamController {
     this.id_ = options.id || this.name_;
     this.controller_.type = options.type || 'range';
     this.controller_.min = options.min || 0;
-
-    if (typeof options.max === 'undefined')
-      this.controller_.max = 1;
-    else
-      this.controller_.max = options.max;
-
-    if (typeof options.step === 'undefined')
-      this.controller_.step = 0.1;
-    else
-      this.controller_.step = options.step;
-
+    this.controller_.max =
+        (typeof options.max === 'undefined') ? 1 : options.max;
+    this.controller_.step =
+        (typeof options.step === 'undefined') ? 0.1 : options.step;
     this.controller_.value = options.default || 0;
     this.onChangeCallback_ = onChangeCallback;
 
