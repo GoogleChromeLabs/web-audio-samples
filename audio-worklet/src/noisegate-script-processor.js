@@ -41,7 +41,7 @@ class NoiseGate {
    *                                      default has been set experimentally to
    *                                      0.0025s.
    * @param {Number} options.threshold Decibel level beneath which sound is
-   *                                   muted. The default is 0 dBFS.
+   *                                   muted. The default is -100 dBFS.
    */
   constructor(context, options) {
     if (!(context instanceof BaseAudioContext))
@@ -54,13 +54,21 @@ class NoiseGate {
 
     this.context_ = context;
     const bufferSize = options.bufferSize || 0;
-    this.threshold = options.threshold || 0;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
     
     // The time constant of the filter has been set experimentally to balance
     // roughly delay for high frequency suppression.
-    const timeConstant = options.timeConstant || 0.0025;
+    let timeConstant;
+    if (options.timeConstant != null)
+      timeConstant = options.timeConstant;
+    else
+      timeConstant = 0.0025;
+
+    if (options.threshold != null)
+      this.threshold = options.threshold;
+    else
+      this.threshold = -100;
 
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
@@ -98,7 +106,7 @@ class NoiseGate {
   onaudioprocess_(event) {
     let inputBuffer = event.inputBuffer;
     let channel0 = inputBuffer.getChannelData(0);
-
+    
     // Stereo input is downmixed to mono input via averaging.
     if (inputBuffer.numberOfChannels === 2) {
       let channel1 = inputBuffer.getChannelData(1);
