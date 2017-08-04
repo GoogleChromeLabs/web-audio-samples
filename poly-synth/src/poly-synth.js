@@ -31,13 +31,10 @@ class PolySynth {
     this.activeVoices_ = [];
     this.releasedVoices_ = [];
 
-    // The default maximum cutoff is set below the upper edge of human
-    // hearing and the minimum cutoff is above the lower edge of human hearing.
-    // Frequencies at either extreme are not typically used in electronic music.
+    // The maximum and minimum cutoffs are experimentally determined.
     this.lowPassMaxCutoff = 16000;
     this.lowPassMinCutoff = 60;
 
-    // The meaning of each parameter is defined in |getParameters()|.
     this.parameters_ = {
       cutoff: this.lowPassMaxCutoff,
       attack: 0,
@@ -72,7 +69,7 @@ class PolySynth {
    */
   setParameter(value, id) {
     if (typeof(this.parameters_[id]) === 'undefined')
-      throw('The parameter ' + id + ' is not supported');
+      throw 'The parameter ' + id + ' is not supported';
 
     this.parameters_[id] = value;
   }

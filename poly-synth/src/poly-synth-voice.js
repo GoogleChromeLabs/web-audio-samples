@@ -46,6 +46,10 @@ class PolySynthVoice {
     this.output = new GainNode(this.context_);
     this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
     this.oscillatorA_.start();
+
+    // The synthesizer should remove its reference to this voice once the
+    // oscillator has stopped.
+    this.oscillatorA_.onended = this.synth_.endVoice(this.noteName_);
   }
 
   /**
@@ -73,9 +77,5 @@ class PolySynthVoice {
     this.output.gain.cancelAndHoldAtTime(t);
     this.output.gain.linearRampToValueAtTime(0, timeToZeroAmplitude);
     this.oscillatorA_.stop(timeToZeroAmplitude);
-
-    // Trigger the parent synthesizer to remove its reference to the voice when
-    // the oscillator has stopped.
-    this.oscillatorA_.onended = this.synth_.endVoice(this.noteName_);
   }
 }

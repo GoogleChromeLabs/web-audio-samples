@@ -16,19 +16,23 @@
 class ParamController {
   /**
    * Event handler and layout for audio parameters with numeric input values
-   * @param {String} parentId id for parent element.
+   * @param {String} parentId ID for parent element.
    * @param {Function} onChangeCallback Callback to trigger on input.
-   * @param {Object} options
-   * @param {String} options.name The name of the parameter.
+   * @param {Object} options Parameters with default values if unspecified.
+   * @param {String} options.name The name of the parameter. Default is
+   *                              'Parameter'.
    * @param {String} options.id A variable name associated with the parameter.
+   *                            Defaults to the value of |name|.
    * @param {String} options.type The type of input (only support for range).
-   * @param {Number} options.min The minimum possible value.
-   * @param {Number} options.max The maximum possible value.
+   * @param {Number} options.min The minimum possible value. Default is 0.
+   * @param {Number} options.max The maximum possible value. Default is 1.
    * @param {Number} options.step The parameter's increment value.
-   * @param {Number} options.default The default value of the parameter.
+   *                              Default is 0.1.
+   * @param {Number} options.default The default value of the parameter. Default
+   *                                 is 0.
    */
   constructor(parentId, onChangeCallback, options) {
-    if (options == null) options = {};
+    if (typeof options === 'undefined') options = {};
     
     this.controller_ = document.createElement('input');
     this.name_ = options.name || 'Parameter';
@@ -36,17 +40,16 @@ class ParamController {
     this.controller_.type = options.type || 'range';
     this.controller_.min = options.min || 0;
 
-    if (options.max == null)
+    if (typeof options.max === 'undefined')
       this.controller_.max = 1;
     else
       this.controller_.max = options.max;
 
-    if (options.step == null)
+    if (typeof options.step === 'undefined')
       this.controller_.step = 0.1;
     else
       this.controller_.step = options.step;
 
-    this.controller_.step = options.step || 0;
     this.controller_.value = options.default || 0;
     this.onChangeCallback_ = onChangeCallback;
 
@@ -59,10 +62,10 @@ class ParamController {
     this.header_.textContent += this.controller_.value;
     container.appendChild(this.header_);
     
-    if (this.controller_.type == 'range')
+    if (this.controller_.type === 'range')
       this.controller_.className += 'slider';
     else
-      throw (type + ' not defined');
+      throw this.controller_.type + ' not defined.';
     
     container.appendChild(this.controller_);
     this.controller_.addEventListener('input', this.change_.bind(this));

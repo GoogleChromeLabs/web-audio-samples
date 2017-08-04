@@ -42,7 +42,7 @@ class PolySynthDemo {
 
   /**
    * Initialize GUI components.
-   * @param {String} containerId the id of the HTML container
+   * @param {String} containerId The ID of the container element (e.g. <div>).
    */
   initializeGUI(containerId) {
     let lowPassSlider_ = new ParamController(
