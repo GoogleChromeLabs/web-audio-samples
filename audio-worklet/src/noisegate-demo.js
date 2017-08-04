@@ -148,7 +148,7 @@ class NoisegateDemo {
         new ParamController(containerId, this.setNoiseGain.bind(this), {
           type: 'range',
           min: 0,
-          max: 1,
+          max: 3,
           step: 0.01,
           default: 1,
           name: 'Noise Volume'
