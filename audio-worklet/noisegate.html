@@ -14,9 +14,9 @@ limitations under the License.
 -->
 
 <!--
-  This code illustrates a web audio noise gate implementation. A Noise Gate
+  This code illustrates a web audio noise gate implementation. A noise gate
   mutes sounds which register beneath a dBFS threshold. In this demo, the
-  Noise Gate connects to an audio buffer of looped speech mixed with noise.
+  noise gate connects to an audio buffer of looped speech mixed with noise.
   In between speech segments, the noise should be audible unless muted by the
   noise gate. The user can adjust the threhold to remove the noise from the
   buffer, as well as explore the effect of adjusting attack and release which
@@ -50,31 +50,29 @@ limitations under the License.
       changes to its new value.
     </p>
     <p>
-      The volume of the noise (independent of the speech) can also be adjusted.
-      Try setting the noise to 0.25 and the threshold to -40db. With these
-      settings, the noise should be inaudible during the pause in speech.
-      There will be glitching between words, which can be minimized by
-      increasing the attack setting.
+      With the noise volume set at 1, the noise gate should mute noise in
+      between pauses at a threshold of -40db. If you hear glitching, try
+      adjusting the attack and release settings.
     </p>
     <div id="container"></div>
+    <button id="bypassButton">Active</button>
     <form>
-      <input type="radio" name="node" id="noisegateButton" checked>
-          Noise Gate<br>
-      <input type="radio" name="node" id="withoutNoisegateButton"
-          value="withoutNoisegate">Without Noise Gate<br>
+      <input type="radio" name="node" id="scriptProcessorButton" checked>
+          Script Processor<br>
+      <input type="radio" name="node" id="workletButton" value="worklet">
+          Audio Worklet<br>
     </form>
     <script>
       // TODO: Implement Audio Worklet support. For now, |workletIsAvailable|
       // must be false.
       const workletIsAvailable = false;
-      beginBitcrusherDemo();
+      beginNoisegateDemo();
       
-      function beginBitcrusherDemo() {
+      function beginNoisegateDemo() {
         const context = new AudioContext();
         let demo = new NoisegateDemo(context, workletIsAvailable);
         demo.initializeGUI('container', 'workletButton',
-                           'scriptProcessorButton', 'noisegateButton',
-                           'withoutNoisegateButton');
+                           'scriptProcessorButton', 'bypassButton');
       }
     </script>
   </body>

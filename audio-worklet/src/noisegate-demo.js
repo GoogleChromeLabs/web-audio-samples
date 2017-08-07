@@ -30,11 +30,11 @@ class NoisegateDemo {
     this.workletIsAvailable_ = workletIsAvailable;
 
     this.attack_ = 0;
-    this.attackMax_ = 1;
+    this.attackMax_ = 0.1;
     this.attackMin_ = 0;
     this.release_ = 0;
     this.releaseMin_ = 0;
-    this.releaseMax_ = 1;
+    this.releaseMax_ = 0.1;
     this.threshold_ = -100;
     this.thresholdMin_ = -100;
     this.thresholdMax_ = 0;
@@ -50,23 +50,25 @@ class NoisegateDemo {
     });
 
     // There are two sound sources (speech and noise), which are mixed
-    // together. The user can set the gain of the noise, and also whether or
-    // not the mixed sound is processed by the noise gate.
-    this.speechGain_ = new GainNode(this.context_);
+    // together and summed. From this summing junction, the signal splits into
+    // two paths, one going through the noise gate and one bypassing it.
     this.noiseGain_ = new GainNode(this.context_);
-    this.speechAndNoiseGain_ = new GainNode(this.context_);
-    this.withoutNoisegateGain_ = new GainNode(this.context_, {gain: 0});
-    this.noisegateGain_ = new GainNode(this.context_);
+    this.speechAndNoiseSummingJunction_ = new GainNode(this.context_);
+    this.bypassNoisegateRoute_ = new GainNode(this.context_, {gain: 0});
+    this.activeNoisegateRoute_ = new GainNode(this.context_, {gain: 1});
     this.scriptProcessorGain_ = new GainNode(this.context_);
 
-    this.noiseGain_.connect(this.speechAndNoiseGain_);
-    this.speechGain_.connect(this.speechAndNoiseGain_);
-    this.speechAndNoiseGain_.connect(this.withoutNoisegateGain_)
-        .connect(this.masterGain_);
-    
-    this.speechAndNoiseGain_.connect(this.noisegateScriptProcessor_.input);
-    this.noisegateScriptProcessor_.output.connect(this.scriptProcessorGain_)
-        .connect(this.noisegateGain_).connect(this.masterGain_);
+    this.noiseGain_.connect(this.speechAndNoiseSummingJunction_);
+    this.speechAndNoiseSummingJunction_.connect(
+        this.bypassNoisegateRoute_).connect(
+        this.masterGain_);
+
+    this.speechAndNoiseSummingJunction_.connect(
+        this.noisegateScriptProcessor_.input);
+    this.noisegateScriptProcessor_.output.connect(
+        this.scriptProcessorGain_).connect(
+        this.activeNoisegateRoute_).connect(
+        this.masterGain_);
 
     this.masterGain_.connect(this.context_.destination);
 
@@ -90,14 +92,13 @@ class NoisegateDemo {
 
   /**
    * Initalize HTML elements when document has loaded.
-   * @param {String} containerId Id of parent container.
-   * @param {String} workletButtonId Id of worklet radio button.
-   * @param {String} scriptProcessorButtonId Id of scriptProcessor radio button.
-   * @param {String} noisegateId Id of noisegate radio button.
-   * @param {String} withoutNoisegateId Id of withoutNoisegate radio button.
+   * @param {String} containerId ID of parent container element.
+   * @param {String} workletButtonId ID of worklet radio button.
+   * @param {String} scriptProcessorButtonId ID of scriptProcessor radio button.
+   * @param {String} bypassButtonId ID of bypass button.
    */
   initializeGUI(containerId, workletButtonId, scriptProcessorButtonId,
-                noisegateId, withoutNoisegateId) {
+                bypassButtonId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
 
@@ -117,7 +118,7 @@ class NoisegateDemo {
           type: 'range',
           min: this.attackMin_,
           max: this.attackMax_,
-          step: 0.01,
+          step: 0.001,
           default: this.attack_,
           name: 'Attack (s)'
         });
@@ -128,61 +129,63 @@ class NoisegateDemo {
           type: 'range',
           min: this.releaseMin_,
           max: this.releaseMax_,
-          step: 0.01,
+          step: 0.001,
           default: this.release_,
           name: 'Release (s)'
         });
     this.releaseSlider_.disable();
 
-    this.gainSlider_ =
+    this.masterGainSlider_ =
         new ParamController(containerId, this.setGain.bind(this), {
           type: 'range',
           min: 0,
-          max: 1,
+          max: 5,
           step: 0.01,
           default: this.masterGain_.gain.value,
           name: 'Master Volume'
         });
 
-     this.noiseGainSlider_ =
+    this.noiseGainSlider_ =
         new ParamController(containerId, this.setNoiseGain.bind(this), {
           type: 'range',
           min: 0,
-          max: 3,
+          max: 5,
           step: 0.01,
           default: 1,
           name: 'Noise Volume'
         });
 
-    // Sound is processed by noise gate only if that radio button is selected.
-    document.getElementById(noisegateId)
-        .addEventListener('click', this.noisegateSelected.bind(this));
-    document.getElementById(withoutNoisegateId)
-        .addEventListener('click', this.withoutNoisegateSelected.bind(this));
-
     // TODO: Allow user to switch between audio worklet and noise gate.
-  }
+    this.workletButton_ = document.getElementById(workletButtonId);
+    this.workletButton_.disabled = true;
 
-  noisegateSelected() {
-    const t = this.context_.currentTime + 0.01;
-    this.noisegateGain_.gain.setValueAtTime(1, t);
-    this.withoutNoisegateGain_.gain.setValueAtTime(0, t);
+    // Sound is not processed by the noise gate if in bypass mode.
+    document.getElementById('bypassButton').onclick = (event) => {
+      // Only one of |activeNoisegateRoute_| and |bypassNoisegateRoute_|
+      // has a non-zero gain.
+      if (event.target.textContent === 'Active') {
+        event.target.textContent = 'Bypass';
+        const t = this.context_.currentTime + 0.01;
+        this.bypassNoisegateRoute_.gain.setValueAtTime(1, t);
+        this.activeNoisegateRoute_.gain.setValueAtTime(0, t);
 
-    if (this.playing) {
-      this.attackSlider_.enable();
-      this.releaseSlider_.enable();
-      this.thresholdSlider_.enable();
+        this.attackSlider_.disable();
+        this.releaseSlider_.disable();
+        this.thresholdSlider_.disable();
+      }
+      else {
+        event.target.textContent = 'Active';
+        const t = this.context_.currentTime + 0.01;
+        this.activeNoisegateRoute_.gain.setValueAtTime(1, t);
+        this.bypassNoisegateRoute_.gain.setValueAtTime(0, t);
+
+        if (this.playing) {
+          this.attackSlider_.enable();
+          this.releaseSlider_.enable();
+          this.thresholdSlider_.enable();
+        }
+      }
     }
-  }
-
-  withoutNoisegateSelected() {
-    const t = this.context_.currentTime + 0.01;
-    this.withoutNoisegateGain_.gain.setValueAtTime(1, t);
-    this.noisegateGain_.gain.setValueAtTime(0, t);
-
-    this.attackSlider_.disable();
-    this.releaseSlider_.disable();
-    this.thresholdSlider_.disable();
   }
 
   /**
@@ -191,13 +194,7 @@ class NoisegateDemo {
    * @param {Number} value The new threshold.
    */
   setThreshold(value) {
-    // TODO: When the param-controller update lands from the synthesizer branch,
-    // the stringToNumber conversion in this and subsequent methods should be
-    // removed.
-    const numericValue = parseInt(value);
-    if (numericValue < -100) throw 'The minimum threshold rate is -100.';
-    if (numericValue > 0) throw 'The maximum threshold rate is 0.';
-    this.noisegateScriptProcessor_.threshold = numericValue;
+    this.noisegateScriptProcessor_.threshold = value;
   }
 
   /**
@@ -206,9 +203,7 @@ class NoisegateDemo {
    * @param {Number} value The new attack value.
    */
   setAttack(value) {
-    const numericValue = parseFloat(value);
-    if (numericValue < 0) throw 'The minimum attack value is 0.';
-    this.noisegateScriptProcessor_.attack = numericValue;
+    this.noisegateScriptProcessor_.attack = value;
   }
 
   /**
@@ -217,9 +212,7 @@ class NoisegateDemo {
    * @param {Number} value The new sample rate reduction.
    */
   setRelease(value) {
-    const numericValue = parseInt(value);
-    if (numericValue < 0) throw 'The minimum reduction rate is 0.';
-    this.noisegateScriptProcessor_.release = numericValue;
+    this.noisegateScriptProcessor_.release = value;
   }
 
   /**
@@ -228,7 +221,7 @@ class NoisegateDemo {
    * @param {Number} value The new gain.
    */
   setGain(value) {
-    this.masterGain_.gain.value = parseFloat(value);
+    this.masterGain_.gain.value = value;
   }
 
   /**
@@ -237,20 +230,20 @@ class NoisegateDemo {
    * @param {Number} value The new gain.
    */
   setNoiseGain(value) {
-    this.noiseGain_.gain.value = parseFloat(value);
+    this.noiseGain_.gain.value = value;
   }
 
   /**
    * Start audio processing and configure UI elements.
    */
   start() {
-    this.noiseSource_ =
-        new AudioBufferSourceNode(this.context_, {buffer: this.noiseBuffer_});
-    this.speechSource_ =
-        new AudioBufferSourceNode(this.context_, {buffer: this.speechBuffer_});
-    
+    this.noiseSource_ = new AudioBufferSourceNode(
+        this.context_, {buffer: this.noiseBuffer_, loop: true});
+    this.speechSource_ = new AudioBufferSourceNode(
+        this.context_, {buffer: this.speechBuffer_, loop: true});
+
     this.noiseSource_.connect(this.noiseGain_);
-    this.speechSource_.connect(this.speechGain_);
+    this.speechSource_.connect(this.speechAndNoiseSummingJunction_);
 
     this.speechSource_.onended = () => {
       this.sourceButton_.enable();
@@ -258,9 +251,6 @@ class NoisegateDemo {
       this.releaseSlider_.disable();
       this.thresholdSlider_.disable();
     }
-    
-    this.noiseSource_.loop = true;
-    this.speechSource_.loop = true;
 
     this.noiseSource_.start();
     this.speechSource_.start();
