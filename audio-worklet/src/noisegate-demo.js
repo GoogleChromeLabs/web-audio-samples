@@ -35,7 +35,9 @@ class NoisegateDemo {
     this.release_ = 0;
     this.releaseMin_ = 0;
     this.releaseMax_ = 0.1;
-    this.threshold_ = -100;
+
+    // The recorded speech sample is louder than -40db and not muted by default.
+    this.threshold_ = -40;
     this.thresholdMin_ = -100;
     this.thresholdMax_ = 0;
 
@@ -52,11 +54,10 @@ class NoisegateDemo {
     // There are two sound sources (speech and noise), which are mixed
     // together and summed. From this summing junction, the signal splits into
     // two paths, one going through the noise gate and one bypassing it.
-    this.noiseGain_ = new GainNode(this.context_);
+    this.noiseGain_ = new GainNode(this.context_, {gain: 0});
     this.speechAndNoiseSummingJunction_ = new GainNode(this.context_);
     this.bypassNoisegateRoute_ = new GainNode(this.context_, {gain: 0});
     this.activeNoisegateRoute_ = new GainNode(this.context_, {gain: 1});
-    this.scriptProcessorGain_ = new GainNode(this.context_);
 
     this.noiseGain_.connect(this.speechAndNoiseSummingJunction_);
     this.speechAndNoiseSummingJunction_.connect(
@@ -66,7 +67,6 @@ class NoisegateDemo {
     this.speechAndNoiseSummingJunction_.connect(
         this.noisegateScriptProcessor_.input);
     this.noisegateScriptProcessor_.output.connect(
-        this.scriptProcessorGain_).connect(
         this.activeNoisegateRoute_).connect(
         this.masterGain_);
 
@@ -151,7 +151,7 @@ class NoisegateDemo {
           min: 0,
           max: 5,
           step: 0.01,
-          default: 1,
+          default: 0,
           name: 'Noise Volume'
         });
 
@@ -164,7 +164,7 @@ class NoisegateDemo {
       // Only one of |activeNoisegateRoute_| and |bypassNoisegateRoute_|
       // has a non-zero gain.
       if (event.target.textContent === 'Active') {
-        event.target.textContent = 'Bypass';
+        event.target.textContent = 'Bypassed';
         const t = this.context_.currentTime + 0.01;
         this.bypassNoisegateRoute_.gain.setValueAtTime(1, t);
         this.activeNoisegateRoute_.gain.setValueAtTime(0, t);
@@ -172,8 +172,7 @@ class NoisegateDemo {
         this.attackSlider_.disable();
         this.releaseSlider_.disable();
         this.thresholdSlider_.disable();
-      }
-      else {
+      } else {
         event.target.textContent = 'Active';
         const t = this.context_.currentTime + 0.01;
         this.activeNoisegateRoute_.gain.setValueAtTime(1, t);
