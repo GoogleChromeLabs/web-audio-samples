@@ -20,15 +20,47 @@ limitations under the License.
     <script src="src/poly-synth-demo.js"></script>
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
+    <style>
+      #container {
+        display: flex;
+        flex-direction: row;
+      }
+      .controls {
+        border-style: solid;
+        margin: 5px;
+      }
+    </style>
   </head>
   <body>
+    <h1>Polyphonic Subtractive Synthesizer</h1>
     <p>
-     The key A on your computer keyboard maps onto the note C, and the letters
-     to the right of A (SDFGHJ) map onto the notes above C in a C major scale
-     (DEFGAB). The letters WETYU map onto the black keys of a piano.
+      The key A on your computer keyboard maps onto the note C, and the letters
+      to the right of A (SDFGHJ) map onto the notes above C in a C major scale
+      (DEFGAB). The letters WETYU map onto the black keys of a piano.
+    </p>
+    <p>
+      The synthesizer constructs voices according to the volume and filter ADSR
+      settings. The volume ADSR modulates the gain of the signal over time, and
+      the filter ADSR modulates the detune of the cutoff filter, meaning the
+      cutoff specifies the filter's starting point and it will detune over
+      time depending on the ADSR settings. A detune amount of 1 means the filter
+      will deviate by at most 2400 cents from the filter cutoff value. For both
+      the volume and filter ADSR,
+      <ul>
+        <li>Attack refers to the number of seconds until the maximum level.</li>
+        <li>Decay refers to the number of seconds between the attack level
+            and the sustain level.</li>
+        <li>Sustain refers to the steady value as the note is pressed as
+            a fraction of the maximum level.</li>
+        <li>Release refers to the number of seconds from releasing the note
+            until a zero value.</li>
+      </ul>
     </p>
     <div id="keyboard"></div>
-    <div id="container"></div>
+    <div id="container">
+      <div id="gainADSR" class="controls"><h2>Volume</h2></div>
+      <div id="filterADSR" class="controls"><h2>Filter</h2></div>
+    </div>
     <p>
       Credit to Stuart Memo for the
       <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
@@ -36,7 +68,7 @@ limitations under the License.
     <script>
       const context = new AudioContext();
       let polySynthDemo = new PolySynthDemo(context);
-      polySynthDemo.initializeGUI('container');
+      polySynthDemo.initializeGUI('gainADSR', 'filterADSR');
     </script>
   </body>
 </html>

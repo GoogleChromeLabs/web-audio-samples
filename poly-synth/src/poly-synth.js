@@ -32,15 +32,38 @@ class PolySynth {
     this.releasedVoices_ = [];
 
     // The maximum and minimum cutoffs are experimentally determined.
-    this.lowPassMaxCutoff = 16000;
-    this.lowPassMinCutoff = 60;
+    this.maxCutoff = 16000;
+    this.minCutoff = 60;
 
+    // The maximum and minimum ADSR values refer to the ADSR for the gain as
+    // well as the ADSR for the filter. These values are experimentally
+    // determined.
+    this.maxAttack = 10;
+    this.minAttack = 0;
+    this.minSustain = 0.1;
+    this.maxSustain = 1;
+    this.minDecay = 0;
+    this.maxDecay = 10;
+    this.minRelease = 0;
+    this.maxRelease = 10;
+
+    // A detune amount of 1 will correspond to 2400 cents detuning from the
+    // cutoff value.
+    this.minDetuneAmount = 0;
+    this.maxDetuneAmount = 5;
+
+    // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      cutoff: this.lowPassMaxCutoff,
-      attack: 0,
-      decay: 0,
-      sustain: 0.1,
-      release: 0
+      filterCutoff: 440,
+      gainAttack: this.minAttack,
+      gainDecay: this.minDecay,
+      gainSustain: this.minSustain,
+      gainRelease: this.minRelease,
+      filterAttack: 1,
+      filterDecay: 1,
+      filterSustain: this.minSustain,
+      filterRelease: this.minRelease,
+      filterDetuneAmount: 1
     };
 
     // The client is responsible for connecting |this.output| to a destination.

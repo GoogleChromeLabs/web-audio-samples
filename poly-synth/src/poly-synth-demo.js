@@ -42,24 +42,14 @@ class PolySynthDemo {
 
   /**
    * Initialize GUI components.
-   * @param {String} containerId The ID of the container element (e.g. <div>).
+   * @param {String} gainADSRId The ID of the container for gain ADSR elements
+   *                            (e.g. <div>).
+   * @param {String} filterADSRId The ID of the container for filter
+   *                              ADSR elements.
    */
-  initializeGUI(containerId) {
-    let lowPassSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Cutoff',
-          id: 'cutoff',
-          type: 'range',
-          min: this.polySynth_.lowPassMinCutoff,
-          max: this.polySynth_.lowPassMaxCutoff,
-          step: 1,
-          default: this.polySynth_.lowPassMaxCutoff,
-        });
-
-    // The maximum gain is set to be larger than 1 to allow for highly filtered
-    // sounds to be audible. It is up to the user to avoid distortion.
+  initializeGUI(gainADSRId, filterADSRId) {
     let masterGainSlider_ =
-        new ParamController(containerId, this.setGain.bind(this), {
+        new ParamController(gainADSRId, this.setGain.bind(this), {
           name: 'Volume',
           id: 'masterGain',
           type: 'range',
@@ -67,6 +57,116 @@ class PolySynthDemo {
           max: 5,
           step: 0.01,
           default: this.masterGain_.gain.value,
+        });
+
+    let gainAttackSlider_ = new ParamController(
+        gainADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Attack (s)',
+          id: 'gainAttack',
+          type: 'range',
+          min: this.polySynth_.minAttack,
+          max: this.polySynth_.maxAttack,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainAttack,
+        });
+
+    let gainDecaySlider_ = new ParamController(
+        gainADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Decay (s)',
+          id: 'gainDecay',
+          type: 'range',
+          min: this.polySynth_.minDecay,
+          max: this.polySynth_.maxDecay,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainDecay,
+        });
+
+    let gainSustainSlider_ = new ParamController(
+        gainADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Sustain',
+          id: 'gainSustain',
+          type: 'range',
+          min: this.polySynth_.minSustain,
+          max: this.polySynth_.maxSustain,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainSustain,
+        });
+
+    let gainReleaseSlider_ = new ParamController(
+        gainADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Release (s)',
+          id: 'gainRelease',
+          type: 'range',
+          min: this.polySynth_.minRelease,
+          max: this.polySynth_.maxRelease,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainRelease,
+        });
+
+    let lowPassSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Cutoff (hz)',
+          id: 'filterCutoff',
+          type: 'range',
+          min: this.polySynth_.minCutoff,
+          max: this.polySynth_.maxCutoff,
+          step: 1,
+          default: this.polySynth_.getParameters().filterCutoff,
+        });
+
+    let filterAttackSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Attack (s)',
+          id: 'filterAttack',
+          type: 'range',
+          min: this.polySynth_.minAttack,
+          max: this.polySynth_.maxAttack,
+          step: 0.01,
+          default: this.polySynth_.getParameters().filterAttack,
+        });
+
+    let filterDecaySlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Decay (s)',
+          id: 'filterDecay',
+          type: 'range',
+          min: this.polySynth_.minDecay,
+          max: this.polySynth_.maxDecay,
+          step: 0.01,
+          default: this.polySynth_.getParameters().filterDecay,
+        });
+
+    let filterSustainSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Sustain',
+          id: 'filterSustain',
+          type: 'range',
+          min: this.polySynth_.minSustain,
+          max: this.polySynth_.maxSustain,
+          step: 0.01,
+          default: this.polySynth_.getParameters().filterSustain,
+        });
+
+    let filterReleaseSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Release (s)',
+          id: 'filterRelease',
+          type: 'range',
+          min: this.polySynth_.minRelease,
+          max: this.polySynth_.maxRelease,
+          step: 0.01,
+          default: this.polySynth_.getParameters().filterRelease,
+        });
+
+    let filterDetuneSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Detune Amount',
+          id: 'filterDetuneAmount',
+          type: 'range',
+          min: this.polySynth_.minDetuneAmount,
+          max: this.polySynth_.maxDetuneAmount,
+          step: 0.01,
+          default: this.polySynth_.getParameters().filterDetuneAmount,
         });
   }
 
@@ -76,7 +176,7 @@ class PolySynthDemo {
    * @param {Number} value The new gain.
    */
   setGain(value) {
-    this.masterGain_.gain.value = parseFloat(value);
+    this.masterGain_.gain.value = value;
   }
 
   /**
