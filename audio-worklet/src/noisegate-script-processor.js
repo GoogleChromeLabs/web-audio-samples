@@ -41,26 +41,29 @@ class NoiseGate {
    *                                      default has been set experimentally to
    *                                      0.0025s.
    * @param {Number} options.threshold Decibel level beneath which sound is
-   *                                   muted. The default is 0 dBFS.
+   *                                   muted. The default is -100 dBFS.
    */
   constructor(context, options) {
     if (!(context instanceof BaseAudioContext))
       throw 'Not a valid audio context.';
     if (!options) options = {};
-    
+
     const numberOfChannels = options.numberOfChannels || 1;
     if (numberOfChannels > 2)
       throw 'The maximum supported number of channels is two.';
 
     this.context_ = context;
     const bufferSize = options.bufferSize || 0;
-    this.threshold = options.threshold || 0;
     this.attack = options.attack || 0;
     this.release = options.release || 0;
-    
+
     // The time constant of the filter has been set experimentally to balance
     // roughly delay for high frequency suppression.
-    const timeConstant = options.timeConstant || 0.0025;
+    let timeConstant = (typeof options.timeConstant === 'undefined') ?
+        0.0025 : options.timeConstant;
+
+    this.threshold = (typeof options.threshold === 'undefined') ?
+        -100 : options.threshold;
 
     // Alpha controls a tradeoff between the smoothness of the
     // envelope and its delay, with a higher value giving more smoothness at
@@ -93,7 +96,7 @@ class NoiseGate {
   /**
    * Control the dynamic range of input based on specified threshold.
    * @param {AudioProcessingEvent} event An Event object containing
-   *                                     input and output buffers
+   *                                     input and output buffers.
    */
   onaudioprocess_(event) {
     let inputBuffer = event.inputBuffer;
@@ -111,7 +114,7 @@ class NoiseGate {
 
     let envelope = this.detectLevel_(this.channel_);
     let weights = this.computeWeights_(envelope);
-    
+
     for (let i = 0; i < inputBuffer.numberOfChannels; i++) {
       let input = inputBuffer.getChannelData(i);
       let output = event.outputBuffer.getChannelData(i);
@@ -140,7 +143,7 @@ class NoiseGate {
     }
     this.previousLevel_ = this.envelope_[this.envelope_.length - 1];
     
-    return this.envelope_;
+   return this.envelope_;
   }
 
   /**
@@ -217,4 +220,3 @@ class NoiseGate {
     return 10 * Math.log10(powerLevel);
   }
 }
-

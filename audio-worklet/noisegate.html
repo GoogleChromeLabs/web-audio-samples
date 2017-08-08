@@ -1,0 +1,79 @@
+<!--
+Copyright 2017 Google Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!--
+  This code illustrates a web audio noise gate implementation. A noise gate
+  mutes sounds which register beneath a dBFS threshold. In this demo, the
+  noise gate connects to an audio buffer of looped speech mixed with noise.
+  In between speech segments, the noise should be audible unless muted by the
+  noise gate. The user can adjust the threhold to remove the noise from the
+  buffer, as well as explore the effect of adjusting attack and release which
+  control the immediacy of muting and unmuting.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Noise Gate</title>
+    <script src="src/noisegate-script-processor.js"></script>
+    <script src="lib/source-controller.js"></script>
+    <script src="lib/param-controller.js"></script>
+    <script src="src/noisegate-demo.js"></script>
+  </head>
+  <body>
+    <h1>Noise Gate</h1>
+    <p>
+      Hit play to loop a speech sample with noise and try to adjust the
+      threshold to mute the otherwise audible noise in between speech segments.
+    </p>
+    <p>
+      Sound registering beneath the threshold level will be muted.
+      Threshold is measured in dBFS (decibels relative to full scale), where
+      0 is the maximum level, and -6 dBFS is 50% of the maximum level.
+    </p>
+    <p>
+      Attack controls how long time it takes (in seconds) for the noise gate to
+      mute the sound once it registers beneath the threshold. Release controls
+      how long time it takes (in seconds) for the noise gate to unmute the sound
+      once it registers above the threshold. In both cases, the volume linearly
+      changes to its new value.
+    </p>
+    <p>
+      With the noise volume set at 1, the noise gate should mute noise in
+      between pauses at a threshold of -40db. If you hear glitching, try
+      adjusting the attack and release settings.
+    </p>
+    <div id="container"></div>
+    Noise Gate is <button id="bypassButton">Active</button>
+    <form>
+      <input type="radio" name="node" id="scriptProcessorButton" checked>
+          Script Processor<br>
+      <input type="radio" name="node" id="workletButton" value="worklet">
+          Audio Worklet<br>
+    </form>
+    <script>
+      // TODO: Implement Audio Worklet support. For now, |workletIsAvailable|
+      // must be false.
+      const workletIsAvailable = false;
+      beginNoisegateDemo();
+      
+      function beginNoisegateDemo() {
+        const context = new AudioContext();
+        let demo = new NoisegateDemo(context, workletIsAvailable);
+        demo.initializeGUI('container', 'workletButton',
+                           'scriptProcessorButton', 'bypassButton');
+      }
+    </script>
+  </body>
+</html>
