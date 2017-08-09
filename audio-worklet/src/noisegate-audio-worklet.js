@@ -24,26 +24,43 @@ registerProcessor('noisegate-audio-worklet',
                   class NoiseGateAudioWorklet extends AudioWorkletProcessor {
   
   static get parameterDescriptors() {
-    return [{
+    return [
+    // An upper bound of 100ms for attack and release is sufficiently high
+    // to enable smooth transitions between sound and silence.
+    // The default value of 50ms has been set experimentally to minimize
+    // glitches in the demo.
+    {
       name: 'attack',
-      defaultValue: 0,
+      defaultValue: 0.05,
       minValue: 0,
-      maxValue: 10
-    }, {
+      maxValue: 0.1
+    },
+    {
       name: 'release',
-      defaultValue: 0,
+      defaultValue: 0.05,
       minValue: 0,
-      maxValue: 10
-    }, {
+      maxValue: 0.1
+    },
+    // The maximum threshold is 0 since that is the defined maximum in dBFS.
+    // The minimum is -100 dBFS since the sound is inaudible at that
+    // level even without the noise gate's interference. The default is set to
+    // -40 since the noise in the demo (with a gain of 1) will be muted during
+    // pauses at this value but the recorded voice sample will not be muted.
+    {
       name: 'threshold',
       defaultValue: -40,
       minValue: -100,
       maxValue: 0
-    }, {
+    },
+    // The default timeConstant has been set experimentally to 0.0025s to
+    // balance delay for high frequency suppression. The maximum value is set
+    // somewhat arbitrarily at 0.1 since the envelope is very delayed at values
+    // beyond this.
+    {
       name: 'timeConstant',
       defaultValue: 0.0025,
       minValue: 0,
-      maxValue: 1
+      maxValue: 0.1
     }];
   }
 
@@ -80,8 +97,9 @@ registerProcessor('noisegate-audio-worklet',
     // envelope and its delay, with a higher value giving more smoothness at
     // the expense of delay and vice versa.
     this.alpha_ = this.getAlphaFromTimeConstant_(
-        parameters.timeConstant[0], 44100);
+        parameters.timeConstant[0], this.sampleRate);
 
+    // The a-rate audio-params are used as k-rate audio-params.
     this.attack = parameters.attack[0];
     this.release = parameters.release[0];
     this.threshold = parameters.threshold[0];
@@ -148,22 +166,24 @@ registerProcessor('noisegate-audio-worklet',
       releaseSteps = Math.ceil(this.sampleRate * this.release);
       releaseGainPerStep = 1 / releaseSteps;
     }
+    // For sine waves, the envelope eventually reaches an average power of
+    // a^2 / 2. Sine waves are therefore scaled back to the original
+    // amplitude, but other waveforms or constant sources can only be
+    // approximated.
+    const scaledEnvelopeValue;
+    const weight;
 
     // Compute an array of weights between 0 and 1 which will be multiplied with
     // the channel depending on if the noise gate is open, attacking, releasing,
     // or closed.
     for (let i = 0; i < envelope.length; i++) {
-      // For sine waves, the envelope eventually reaches an average power of
-      // a^2 / 2. Sine waves are therefore scaled back to the original
-      // amplitude, but other waveforms or constant sources can only be
-      // approximated.
-      const scaledEnvelopeValue
-          = NoiseGateAudioWorklet.toDecibel(2 * envelope[i]);
+      scaledEnvelopeValue = NoiseGateAudioWorklet.toDecibel(2 * envelope[i]);
+      
       if (scaledEnvelopeValue < this.threshold) {
-        const weight = this.previousWeight_ - attackLossPerStep;
+        weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
       } else {
-        const weight = this.previousWeight_ + releaseGainPerStep;
+        weight = this.previousWeight_ + releaseGainPerStep;
         this.weights_[i] = Math.min(weight, 1);
       }
       this.previousWeight_ = this.weights_[i];
