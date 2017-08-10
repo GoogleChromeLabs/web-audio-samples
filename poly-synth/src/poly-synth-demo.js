@@ -168,6 +168,17 @@ class PolySynthDemo {
           step: 0.01,
           default: this.polySynth_.getParameters().filterDetuneAmount,
         });
+
+    let filterQSlider_ = new ParamController(
+        filterADSRId, this.polySynth_.setParameter.bind(this.polySynth_), {
+          name: 'Q',
+          id: 'filterQ',
+          type: 'range',
+          min: this.polySynth_.minQ,
+          max: this.polySynth_.maxQ,
+          step: 0.01,
+          default: this.polySynth_.getParameters().Q,
+        });
   }
 
   /**

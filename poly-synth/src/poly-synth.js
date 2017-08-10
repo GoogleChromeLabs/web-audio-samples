@@ -42,7 +42,10 @@ class PolySynth {
     this.minAttack = 0;
     this.minSustain = 0.1;
     this.maxSustain = 1;
-    this.minDecay = 0;
+
+    // The minimum decay is > 0 since there will be a conflict if the time to
+    // the sustain and time to maximum level are identical.
+    this.minDecay = 0.01;
     this.maxDecay = 10;
     this.minRelease = 0;
     this.maxRelease = 10;
@@ -52,13 +55,17 @@ class PolySynth {
     this.minDetuneAmount = 0;
     this.maxDetuneAmount = 5;
 
+    this.minQ = 0;
+    this.maxQ = 100;
+
     // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      filterCutoff: 440,
-      gainAttack: this.minAttack,
+      gainAttack: 0,
       gainDecay: this.minDecay,
       gainSustain: this.minSustain,
-      gainRelease: this.minRelease,
+      gainRelease: 0.1,
+      filterCutoff: 440,
+      filterQ: this.minQ,
       filterAttack: 1,
       filterDecay: 1,
       filterSustain: this.minSustain,
@@ -74,12 +81,24 @@ class PolySynth {
    * Returns parameters that affect how a voice is constructed.
    * @returns {Object} parameters Parameters which affect the output of a voice
    *                              if set before the voice is constructed.
-   * @returns {Number} parameters.attack Seconds until full amplitude.
-   * @returns {Number} parameters.decay Seconds until sustain level.
-   * @returns {Number} parameters.sustain The steady amplitude of the note as it
-   *                                      is pressed.
-   * @returns {Number} parameters.release Seconds between the release of a note
-   *                                      and zero amplitude.
+   * @returns {Number} parameters.gainAttack Seconds until full amplitude.
+   * @returns {Number} parameters.gainDecay Seconds between full level and
+   *                                        sustain and level.
+   * @returns {Number} parameters.gainSustain The steady amplitude of the note
+   *                                          as it is pressed.
+   * @returns {Number} parameters.gainRelease Seconds between the release of a
+   *                                          note and zero amplitude.
+   * @returns {Number} parameters.filterCutoff The cutoff of the low pass
+   *                                           filter.
+   * @returns {Number} parameters.filterQ The peak of the response at the cutoff
+   *                                      frequency.
+   * @returns {Number} parameters.filterAttack Seconds until full detune.
+   * @returns {Number} parameters.filterDecay Seconds between full detune and
+   *                                          sustain detune.
+   * @returns {Number} parameters.filterSustain The steady detune level as a
+   *                                            note is pressed.
+   * @returns {Number} parameters.filterRelease Seconds betweeen the release of
+   *                                            a note and zero detune.
    */
   getParameters() {
     return this.parameters_;

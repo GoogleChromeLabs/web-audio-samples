@@ -21,12 +21,11 @@ limitations under the License.
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
     <style>
-      #container {
+      #param-container {
         display: flex;
         flex-direction: row;
       }
       .controls {
-        border-style: solid;
         margin: 5px;
       }
     </style>
@@ -39,13 +38,9 @@ limitations under the License.
       (DEFGAB). The letters WETYU map onto the black keys of a piano.
     </p>
     <p>
-      The synthesizer constructs voices according to the volume and filter ADSR
-      settings. The volume ADSR modulates the gain of the signal over time, and
-      the filter ADSR modulates the detune of the cutoff filter, meaning the
-      cutoff specifies the filter's starting point and it will detune over
-      time depending on the ADSR settings. A detune amount of 1 means the filter
-      will deviate by at most 2400 cents from the filter cutoff value. For both
-      the volume and filter ADSR,
+      The synthesizer constructs voices according to the amplifier and filter
+      ADSR settings. The amplifier ADSR modulates the gain of the signal over
+      time, and the filter ADSR modulates the detune of the cutoff filter.
       <ul>
         <li>Attack refers to the number of seconds until the maximum level.</li>
         <li>Decay refers to the number of seconds between the attack level
@@ -56,10 +51,12 @@ limitations under the License.
             until a zero value.</li>
       </ul>
     </p>
-    <div id="keyboard"></div>
-    <div id="container">
-      <div id="gainADSR" class="controls"><h2>Volume</h2></div>
-      <div id="filterADSR" class="controls"><h2>Filter</h2></div>
+    <div id="synth-container">
+      <div id="keyboard"></div>
+      <div id="param-container">
+        <div id="amp-envelope" class="controls"><h2>Amplifier</h2></div>
+        <div id="filter-envelope" class="controls"><h2>Filter</h2></div>
+      </div>
     </div>
     <p>
       Credit to Stuart Memo for the
@@ -68,7 +65,7 @@ limitations under the License.
     <script>
       const context = new AudioContext();
       let polySynthDemo = new PolySynthDemo(context);
-      polySynthDemo.initializeGUI('gainADSR', 'filterADSR');
+      polySynthDemo.initializeGUI('amp-envelope', 'filter-envelope');
     </script>
   </body>
 </html>

@@ -39,9 +39,11 @@ class PolySynthVoice {
 
     this.oscillatorA_ = new OscillatorNode(
         this.context_, {frequency: frequency, type: 'sawtooth'});
-    this.lowPassFilter_ = new BiquadFilterNode(
-        this.context_,
-        {frequency: this.parameters_.filterCutoff, type: 'lowpass'});
+    this.lowPassFilter_ = new BiquadFilterNode(this.context_, {
+      frequency: this.parameters_.filterCutoff,
+      type: 'lowpass',
+      Q: this.parameters_.filterQ
+    });
 
     this.output = new GainNode(this.context_);
     this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
@@ -59,10 +61,8 @@ class PolySynthVoice {
     // Ramp to full amplitude in attack (s) and to sustain in decay (s).
     const t = this.context_.currentTime;
     const timeToFullAmplitude = t + this.parameters_.gainAttack;
-
-    // |timeToGainSustain| must be later than |timeToFullAmplitude|.
     const timeToGainSustain =
-        timeToFullAmplitude + this.parameters_.gainDecay + 0.001;
+        timeToFullAmplitude + this.parameters_.gainDecay;
 
     this.output.gain.setValueAtTime(0, t);
     this.output.gain.linearRampToValueAtTime(1, timeToFullAmplitude);
@@ -81,12 +81,13 @@ class PolySynthVoice {
 
     const timeToFullDetune = t + this.parameters_.filterAttack;
     const timeToDetuneSustain
-        = timeToFullDetune + this.parameters_.filterDecay + 0.001;
+        = timeToFullDetune + this.parameters_.filterDecay;
 
     this.lowPassFilter_.detune.linearRampToValueAtTime(
-        amountOfFilterDetuneInCents, timeToFullDetune);
-    this.lowPassFilter_.detune.linearRampToValueAtTime(
         amountOfSustainDetuneInCents, timeToDetuneSustain);
+    this.lowPassFilter_.detune.linearRampToValueAtTime(
+        amountOfFilterDetuneInCents, timeToFullDetune);
+
   }
 
   /**
