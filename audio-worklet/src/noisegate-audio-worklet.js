@@ -77,6 +77,8 @@ registerProcessor('noisegate-audio-worklet',
     this.previousWeight_ = 1.0;
     this.envelope_ = new Float32Array(128);
     this.weights_ = new Float32Array(128);
+
+    // TODO: Use getContextInfo() to get sample rate.
     this.sampleRate = 44100;
   }
 
@@ -170,8 +172,8 @@ registerProcessor('noisegate-audio-worklet',
     // a^2 / 2. Sine waves are therefore scaled back to the original
     // amplitude, but other waveforms or constant sources can only be
     // approximated.
-    const scaledEnvelopeValue;
-    const weight;
+    let scaledEnvelopeValue;
+    let weight;
 
     // Compute an array of weights between 0 and 1 which will be multiplied with
     // the channel depending on if the noise gate is open, attacking, releasing,
