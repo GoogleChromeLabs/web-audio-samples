@@ -31,7 +31,7 @@ class PolySynthVoice {
     this.synth_ = synth;
     this.context_ = context;
     this.parameters_ = synth.getParameters();
-    
+
     // The name of the note is used as an argument in the
     // |this.synth_.endNote()| callback.
     this.noteName_ = noteName;
@@ -39,9 +39,11 @@ class PolySynthVoice {
 
     this.oscillatorA_ = new OscillatorNode(
         this.context_, {frequency: frequency, type: 'sawtooth'});
-    this.lowPassFilter_ = new BiquadFilterNode(
-        this.context_,
-        {frequency: this.parameters_.cutoff, type: 'lowpass'});
+    this.lowPassFilter_ = new BiquadFilterNode(this.context_, {
+      frequency: this.parameters_.filterCutoff,
+      type: 'lowpass',
+      Q: this.parameters_.filterQ
+    });
 
     this.output = new GainNode(this.context_);
     this.oscillatorA_.connect(this.lowPassFilter_).connect(this.output);
@@ -58,12 +60,34 @@ class PolySynthVoice {
   start() {
     // Ramp to full amplitude in attack (s) and to sustain in decay (s).
     const t = this.context_.currentTime;
-    const timeToFullAmplitude = t + this.parameters_.attack;
-    const timeToSustain = timeToFullAmplitude + this.parameters_.decay;
+    const timeToFullAmplitude = t + this.parameters_.gainAttack;
+    const timeToGainSustain =
+        timeToFullAmplitude + this.parameters_.gainDecay;
+
     this.output.gain.setValueAtTime(0, t);
     this.output.gain.linearRampToValueAtTime(1, timeToFullAmplitude);
     this.output.gain.linearRampToValueAtTime(
-        this.parameters_.sustain, timeToSustain);
+        this.parameters_.gainSustain, timeToGainSustain);
+
+    // The detune of the filter reaches its peak amount specified by
+    // |filterDetuneAmount| (where 1 corresponds to 2400 cents detuning) in
+    // |filterAttack| seconds. It then decays to a fraction of that amount as
+    // specified by |filterSustain| in |filterDecay| seconds.
+    const standardFilterDetuneInCents = 2400;
+    const amountOfFilterDetuneInCents =
+        standardFilterDetuneInCents * this.parameters_.filterDetuneAmount;
+    const amountOfSustainDetuneInCents =
+        standardFilterDetuneInCents * this.parameters_.filterSustain;
+
+    const timeToFullDetune = t + this.parameters_.filterAttack;
+    const timeToDetuneSustain
+        = timeToFullDetune + this.parameters_.filterDecay;
+
+    this.lowPassFilter_.detune.linearRampToValueAtTime(
+        amountOfSustainDetuneInCents, timeToDetuneSustain);
+    this.lowPassFilter_.detune.linearRampToValueAtTime(
+        amountOfFilterDetuneInCents, timeToFullDetune);
+
   }
 
   /**
@@ -73,9 +97,16 @@ class PolySynthVoice {
     // Cancel scheduled audio param changes, and fade note according to
     // release time.
     const t = this.context_.currentTime;
-    const timeToZeroAmplitude = t + this.parameters_.release;
+    const timeToZeroAmplitude = t + this.parameters_.gainRelease;
     this.output.gain.cancelAndHoldAtTime(t);
     this.output.gain.linearRampToValueAtTime(0, timeToZeroAmplitude);
+
+    // Fade detune for filter to 0 according to release time.
+    const timeToZeroDetune = t + this.parameters_.filterRelease;
+    this.lowPassFilter_.detune.cancelAndHoldAtTime(t);
+    this.lowPassFilter_.detune.linearRampToValueAtTime(
+        0, timeToZeroDetune);
+
     this.oscillatorA_.stop(timeToZeroAmplitude);
   }
 }

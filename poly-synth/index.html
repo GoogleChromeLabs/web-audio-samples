@@ -20,15 +20,44 @@ limitations under the License.
     <script src="src/poly-synth-demo.js"></script>
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
+    <style>
+      #param-container {
+        display: flex;
+        flex-direction: row;
+      }
+      .controls {
+        margin: 5px;
+      }
+    </style>
   </head>
   <body>
+    <h1>Polyphonic Subtractive Synthesizer</h1>
     <p>
-     The key A on your computer keyboard maps onto the note C, and the letters
-     to the right of A (SDFGHJ) map onto the notes above C in a C major scale
-     (DEFGAB). The letters WETYU map onto the black keys of a piano.
+      The key A on your computer keyboard maps onto the note C, and the letters
+      to the right of A (SDFGHJ) map onto the notes above C in a C major scale
+      (DEFGAB). The letters WETYU map onto the black keys of a piano.
     </p>
-    <div id="keyboard"></div>
-    <div id="container"></div>
+    <p>
+      The synthesizer constructs voices according to the amplifier and filter
+      ADSR settings. The amplifier ADSR modulates the gain of the signal over
+      time, and the filter ADSR modulates the detune of the cutoff filter.
+      <ul>
+        <li>Attack refers to the number of seconds until the maximum level.</li>
+        <li>Decay refers to the number of seconds between the attack level
+            and the sustain level.</li>
+        <li>Sustain refers to the steady value as the note is pressed as
+            a fraction of the maximum level.</li>
+        <li>Release refers to the number of seconds from releasing the note
+            until a zero value.</li>
+      </ul>
+    </p>
+    <div id="synth-container">
+      <div id="keyboard"></div>
+      <div id="param-container">
+        <div id="amp-envelope" class="controls"><h2>Amplifier</h2></div>
+        <div id="filter-envelope" class="controls"><h2>Filter</h2></div>
+      </div>
+    </div>
     <p>
       Credit to Stuart Memo for the
       <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
@@ -36,7 +65,7 @@ limitations under the License.
     <script>
       const context = new AudioContext();
       let polySynthDemo = new PolySynthDemo(context);
-      polySynthDemo.initializeGUI('container');
+      polySynthDemo.initializeGUI('amp-envelope', 'filter-envelope');
     </script>
   </body>
 </html>

@@ -32,15 +32,47 @@ class PolySynth {
     this.releasedVoices_ = [];
 
     // The maximum and minimum cutoffs are experimentally determined.
-    this.lowPassMaxCutoff = 16000;
-    this.lowPassMinCutoff = 60;
+    this.maxCutoff = 16000;
+    this.minCutoff = 60;
 
+    // The maximum and minimum ADSR values refer to the ADSR for the gain as
+    // well as the ADSR for the filter. These values are experimentally
+    // determined.
+    this.maxAttack = 10;
+    this.minAttack = 0;
+    this.minSustain = 0.1;
+    this.maxSustain = 1;
+
+    // The minimum decay is > 0 since there will be a conflict if the time to
+    // the sustain and time to maximum level are identical.
+    this.minDecay = 0.01;
+    this.maxDecay = 10;
+    this.minRelease = 0;
+    this.maxRelease = 10;
+
+    // A detune amount of 1 will correspond to 2400 cents detuning from the
+    // cutoff value.
+    this.minDetuneAmount = 0;
+    this.maxDetuneAmount = 5;
+
+    // Q for the low pass filter is in dB and controls how peaked the response
+    // is around the cutoff frequency.
+    this.minQ = -50;
+    this.maxQ = 50;
+
+    // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      cutoff: this.lowPassMaxCutoff,
-      attack: 0,
-      decay: 0,
-      sustain: 0.1,
-      release: 0
+      gainAttack: 0.1,
+      gainDecay: this.minDecay,
+      gainSustain: 0.5,
+      gainRelease: 0.1,
+      filterCutoff: 440,
+      filterQ: this.minQ,
+      filterAttack: 1,
+      filterDecay: 1,
+      filterSustain: this.minSustain,
+      filterRelease: this.minRelease,
+      filterDetuneAmount: 1
     };
 
     // The client is responsible for connecting |this.output| to a destination.
@@ -49,14 +81,26 @@ class PolySynth {
   
   /**
    * Returns parameters that affect how a voice is constructed.
-   * @returns {Object} parameters Parameters which affect the output of a voice
-   *                              if set before the voice is constructed.
-   * @returns {Number} parameters.attack Seconds until full amplitude.
-   * @returns {Number} parameters.decay Seconds until sustain level.
-   * @returns {Number} parameters.sustain The steady amplitude of the note as it
-   *                                      is pressed.
-   * @returns {Number} parameters.release Seconds between the release of a note
-   *                                      and zero amplitude.
+   * @returns {Object} parameters K-rate parameters which affect the output of a
+   *                              voice if set before the voice is constructed.
+   * @returns {Number} parameters.gainAttack Seconds until full amplitude.
+   * @returns {Number} parameters.gainDecay Seconds between full level and
+   *                                        sustain and level.
+   * @returns {Number} parameters.gainSustain The steady amplitude of the note
+   *                                          as it is pressed.
+   * @returns {Number} parameters.gainRelease Seconds between the release of a
+   *                                          note and zero amplitude.
+   * @returns {Number} parameters.filterCutoff The cutoff of the low pass
+   *                                           filter.
+   * @returns {Number} parameters.filterQ The peak of the response at the cutoff
+   *                                      frequency.
+   * @returns {Number} parameters.filterAttack Seconds until full detune.
+   * @returns {Number} parameters.filterDecay Seconds between full detune and
+   *                                          sustain detune.
+   * @returns {Number} parameters.filterSustain The steady detune level as a
+   *                                            note is pressed.
+   * @returns {Number} parameters.filterRelease Seconds betweeen the release of
+   *                                            a note and zero detune.
    */
   getParameters() {
     return this.parameters_;
