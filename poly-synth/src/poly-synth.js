@@ -55,14 +55,16 @@ class PolySynth {
     this.minDetuneAmount = 0;
     this.maxDetuneAmount = 5;
 
-    this.minQ = 0;
-    this.maxQ = 100;
+    // Q for the low pass filter is in dB and controls how peaked the response
+    // is around the cutoff frequency.
+    this.minQ = -50;
+    this.maxQ = 50;
 
     // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      gainAttack: 0,
+      gainAttack: 0.1,
       gainDecay: this.minDecay,
-      gainSustain: this.minSustain,
+      gainSustain: 0.5,
       gainRelease: 0.1,
       filterCutoff: 440,
       filterQ: this.minQ,
@@ -79,8 +81,8 @@ class PolySynth {
   
   /**
    * Returns parameters that affect how a voice is constructed.
-   * @returns {Object} parameters Parameters which affect the output of a voice
-   *                              if set before the voice is constructed.
+   * @returns {Object} parameters K-rate parameters which affect the output of a
+   *                              voice if set before the voice is constructed.
    * @returns {Number} parameters.gainAttack Seconds until full amplitude.
    * @returns {Number} parameters.gainDecay Seconds between full level and
    *                                        sustain and level.
