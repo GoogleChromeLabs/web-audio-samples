@@ -266,6 +266,25 @@
       
       function setFilterType(filterType) {
         filter.type = filterType;
+
+        // Need to adjust the Q slider range depending on the filter type.  This
+        // is because the Q parameter for the lowpass and highpass filters is in
+        // dB, but linear for the others.
+        if (filterType === 'lowpass' || filterType === 'highpass') {
+          let slider = document.getElementById('QSlider');
+          slider.min = -50;
+          slider.max = 50;
+          // Clamp the value to the slider range, just in case.
+          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
+          qHandler(null, {value: slider.value});
+        } else {
+          let slider = document.getElementById('QSlider');
+          slider.min = 0;
+          slider.max = 1000;
+          // Clamp the value to the slider range, just in case.
+          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
+          qHandler(null, {value: slider.value});
+        }
         drawCurve();
       }
 
@@ -359,7 +378,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Fri Nov  7 10:07:02 PST 2014
+Last modified: Thu Aug 10 14:32:52 PDT 2017
 <!-- hhmts end -->
       </div>
     </div>
