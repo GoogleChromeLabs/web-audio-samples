@@ -78,7 +78,7 @@ registerProcessor('noisegate-audio-worklet',
     this.envelope_ = new Float32Array(128);
     this.weights_ = new Float32Array(128);
 
-    // TODO: Use getContextInfo() to get sample rate.
+    // TODO (issue #111): Use getContextInfo() to get sample rate.
     this.sampleRate = 44100;
   }
 
@@ -86,7 +86,7 @@ registerProcessor('noisegate-audio-worklet',
    * Control the dynamic range of input based on specified threshold.
    * @param {AudioBuffer} input Input audio data
    * @param {AudioBuffer} output Output audio data
-   * @param {Object} parameters
+   * @param {Object} parameters K-rate audio params.
    * @param {Number} parameters.attack Seconds for gate to fully close.
    * @param {Number} parameters.release Seconds for gate to fully open.
    * @param {Number} parameters.timeConstant Seconds for envelope follower's
