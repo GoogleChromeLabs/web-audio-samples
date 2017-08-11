@@ -122,7 +122,7 @@ class PolySynthDemo {
           min: this.polySynth_.minQ,
           max: this.polySynth_.maxQ,
           step: 0.01,
-          default: this.polySynth_.getParameters().Q,
+          default: this.polySynth_.getParameters().filterQ,
         });
 
     let filterAttackSlider_ = new ParamController(

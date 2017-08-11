@@ -74,10 +74,10 @@ class PolySynthVoice {
     // |filterAttack| seconds. It then decays to a fraction of that amount as
     // specified by |filterSustain| in |filterDecay| seconds.
     const standardFilterDetuneInCents = 2400;
-    const amountOfFilterDetuneInCents =
+    const amountOfPeakDetuneInCents =
         standardFilterDetuneInCents * this.parameters_.filterDetuneAmount;
     const amountOfSustainDetuneInCents =
-        standardFilterDetuneInCents * this.parameters_.filterSustain;
+        amountOfPeakDetuneInCents * this.parameters_.filterSustain;
 
     const timeToFullDetune = t + this.parameters_.filterAttack;
     const timeToDetuneSustain
@@ -86,7 +86,7 @@ class PolySynthVoice {
     this.lowPassFilter_.detune.linearRampToValueAtTime(
         amountOfSustainDetuneInCents, timeToDetuneSustain);
     this.lowPassFilter_.detune.linearRampToValueAtTime(
-        amountOfFilterDetuneInCents, timeToFullDetune);
+        amountOfPeakDetuneInCents, timeToFullDetune);
 
   }
 

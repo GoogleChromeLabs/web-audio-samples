@@ -67,7 +67,7 @@ class PolySynth {
       gainSustain: 0.5,
       gainRelease: 0.1,
       filterCutoff: 440,
-      filterQ: this.minQ,
+      filterQ: 0,
       filterAttack: 1,
       filterDecay: 1,
       filterSustain: this.minSustain,
