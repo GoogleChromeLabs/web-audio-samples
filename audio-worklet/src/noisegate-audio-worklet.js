@@ -21,47 +21,26 @@
  * registered volume is above a specified threshold.
  */
 registerProcessor('noisegate-audio-worklet',
-                  class NoiseGateAudioWorklet extends AudioWorkletProcessor {
-  
+                  class NoiseGateAudioWorklet extends AudioWorkletProcessor{
+
   static get parameterDescriptors() {
     return [
-    // An upper bound of 100ms for attack and release is sufficiently high
-    // to enable smooth transitions between sound and silence.
-    // The default value of 50ms has been set experimentally to minimize
-    // glitches in the demo.
-    {
-      name: 'attack',
-      defaultValue: 0.05,
-      minValue: 0,
-      maxValue: 0.1
-    },
-    {
-      name: 'release',
-      defaultValue: 0.05,
-      minValue: 0,
-      maxValue: 0.1
-    },
-    // The maximum threshold is 0 since that is the defined maximum in dBFS.
-    // The minimum is -100 dBFS since the sound is inaudible at that
-    // level even without the noise gate's interference. The default is set to
-    // -40 since the noise in the demo (with a gain of 1) will be muted during
-    // pauses at this value but the recorded voice sample will not be muted.
-    {
-      name: 'threshold',
-      defaultValue: -40,
-      minValue: -100,
-      maxValue: 0
-    },
-    // The default timeConstant has been set experimentally to 0.0025s to
-    // balance delay for high frequency suppression. The maximum value is set
-    // somewhat arbitrarily at 0.1 since the envelope is very delayed at values
-    // beyond this.
-    {
-      name: 'timeConstant',
-      defaultValue: 0.0025,
-      minValue: 0,
-      maxValue: 0.1
-    }];
+      // An upper bound of 100ms for attack and release is sufficiently high
+      // to enable smooth transitions between sound and silence.
+      // The default value of 50ms has been set experimentally to minimize
+      // glitches in the demo.
+      {name: 'attack', defaultValue: 0.05, minValue: 0, maxValue: 0.1},
+      {name: 'release', defaultValue: 0.05, minValue: 0, maxValue: 0.1},
+      // The maximum threshold is 0 dBFS, and the minimum is -100 dBFS since
+      // the sound is inaudible at that level. The default is set to -40
+      // as an appropriate setting for the demo.
+      {name: 'threshold', defaultValue: -40, minValue: -100, maxValue: 0},
+      // The default timeConstant has been set experimentally to 0.0025s to
+      // balance delay for high frequency suppression. The maximum value is set
+      // somewhat arbitrarily at 0.1 since the envelope is very delayed at
+      // values beyond this.
+      {name: 'timeConstant', defaultValue: 0.0025, minValue: 0, maxValue: 0.1}
+    ];
   }
 
   constructor() {
@@ -101,7 +80,8 @@ registerProcessor('noisegate-audio-worklet',
     this.alpha_ = this.getAlphaFromTimeConstant_(
         parameters.timeConstant[0], this.sampleRate);
 
-    // The a-rate audio-params are used as k-rate audio-params.
+    // K-rate: use the first element of parameter data to process each render
+    // quantum.
     this.attack = parameters.attack[0];
     this.release = parameters.release[0];
     this.threshold = parameters.threshold[0];
@@ -153,10 +133,6 @@ registerProcessor('noisegate-audio-worklet',
     let attackLossPerStep = 1;
     let releaseGainPerStep = 1;
 
-    // TODO: Replace this weights-based approach for enabling attack/release
-    // parameters with the method described on page 22 in
-    // "Signal Processing Techniques for Digital Audio Effects".
-
     // When attack or release are > 0, the associated weight changes between 0
     // and 1 in the number of steps corresponding to the millisecond attack
     // or release time parameters.
@@ -168,19 +144,22 @@ registerProcessor('noisegate-audio-worklet',
       releaseSteps = Math.ceil(this.sampleRate * this.release);
       releaseGainPerStep = 1 / releaseSteps;
     }
-    // For sine waves, the envelope eventually reaches an average power of
-    // a^2 / 2. Sine waves are therefore scaled back to the original
-    // amplitude, but other waveforms or constant sources can only be
-    // approximated.
+    // TODO: Replace this weights-based approach for enabling attack/release
+    // parameters with the method described on page 22 in
+    // "Signal Processing Techniques for Digital Audio Effects".
+    
     let scaledEnvelopeValue;
     let weight;
 
-    // Compute an array of weights between 0 and 1 which will be multiplied with
-    // the channel depending on if the noise gate is open, attacking, releasing,
-    // or closed.
+    // The array of weights will be between 0 and 1 depending on if the
+    // noise gate is open, attacking, releasing, or closed.
     for (let i = 0; i < envelope.length; i++) {
+      // For sine waves, the envelope eventually reaches an average power of
+      // a^2 / 2. Sine waves are therefore scaled back to the original
+      // amplitude, but other waveforms or constant sources can only be
+      // approximated.
       scaledEnvelopeValue = NoiseGateAudioWorklet.toDecibel(2 * envelope[i]);
-      
+
       if (scaledEnvelopeValue < this.threshold) {
         weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
