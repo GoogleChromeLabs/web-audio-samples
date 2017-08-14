@@ -20,9 +20,10 @@ limitations under the License.
     <script src="src/noisegate-script-processor.js"></script>
     <script id="noisegate-test-code">
       // Sample rate is a power of two to avoid interpolation from delay node.
-      // It is held artificially low for easy inspection of audio buffers.
-      // All tests pass for all legal powers in the range [3000, 384000].
-      const sampleRate = Math.pow(2,16);
+      // All but the first three tests pass for all legal powers of 2 in the
+      // range [3000, 384000]. (The first three tests may fail if the oscillator
+      // frequency is set above the level at which it can be represented.)
+      const sampleRate = 65536;
 
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
@@ -42,13 +43,13 @@ limitations under the License.
         // The threshold should be set slightly above the oscillator's gain, so
         // that the noise gate mutes the signal.
         const oscillatorGain = 1;
-        const threshold = 10 * Math.log10(oscillatorGain * oscillatorGain)
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain)
             + 0.015;
         
         let context = setupThresholdTestGraph(threshold, oscillatorGain);
 
         // The noise gate should never open since the envelope follower won't
-        // quite reach 0 dB.
+        // quite reach the threshold, set slightly above 0 dB.
         context.startRendering().then((buffer) => {
           let noisegateOutput = buffer.getChannelData(0);
           should(noisegateOutput,
@@ -61,14 +62,13 @@ limitations under the License.
         // The threshold should be set slightly below the oscillator's gain, so
         // that the noise gate eventually opens.
         const oscillatorGain = 0.5;
-        const threshold = 10 * Math.log10(oscillatorGain * oscillatorGain)
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain);
             - 0.015;
 
-        // The oscillator's gain is set slightly above the threshold, so that
-        // the noise gate eventually opens.
         let context = setupThresholdTestGraph(threshold, oscillatorGain);
 
-        // The noise gate should open within the measured time span.
+        // The noise gate should eventually open since the threshold is set
+        // beneath the signal power.
         context.startRendering().then((buffer) => {
           let noisegateOutput = buffer.getChannelData(0);
           should(noisegateOutput,
@@ -81,7 +81,7 @@ limitations under the License.
         // The threshold should be set slightly above the oscillator's gain, so
         // that the noise gate mutes the signal.
         const oscillatorGain = 0.5;
-        const threshold = 10 * Math.log10(oscillatorGain * oscillatorGain)
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain)
             + 0.015;
         
         let context = setupThresholdTestGraph(threshold, oscillatorGain);
@@ -515,12 +515,6 @@ limitations under the License.
 
     function toTime_(index, sampleRate) {
       return index  / sampleRate;
-    }
-    
-    // Converts from decibel level to powerLevel. This is the inverse function
-    // of |Noisegate.toDecibel()|.
-    function decibelToPower(decibel) {
-      return Math.pow(10, decibel / 10);
     }
   </script>
   </head>
