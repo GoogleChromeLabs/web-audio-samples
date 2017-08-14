@@ -49,7 +49,7 @@ class NoisegateDemo {
     this.threshold_ = -40;
     this.thresholdMin_ = -100;
     this.thresholdMax_ = 0;
-    
+
     if (this.workletIsAvailable_) {
       this.noisegateAudioWorklet_ =
           new AudioWorkletNode(this.context_, 'noisegate-audio-worklet');
@@ -57,32 +57,29 @@ class NoisegateDemo {
       // The script processor is used by default, and if workletGain_.gain is 0,
       // then scriptProcessorGain_.gain is 1, and vice versa.
       this.workletGain_ = new GainNode(this.context_, {gain: 0});
-      this.speechAndNoiseSummingJunction_.connect(
-          this.noisegateAudioWorklet_).connect(
-          this.workletGain_).connect(
-          this.activeNoisegateRoute_);
+      this.speechAndNoiseSummingJunction_.connect(this.noisegateAudioWorklet_)
+          .connect(this.workletGain_)
+          .connect(this.activeNoisegateRoute_);
     }
 
     const scriptProcessorBufferSize = 4096;
     this.noisegateScriptProcessor_ = new NoiseGate(this.context_, {
-        channelCount: 1,
-        attack: this.attack_,
-        release: this.release_,
-        threshold: this.threshold_
+      channelCount: 1,
+      attack: this.attack_,
+      release: this.release_,
+      threshold: this.threshold_
     });
     this.scriptProcessorGain_ = new GainNode(this.context_);
 
     this.noiseGain_.connect(this.speechAndNoiseSummingJunction_);
-    this.speechAndNoiseSummingJunction_.connect(
-        this.bypassNoisegateRoute_).connect(
-        this.masterGain_);
+    this.speechAndNoiseSummingJunction_.connect(this.bypassNoisegateRoute_)
+        .connect(this.masterGain_);
 
     this.speechAndNoiseSummingJunction_.connect(
         this.noisegateScriptProcessor_.input);
-    this.noisegateScriptProcessor_.output.connect(
-        this.scriptProcessorGain_).connect(
-        this.activeNoisegateRoute_).connect(
-        this.masterGain_);
+    this.noisegateScriptProcessor_.output.connect(this.scriptProcessorGain_)
+        .connect(this.activeNoisegateRoute_)
+        .connect(this.masterGain_);
 
     this.masterGain_.connect(this.context_.destination);
 
@@ -111,8 +108,8 @@ class NoisegateDemo {
    * @param {String} scriptProcessorButtonId ID of scriptProcessor radio button.
    * @param {String} bypassButtonId ID of bypass button.
    */
-  initializeGUI(containerId, workletButtonId, scriptProcessorButtonId,
-                bypassButtonId) {
+  initializeGUI(
+      containerId, workletButtonId, scriptProcessorButtonId, bypassButtonId) {
     this.sourceButton_ = new SourceController(
         containerId, this.start.bind(this), this.stop.bind(this));
 
@@ -168,13 +165,13 @@ class NoisegateDemo {
           default: 0,
           name: 'Noise Volume'
         });
-     
+
     let workletButton = document.getElementById(workletButtonId);
     if (this.workletIsAvailable_)
       workletButton.addEventListener('click', this.workletSelected.bind(this));
     else
       workletButton.disabled = true;
-    
+
     document.getElementById(scriptProcessorButtonId)
         .addEventListener('click', this.scriptProcessorSelected.bind(this));
 
@@ -276,12 +273,13 @@ class NoisegateDemo {
     this.noiseSource_.connect(this.noiseGain_);
     this.speechSource_.connect(this.speechAndNoiseSummingJunction_);
 
-    this.speechSource_.onended = () => {
-      this.sourceButton_.enable();
-      this.attackSlider_.disable();
-      this.releaseSlider_.disable();
-      this.thresholdSlider_.disable();
-    }
+    this.speechSource_.onended =
+        () => {
+          this.sourceButton_.enable();
+          this.attackSlider_.disable();
+          this.releaseSlider_.disable();
+          this.thresholdSlider_.disable();
+        }
 
     this.noiseSource_.start();
     this.speechSource_.start();

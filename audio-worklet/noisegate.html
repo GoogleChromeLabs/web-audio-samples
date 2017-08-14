@@ -75,9 +75,7 @@ limitations under the License.
       
       if (workletIsAvailable) {
         window.audioWorklet.addModule('src/noisegate-audio-worklet.js')
-            .then(() => {
-                beginNoisegateDemo();
-            });
+            .then(beginNoisegateDemo());
       } else {
         beginNoisegateDemo();
       }
