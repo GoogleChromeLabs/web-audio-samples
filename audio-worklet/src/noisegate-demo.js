@@ -205,13 +205,13 @@ class NoisegateDemo {
 
   workletSelected() {
     // Switching occurs 10ms into the future for thread synchronization.
-    const t = this.context_.currentTime + 0.01;
+    const t = this.context_.currentTime;
     this.workletGain_.gain.setValueAtTime(1, t);
     this.scriptProcessorGain_.gain.setValueAtTime(0, t);
   }
 
   scriptProcessorSelected() {
-    const t = this.context_.currentTime + 0.01;
+    const t = this.context_.currentTime;
     this.scriptProcessorGain_.gain.setValueAtTime(1, t);
     this.workletGain_.gain.setValueAtTime(0, t);
   }
@@ -279,7 +279,7 @@ class NoisegateDemo {
           this.attackSlider_.disable();
           this.releaseSlider_.disable();
           this.thresholdSlider_.disable();
-        }
+        };
 
     this.noiseSource_.start();
     this.speechSource_.start();
