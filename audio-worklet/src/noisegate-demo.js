@@ -26,7 +26,6 @@ class NoisegateDemo {
    */
   constructor(context, workletIsAvailable) {
     this.context_ = context;
-    this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
     this.workletIsAvailable_ = workletIsAvailable;
 
     this.attack_ = 0;
@@ -36,12 +35,33 @@ class NoisegateDemo {
     this.releaseMin_ = 0;
     this.releaseMax_ = 0.1;
 
+    // There are two sound sources (speech and noise), which are mixed
+    // together and summed. From this summing junction, the signal splits into
+    // three paths, one going through the script processor noise gate, one going
+    // through the audio worklet noise gate and one bypassing the noise gate.
+    this.noiseGain_ = new GainNode(this.context_, {gain: 0});
+    this.speechAndNoiseSummingJunction_ = new GainNode(this.context_);
+    this.bypassNoisegateRoute_ = new GainNode(this.context_, {gain: 0});
+    this.activeNoisegateRoute_ = new GainNode(this.context_, {gain: 1});
+    this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
+
     // The recorded speech sample is louder than -40db and not muted by default.
     this.threshold_ = -40;
     this.thresholdMin_ = -100;
     this.thresholdMax_ = 0;
+    
+    if (this.workletIsAvailable_) {
+      this.noisegateAudioWorklet_ =
+          new AudioWorkletNode(this.context_, 'noisegate-audio-worklet');
 
-    // TODO: Implement audio worklet logic.
+      // The script processor is used by default, and if workletGain_.gain is 0,
+      // then scriptProcessorGain_.gain is 1, and vice versa.
+      this.workletGain_ = new GainNode(this.context_, {gain: 0});
+      this.speechAndNoiseSummingJunction_.connect(
+          this.noisegateAudioWorklet_).connect(
+          this.workletGain_).connect(
+          this.activeNoisegateRoute_);
+    }
 
     const scriptProcessorBufferSize = 4096;
     this.noisegateScriptProcessor_ = new NoiseGate(this.context_, {
@@ -50,14 +70,7 @@ class NoisegateDemo {
         release: this.release_,
         threshold: this.threshold_
     });
-
-    // There are two sound sources (speech and noise), which are mixed
-    // together and summed. From this summing junction, the signal splits into
-    // two paths, one going through the noise gate and one bypassing it.
-    this.noiseGain_ = new GainNode(this.context_, {gain: 0});
-    this.speechAndNoiseSummingJunction_ = new GainNode(this.context_);
-    this.bypassNoisegateRoute_ = new GainNode(this.context_, {gain: 0});
-    this.activeNoisegateRoute_ = new GainNode(this.context_, {gain: 1});
+    this.scriptProcessorGain_ = new GainNode(this.context_);
 
     this.noiseGain_.connect(this.speechAndNoiseSummingJunction_);
     this.speechAndNoiseSummingJunction_.connect(
@@ -67,6 +80,7 @@ class NoisegateDemo {
     this.speechAndNoiseSummingJunction_.connect(
         this.noisegateScriptProcessor_.input);
     this.noisegateScriptProcessor_.output.connect(
+        this.scriptProcessorGain_).connect(
         this.activeNoisegateRoute_).connect(
         this.masterGain_);
 
@@ -154,10 +168,15 @@ class NoisegateDemo {
           default: 0,
           name: 'Noise Volume'
         });
-
-    // TODO: Allow user to switch between audio worklet and noise gate.
-    this.workletButton_ = document.getElementById(workletButtonId);
-    this.workletButton_.disabled = true;
+     
+    let workletButton = document.getElementById(workletButtonId);
+    if (this.workletIsAvailable_)
+      workletButton.addEventListener('click', this.workletSelected.bind(this));
+    else
+      workletButton.disabled = true;
+    
+    document.getElementById(scriptProcessorButtonId)
+        .addEventListener('click', this.scriptProcessorSelected.bind(this));
 
     // Sound is not processed by the noise gate if in bypass mode.
     document.getElementById('bypassButton').onclick = (event) => {
@@ -185,6 +204,19 @@ class NoisegateDemo {
         }
       }
     }
+  }
+
+  workletSelected() {
+    // Switching occurs 10ms into the future for thread synchronization.
+    const t = this.context_.currentTime + 0.01;
+    this.workletGain_.gain.setValueAtTime(1, t);
+    this.scriptProcessorGain_.gain.setValueAtTime(0, t);
+  }
+
+  scriptProcessorSelected() {
+    const t = this.context_.currentTime + 0.01;
+    this.scriptProcessorGain_.gain.setValueAtTime(1, t);
+    this.workletGain_.gain.setValueAtTime(0, t);
   }
 
   /**
