@@ -22,10 +22,8 @@ class PolySynth {
   /**
    * @constructor
    * @param {AudioContext} context The audio context.
-   * @param {AudioBuffer} defaultImpulseResponse The default impulse response.
-
    */
-  constructor(context, defaultImpulseResponse) {
+  constructor(context) {
     if (!(context instanceof AudioContext))
       throw context + ' is not a valid audio context.';
 
@@ -62,21 +60,19 @@ class PolySynth {
     this.minQ = -50;
     this.maxQ = 50;
 
-    // The bitcrusher defaults non-information reducing parameters.
     this.minBitDepth = 1;
     this.maxBitDepth = 24;
     this.minReduction = 1;
     this.maxReduction = 10;
 
-    // By default no feedback is applied. The gain and delay time are
+    // By default no delay is applied. The gain and delay time are
     // experimentally determined.
-    this.feedbackWetness = 0;
-    this.feedbackGain = 0.5;
+    this.delayWetness = 0;
+    this.feedbackDelayGain = 0.5;
     this.feedbackDelayTime = 0.2;
 
-    // By default no convolution is applied.
-    this.convolverWetness = 1;
-    this.impulseResponse_ = defaultImpulseResponse;
+    // By default, no reverb is applied.
+    this.reverbWetness = 0;
 
     // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
@@ -96,54 +92,52 @@ class PolySynth {
     // Each voice is connected to |this.voiceOutput_|.
     this.voiceOutput_ = new GainNode(this.context_);
 
-    // The output of |this.voiceOutput_| is processed by three effects
-    // bitcrusher, feedback delay, and a convolver.
-    let feedbackInputNode = new GainNode(this.context_);
-    let feedbackOutputNode = this.createFeedbackGraph_(feedbackInputNode);
-
+    // The output of |this.voiceOutput_| is processed by three effects:
+    // bitcrushing, delay, and reverb.
     let bitcrusherInputNode = new GainNode(this.context_);
     let bitcrusherOutputNode = this.createBitcrusherGraph_(bitcrusherInputNode);
 
-    let convolverInputNode = new GainNode(this.context_);
-    let convolverOutputNode = this.createConvolverGraph_(convolverInputNode);
+    let delayInputNode = new GainNode(this.context_);
+    let delayOutputNode = this.createDelayGraph_(delayInputNode);
+
+    let reverbInputNode = new GainNode(this.context_);
+    let reverbOutputNode = this.createReverbGraph_(reverbInputNode);
 
     // The client is responsible for connecting |this.output| to a destination.
     this.output = new GainNode(this.context_);
 
-    // The feedback node occurs prior to the other effects so that the output
-    // of the feedback can be modulated by these components.
-    this.voiceOutput_.connect(feedbackInputNode);
-    feedbackOutputNode.connect(bitcrusherInputNode);
-    bitcrusherOutputNode.connect(convolverInputNode);
-    convolverOutputNode.connect(this.output);
+    this.voiceOutput_.connect(bitcrusherInputNode);
+    bitcrusherOutputNode.connect(delayInputNode);
+    delayOutputNode.connect(reverbInputNode);
+    reverbOutputNode.connect(this.output);
   }
 
-  createFeedbackGraph_(inputNode) {
+  createDelayGraph_(inputNode) {
     // The sum of the gain of the wet and dry signal is always 1, and the output
     // always routes through both nodes.
-    this.feedbackWetSignal_ =
-        new GainNode(this.context_, {gain: this.feedbackWetness});
-    this.feedbackDrySignal_ =
-        new GainNode(this.context_, {gain: 1 - this.feedbackWetness});
+    this.delayWetSignalGain_ =
+        new GainNode(this.context_, {gain: this.delayWetness});
+    this.delayDrySignalGain_ =
+        new GainNode(this.context_, {gain: 1 - this.delayWetness});
     this.feedbackDelayNode_ =
         new DelayNode(this.context_, {delayTime: this.feedbackDelayTime});
-    this.feedbackGainNode_ =
-        new GainNode(this.context_, {gain: this.feedbackGain});
-    let feedbackEffectOutputNode = new GainNode(this.context_, {gain: 1});
+    this.feedbackDelayGainNode_ =
+        new GainNode(this.context_, {gain: this.feedbackDelayGain});
+    let delayEffectOutputNode = new GainNode(this.context_, {gain: 1});
 
-    inputNode.connect(this.feedbackDrySignal_)
-        .connect(feedbackEffectOutputNode);
+    inputNode.connect(this.delayDrySignalGain_)
+        .connect(delayEffectOutputNode);
 
     // The output of the delay node routes through the wet path as well as a
     // gain node which echoes the delay node's output back to it at a gain
     // specified by the user.
     inputNode.connect(this.feedbackDelayNode_)
-        .connect(this.feedbackWetSignal_)
-        .connect(feedbackEffectOutputNode);
-    this.feedbackDelayNode_.connect(this.feedbackGainNode_)
+        .connect(this.delayWetSignalGain_)
+        .connect(delayEffectOutputNode);
+    this.feedbackDelayNode_.connect(this.feedbackDelayGainNode_)
         .connect(this.feedbackDelayNode_);
 
-    return feedbackEffectOutputNode;
+    return delayEffectOutputNode;
   }
 
   createBitcrusherGraph_(inputNode) {
@@ -151,8 +145,6 @@ class PolySynth {
         this.context_,
         {bitDepth: this.maxBitDepth, reduction: this.minReduction});
 
-    // Only one of |this.activeBitcrusherRoute_| and
-    // |this.bypassBitcrusherRoute_| has a non-zero gain
     this.activeBitcrusherRoute = new GainNode(this.context_, {gain: 0});
     this.bypassBitcrusherRoute = new GainNode(this.context_, {gain: 1});
     let bitcrusherOutputNode = new GainNode(this.context_);
@@ -165,25 +157,24 @@ class PolySynth {
     return bitcrusherOutputNode;
   }
 
-  createConvolverGraph_(inputNode) {
+  createReverbGraph_(inputNode) {
     // The sum of the gain of the wet and dry signal is always 1.
-    this.convolverWetSignal_ =
-        new GainNode(this.context_, {gain: this.convolverWetness});
-    this.convolverDrySignal_ =
-        new GainNode(this.context_, {gain: 1 - this.convolverWetness});
+    this.reverbWetSignal_ =
+        new GainNode(this.context_, {gain: this.reverbWetness});
+    this.reverbDrySignal_ =
+        new GainNode(this.context_, {gain: 1 - this.reverbWetness});
     this.convolver_ =
-        new ConvolverNode(this.context_, {buffer: this.impulseResponse_});
-    let convolverOutputNode = new GainNode(this.context_);
+        new ConvolverNode(this.context_);
+    let reverbOutputNode = new GainNode(this.context_);
 
     inputNode.connect(this.convolver_)
-        .connect(this.convolverWetSignal_)
-        .connect(convolverOutputNode);
-    inputNode.connect(this.convolverDrySignal_)
-        .connect(convolverOutputNode);
+        .connect(this.reverbWetSignal_)
+        .connect(reverbOutputNode);
+    inputNode.connect(this.reverbDrySignal_)
+        .connect(reverbOutputNode);
     
-    return convolverOutputNode;
+    return reverbOutputNode;
   }
-
 
   /**
    * Returns parameters that affect how a voice is constructed.
@@ -242,15 +233,15 @@ class PolySynth {
 
   /**
    * Set the amount convolution to apply.
-   * @param {Number} value The new gain of |this.convolverWetSignal_|.
+   * @param {Number} value The new gain of |this.reverbWetSignal_|.
    */
-  setConvolverWetness(value) {
-    this.convolverWetSignal_.gain.value = value;
-    this.convolverDrySignal_.gain.value = 1 - value;
+  setReverbWetness(value) {
+    this.reverbWetSignal_.gain.value = value;
+    this.reverbDrySignal_.gain.value = 1 - value;
   }
 
   /**
-   * Set the impulse response of the convolver node.
+   * Set the impulse response of the convolver node used by the reverb effect.
    * @param {AudioBuffer} impulseResponseBuffer The new impulse response buffer.
    */
   setConvolverBuffer(impulseResponseBuffer) {
@@ -259,11 +250,11 @@ class PolySynth {
 
   /**
    * Set the amount feedback delay to apply.
-   * @param {Number} value The new gain of |this.feedbackWetSignal_|.
+   * @param {Number} value The new gain of |this.delayWetSignalGain_|.
    */
-  setFeedbackWetness(value) {
-    this.feedbackWetSignal_.gain.value = value;
-    this.feedbackDrySignal_.gain.value = 1 - value;
+  setDelayWetness(value) {
+    this.delayWetSignalGain_.gain.value = value;
+    this.delayDrySignalGain_.gain.value = 1 - value;
   }
 
   /**
@@ -278,8 +269,8 @@ class PolySynth {
    * Sets the gain of the delay feedback node.
    * @param {Number} value The new gain of the feedback node.
    */
-  setFeedbackGain(value) {
-    this.feedbackGainNode_.gain.value = value;
+  setFeedbackDelayGain(value) {
+    this.feedbackDelayGainNode_.gain.value = value;
   }
 
   /**

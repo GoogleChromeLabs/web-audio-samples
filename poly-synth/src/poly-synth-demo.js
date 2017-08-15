@@ -22,55 +22,55 @@ class PolySynthDemo {
   /**
    * @constructor
    * @param {AudioContext} context The audio context.
-   * @param {String} gainADSRId The ID of the container for gain ADSR elements
-   *                            (e.g. <div>).
-   * @param {String} filterADSRId The ID of the container for filter
-   *                              ADSR elements.
-   * @param {String} bitcrusherId The ID of the container for bitcrusher
-   *                              parameter elements.
-   * @param {String} convolverId The ID of the container for convolver
-   *                             elements.
-   * @param {String} convolverSelectorId The ID of the <select> element for
-   *                             convolver impulse response options.
-   * @param {String} feedbackId The ID of the container for feedback delay
-   *                             elements.
+   * @param {Object} identifiers
+   * @param {String} identifiers.gainEnvelopeDivId The ID of the container for
+   *                                               gain envelope elements.
+   * @param {String} identifiers.filterDivId The ID of the container for
+   *                                         filter elements.
+   * @param {String} identifiers.filterEnvelopeDivId The ID of the container for
+   *                                                 filter envelope elements.
+   * @param {String} identifiers.bitcrusherDivId The ID of the container for
+   *                                             bitcrusher parameter elements.
+   * @param {String} identifiers.reverbDivId The ID of the container for
+   *                                         reverb elements.
+   * @param {String} identifiers.reverbSelectorId The ID of the <select>
+   *                                              element for impulse
+   *                                              response options.
+   * @param {String} identifiers.delayDivId The ID of the container for
+   *                                        feedback delay elements.
+   * @param {String} identifiers.volumeDivId The ID of the container for
+   *                                         the volume control.
    */
-  constructor(
-      context, gainADSRId, filterADSRId, bitcrusherId, convolverId,
-      convolverSelectorId, feedbackId) {
+  constructor(context, identifiers) {
     this.context_ = context;
-    this.gainADSRId_ = gainADSRId;
-    this.filterADSRId_ = filterADSRId;
-    this.bitcrusherId_ = bitcrusherId;
-    this.convolverId_ = convolverId;
-    this.convolverSelectorId_ = convolverSelectorId;
-    this.feedbackId_ = feedbackId;
-
+    this.reverbSelectorId_ = identifiers.reverbSelectorId;
     this.impulseResponseUrls_ = this.getImpulseResponseUrls_();
 
     this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
+    this.polySynth_ =
+        new PolySynth(this.context_);
+    this.polySynth_.output.connect(this.masterGain_)
+        .connect(this.context_.destination);
 
+    // The QWERTY keyboard is defined in qwerty-hancock.min.js.
+    this.keyboard_ = new QwertyHancock(
+        {id: 'keyboard', width: 600, height: 150, octaves: 2});
+    this.keyboard_.keyDown = this.keyDown.bind(this);
+    this.keyboard_.keyUp = this.keyUp.bind(this);
+    
+    this.initializeAmplifierEnvelopeGUI_(identifiers.gainEnvelopeDivId);
+    this.initializeFilterGUI_(identifiers.filterDivId);
+    this.initializeFilterEnvelopeGUI_(identifiers.filterEnvelopeDivId);
+    this.initializeBitcrusherGUI_(identifiers.bitcrusherDivId);
+    this.initializeDelayGUI_(identifiers.delayDivId);
+    this.initializeReverbGUI_(identifiers.reverbDivId, this.reverbSelectorId_);
+    this.initializeMasterVolumeGUI_(identifiers.volumeDivId);
+    
     this.loadImpulseResponses(this.impulseResponseUrls_)
         .then((impulseResponseBuffers) => {
           this.impulseResponseBuffers_ = impulseResponseBuffers;
-          
-          this.polySynth_ =
-              new PolySynth(this.context_, impulseResponseBuffers[0]);
-          this.polySynth_.output.connect(this.masterGain_)
-              .connect(this.context_.destination);
-
-          // The QWERTY keyboard is defined in qwerty-hancock.min.js.
-          this.keyboard_ = new QwertyHancock(
-              {id: 'keyboard', width: 600, height: 150, octaves: 2});
-          this.keyboard_.keyDown = this.keyDown.bind(this);
-          this.keyboard_.keyUp = this.keyUp.bind(this);
-          
-          this.initializeAmplifierEnvelopeGUI_(this.gainADSRId_);
-          this.initializeFilterEnvelopeGUI_(this.filterADSRId_);
-          this.initializeBitcrusherGUI_(this.bitcrusherId_);
-          this.initializeConvolverGUI_(
-              this.convolverId_, this.convolverSelectorId_);
-          this.initializeFeedbackDelayGUI_(this.feedbackId_);
+          this.polySynth_.setConvolverBuffer(this.impulseResponseBuffers_[0]);
+          document.getElementById(this.reverbSelectorId_).disabled = false;
         });
   }
 
@@ -88,66 +88,9 @@ class PolySynthDemo {
     return this.context_.decodeAudioData(sound);
   }
 
-  initializeAmplifierEnvelopeGUI_(containerId){
-    let masterGainSlider_ =
-        new ParamController(containerId, this.setGain.bind(this), {
-          name: 'Volume',
-          id: 'masterGain',
-          type: 'range',
-          min: 0,
-          max: 5,
-          step: 0.01,
-          default: this.masterGain_.gain.value
-        });
-
-    let gainAttackSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Attack (s)',
-          id: 'gainAttack',
-          type: 'range',
-          min: this.polySynth_.minAttack,
-          max: this.polySynth_.maxAttack,
-          step: 0.01,
-          default: this.polySynth_.getParameters().gainAttack
-        });
-
-    let gainDecaySlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Decay (s)',
-          id: 'gainDecay',
-          type: 'range',
-          min: this.polySynth_.minDecay,
-          max: this.polySynth_.maxDecay,
-          step: 0.01,
-          default: this.polySynth_.getParameters().gainDecay
-        });
-
-    let gainSustainSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Sustain',
-          id: 'gainSustain',
-          type: 'range',
-          min: this.polySynth_.minSustain,
-          max: this.polySynth_.maxSustain,
-          step: 0.01,
-          default: this.polySynth_.getParameters().gainSustain
-        });
-
-    let gainReleaseSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Release (s)',
-          id: 'gainRelease',
-          type: 'range',
-          min: this.polySynth_.minRelease,
-          max: this.polySynth_.maxRelease,
-          step: 0.01,
-          default: this.polySynth_.getParameters().gainRelease
-        });
-  }
-  
-  initializeFilterEnvelopeGUI_(containerId){
+  initializeFilterGUI_(filterDivId) {
     let lowPassSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterDivId, this.polySynth_.setParameter.bind(this.polySynth_), {
           name: 'Cutoff (hz)',
           id: 'filterCutoff',
           type: 'range',
@@ -158,7 +101,7 @@ class PolySynthDemo {
         });
 
     let filterQSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterDivId, this.polySynth_.setParameter.bind(this.polySynth_), {
           name: 'Q (dB)',
           id: 'filterQ',
           type: 'range',
@@ -167,9 +110,62 @@ class PolySynthDemo {
           step: 0.01,
           default: this.polySynth_.getParameters().filterQ
         });
+  }
 
+  initializeAmplifierEnvelopeGUI_(filterEnvelopeDivId) {
+    let gainAttackSlider_ = new ParamController(
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
+          name: 'Attack (s)',
+          id: 'gainAttack',
+          type: 'range',
+          min: this.polySynth_.minAttack,
+          max: this.polySynth_.maxAttack,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainAttack
+        });
+
+    let gainDecaySlider_ = new ParamController(
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
+          name: 'Decay (s)',
+          id: 'gainDecay',
+          type: 'range',
+          min: this.polySynth_.minDecay,
+          max: this.polySynth_.maxDecay,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainDecay
+        });
+
+    let gainSustainSlider_ = new ParamController(
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
+          name: 'Sustain',
+          id: 'gainSustain',
+          type: 'range',
+          min: this.polySynth_.minSustain,
+          max: this.polySynth_.maxSustain,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainSustain
+        });
+
+    let gainReleaseSlider_ = new ParamController(
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
+          name: 'Release (s)',
+          id: 'gainRelease',
+          type: 'range',
+          min: this.polySynth_.minRelease,
+          max: this.polySynth_.maxRelease,
+          step: 0.01,
+          default: this.polySynth_.getParameters().gainRelease
+        });
+  }
+
+  initializeFilterEnvelopeGUI_(filterEnvelopeDivId) {
     let filterAttackSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
           name: 'Attack (s)',
           id: 'filterAttack',
           type: 'range',
@@ -180,7 +176,8 @@ class PolySynthDemo {
         });
 
     let filterDecaySlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
           name: 'Decay (s)',
           id: 'filterDecay',
           type: 'range',
@@ -191,7 +188,8 @@ class PolySynthDemo {
         });
 
     let filterSustainSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
           name: 'Sustain',
           id: 'filterSustain',
           type: 'range',
@@ -202,7 +200,8 @@ class PolySynthDemo {
         });
 
     let filterReleaseSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
           name: 'Release (s)',
           id: 'filterRelease',
           type: 'range',
@@ -213,8 +212,9 @@ class PolySynthDemo {
         });
 
     let filterDetuneSlider_ = new ParamController(
-        containerId, this.polySynth_.setParameter.bind(this.polySynth_), {
-          name: 'Detune Amount',
+        filterEnvelopeDivId, this.polySynth_.setParameter.bind(this.polySynth_),
+        {
+          name: 'Filter Amount',
           id: 'filterDetuneAmount',
           type: 'range',
           min: this.polySynth_.minDetuneAmount,
@@ -224,9 +224,9 @@ class PolySynthDemo {
         });
   }
   
-  initializeBitcrusherGUI_(containerId){
+  initializeBitcrusherGUI_(bitcrusherDivId) {
     let bitcrusherBitDepthSlider_ = new ParamController(
-        containerId, this.polySynth_.setBitDepth.bind(this.polySynth_), {
+        bitcrusherDivId, this.polySynth_.setBitDepth.bind(this.polySynth_), {
           name: 'Bit Depth',
           id: 'bitDepth',
           type: 'range',
@@ -238,7 +238,7 @@ class PolySynthDemo {
     bitcrusherBitDepthSlider_.disable();
 
     let bitcrusherReductionSlider_ = new ParamController(
-        containerId, this.polySynth_.setReduction.bind(this.polySynth_), {
+        bitcrusherDivId, this.polySynth_.setReduction.bind(this.polySynth_), {
           name: 'Reduction',
           id: 'reduction',
           type: 'range',
@@ -251,13 +251,10 @@ class PolySynthDemo {
 
     // Sound is not processed by the bitcrusher if in bypass mode.
     document.getElementById('bitcrusherBypassButton').onclick = (event) => {
-      // Only one of |this.polySynth_.activeBitcrusherRoute_| and
-      // |this.polySynth_.bypassBitcrusherRoute_| has a non-zero gain.
+      // The change is scheduled slightly into the future to avoid glitching.
+      const t = this.context_.currentTime + 0.01;
       if (event.target.textContent === 'Active') {
         event.target.textContent = 'Bypassed';
-
-        // The change is scheduled slightly into the future to avoid glitching.
-        const t = this.context_.currentTime + 0.01;
         this.polySynth_.bypassBitcrusherRoute.gain.linearRampToValueAtTime(
             1, t);
         this.polySynth_.activeBitcrusherRoute.gain.linearRampToValueAtTime(
@@ -267,7 +264,6 @@ class PolySynthDemo {
         bitcrusherReductionSlider_.disable();
       } else {
         event.target.textContent = 'Active';
-        const t = this.context_.currentTime + 0.01;
         this.polySynth_.activeBitcrusherRoute.gain.linearRampToValueAtTime(
             1, t);
         this.polySynth_.bypassBitcrusherRoute.gain.linearRampToValueAtTime(
@@ -279,22 +275,23 @@ class PolySynthDemo {
     }
   }
 
-  initializeConvolverGUI_(containerId, selectorId) {
-    let convolverWetnessSlider_ = new ParamController(
-        containerId, this.polySynth_.setConvolverWetness.bind(this.polySynth_),
+  initializeReverbGUI_(reverbDivId, selectorId) {
+    let reverbWetnessSlider_ = new ParamController(
+        reverbDivId, this.polySynth_.setReverbWetness.bind(this.polySynth_),
         {
-          name: 'Wetness',
+          name: 'Mix',
           id: 'wetness',
           type: 'range',
           min: 0,
           max: 1,
           step: 0.1,
-          default: this.polySynth_.convolverWetness
+          default: this.polySynth_.reverbWetness
         });
 
-    // The synth's convolver node buffer changes depending the selected url.
+    // The synth's convolver node buffer changes depending on the selected url.
     let selector = document.getElementById(selectorId);
     for (let index in this.impulseResponseUrls_) {
+      // Only the last part of the file name is displayed.
       let urlParts = this.impulseResponseUrls_[index].split('/');
       let abbreviatedUrl = urlParts[urlParts.length - 1];
       let option = document.createElement('option');
@@ -311,23 +308,27 @@ class PolySynthDemo {
       // Deselect the target to prevent interference with keyboard.
       event.target.blur();
     }
+    
+    // The reverb selector will be enabled when the buffers are loaded.
+    selector.disabled = true;
   }
 
-  initializeFeedbackDelayGUI_(containerId){
-    let feedbackWetnessSlider_ = new ParamController(
-        containerId, this.polySynth_.setFeedbackWetness.bind(this.polySynth_), {
-          name: 'Wetness',
+  initializeDelayGUI_(delayDivId) {
+    let delayWetnessSlider_ = new ParamController(
+        delayDivId, this.polySynth_.setDelayWetness.bind(this.polySynth_), {
+          name: 'Mix',
           id: 'wetness',
           type: 'range',
           min: 0,
           max: 1,
           step: 0.1,
-          default: this.polySynth_.feedbackWetness
+          default: this.polySynth_.delayWetness
         });
 
     let feedbackDelaySlider_ = new ParamController(
-        containerId, this.polySynth_.setFeedbackDelayTime.bind(this.polySynth_), {
-          name: 'Delay',
+        delayDivId, this.polySynth_.setFeedbackDelayTime.bind(this.polySynth_),
+        {
+          name: 'Delay Time',
           id: 'delay',
           type: 'range',
           min: 0,
@@ -336,15 +337,29 @@ class PolySynthDemo {
           default: this.polySynth_.feedbackDelayTime
         });
 
-    let feedbackGainSlider_  = new ParamController(
-        containerId, this.polySynth_.setFeedbackGain.bind(this.polySynth_), {
-          name: 'Gain',
-          id: 'feedbackGain',
+    let feedbackDelayGainSlider_ = new ParamController(
+        delayDivId, this.polySynth_.setFeedbackDelayGain.bind(this.polySynth_),
+        {
+          name: 'Feedback',
+          id: 'feedbackDelayGain',
           type: 'range',
           min: 0,
           max: 1,
           step: 0.1,
-          default: this.polySynth_.feedbackGain
+          default: this.polySynth_.feedbackDelayGain
+        });
+  }
+
+  initializeMasterVolumeGUI_(volumeDivId) {
+    let masterGainSlider_ =
+        new ParamController(volumeDivId, this.setGain.bind(this), {
+          name: 'Volume',
+          id: 'masterGain',
+          type: 'range',
+          min: 0,
+          max: 5,
+          step: 0.01,
+          default: this.masterGain_.gain.value
         });
   }
 
