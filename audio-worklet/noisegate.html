@@ -30,6 +30,7 @@ limitations under the License.
     <script src="lib/source-controller.js"></script>
     <script src="lib/param-controller.js"></script>
     <script src="src/noisegate-demo.js"></script>
+    <script src="lib/audio-worklet-helper.js"></script>
   </head>
   <body>
     <h1>Noise Gate</h1>
@@ -54,20 +55,31 @@ limitations under the License.
       between pauses at a threshold of -40db. If you hear glitching, try
       adjusting the attack and release settings.
     </p>
+    <p>
+      If your browser supports the AudioWorklet node, you can switch between
+      the ScriptProcessor and AudioWorklet NoiseGate implementations.
+    </p>
     <div id="container"></div>
     Noise Gate is <button id="bypassButton">Active</button>
     <form>
       <input type="radio" name="node" id="scriptProcessorButton" checked>
           Script Processor<br>
-      <input type="radio" name="node" id="workletButton" value="worklet">
+      <input type="radio" name="node" id="workletButton">
           Audio Worklet<br>
     </form>
     <script>
-      // TODO: Implement Audio Worklet support. For now, |workletIsAvailable|
-      // must be false.
-      const workletIsAvailable = false;
-      beginNoisegateDemo();
+      // If the browser implements AudioWorklet, the demo enables the user to
+      // switch between audio worklet and script processor implementations of
+      // the noise gate.
+      const workletIsAvailable = AudioWorkletHelper.isAvailable();
       
+      if (workletIsAvailable) {
+        window.audioWorklet.addModule('src/noisegate-audio-worklet.js')
+            .then(beginNoisegateDemo);
+      } else {
+        beginNoisegateDemo();
+      }
+
       function beginNoisegateDemo() {
         const context = new AudioContext();
         let demo = new NoisegateDemo(context, workletIsAvailable);
