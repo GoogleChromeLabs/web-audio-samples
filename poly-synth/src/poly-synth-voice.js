@@ -87,7 +87,6 @@ class PolySynthVoice {
         amountOfSustainDetuneInCents, timeToDetuneSustain);
     this.lowPassFilter_.detune.linearRampToValueAtTime(
         amountOfPeakDetuneInCents, timeToFullDetune);
-
   }
 
   /**
