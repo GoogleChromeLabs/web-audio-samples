@@ -366,6 +366,7 @@ class PolySynthDemo {
   getImpulseResponseUrls_() {
     let impulseResponseUrls =
         [
+          '../samples/audio/impulse-responses/matrix-reverb1.wav',
           '../samples/audio/impulse-responses/backslap1.wav',
           '../samples/audio/impulse-responses/backwards-4.wav',
           '../samples/audio/impulse-responses/bright-hall.wav',
@@ -384,7 +385,6 @@ class PolySynthDemo {
           '../samples/audio/impulse-responses/filter-telephone.wav',
           '../samples/audio/impulse-responses/imp_sequence.wav',
           '../samples/audio/impulse-responses/impulse-rhythm1.wav',
-          '../samples/audio/impulse-responses/matrix-reverb1.wav',
           '../samples/audio/impulse-responses/matrix6-backwards.wav',
           '../samples/audio/impulse-responses/medium-room1.wav',
           '../samples/audio/impulse-responses/noise-spreader1.wav',
