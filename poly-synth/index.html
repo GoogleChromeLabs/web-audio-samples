@@ -17,6 +17,7 @@ limitations under the License.
     <title>Polyphonic Subtractive Synth</title>
     <script src="third-party/qwerty-hancock.min.js"></script>
     <script src="../audio-worklet/lib/param-controller.js"></script>
+    <script src="../audio-worklet/src/bitcrusher-script-processor.js"></script>
     <script src="src/poly-synth-demo.js"></script>
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
@@ -27,45 +28,71 @@ limitations under the License.
       }
       .controls {
         margin: 5px;
+        width: 150px;
+        display: flex;
+        flex-direction: column;
       }
     </style>
   </head>
   <body>
     <h1>Polyphonic Subtractive Synthesizer</h1>
     <p>
-      The key A on your computer keyboard maps onto the note C, and the letters
-      to the right of A (SDFGHJ) map onto the notes above C in a C major scale
-      (DEFGAB). The letters WETYU map onto the black keys of a piano.
-    </p>
+    The key A on your computer keyboard maps onto the note C, and the letters
+    to the right of A (SDFGHJ) map onto the notes above C in a C major scale
+    (DEFGAB). The letters WETYU map onto the black keys of a piano.
     <p>
-      The synthesizer constructs voices according to the amplifier and filter
-      ADSR settings. The amplifier ADSR modulates the gain of the signal over
-      time, and the filter ADSR modulates the detune of the cutoff filter.
-      <ul>
-        <li>Attack refers to the number of seconds until the maximum level.</li>
-        <li>Decay refers to the number of seconds between the attack level
-            and the sustain level.</li>
-        <li>Sustain refers to the steady value as the note is pressed as
-            a fraction of the maximum level.</li>
-        <li>Release refers to the number of seconds from releasing the note
-            until a zero value.</li>
-      </ul>
-    </p>
+    The synthesizer constructs voices according to the amplifier and filter
+    ADSR settings. The amplifier ADSR modulates the gain of the signal over
+    time, and the filter ADSR modulates the detune of the cutoff filter.
+    <ul>
+      <li>Attack refers to the number of seconds until the maximum level.</li>
+      <li>Decay refers to the number of seconds between the attack level
+          and the sustain level.</li>
+      <li>Sustain refers to the steady value as the note is pressed as
+          a fraction of the maximum level.</li>
+      <li>Release refers to the number of seconds from releasing the note
+          until a zero value.</li>
+    </ul>
+    <p>
+    The combined output of the voices can then be modulated by bitcrushing,
+    reverb, and delay effects.
     <div id="synth-container">
       <div id="keyboard"></div>
       <div id="param-container">
-        <div id="amp-envelope" class="controls"><h2>Amplifier</h2></div>
-        <div id="filter-envelope" class="controls"><h2>Filter</h2></div>
+        <div id="amp-envelope" class="controls">
+          <h2>Amplifier Envelope</h2>
+        </div>
+        <div id="filter" class="controls"><h2>Filter</h2></div>
+        <div id="filter-envelope" class="controls"><h2>
+          Filter Envelope</h2>
+        </div>
+        <div id="bitcrusher" class="controls">
+          <h2>Bitcrusher</h2>
+          <button id="bitcrusherBypassButton">Bypassed</button>
+        </div>
+        <div id="delay" class="controls"><h2>Delay</h2></div>
+        <div id="reverb" class="controls">
+          <h2>Reverb</h2>
+          <select id="reverbUrls"></select>
+        </div>
+        <div id="volume" class="controls"><h2>Volume</h2></div>
       </div>
     </div>
     <p>
-      Credit to Stuart Memo for the
-      <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
-    </p>
+    Credit to Stuart Memo for the
+    <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
     <script>
       const context = new AudioContext();
-      let polySynthDemo = new PolySynthDemo(context);
-      polySynthDemo.initializeGUI('amp-envelope', 'filter-envelope');
+      let polySynthDemo = new PolySynthDemo(context, {
+        gainEnvelopeDivId: 'amp-envelope',
+        filterDivId: 'filter',
+        filterEnvelopeDivId: 'filter-envelope',
+        bitcrusherDivId: 'bitcrusher',
+        reverbDivId: 'reverb',
+        reverbSelectorId: 'reverbUrls',
+        delayDivId: 'delay',
+        volumeDivId: 'volume'
+      });
     </script>
   </body>
 </html>
