@@ -18,6 +18,7 @@ limitations under the License.
     <script src="third-party/qwerty-hancock.min.js"></script>
     <script src="../audio-worklet/lib/param-controller.js"></script>
     <script src="../audio-worklet/src/bitcrusher-script-processor.js"></script>
+    <script src="src/noisegate-side-chain.js"></script>
     <script src="src/poly-synth-demo.js"></script>
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
@@ -55,7 +56,9 @@ limitations under the License.
     </ul>
     <p>
     The combined output of the voices can then be modulated by bitcrushing,
-    reverb, and delay effects.
+    reverb, and delay effects. If side chaining is active, the output of the
+    synthesizer will ramp towards silence when the level of the drum sample
+    exceeds the specified threshold.
     <div id="synth-container">
       <div id="keyboard"></div>
       <div id="param-container">
@@ -65,6 +68,11 @@ limitations under the License.
         <div id="filter" class="controls"><h2>Filter</h2></div>
         <div id="filter-envelope" class="controls"><h2>
           Filter Envelope</h2>
+        </div>
+        <div id="sideChain" class="controls">
+          <h2>Side Chain</h2>
+          <select id="drumUrls"></select>
+          <button id="sideChainStartButton">Start</button>
         </div>
         <div id="bitcrusher" class="controls">
           <h2>Bitcrusher</h2>
@@ -91,7 +99,9 @@ limitations under the License.
         reverbDivId: 'reverb',
         reverbSelectorId: 'reverbUrls',
         delayDivId: 'delay',
-        volumeDivId: 'volume'
+        volumeDivId: 'volume',
+        sideChainDivId: 'sideChain',
+        drumSelectorId: 'drumUrls',
       });
     </script>
   </body>

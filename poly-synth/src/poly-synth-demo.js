@@ -40,12 +40,21 @@ class PolySynthDemo {
    *                                        feedback delay elements.
    * @param {String} identifiers.volumeDivId The ID of the container for
    *                                         the volume control.
+   * @param {String} identifiers.drumSampleDivId The ID of the container for
+   *                                             drum samples.
+   * @param {String} identifiers.sideChainDivId The ID of the container for
+   *                                            side chain elements.
+   * @param {String} identifiers.drumSelectorId The ID of the <select>
+   *                                            element for drum samples.
    */
   constructor(context, identifiers) {
     this.context_ = context;
     this.reverbSelectorId_ = identifiers.reverbSelectorId;
+    this.drumSelectorId_ = identifiers.drumSelectorId;
     this.impulseResponseUrls_ = this.getImpulseResponseUrls_();
-
+    this.drumSampleUrls_ = this.getDrumSampleUrls_();
+    this.drumSampleIndex_ = 0;
+    
     this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
     this.polySynth_ =
         new PolySynth(this.context_);
@@ -61,17 +70,32 @@ class PolySynthDemo {
     this.initializeAmplifierEnvelopeGUI_(identifiers.gainEnvelopeDivId);
     this.initializeFilterGUI_(identifiers.filterDivId);
     this.initializeFilterEnvelopeGUI_(identifiers.filterEnvelopeDivId);
+    this.initializeSideChainGUI_(identifiers.sideChainDivId);
     this.initializeBitcrusherGUI_(identifiers.bitcrusherDivId);
     this.initializeDelayGUI_(identifiers.delayDivId);
     this.initializeReverbGUI_(identifiers.reverbDivId, this.reverbSelectorId_);
     this.initializeMasterVolumeGUI_(identifiers.volumeDivId);
-    
+
     this.loadImpulseResponses(this.impulseResponseUrls_)
         .then((impulseResponseBuffers) => {
           this.impulseResponseBuffers_ = impulseResponseBuffers;
           this.polySynth_.setConvolverBuffer(this.impulseResponseBuffers_[0]);
           document.getElementById(this.reverbSelectorId_).disabled = false;
         });
+
+    this.loadDrumSamples(this.drumSampleUrls_)
+        .then((drumSampleBuffers) => {
+          this.drumSampleBuffers_ = drumSampleBuffers;
+          document.getElementById(this.drumSelectorId_).disabled = false;
+        });
+  }
+
+  async loadDrumSamples(drumSamples){
+    let drumSampleBuffers = [];
+    for (let index in drumSamples) {
+      drumSampleBuffers[index] = await this.loadSound(drumSamples[index]);
+    }
+    return drumSampleBuffers;
   }
 
   async loadImpulseResponses(impulseResponses){
@@ -224,6 +248,109 @@ class PolySynthDemo {
         });
   }
   
+  initializeSideChainGUI_(sideChainDivId) {
+    this.drumSamplePlaybackRateSlider_ = new ParamController(
+        sideChainDivId,
+        this.polySynth_.setDrumSamplePlaybackRate.bind(this.polySynth_), {
+          name: 'Playback rate',
+          id: 'playbackRate',
+          type: 'range',
+          min: 0.1,
+          max: 30,
+          step: 0.1,
+          default: this.polySynth_.playbackRate
+        });
+
+    this.drumSampleVolume_ = new ParamController(
+        sideChainDivId,
+        this.polySynth_.setDrumSampleVolume.bind(this.polySynth_), {
+          name: 'Beat volume',
+          id: 'beatVolume',
+          type: 'range',
+          min: 0,
+          max: 5,
+          step: 0.05,
+          default: this.polySynth_.drumVolume
+        });
+
+    this.sideChainThresholdSlider_ = new ParamController(
+        sideChainDivId,
+        this.polySynth_.setNoisegateThreshold.bind(this.polySynth_), {
+          name: 'Threshold',
+          id: 'threshold',
+          type: 'range',
+          min: -100,
+          max: 0,
+          step: 1,
+          default: this.polySynth_.noisegateThreshold
+        });
+
+    this.sideChainAttackSlider_ = new ParamController(
+        sideChainDivId,
+        this.polySynth_.setNoisegateAttack.bind(this.polySynth_), {
+          name: 'Attack',
+          id: 'noisegateAttack',
+          type: 'range',
+          min: 0,
+          max: 1,
+          step: 0.05,
+          default: this.polySynth_.noisegateAttack
+        });
+
+    this.sideChainReleaseSlider_ = new ParamController(
+        sideChainDivId,
+        this.polySynth_.setNoisegateRelease.bind(this.polySynth_), {
+          name: 'Release',
+          id: 'noisegateRelease',
+          type: 'range',
+          min: 0,
+          max: 1,
+          step: 0.05,
+          default: this.polySynth_.noisegateRelease
+        });
+
+    document.getElementById('sideChainStartButton').onclick = (event) => {
+      // The change is scheduled slightly into the future to avoid glitching.
+      if (event.target.textContent === 'Start') {
+        event.target.textContent = 'Stop';
+        this.drumSamplePlaybackRateSlider_.disable();
+        this.polySynth_.setDrumSample(this.drumSampleBuffers_[this.drumSampleIndex_]);
+        this.polySynth_.activeNoisegateRoute.gain.value = 1;
+        this.polySynth_.bypassNoisegateRoute.gain.value = 0;
+        document.getElementById(this.drumSelectorId_).disabled = true;
+      } else {
+        event.target.textContent = 'Start';
+        this.drumSamplePlaybackRateSlider_.enable();
+        this.polySynth_.stopDrumSample();
+        this.polySynth_.activeNoisegateRoute.gain.value = 0;
+        this.polySynth_.bypassNoisegateRoute.gain.value = 1;
+        document.getElementById(this.drumSelectorId_).disabled = false;
+      }
+    }
+
+    let selector = document.getElementById(this.drumSelectorId_);
+    
+    for (let index in this.drumSampleUrls_) {
+      // Only the last part of the file name is displayed.
+      let urlParts = this.drumSampleUrls_[index].split('/');
+      let abbreviatedUrl = urlParts[urlParts.length - 1];
+      let option = document.createElement('option');
+      option.value = index;
+      option.textContent = abbreviatedUrl;
+      selector.appendChild(option);
+    }
+
+    selector.onchange = (event) => {
+      this.drumSampleIndex_ = parseInt(event.target.value);
+
+      // Deselect the target to prevent interference with keyboard.
+      event.target.blur();
+    }
+    
+    // The selector will be enabled when the buffers are loaded.
+    selector.disabled = true;
+  }
+
   initializeBitcrusherGUI_(bitcrusherDivId) {
     let bitcrusherBitDepthSlider_ = new ParamController(
         bitcrusherDivId, this.polySynth_.setBitDepth.bind(this.polySynth_), {
@@ -275,7 +402,7 @@ class PolySynthDemo {
     }
   }
 
-  initializeReverbGUI_(reverbDivId, selectorId) {
+  initializeReverbGUI_(reverbDivId) {
     let reverbWetnessSlider_ = new ParamController(
         reverbDivId, this.polySynth_.setReverbWetness.bind(this.polySynth_),
         {
@@ -289,7 +416,7 @@ class PolySynthDemo {
         });
 
     // The synth's convolver node buffer changes depending on the selected url.
-    let selector = document.getElementById(selectorId);
+    let selector = document.getElementById(this.reverbSelectorId_);
     for (let index in this.impulseResponseUrls_) {
       // Only the last part of the file name is displayed.
       let urlParts = this.impulseResponseUrls_[index].split('/');
@@ -361,6 +488,23 @@ class PolySynthDemo {
           step: 0.01,
           default: this.masterGain_.gain.value
         });
+  }
+
+  
+  getDrumSampleUrls_() {
+    let drumSampleUrls =
+        [
+          'sound/simple-beat.ogg',
+          'sound/d-85.ogg',
+          'sound/a-60.ogg',
+          'sound/a2-60.ogg',
+          'sound/a3-60.ogg',
+          'sound/a4-60.ogg',
+          'sound/d2-60.ogg',
+          'sound/r2-80.ogg',
+          'sound/a4-60.ogg',
+        ];
+    return drumSampleUrls;
   }
 
   getImpulseResponseUrls_() {

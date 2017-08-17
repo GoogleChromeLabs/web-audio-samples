@@ -67,33 +67,45 @@ class PolySynth {
 
     // By default no delay is applied. The gain and delay time are
     // experimentally determined.
-    this.delayWetness = 0.6;
-    this.feedbackDelayGain = 0.2;
-    this.feedbackDelayTime = 0.4;
+    this.delayWetness = 0;
+    this.feedbackDelayGain = 0.5;
+    this.feedbackDelayTime = 0.2;
 
-    // By default, no reverb is applied.
-    this.reverbWetness = 0.4;
+    this.reverbWetness = 0.5;
+
+    this.playbackRate = 1.0;
+    this.noisegateAttack = 0.1;
+    this.noisegateRelease = 0.1;
+    this.noisegateThreshold = -100;
+    this.drumVolume = 1;
 
     // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      gainAttack: 0.0,
-      gainDecay: 0.32,
-      gainSustain: this.minSustain,
-      gainRelease: 0.13,
-      filterCutoff: 60,
-      filterQ: 15.35,
-      filterAttack: 0,
-      filterDecay: 0.58,
+      gainAttack: 0.1,
+      gainDecay: this.minDecay,
+      gainSustain: 0.5,
+      gainRelease: 0.1,
+      filterCutoff: 440,
+      filterQ: 0,
+      filterAttack: 1,
+      filterDecay: 1,
       filterSustain: this.minSustain,
-      filterRelease: 0.48,
-      filterDetuneAmount: 3.27,
+      filterRelease: this.minRelease,
+      filterDetuneAmount: 1,
     };
 
     // Each voice is connected to |this.voiceOutput_|.
     this.voiceOutput_ = new GainNode(this.context_);
+    
+    // The client is responsible for connecting |this.output| to a destination.
+    this.output = new GainNode(this.context_);
 
-    // The output of |this.voiceOutput_| is processed by three effects:
-    // bitcrushing, delay, and reverb.
+    // The output of |this.voiceOutput_| is processed by four effects:
+    // noisegate-sidechaining, bitcrushing, delay, and reverb.
+    let noisegateInputNode = new GainNode(this.context_);
+    let noisegateOutputNode =
+        this.createNoisegateSideChainGraph_(noisegateInputNode);
+
     let bitcrusherInputNode = new GainNode(this.context_);
     let bitcrusherOutputNode = this.createBitcrusherGraph_(bitcrusherInputNode);
 
@@ -103,13 +115,45 @@ class PolySynth {
     let reverbInputNode = new GainNode(this.context_);
     let reverbOutputNode = this.createReverbGraph_(reverbInputNode);
 
-    // The client is responsible for connecting |this.output| to a destination.
-    this.output = new GainNode(this.context_);
-
-    this.voiceOutput_.connect(bitcrusherInputNode);
+    this.voiceOutput_.connect(noisegateInputNode);
+    noisegateOutputNode.connect(bitcrusherInputNode);
     bitcrusherOutputNode.connect(delayInputNode);
     delayOutputNode.connect(reverbInputNode);
     reverbOutputNode.connect(this.output);
+  }
+
+  createNoisegateSideChainGraph_(inputNode) {
+    this.noisegate = new NoiseGateSideChain(this.context_, {
+      numberOfChannels: 2,
+      attack: this.noisegateAttack,
+      release: this.noisegateRelease,
+      threshold: this.threshold
+    });
+
+    this.drumSource_ = new AudioBufferSourceNode(this.context_);
+    this.activeNoisegateRoute = new GainNode(this.context_, {gain: 0});
+    this.bypassNoisegateRoute = new GainNode(this.context_, {gain: 1});
+    this.synthAndDrumMerger_ =
+        new ChannelMergerNode(this.context_, {numberOfInputs: 2});
+    let noisegateOutputNode = new GainNode(this.context_);
+
+    inputNode.connect(this.bypassNoisegateRoute).connect(noisegateOutputNode);
+    
+    // The noise gate will build an envelope on the output of the drum sample
+    // (in channel 0) but the noise gate will modify the output of the
+    // synthesizer (channel 1).
+    this.drumSource_.connect(this.synthAndDrumMerger_, 0, 0);
+    inputNode.connect(this.synthAndDrumMerger_, 0, 1);
+    this.synthAndDrumMerger_.connect(this.noisegate.input);
+    this.noisegate.output.connect(
+        this.activeNoisegateRoute.connect(noisegateOutputNode));
+
+    // If |this.drumVolume| is positive, the drum sample is audible but bypasses
+    // the other synthesizer effects.
+    this.drumGain_ = new GainNode(this.context_, {gain: this.drumVolume});
+    this.drumGain_.connect(this.output);
+
+    return noisegateOutputNode;
   }
 
   createDelayGraph_(inputNode) {
@@ -246,6 +290,72 @@ class PolySynth {
    */
   setConvolverBuffer(impulseResponseBuffer) {
     this.convolver_.buffer = impulseResponseBuffer;
+  }
+
+  /**
+   * Set the AudioBuffer of the drum sample used for side chaining.
+   * @param {AudioBuffer} impulseResponseBuffer The new impulse response buffer.
+   */
+  setDrumSample(drumSampleBuffer) {
+    this.drumSource_ = new AudioBufferSourceNode(this.context_, {
+      buffer: drumSampleBuffer,
+      loop: true,
+      playbackRate: this.playbackRate
+    });
+
+    this.drumSource_.connect(this.drumGain_)
+
+    // The synthesizer will connect to the other input of the merger node.
+    this.drumSource_.connect(this.synthAndDrumMerger_, 0, 0);
+    this.drumSource_.start();
+  }
+  
+  /**
+   * Sets the playback rate of the drum sample.
+   * @param {Number} value The new playback rate.
+   */
+  setDrumSamplePlaybackRate(value) {
+    this.playbackRate = value;
+  }
+  
+  /**
+   * Sets the volume of the drum sample.
+   * @param {Number} value [description]
+   */
+  setDrumSampleVolume(value) {
+    this.drumGain_.gain.value = value;
+  }
+
+  /**
+   * Sets the threshold of the noise gate.
+   * @param {Number} value The new threshold level.
+   */
+  setNoisegateThreshold(value) {
+    this.noisegate.threshold = value;
+  }
+
+  /**
+   * Sets the attack of the noise gate.
+   * @param {Number} value The new attack value.
+   */
+  setNoisegateAttack(value) {
+    this.noisegate.attack = value;
+  }
+
+  /**
+   * Sets the release of the noise gate.
+   * @param {Number} value The new release value.
+   */
+  setNoisegateRelease(value) {
+    this.noisegate.release = value;
+  }
+
+  /**
+   * Stop the drum sample.
+   */
+  stopDrumSample() {
+    this.drumSource_.stop();
+    this.drumSource_.disconnect();
   }
 
   /**
