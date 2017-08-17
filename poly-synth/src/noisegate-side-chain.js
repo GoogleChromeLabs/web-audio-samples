@@ -18,11 +18,10 @@
  * @class NoiseGateSideChain
  * @description This script-processor-wrapper class is replica of
  * audio-worklet/src/noise-gates-script-processor.js. NoiseGateSideChain builds
- * an envelope on the the input from the first channel and returns the output of
- * the second input channel with the samples muted (according to attack and
- * release) when the level in the first channel registers above the specified
- * threshold. This modification always processes stereo input and returns mono
- * output.
+ * an envelope on the the input from the third channel and returns the output of
+ * the first and second input channels with the samples muted (according to
+ * attack and release) when the level in the third channel registers above
+ * the specified threshold.
  */
 class NoiseGateSideChain {
   /**
@@ -69,7 +68,7 @@ class NoiseGateSideChain {
         timeConstant, this.context_.sampleRate);
 
     this.noiseGateKernel_ = this.context_.createScriptProcessor(
-        bufferSize, 2, 1);
+        bufferSize, 3, 2);
     this.noiseGateKernel_.onaudioprocess = this.onaudioprocess_.bind(this);
 
     // The noise gate is connected to and from by dummy input and output nodes.
@@ -91,19 +90,22 @@ class NoiseGateSideChain {
   }
 
   /**
-   * Control the dynamic range of input in the second channel based on the
-   * measured level of the signal in the first channel relative to a specified
-   * threshold.
+   * Control the dynamic range of input in the first and second channel based
+   * on the measured level of the signal in the third channel relative to a
+   * specified threshold.
    * @param {AudioProcessingEvent} event An Event object containing
-   *                                     2 input channels and 1 output channel.
+   *                                     3 input channels and 2 output channels.
    */
   onaudioprocess_(event) {
     let inputBuffer = event.inputBuffer;
-    let envelopeChannel = inputBuffer.getChannelData(0);
-    let sideChainChannel = inputBuffer.getChannelData(1);
-    let output = event.outputBuffer.getChannelData(0);
-
-    let envelope = this.detectLevel_(envelopeChannel);
+    let signalChannel0 = inputBuffer.getChannelData(0);
+    let signalChannel1 = inputBuffer.getChannelData(1);
+    let sideChainChannel = inputBuffer.getChannelData(2);
+    
+    let outputChannel0 = event.outputBuffer.getChannelData(0);
+    let outputChannel1 = event.outputBuffer.getChannelData(1);
+    
+    let envelope = this.detectLevel_(sideChainChannel);
     let weights = this.computeWeights_(envelope);
     
     // The output in the second channel will be modifed only when the measured
@@ -111,7 +113,8 @@ class NoiseGateSideChain {
     // gate in audio-worklet/src/ which modifies the range of the signal when
     // measured level is -beneath- the threshold.
     for (let j = 0; j < weights.length; j++) {
-      output[j] = (1 - weights[j]) * sideChainChannel[j];
+      outputChannel0[j] = (1 - weights[j]) * signalChannel0[j];
+      outputChannel1[j] = (1 - weights[j]) * signalChannel1[j];
     }
   }
 

@@ -134,19 +134,22 @@ class PolySynth {
     this.activeNoisegateRoute = new GainNode(this.context_, {gain: 0});
     this.bypassNoisegateRoute = new GainNode(this.context_, {gain: 1});
     this.synthAndDrumMerger_ =
-        new ChannelMergerNode(this.context_, {numberOfInputs: 2});
+        new ChannelMergerNode(this.context_, {numberOfInputs: 3});
     let noisegateOutputNode = new GainNode(this.context_);
+    let synthSplitter =
+        new ChannelSplitterNode(this.context_, {numberOfOutputs: 2});
 
-    inputNode.connect(this.bypassNoisegateRoute).connect(noisegateOutputNode);
-    
     // The noise gate will build an envelope on the output of the drum sample
     // (in channel 0) but the noise gate will modify the output of the
     // synthesizer (channel 1).
-    this.drumSource_.connect(this.synthAndDrumMerger_, 0, 0);
-    inputNode.connect(this.synthAndDrumMerger_, 0, 1);
+    inputNode.connect(synthSplitter);
+    synthSplitter.connect(this.synthAndDrumMerger_, 0, 0);
+    synthSplitter.connect(this.synthAndDrumMerger_, 0, 1);
     this.synthAndDrumMerger_.connect(this.noisegate.input);
     this.noisegate.output.connect(
         this.activeNoisegateRoute.connect(noisegateOutputNode));
+
+    inputNode.connect(this.bypassNoisegateRoute).connect(noisegateOutputNode);
 
     // If |this.drumVolume| is positive, the drum sample is audible but bypasses
     // the other synthesizer effects.
@@ -303,10 +306,13 @@ class PolySynth {
       playbackRate: this.playbackRate
     });
 
-    this.drumSource_.connect(this.drumGain_)
+    let drumDownMixer_ = new GainNode(
+        this.context_, {channelCountMode: 'explicit', channelCount: 1});
 
-    // The synthesizer will connect to the other input of the merger node.
-    this.drumSource_.connect(this.synthAndDrumMerger_, 0, 0);
+    // The synthesizer will connect to the first two inputs of the merger node.
+    this.drumSource_.connect(drumDownMixer_)
+        .connect(this.synthAndDrumMerger_, 0, 2);
+    this.drumSource_.connect(this.drumGain_);
     this.drumSource_.start();
   }
   
@@ -316,6 +322,7 @@ class PolySynth {
    */
   setDrumSamplePlaybackRate(value) {
     this.playbackRate = value;
+    this.drumSource_.playbackRate.value = value;
   }
   
   /**

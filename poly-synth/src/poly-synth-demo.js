@@ -313,14 +313,13 @@ class PolySynthDemo {
       // The change is scheduled slightly into the future to avoid glitching.
       if (event.target.textContent === 'Start') {
         event.target.textContent = 'Stop';
-        this.drumSamplePlaybackRateSlider_.disable();
-        this.polySynth_.setDrumSample(this.drumSampleBuffers_[this.drumSampleIndex_]);
+        this.polySynth_.setDrumSample(
+            this.drumSampleBuffers_[this.drumSampleIndex_]);
         this.polySynth_.activeNoisegateRoute.gain.value = 1;
         this.polySynth_.bypassNoisegateRoute.gain.value = 0;
         document.getElementById(this.drumSelectorId_).disabled = true;
       } else {
         event.target.textContent = 'Start';
-        this.drumSamplePlaybackRateSlider_.enable();
         this.polySynth_.stopDrumSample();
         this.polySynth_.activeNoisegateRoute.gain.value = 0;
         this.polySynth_.bypassNoisegateRoute.gain.value = 1;
@@ -489,7 +488,6 @@ class PolySynthDemo {
           default: this.masterGain_.gain.value
         });
   }
-
   
   getDrumSampleUrls_() {
     let drumSampleUrls =

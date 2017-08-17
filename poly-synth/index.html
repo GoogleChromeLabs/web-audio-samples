@@ -56,9 +56,11 @@ limitations under the License.
     </ul>
     <p>
     The combined output of the voices can then be modulated by bitcrushing,
-    reverb, and delay effects. If side chaining is active, the output of the
-    synthesizer will ramp towards silence when the level of the drum sample
-    exceeds the specified threshold.
+    reverb, and delay effects. If noise gate side chaining is active, then
+    the output of the synthesizer will ramp towards silence when the level of
+    the drum sample exceeds the specified threshold. The beat and its volume is
+    conceptually separate from the synthesizer and changing synthesizer effects
+    does not modify its sound.
     <div id="synth-container">
       <div id="keyboard"></div>
       <div id="param-container">
@@ -70,7 +72,7 @@ limitations under the License.
           Filter Envelope</h2>
         </div>
         <div id="sideChain" class="controls">
-          <h2>Side Chain</h2>
+          <h2>Noise Gate</h2>
           <select id="drumUrls"></select>
           <button id="sideChainStartButton">Start</button>
         </div>
