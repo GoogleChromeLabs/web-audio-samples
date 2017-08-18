@@ -18,9 +18,9 @@
  * @class NoiseGateSideChain
  * @description This script-processor-wrapper class is similar to
  * audio-worklet/src/noise-gates-script-processor.js. NoiseGateSideChain builds
- * an envelope on the the input from the third channel and returns the output of
+ * an envelope on the input from the third channel and returns the output of
  * the first and second input channels with the samples muted (according to
- * attack and release) when the level in the third channel registers above
+ * attack and release) when the level in the third channel registers below
  * the specified threshold.
  */
 class NoiseGateSideChain {
@@ -108,13 +108,9 @@ class NoiseGateSideChain {
     let envelope = this.detectLevel_(sideChainChannel);
     let weights = this.computeWeights_(envelope);
     
-    // The output in the second channel will be modifed only when the measured
-    // level in the first channel -exceeds- the threshold unlike the noise
-    // gate in audio-worklet/src/ which modifies the range of the signal when
-    // measured level is -beneath- the threshold.
     for (let j = 0; j < weights.length; j++) {
-      outputChannel0[j] = (1 - weights[j]) * signalChannel0[j];
-      outputChannel1[j] = (1 - weights[j]) * signalChannel1[j];
+      outputChannel0[j] = weights[j] * signalChannel0[j];
+      outputChannel1[j] = weights[j] * signalChannel1[j];
     }
   }
 

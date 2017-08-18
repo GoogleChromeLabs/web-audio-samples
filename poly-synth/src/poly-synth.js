@@ -81,17 +81,17 @@ class PolySynth {
 
     // The initial values for the parameters are experimentally determined.
     this.parameters_ = {
-      gainAttack: 0.1,
-      gainDecay: this.minDecay,
-      gainSustain: 0.5,
-      gainRelease: 0.1,
-      filterCutoff: 440,
-      filterQ: 0,
-      filterAttack: 1,
-      filterDecay: 1,
+      gainAttack: 0.0,
+      gainDecay: 0.32,
+      gainSustain: this.minSustain,
+      gainRelease: 0.13,
+      filterCutoff: 60,
+      filterQ: 15.35,
+      filterAttack: 0,
+      filterDecay: 0.58,
       filterSustain: this.minSustain,
-      filterRelease: this.minRelease,
-      filterDetuneAmount: 1,
+      filterRelease: 0.48,
+      filterDetuneAmount: 3.27,
     };
 
     // Each voice is connected to |this.voiceOutput_|.
