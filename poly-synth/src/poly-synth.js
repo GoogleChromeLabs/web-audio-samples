@@ -140,8 +140,8 @@ class PolySynth {
         new ChannelSplitterNode(this.context_, {numberOfOutputs: 2});
 
     // The noise gate will build an envelope on the output of the drum sample
-    // (in channel 0) but the noise gate will modify the output of the
-    // synthesizer (channel 1).
+    // (in channel 2) but the noise gate will modify the output of the
+    // synthesizer (channels 0 and 1).
     inputNode.connect(synthSplitter);
     synthSplitter.connect(this.synthAndDrumMerger_, 0, 0);
     synthSplitter.connect(this.synthAndDrumMerger_, 0, 1);
@@ -297,7 +297,7 @@ class PolySynth {
 
   /**
    * Set the AudioBuffer of the drum sample used for side chaining.
-   * @param {AudioBuffer} impulseResponseBuffer The new impulse response buffer.
+   * @param {AudioBuffer} drumSampleBuffer The new drum sample buffer.
    */
   setDrumSample(drumSampleBuffer) {
     this.drumSource_ = new AudioBufferSourceNode(this.context_, {

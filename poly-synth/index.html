@@ -60,7 +60,7 @@ limitations under the License.
     the output of the synthesizer will ramp towards silence when the level of
     the drum sample exceeds the specified threshold. The beat and its volume is
     conceptually separate from the synthesizer and changing synthesizer effects
-    does not modify its sound.
+    does not modify the beat's sound.
     <div id="synth-container">
       <div id="keyboard"></div>
       <div id="param-container">
@@ -71,10 +71,10 @@ limitations under the License.
         <div id="filter-envelope" class="controls"><h2>
           Filter Envelope</h2>
         </div>
-        <div id="sideChain" class="controls">
+        <div id="noiseGate" class="controls">
           <h2>Noise Gate</h2>
           <select id="drumUrls"></select>
-          <button id="sideChainStartButton">Start</button>
+          <button id="noiseGateStartButton">Start</button>
         </div>
         <div id="bitcrusher" class="controls">
           <h2>Bitcrusher</h2>
@@ -102,8 +102,9 @@ limitations under the License.
         reverbSelectorId: 'reverbUrls',
         delayDivId: 'delay',
         volumeDivId: 'volume',
-        sideChainDivId: 'sideChain',
-        drumSelectorId: 'drumUrls',
+        noiseGateDivId: 'noiseGate',
+        noiseGateStartButton: 'noiseGateStartButton',
+        drumSelectorId: 'drumUrls'
       });
     </script>
   </body>

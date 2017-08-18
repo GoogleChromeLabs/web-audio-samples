@@ -16,7 +16,7 @@
 
 /**
  * @class NoiseGateSideChain
- * @description This script-processor-wrapper class is replica of
+ * @description This script-processor-wrapper class is similar to
  * audio-worklet/src/noise-gates-script-processor.js. NoiseGateSideChain builds
  * an envelope on the the input from the third channel and returns the output of
  * the first and second input channels with the samples muted (according to
@@ -120,19 +120,19 @@ class NoiseGateSideChain {
 
   /**
    * Compute an envelope follower for the signal.
-   * @param {Float32Array} channelData Input channel data.
+   * @param {Float32Array} sideChainChannel Input channel data.
    * @return {Float32Array} The level of the signal.
    */
-  detectLevel_(channelData) {
+  detectLevel_(sideChainChannel) {
     // The signal level is determined by filtering the square of the signal
     // with exponential smoothing. See
     // http://www.aes.org/e-lib/browse.cfm?elib=16354 for details.
     this.envelope_[0] = this.alpha_ * this.previousLevel_ +
-        (1 - this.alpha_) * Math.pow(channelData[0], 2);
+        (1 - this.alpha_) * Math.pow(sideChainChannel[0], 2);
 
-    for (let j = 1; j < channelData.length; j++) {
+    for (let j = 1; j < sideChainChannel.length; j++) {
       this.envelope_[j] = this.alpha_ * this.envelope_[j - 1] +
-          (1 - this.alpha_) * Math.pow(channelData[j], 2);
+          (1 - this.alpha_) * Math.pow(sideChainChannel[j], 2);
     }
     this.previousLevel_ = this.envelope_[this.envelope_.length - 1];
     
