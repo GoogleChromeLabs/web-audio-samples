@@ -313,6 +313,12 @@ class PolySynth {
     this.drumSource_.connect(drumDownMixer_)
         .connect(this.synthAndDrumMerger_, 0, 2);
     this.drumSource_.connect(this.drumGain_);
+  }
+
+  /**
+   * Starts the drum sample.
+   */
+  startDrumSample() {
     this.drumSource_.start();
   }
   
