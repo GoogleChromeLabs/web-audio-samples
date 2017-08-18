@@ -18,12 +18,12 @@ limitations under the License.
     <script src="test/audit-util.js"></script>
     <script src="test/audit.js"></script>
     <script src="src/noisegate-script-processor.js"></script>
-
     <script id="noisegate-test-code">
       // Sample rate is a power of two to avoid interpolation from delay node.
-      // It is held artificially low for easy inspection of audio buffers.
-      // All tests pass for all legal powers in the range [3000, 384000].
-      const sampleRate = Math.pow(2, 12);
+      // All but the first three tests pass for all legal powers of 2 in the
+      // range [3000, 384000]. (The first three tests may fail if the oscillator
+      // frequency is set above the level at which it can be represented.)
+      const sampleRate = 65536;
 
       const testDurationSec = 1;
       const testFrames = testDurationSec * sampleRate;
@@ -33,6 +33,71 @@ limitations under the License.
 
       let audit = Audit.createTaskRunner();
       
+      // The first three tests verify that the noise gate's threshold matches
+      // the input power closely. Zero dBFS should be equivalent to a unit
+      // amplitude of 1, -6 dBFS should be equivalent to ~0.5, and -12 to ~0.25,
+      // etc. In general, the decibel level is 10 * log10(a^2), where a is the
+      // amplitude of the sine wave.
+      
+      audit.define('unit-amplitude-matches-0-db', (task, should) => {
+        // The threshold should be set slightly above the oscillator's gain, so
+        // that the noise gate mutes the signal.
+        const oscillatorGain = 1;
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain)
+            + 0.015;
+        
+        let context = setupThresholdTestGraph(threshold, oscillatorGain);
+
+        context.startRendering().then((buffer) => {
+          let noisegateOutput = buffer.getChannelData(0);
+
+          // The noise gate should never open since the envelope follower won't
+          // quite reach the threshold, set slightly above 0 dB.
+          should(noisegateOutput,
+                 'The unit amplitude sine wave processed by the noise gate')
+              .beConstantValueOf(0);
+        }).then(() => task.done());
+      });
+      
+      audit.define('noisegate-matches-input-and-opens', (task, should) => {
+        // The threshold should be set slightly below the oscillator's gain, so
+        // that the noise gate eventually opens.
+        const oscillatorGain = 0.5;
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain);
+            - 0.015;
+
+        let context = setupThresholdTestGraph(threshold, oscillatorGain);
+
+        context.startRendering().then((buffer) => {
+          let noisegateOutput = buffer.getChannelData(0);
+
+          // The noise gate should eventually open since the threshold is set
+          // beneath the signal power.
+          should(noisegateOutput,
+                 'A sine wave with an amplitude exceeding the threshold')
+              .notBeConstantValueOf(0);
+        }).then(() => task.done());
+      });
+      
+      audit.define('noisegate-matches-input-and-closes', (task, should) => {
+        // The threshold should be set slightly above the oscillator's gain, so
+        // that the noise gate mutes the signal.
+        const oscillatorGain = 0.5;
+        const threshold = NoiseGate.toDecibel(oscillatorGain * oscillatorGain)
+            + 0.015;
+        
+        let context = setupThresholdTestGraph(threshold, oscillatorGain);
+
+        // The noise gate should never open since the envelope follower won't
+        // quite reach the threshold.
+        context.startRendering().then((buffer) => {
+          let noisegateOutput = buffer.getChannelData(0);
+          should(noisegateOutput,
+                 'A sine wave with an amplitude smaller than the threshold')
+              .beConstantValueOf(0);
+        }).then(() => task.done());
+      });
+
       // With a threshold of linearThreshold and a constant source of some value
       // above linearThreshold, followed by a sequence of values beneath
       // linearThreshold, an ideal envelope follower would make the noise gate
@@ -394,6 +459,20 @@ limitations under the License.
     audit.run();
 
     // End of test cases. Testing utility functions below!
+    
+    function setupThresholdTestGraph(threshold, oscillatorGain) {
+      let context = new OfflineAudioContext(1, testFrames, sampleRate);
+      let oscillator = new OscillatorNode(context, {frequency: 16000});
+      let amplifier = new GainNode(context, {gain: oscillatorGain});
+      let noisegate =
+          new NoiseGate(context, {bufferSize, threshold, timeConstant});
+        
+      oscillator.connect(amplifier);
+      amplifier.connect(noisegate.input);
+      noisegate.output.connect(context.destination);
+      oscillator.start();
+      return context;
+    }
 
     // This function solves setTargetAtTime for time. See
     // AudioParam/setTargetAtTime in the specs
