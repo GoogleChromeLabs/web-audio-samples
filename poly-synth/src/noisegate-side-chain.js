@@ -178,8 +178,7 @@ class NoiseGateSideChain {
       if (scaledEnvelopeValue < this.threshold) {
         const weight = this.previousWeight_ - attackLossPerStep;
         this.weights_[i] = Math.max(weight, 0);
-      }
-      else {
+      } else {
         const weight = this.previousWeight_ + releaseGainPerStep;
         this.weights_[i] = Math.min(weight, 1);
       }
