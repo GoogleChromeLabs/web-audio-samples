@@ -18,6 +18,7 @@ limitations under the License.
     <script src="third-party/qwerty-hancock.min.js"></script>
     <script src="../audio-worklet/lib/param-controller.js"></script>
     <script src="../audio-worklet/src/bitcrusher-script-processor.js"></script>
+    <script src="src/noisegate-side-chain.js"></script>
     <script src="src/poly-synth-demo.js"></script>
     <script src="src/poly-synth.js"></script>
     <script src="src/poly-synth-voice.js"></script>
@@ -25,6 +26,10 @@ limitations under the License.
       #param-container {
         display: flex;
         flex-direction: row;
+      }
+      #synth-flow-chart {
+        width: 60%;
+        height: 60%;
       }
       .controls {
         margin: 5px;
@@ -53,18 +58,20 @@ limitations under the License.
       <li>Release refers to the number of seconds from releasing the note
           until a zero value.</li>
     </ul>
-    <p>
-    The combined output of the voices can then be modulated by bitcrushing,
-    reverb, and delay effects.
     <div id="synth-container">
       <div id="keyboard"></div>
       <div id="param-container">
-        <div id="amp-envelope" class="controls">
-          <h2>Amplifier Envelope</h2>
-        </div>
         <div id="filter" class="controls"><h2>Filter</h2></div>
         <div id="filter-envelope" class="controls"><h2>
           Filter Envelope</h2>
+        </div>
+        <div id="amp-envelope" class="controls">
+          <h2>Amplifier Envelope</h2>
+        </div>
+        <div id="noiseGate" class="controls">
+          <h2>Noise Gate</h2>
+          <select id="drumUrls"></select>
+          <button id="noiseGateStartButton">Start</button>
         </div>
         <div id="bitcrusher" class="controls">
           <h2>Bitcrusher</h2>
@@ -78,6 +85,8 @@ limitations under the License.
         <div id="volume" class="controls"><h2>Volume</h2></div>
       </div>
     </div>
+    <img src="images/synth-flow-chart.png" id="synth-flow-chart"
+        alt="Synth Flow Chart">
     <p>
     Credit to Stuart Memo for the
     <a href="https://github.com/stuartmemo/qwerty-hancock">keyboard</a>.
@@ -91,7 +100,10 @@ limitations under the License.
         reverbDivId: 'reverb',
         reverbSelectorId: 'reverbUrls',
         delayDivId: 'delay',
-        volumeDivId: 'volume'
+        volumeDivId: 'volume',
+        noiseGateDivId: 'noiseGate',
+        noiseGateStartButton: 'noiseGateStartButton',
+        drumSelectorId: 'drumUrls'
       });
     </script>
   </body>

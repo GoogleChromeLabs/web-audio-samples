@@ -22,30 +22,42 @@ class PolySynthDemo {
   /**
    * @constructor
    * @param {AudioContext} context The audio context.
-   * @param {Object} identifiers
-   * @param {String} identifiers.gainEnvelopeDivId The ID of the container for
+   * @param {Object} elementIds
+   * @param {String} elementIds.gainEnvelopeDivId The ID of the container for
    *                                               gain envelope elements.
-   * @param {String} identifiers.filterDivId The ID of the container for
+   * @param {String} elementIds.filterDivId The ID of the container for
    *                                         filter elements.
-   * @param {String} identifiers.filterEnvelopeDivId The ID of the container for
+   * @param {String} elementIds.filterEnvelopeDivId The ID of the container for
    *                                                 filter envelope elements.
-   * @param {String} identifiers.bitcrusherDivId The ID of the container for
+   * @param {String} elementIds.bitcrusherDivId The ID of the container for
    *                                             bitcrusher parameter elements.
-   * @param {String} identifiers.reverbDivId The ID of the container for
+   * @param {String} elementIds.reverbDivId The ID of the container for
    *                                         reverb elements.
-   * @param {String} identifiers.reverbSelectorId The ID of the <select>
+   * @param {String} elementIds.reverbSelectorId The ID of the <select>
    *                                              element for impulse
    *                                              response options.
-   * @param {String} identifiers.delayDivId The ID of the container for
+   * @param {String} elementIds.delayDivId The ID of the container for
    *                                        feedback delay elements.
-   * @param {String} identifiers.volumeDivId The ID of the container for
+   * @param {String} elementIds.volumeDivId The ID of the container for
    *                                         the volume control.
+   * @param {String} elementIds.drumSampleDivId The ID of the container for
+   *                                             drum samples.
+   * @param {String} elementIds.noiseGateDivId The ID of the container for
+   *                                            side chain elements.
+   * @param {String} elementIds.noiseGateStartButton The ID of the noisegate
+   *                                            start button.
+   * @param {String} elementIds.drumSelectorId The ID of the <select>
+   *                                            element for drum samples.
    */
-  constructor(context, identifiers) {
+  constructor(context, elementIds) {
     this.context_ = context;
-    this.reverbSelectorId_ = identifiers.reverbSelectorId;
-    this.impulseResponseUrls_ = this.getImpulseResponseUrls_();
+    this.reverbSelectorId_ = elementIds.reverbSelectorId;
+    this.drumSelectorId_ = elementIds.drumSelectorId;
+    this.drumSampleIndex_ = 0;
 
+    this.setImpulseResponseUrls_();
+    this.setDrumSampleUrls_();
+    
     this.masterGain_ = new GainNode(this.context_, {gain: 0.5});
     this.polySynth_ =
         new PolySynth(this.context_);
@@ -58,28 +70,36 @@ class PolySynthDemo {
     this.keyboard_.keyDown = this.keyDown.bind(this);
     this.keyboard_.keyUp = this.keyUp.bind(this);
     
-    this.initializeAmplifierEnvelopeGUI_(identifiers.gainEnvelopeDivId);
-    this.initializeFilterGUI_(identifiers.filterDivId);
-    this.initializeFilterEnvelopeGUI_(identifiers.filterEnvelopeDivId);
-    this.initializeBitcrusherGUI_(identifiers.bitcrusherDivId);
-    this.initializeDelayGUI_(identifiers.delayDivId);
-    this.initializeReverbGUI_(identifiers.reverbDivId, this.reverbSelectorId_);
-    this.initializeMasterVolumeGUI_(identifiers.volumeDivId);
-    
-    this.loadImpulseResponses(this.impulseResponseUrls_)
+    this.initializeAmplifierEnvelopeGUI_(elementIds.gainEnvelopeDivId);
+    this.initializeFilterGUI_(elementIds.filterDivId);
+    this.initializeFilterEnvelopeGUI_(elementIds.filterEnvelopeDivId);
+    this.initializeNoiseGateGUI_(
+        elementIds.noiseGateDivId, elementIds.noiseGateStartButton);
+    this.initializeBitcrusherGUI_(elementIds.bitcrusherDivId);
+    this.initializeDelayGUI_(elementIds.delayDivId);
+    this.initializeReverbGUI_(elementIds.reverbDivId, this.reverbSelectorId_);
+    this.initializeMasterVolumeGUI_(elementIds.volumeDivId);
+
+    this.loadSamples(this.impulseResponseUrls_)
         .then((impulseResponseBuffers) => {
           this.impulseResponseBuffers_ = impulseResponseBuffers;
           this.polySynth_.setConvolverBuffer(this.impulseResponseBuffers_[0]);
           document.getElementById(this.reverbSelectorId_).disabled = false;
         });
+
+    this.loadSamples(this.drumSampleUrls_)
+        .then((drumSampleBuffers) => {
+          this.drumSampleBuffers_ = drumSampleBuffers;
+          document.getElementById(this.drumSelectorId_).disabled = false;
+        });
   }
 
-  async loadImpulseResponses(impulseResponses){
-    let responseBuffers = [];
-    for (let index in impulseResponses) {
-      responseBuffers[index] = await this.loadSound(impulseResponses[index]);
+  async loadSamples(urls) {
+    let audioBuffers = [];
+    for (let index in urls) {
+      audioBuffers[index] = await this.loadSound(urls[index]);
     }
-    return responseBuffers;
+    return audioBuffers;
   }
 
   async loadSound(url) {
@@ -224,6 +244,102 @@ class PolySynthDemo {
         });
   }
   
+  initializeNoiseGateGUI_(noiseGateDivId, noiseGateStartButton) {
+    this.drumSamplePlaybackRateSlider_ = new ParamController(
+        noiseGateDivId,
+        this.polySynth_.setDrumSamplePlaybackRate.bind(this.polySynth_), {
+          name: 'Playback rate',
+          id: 'playbackRate',
+          type: 'range',
+          min: 0.1,
+          max: 30,
+          step: 0.1,
+          default: this.polySynth_.playbackRate
+        });
+
+    this.drumSampleVolume_ = new ParamController(
+        noiseGateDivId,
+        this.polySynth_.setDrumSampleVolume.bind(this.polySynth_), {
+          name: 'Beat volume',
+          id: 'beatVolume',
+          type: 'range',
+          min: 0,
+          max: 5,
+          step: 0.05,
+          default: this.polySynth_.drumVolume
+        });
+
+    this.noiseGateThresholdSlider_ = new ParamController(
+        noiseGateDivId,
+        this.polySynth_.setNoisegateThreshold.bind(this.polySynth_), {
+          name: 'Threshold',
+          id: 'threshold',
+          type: 'range',
+          min: -100,
+          max: 0,
+          step: 1,
+          default: this.polySynth_.noisegateThreshold
+        });
+
+    this.noiseGateAttackSlider_ = new ParamController(
+        noiseGateDivId,
+        this.polySynth_.setNoisegateAttack.bind(this.polySynth_), {
+          name: 'Attack',
+          id: 'noisegateAttack',
+          type: 'range',
+          min: 0,
+          max: 1,
+          step: 0.05,
+          default: this.polySynth_.noisegateAttack
+        });
+
+    this.noiseGateReleaseSlider_ = new ParamController(
+        noiseGateDivId,
+        this.polySynth_.setNoisegateRelease.bind(this.polySynth_), {
+          name: 'Release',
+          id: 'noisegateRelease',
+          type: 'range',
+          min: 0,
+          max: 1,
+          step: 0.05,
+          default: this.polySynth_.noisegateRelease
+        });
+
+    document.getElementById(noiseGateStartButton).onclick = (event) => {
+      // The change is scheduled slightly into the future to avoid glitching.
+      if (event.target.textContent === 'Start') {
+        event.target.textContent = 'Stop';
+        this.polySynth_.setDrumSample(
+            this.drumSampleBuffers_[this.drumSampleIndex_]);
+        this.polySynth_.activeNoisegateRoute.gain.value = 1;
+        this.polySynth_.bypassNoisegateRoute.gain.value = 0;
+        document.getElementById(this.drumSelectorId_).disabled = true;
+      } else {
+        event.target.textContent = 'Start';
+        this.polySynth_.stopDrumSample();
+        this.polySynth_.activeNoisegateRoute.gain.value = 0;
+        this.polySynth_.bypassNoisegateRoute.gain.value = 1;
+        document.getElementById(this.drumSelectorId_).disabled = false;
+      }
+    }
+
+    let selector = document.getElementById(this.drumSelectorId_);
+    this.displayOptions_(selector, this.drumSampleUrls_);
+
+    selector.onchange = (event) => {
+      this.drumSampleIndex_ = parseInt(event.target.value);
+      this.polySynth_.stopDrumSample();
+      this.polySynth_.setDrumSample(
+            this.drumSampleBuffers_[this.drumSampleIndex_]);
+      
+      // Deselect the target to prevent interference with keyboard.
+      event.target.blur();
+    }
+    
+    // The selector will be enabled when the buffers are loaded.
+    selector.disabled = true;
+  }
+
   initializeBitcrusherGUI_(bitcrusherDivId) {
     let bitcrusherBitDepthSlider_ = new ParamController(
         bitcrusherDivId, this.polySynth_.setBitDepth.bind(this.polySynth_), {
@@ -275,7 +391,7 @@ class PolySynthDemo {
     }
   }
 
-  initializeReverbGUI_(reverbDivId, selectorId) {
+  initializeReverbGUI_(reverbDivId) {
     let reverbWetnessSlider_ = new ParamController(
         reverbDivId, this.polySynth_.setReverbWetness.bind(this.polySynth_),
         {
@@ -289,16 +405,8 @@ class PolySynthDemo {
         });
 
     // The synth's convolver node buffer changes depending on the selected url.
-    let selector = document.getElementById(selectorId);
-    for (let index in this.impulseResponseUrls_) {
-      // Only the last part of the file name is displayed.
-      let urlParts = this.impulseResponseUrls_[index].split('/');
-      let abbreviatedUrl = urlParts[urlParts.length - 1];
-      let option = document.createElement('option');
-      option.value = index;
-      option.textContent = abbreviatedUrl;
-      selector.appendChild(option);
-    }
+    let selector = document.getElementById(this.reverbSelectorId_);
+    this.displayOptions_(selector, this.impulseResponseUrls_);
 
     selector.onchange = (event) => {
       let responseIndex = parseInt(event.target.value);
@@ -363,8 +471,35 @@ class PolySynthDemo {
         });
   }
 
-  getImpulseResponseUrls_() {
-    let impulseResponseUrls =
+  displayOptions_(selector, urls) {
+    for (let index in urls) {
+      // Only the last part of the file name is displayed.
+      let urlParts = urls[index].split('/');
+      let abbreviatedUrl = urlParts[urlParts.length - 1];
+      let option = document.createElement('option');
+      option.value = index;
+      option.textContent = abbreviatedUrl;
+      selector.appendChild(option);
+    }
+  }
+  
+  setDrumSampleUrls_() {
+    this.drumSampleUrls_ =
+        [
+          'sound/simple-beat.ogg',
+          'sound/d-85.ogg',
+          'sound/a-60.ogg',
+          'sound/a2-60.ogg',
+          'sound/a3-60.ogg',
+          'sound/a4-60.ogg',
+          'sound/d2-60.ogg',
+          'sound/r2-80.ogg',
+          'sound/a4-60.ogg',
+        ];
+  }
+
+  setImpulseResponseUrls_() {
+    this.impulseResponseUrls_ =
         [
           '../samples/audio/impulse-responses/matrix-reverb1.wav',
           '../samples/audio/impulse-responses/backslap1.wav',
@@ -397,8 +532,6 @@ class PolySynthDemo {
           '../samples/audio/impulse-responses/zing-long-stereo.wav',
           '../samples/audio/impulse-responses/zoot.wav'
         ];
-
-    return impulseResponseUrls;
   }
 
   /**
