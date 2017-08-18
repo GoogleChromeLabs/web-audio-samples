@@ -90,6 +90,8 @@ class PolySynthDemo {
     this.loadSamples(this.drumSampleUrls_)
         .then((drumSampleBuffers) => {
           this.drumSampleBuffers_ = drumSampleBuffers;
+          this.polySynth_.setDrumSample(
+              this.drumSampleBuffers_[0]);
           document.getElementById(this.drumSelectorId_).disabled = false;
         });
   }
@@ -309,10 +311,9 @@ class PolySynthDemo {
       // The change is scheduled slightly into the future to avoid glitching.
       if (event.target.textContent === 'Start') {
         event.target.textContent = 'Stop';
-        this.polySynth_.setDrumSample(
-            this.drumSampleBuffers_[this.drumSampleIndex_]);
         this.polySynth_.activeNoisegateRoute.gain.value = 1;
         this.polySynth_.bypassNoisegateRoute.gain.value = 0;
+        this.polySynth_.startDrumSample();
         document.getElementById(this.drumSelectorId_).disabled = true;
       } else {
         event.target.textContent = 'Start';
@@ -328,10 +329,9 @@ class PolySynthDemo {
 
     selector.onchange = (event) => {
       this.drumSampleIndex_ = parseInt(event.target.value);
-      this.polySynth_.stopDrumSample();
       this.polySynth_.setDrumSample(
             this.drumSampleBuffers_[this.drumSampleIndex_]);
-      
+
       // Deselect the target to prevent interference with keyboard.
       event.target.blur();
     }
