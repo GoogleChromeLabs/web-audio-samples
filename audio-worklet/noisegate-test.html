@@ -48,10 +48,11 @@ limitations under the License.
         
         let context = setupThresholdTestGraph(threshold, oscillatorGain);
 
-        // The noise gate should never open since the envelope follower won't
-        // quite reach the threshold, set slightly above 0 dB.
         context.startRendering().then((buffer) => {
           let noisegateOutput = buffer.getChannelData(0);
+
+          // The noise gate should never open since the envelope follower won't
+          // quite reach the threshold, set slightly above 0 dB.
           should(noisegateOutput,
                  'The unit amplitude sine wave processed by the noise gate')
               .beConstantValueOf(0);
@@ -67,10 +68,11 @@ limitations under the License.
 
         let context = setupThresholdTestGraph(threshold, oscillatorGain);
 
-        // The noise gate should eventually open since the threshold is set
-        // beneath the signal power.
         context.startRendering().then((buffer) => {
           let noisegateOutput = buffer.getChannelData(0);
+
+          // The noise gate should eventually open since the threshold is set
+          // beneath the signal power.
           should(noisegateOutput,
                  'A sine wave with an amplitude exceeding the threshold')
               .notBeConstantValueOf(0);
