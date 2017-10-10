@@ -1,13 +1,12 @@
 /**
+ * This processor class is demonstrations of a simple bypass node.
+ * 
  * @class Bypasser
  * @extends AudioWorkletProcessor
- *
- * This processor class demosntrates a simple bypass node.
  */
 class Bypasser extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.counter_ = 0;
   }
 
   process(inputs, outputs) {

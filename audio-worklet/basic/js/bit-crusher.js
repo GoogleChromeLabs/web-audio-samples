@@ -1,13 +1,11 @@
 /**
+ * A AudioWorklet-based BitCrusher demo from the spec example.
+ * 
  * @class BitCrusher
  * @extends AudioWorkletProcessor
- *
- * This is an adaptation of: 
- * https://webaudio.github.io/web-audio-api/#the-bitcrusher-node
+ * @see https://webaudio.github.io/web-audio-api/#the-bitcrusher-node
  */
-
-
-registerProcessor('bit-crusher', class BitCrusher extends AudioWorkletProcessor {
+class BitCrusher extends AudioWorkletProcessor {
 
   static get parameterDescriptors() {
     return [
@@ -45,6 +43,10 @@ registerProcessor('bit-crusher', class BitCrusher extends AudioWorkletProcessor 
         outputChannel[i] = this.lastSampleValue_;
       }
     }
+
+    return true;
   }
 
 });
+
+registerProcessor('bit-crusher', BitCrusher);
