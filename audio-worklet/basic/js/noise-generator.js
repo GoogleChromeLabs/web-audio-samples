@@ -11,12 +11,13 @@ class NoiseGenerator extends AudioWorkletProcessor {
     super(options);
   }
 
-  process(input, output, parameters) {
-    let outputChannelData = output.getChannelData(0);
+  process(inputs, outputs, parameters) {
+    let outputChannel = outputs[0][0];
     let amplitude = parameters.amplitude;
-    for (let i = 0; i < 128; ++i) {
-      outputChannelData[i] = Math.random() * amplitude[i];
-    }
+    for (let i = 0; i < outputChannel.length; ++i)
+      outputChannel[i] = Math.random() * amplitude[i];
+
+    return true;
   }
 }
 

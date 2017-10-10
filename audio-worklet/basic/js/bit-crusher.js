@@ -26,21 +26,24 @@ registerProcessor('bit-crusher', class BitCrusher extends AudioWorkletProcessor 
     this.lastSampleValue_ = 0;
   }
 
-  process(input, output, parameters) {
-    let inputChannelData = input.getChannelData(0);
-    let outputChannelData = output.getChannelData(0);
+  process(inputs, outputs, parameters) {
+    let input = inputs[0];
+    let output = outputs[0];
     let bitDepth = parameters.bitDepth;
     let frequencyReduction = parameters.frequencyReduction;
-
-    for (let i = 0; i < 128; ++i) {
-      let step = Math.pow(0.5, bitDepth[i]);
-      this.phase_ += frequencyReduction[i];
-      if (this.phase_ >= 1.0) {
-        this.phase_ -= 1.0;
-        this.lastSampleValue_ =
-            step * Math.floor(inputChannelData[i] / step + 0.5);
+    for (let channel = 0; channel < input.length; ++channel) {
+      let inputChannel = input[channel];
+      let outputChannel = output[channel];
+      for (let i = 0; i < inputChannel.length; ++i) {
+        let step = Math.pow(0.5, bitDepth[i]);
+        this.phase_ += frequencyReduction[i];
+        if (this.phase_ >= 1.0) {
+          this.phase_ -= 1.0;
+          this.lastSampleValue_ =
+              step * Math.floor(inputChannel[i] / step + 0.5);
+        }
+        outputChannel[i] = this.lastSampleValue_;
       }
-      outputChannelData[i] = this.lastSampleValue_;
     }
   }
 

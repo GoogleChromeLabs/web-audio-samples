@@ -13,10 +13,6 @@
       Demo: BitCrusher
     </h1>
     <script>
-    // TODO(hoch): remove this GC hack when it is implemented properly.
-    let paramBitDepth;
-    let paramReduction;
-
     // Run BitCrusher node, that is largely based on the example on in the spec,
     // to demonstrate AudioParam automation.
     function runBitCrusherDemo() {
@@ -26,8 +22,8 @@
         let bitCrusher = new AudioWorkletNode(context, 'bit-crusher');
         oscillator.connect(bitCrusher).connect(context.destination);
         
-        paramBitDepth = bitCrusher.parameters.get('bitDepth');
-        paramReduction = bitCrusher.parameters.get('frequencyReduction');
+        let paramBitDepth = bitCrusher.parameters.get('bitDepth');
+        let paramReduction = bitCrusher.parameters.get('frequencyReduction');
         
         paramBitDepth.setValueAtTime(1, 0);
 

@@ -7,12 +7,17 @@
 class Bypasser extends AudioWorkletProcessor {
   constructor() {
     super();
+    this.counter_ = 0;
   }
 
-  process(input, output) {
-    let inputChannelData = input.getChannelData(0);
-    let outputChannelData = output.getChannelData(0);
-    outputChannelData.set(inputChannelData);
+  process(inputs, outputs) {
+    let input = inputs[0];
+    let output = outputs[0];
+    for (let channel = 0; channel < output.length; ++channel) {
+      output[channel].set(input[channel]);
+    }
+
+    return true;
   }
 }
 
