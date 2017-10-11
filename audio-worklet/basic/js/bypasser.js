@@ -1,5 +1,5 @@
 /**
- * This processor class is demonstrations of a simple bypass node.
+ * A simple bypass node demo.
  * 
  * @class Bypasser
  * @extends AudioWorkletProcessor

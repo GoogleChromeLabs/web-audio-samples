@@ -47,6 +47,6 @@ class BitCrusher extends AudioWorkletProcessor {
     return true;
   }
 
-});
+}
 
 registerProcessor('bit-crusher', BitCrusher);

@@ -19,7 +19,7 @@ a.link-small {
 
 ul {
   list-style: none;
-  padding-left: 26px;
+  columns: 2;
 }
 
 ul > li {
@@ -28,6 +28,11 @@ ul > li {
 
 #libaudioworklet-reporter {
   font-size: 14px;
+}
+
+div.file-issue {
+  float: right;
+  font-size: 12px;
 }
 
 #libaudioworklet-reporter .error {
