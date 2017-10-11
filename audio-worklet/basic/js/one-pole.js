@@ -1,28 +1,48 @@
 /**
+ * A simple One pole filter.
+ * 
  * @class OnePole
  * @extends AudioWorkletProcessor
- *
- * Implements a simple OnePole filter. 
  */
 class OnePole extends AudioWorkletProcessor {
+  static get parameterDescriptors() {
+    return [{
+      name: 'frequency',
+      defaultValue: 250,
+      minValue: 0
+      // |maxValue| is defaulted on purpose because we can't set it to the
+      // Nyquist frequency of the context. Note that |sampleRate| is 0.0 when
+      // this class definition is evaluated. 
+      // maxValue: 0.5 * sampleRate
+    }];
+  }
+
   constructor() {
     super();
     this.updateCoefficientsWithFrequency_(500);
   }
 
   updateCoefficientsWithFrequency_ (frequency) {
-    this.b1 = Math.exp(-2 * Math.PI * frequency / 48000);
-    this.a0 = 1.0 - this.b1;
-    this.z1 = 0;
+    this.b1_ = Math.exp(-2 * Math.PI * frequency / sampleRate);
+    this.a0_ = 1.0 - this.b1_;
+    this.z1_ = 0;
   }
 
-  process(input, output) {
-    let inputChannelData = input.getChannelData(0);
-    let outputChannelData = output.getChannelData(0);
-    for (let i = 0; i < 128; ++i) {
-      this.z1 = inputChannelData[i] * this.a0 + this.z1 * this.b1;
-      outputChannelData[i] = this.z1;
+  process(inputs, outputs, parameters) {
+    let input = inputs[0];
+    let output = outputs[0];
+    let frequency = parameters.frequency;
+    for (let channel = 0; channel < output.length; ++channel) {
+      let inputChannel = input[channel];
+      let outputChannel = output[channel];
+      for (let i = 0; i < outputChannel.length; ++i) {
+        this.updateCoefficientsWithFrequency_(frequency[i]);
+        this.z1_ = inputChannel[i] * this.a0_ + this.z1_ * this.b1_;
+        outputChannel[i] = this.z1_;
+      }
     }
+
+    return true;
   }
 }
 

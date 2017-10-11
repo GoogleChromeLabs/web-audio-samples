@@ -1,4 +1,6 @@
 /**
+ * A noise generator example with a gain AudioParam.
+ * 
  * @class NoiseGenerator
  * @extends AudioWorkletProcessor
  */
@@ -11,12 +13,17 @@ class NoiseGenerator extends AudioWorkletProcessor {
     super(options);
   }
 
-  process(input, output, parameters) {
-    let outputChannelData = output.getChannelData(0);
+  process(inputs, outputs, parameters) {
+    let output = outputs[0];
     let amplitude = parameters.amplitude;
-    for (let i = 0; i < 128; ++i) {
-      outputChannelData[i] = Math.random() * amplitude[i];
+    for (let channel = 0; channel < output.length; ++channel) {
+      let outputChannel = output[channel];
+      for (let i = 0; i < outputChannel.length; ++i) {
+        outputChannel[i] = 2 * (Math.random() - 0.5) * amplitude[i];
+      }
     }
+
+    return true;
   }
 }
 

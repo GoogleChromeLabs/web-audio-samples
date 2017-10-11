@@ -19,7 +19,7 @@ a.link-small {
 
 ul {
   list-style: none;
-  padding-left: 26px;
+  columns: 2;
 }
 
 ul > li {

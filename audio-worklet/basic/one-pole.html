@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      One Pole | Chrome WebAudio Samples
+    </title>
+    <link rel="stylesheet" href="../../resources/base.css">
+    <script src="../lib/audio-worklet-helper.js"></script>
+  </head>
+  <body>
+    <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
+    <h1>
+      Demo: "One Pole Filter"
+    </h1>
+    <script>
+    // Demonstrate the instantiation and the connection of AudioWorkletNode.
+    function runOnePoleDemo() {
+      Promise.all([
+          window.audioWorklet.addModule('js/noise-generator.js'),
+          window.audioWorklet.addModule('js/one-pole.js')
+        ]).then(() => {
+          const context = new AudioContext();
+          let noise = new AudioWorkletNode(context, 'noise-generator');
+          let onePole = new AudioWorkletNode(context, 'one-pole');
+          let frequencyParam = onePole.parameters.get('frequency');
+
+          noise.connect(onePole).connect(context.destination);
+
+          frequencyParam.setValueAtTime(0.01, 0);
+          frequencyParam.exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0);
+          frequencyParam.exponentialRampToValueAtTime(0.01, 8.0);
+        });
+    }
+
+    AudioWorkletHelper.startDemo(runOnePoleDemo);
+    </script>
+  </body>
+</html>
