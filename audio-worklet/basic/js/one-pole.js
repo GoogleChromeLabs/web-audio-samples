@@ -10,6 +10,10 @@ class OnePole extends AudioWorkletProcessor {
       name: 'frequency',
       defaultValue: 250,
       minValue: 0
+      // |maxValue| is defaulted on purpose because we can't set it to the
+      // Nyquist frequency of the context. Note that |sampleRate| is 0.0 when
+      // this class definition is evaluated. 
+      // maxValue: 0.5 * sampleRate
     }];
   }
 

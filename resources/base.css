@@ -30,11 +30,6 @@ ul > li {
   font-size: 14px;
 }
 
-div.file-issue {
-  float: right;
-  font-size: 12px;
-}
-
 #libaudioworklet-reporter .error {
   color: #F44336;
 }

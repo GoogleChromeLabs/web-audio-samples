@@ -26,7 +26,6 @@
         // Connect the oscillator to 'amplitude' AudioParam.
         let paramAmp = noiseGenerator.parameters.get('amplitude');
         modulator.connect(modGain).connect(paramAmp);
-        // modulator.connect(noiseGenerator);
 
         modulator.frequency.value = 0.5;
         modGain.gain.value = 0.75;
