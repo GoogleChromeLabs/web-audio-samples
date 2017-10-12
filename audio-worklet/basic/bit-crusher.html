@@ -14,7 +14,8 @@
         Demo: BitCrusher with AudioParam Automation
       </h1>
       <dt>A BitCrusher example from the specification, but modified to
-      demonstrate AudioParam automations. The demo runs for 8 seconds.</dt>
+      demonstrate AudioParam automations. The sound source is a sawtooth
+      oscillator at 5000Hz. The demo runs for 8 seconds.</dt>
       <dd>
         <ul>
           <li><a href="https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/bit-crusher.html">
@@ -48,7 +49,7 @@
         paramReduction.linearRampToValueAtTime(0.1, 4);
         paramReduction.exponentialRampToValueAtTime(0.01, 8);
 
-        // Play the tone for 9 seconds.
+        // Play the tone for 8 seconds.
         oscillator.start();
         oscillator.stop(8);
       });
