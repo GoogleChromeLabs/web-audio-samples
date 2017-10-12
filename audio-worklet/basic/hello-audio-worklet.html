@@ -9,9 +9,21 @@
   </head>
   <body>
     <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
-    <h1>
-      Demo: "Hello AudioWorklet!"
-    </h1>
+    <section>
+      <h1>
+        Demo: "Hello AudioWorklet!"
+      </h1>
+      <dt>A simple AudioWorkletNode that bypasses the incoming audio stream to
+      its output.</dt>
+      <dd>
+        <ul>
+          <li><a href="https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/hello-audio-worklet.html">
+          hello-audio-worklet.html</li>
+          <li><a href="https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/bypasser.js">
+          js/bypasser.js</a></li>
+        </ul>
+      </dd>
+    </section>
     <script>
     // Demonstrate the instantiation and the connection of AudioWorkletNode.
     function runBypasserDemo() {
@@ -20,12 +32,11 @@
         let oscillator = new OscillatorNode(context);
         let bypasser = new AudioWorkletNode(context, 'bypasser');
         oscillator.connect(bypasser).connect(context.destination);
-
         oscillator.start();
       });
     }
 
-    AudioWorkletHelper.startDemo(runBypasserDemo);
+    AudioWorkletHelper.addDemo(runBypasserDemo);
     </script>
   </body>
 </html>

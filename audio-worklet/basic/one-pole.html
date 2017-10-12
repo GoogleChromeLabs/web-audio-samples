@@ -9,9 +9,21 @@
   </head>
   <body>
     <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
-    <h1>
-      Demo: "One Pole Filter"
-    </h1>
+    <section>
+      <h1>
+        Demo: "One Pole Filter"
+      </h1>
+      <dt>An <a href="https://ccrma.stanford.edu/~jos/fp/One_Pole.html">one-pole
+      </a>filter implementation with AudioWorkletNode.</dt>
+      <dd>
+        <ul>
+          <li><a href="https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/one-pole.html">
+          one-pole.html</li>
+          <li><a href="https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/one-pole.js">
+          js/one-pole.js</a></li>
+        </ul>
+      </dd>
+    </section>
     <script>
     // Demonstrate the instantiation and the connection of AudioWorkletNode.
     function runOnePoleDemo() {
@@ -26,13 +38,14 @@
 
           noise.connect(onePole).connect(context.destination);
 
-          frequencyParam.setValueAtTime(0.01, 0);
-          frequencyParam.exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0);
-          frequencyParam.exponentialRampToValueAtTime(0.01, 8.0);
+          frequencyParam
+              .setValueAtTime(0.01, 0)
+              .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
+              .exponentialRampToValueAtTime(0.01, 8.0);
         });
     }
 
-    AudioWorkletHelper.startDemo(runOnePoleDemo);
+    AudioWorkletHelper.addDemo(runOnePoleDemo);
     </script>
   </body>
 </html>

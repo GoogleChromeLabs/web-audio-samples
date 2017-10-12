@@ -14,30 +14,64 @@ a:hover {
 }
 
 a.link-small {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 ul {
+  list-style: none;
+}
+
+ul.two-columns {
   list-style: none;
   columns: 2;
 }
 
 ul > li {
   line-height: 26px;
+  padding: 0;
 }
 
-#libaudioworklet-reporter {
+h1 {
+  font-size: 34px;
+}
+
+h2 {
+  font-size: 28px;
+}
+
+dt {
+  margin: 21px 42px;
+}
+
+dd {
+  margin-top: 21px;
+}
+
+code.flag {
+  font-size: 16px;
+}
+
+#lib-audioworklet-reporter {
   font-size: 14px;
+  margin: 26px 0;
+  background-color: #ECEFF1;
+  padding: 13px;
+  border-radius: 6px;
 }
 
-#libaudioworklet-reporter .error {
+#lib-audioworklet-reporter > button {
+  font-size: 28px;
+  margin-bottom: 13px;
+}
+
+#lib-audioworklet-reporter .error {
   color: #F44336;
 }
 
-#libaudioworklet-reporter .warning {
+#lib-audioworklet-reporter .warning {
   color: #FF9800;
 }
 
-#libaudioworklet-reporter .info {
+#lib-audioworklet-reporter .info {
   color: #455A64;
 }
