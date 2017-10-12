@@ -1,17 +1,36 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>
-      AudioWorklet: AudioParam Modulation | Chrome WebAudio Samples
+      Noise with AudioParam Modulation | Chrome WebAudio Samples
     </title>
     <link rel="stylesheet" href="../../resources/base.css">
     <script src="../lib/audio-worklet-helper.js"></script>
   </head>
   <body>
-    <a href="../index.html" class="link-small">&#171; AudioWorklet home</a>
-    <h1>
-      Demo: AudioParam Modulation
-    </h1>
+    <a href="../index.html" class="link-small">« AudioWorklet home</a>
+    <section>
+      <h1>
+        Demo: Noise with AudioParam Modulation
+      </h1>
+      <p>
+        A simple noise generator with user-defined 'gain' AudioParam modulated
+        by an OscillatorNode. That is, the tremolo effect on noise generator.
+      </p>
+      <ul>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/noise-audio-param.html">
+          noise-audio-param.html</a>
+        </li>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/noise-generator.js">
+          js/noise-generator.js</a>
+        </li>
+      </ul>
+    </section>
     <script>
     // Run NoiseGenerator node. The demo code here is to demonstrate the
     // parameter modulation (a-rate) via AudioParam.
@@ -33,7 +52,7 @@
       });
     } 
 
-    AudioWorkletHelper.startDemo(runNoiseGeneratorDemo);
+    AudioWorkletHelper.addDemo(runNoiseGeneratorDemo);
     </script>
   </body>
 </html>

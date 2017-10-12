@@ -4,6 +4,22 @@ body {
   margin: 26px;
 }
 
+section {
+  max-width: 768px;
+}
+
+h1 {
+  font-size: 34px;
+}
+
+h2 {
+  font-size: 28px;
+}
+
+p {
+  margin-left: 26px;
+}
+
 a, a:active, a:visited {
   text-decoration: none;
   color: #03a9f4;
@@ -14,30 +30,51 @@ a:hover {
 }
 
 a.link-small {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 ul {
+  list-style: none;
+  padding: 0;
+  margin-left: 26px;
+}
+
+ul.two-columns {
   list-style: none;
   columns: 2;
 }
 
 ul > li {
   line-height: 26px;
+  padding: 0;
 }
 
-#libaudioworklet-reporter {
+code.flag {
+  font-size: 16px;
+  color: #607d8b;
+}
+
+#lib-audioworklet-reporter {
   font-size: 14px;
+  margin: 26px 0;
+  background-color: #ECEFF1;
+  padding: 13px;
+  border-radius: 6px;
 }
 
-#libaudioworklet-reporter .error {
+#lib-audioworklet-reporter > button {
+  font-size: 20px;
+  margin-bottom: 13px;
+}
+
+#lib-audioworklet-reporter .error {
   color: #F44336;
 }
 
-#libaudioworklet-reporter .warning {
+#lib-audioworklet-reporter .warning {
   color: #FF9800;
 }
 
-#libaudioworklet-reporter .info {
+#lib-audioworklet-reporter .info {
   color: #455A64;
 }

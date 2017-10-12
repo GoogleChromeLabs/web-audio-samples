@@ -10,44 +10,57 @@ const AudioWorkletHelper = (() => {
 
   const MessageType = ['info', 'warning', 'error'];
 
+  let demoFunction_ = new Function();
   let reporterInitialized_ = false;
-  let eReporterDiv;
+  let eReporterDiv_;
 
   function isAvailable_() {
     return window.audioWorklet &&
         typeof window.audioWorklet.addModule === 'function';
   }
 
-  function initializeReporter_() {
+  function initializeHelper_() {
     if (reporterInitialized_) return;
 
-    eReporterDiv = document.createElement('div');
-    eReporterDiv.id = 'libaudioworklet-reporter';
-    document.body.appendChild(eReporterDiv);
+    eReporterDiv_ = document.createElement('div');
+    eReporterDiv_.id = 'lib-audioworklet-reporter';
+    document.body.appendChild(eReporterDiv_);
     reporterInitialized_ = true;
+  }
+
+  function addButton_() {
+    let eButton = document.createElement('button');
+    eButton.textContent = 'Start Demo';
+    eButton.className = 'demo-start';
+    eReporterDiv_.appendChild(eButton);
+    eButton.onclick = () => {
+      eButton.disabled = true;
+      demoFunction_();
+    };
   }
 
   function reportMessage_(type, message) {
     if (!MessageType.includes(type)) return;
 
     let messageDiv = document.createElement('div');
-    messageDiv.textContent = '[' + type.toUpperCase() + '] ' + String(message);
+    messageDiv.textContent = String(message);
     messageDiv.className = type;
-    eReporterDiv.appendChild(messageDiv);
+    eReporterDiv_.appendChild(messageDiv);
   }
 
   return {
     /**
      * Sniff AudioWorklet interface and run demo function if possible.
-     * @param {Function} demoFunc Function contains demo script.
+     * @param {Function} demoFunction - Function contains demo script.
      */
-    startDemo: (demoFunc) => {
+    addDemo: (demoFunction) => {
       window.addEventListener('load', () => {
-        initializeReporter_();
+        initializeHelper_();
         if (isAvailable_()) {
+          demoFunction_ = demoFunction;
+          addButton_();
           reportMessage_('info',
-                         'AudioWorklet is available. Start running demo...');
-          demoFunc();
+                         'AudioWorklet is available and the demo is ready.');
         } else {
           reportMessage_('error',
                          'The browser does not support AudioWorklet yet.');
