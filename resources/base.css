@@ -4,6 +4,22 @@ body {
   margin: 26px;
 }
 
+section {
+  max-width: 768px;
+}
+
+h1 {
+  font-size: 34px;
+}
+
+h2 {
+  font-size: 28px;
+}
+
+p {
+  margin-left: 26px;
+}
+
 a, a:active, a:visited {
   text-decoration: none;
   color: #03a9f4;
@@ -19,6 +35,8 @@ a.link-small {
 
 ul {
   list-style: none;
+  padding: 0;
+  margin-left: 26px;
 }
 
 ul.two-columns {
@@ -31,24 +49,9 @@ ul > li {
   padding: 0;
 }
 
-h1 {
-  font-size: 34px;
-}
-
-h2 {
-  font-size: 28px;
-}
-
-dt {
-  margin: 21px 42px;
-}
-
-dd {
-  margin-top: 21px;
-}
-
 code.flag {
   font-size: 16px;
+  color: #607d8b;
 }
 
 #lib-audioworklet-reporter {
@@ -60,7 +63,7 @@ code.flag {
 }
 
 #lib-audioworklet-reporter > button {
-  font-size: 28px;
+  font-size: 20px;
   margin-bottom: 13px;
 }
 

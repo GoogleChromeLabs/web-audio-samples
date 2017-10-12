@@ -43,7 +43,7 @@ const AudioWorkletHelper = (() => {
     if (!MessageType.includes(type)) return;
 
     let messageDiv = document.createElement('div');
-    messageDiv.textContent = '[' + type.toUpperCase() + '] ' + String(message);
+    messageDiv.textContent = String(message);
     messageDiv.className = type;
     eReporterDiv_.appendChild(messageDiv);
   }
@@ -60,7 +60,7 @@ const AudioWorkletHelper = (() => {
           demoFunction_ = demoFunction;
           addButton_();
           reportMessage_('info',
-                         'AudioWorklet is available. Start running demo...');
+                         'AudioWorklet is available and the demo is ready.');
         } else {
           reportMessage_('error',
                          'The browser does not support AudioWorklet yet.');
