@@ -15,12 +15,9 @@ const AudioWorkletHelper = (() => {
   let eReporterDiv_;
 
   function isAvailable_() {
-    let isAvailable =
-        window.audioWorklet &&
-        typeof window.audioWorklet.addModule === 'function' &&
-        window.AudioWorkletNode;
-
-    return isAvailable;
+    return window.audioWorklet &&
+           typeof window.audioWorklet.addModule === 'function' &&
+           window.AudioWorkletNode;
   }
 
   function initializeHelper_() {
