@@ -20,7 +20,7 @@
     </section>
     <script>
     function runDemo() {
-      window.audioWorklet.addModule('js/message-port.js').then(() => {
+      window.audioWorklet.addModule('js/porter.js').then(() => {
         const context = new AudioContext();
         let porterNode = new AudioWorkletNode(context, 'porter');
       });
