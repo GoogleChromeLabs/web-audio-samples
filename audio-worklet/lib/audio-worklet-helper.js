@@ -16,7 +16,8 @@ const AudioWorkletHelper = (() => {
 
   function isAvailable_() {
     return window.audioWorklet &&
-        typeof window.audioWorklet.addModule === 'function';
+           typeof window.audioWorklet.addModule === 'function' &&
+           window.AudioWorkletNode;
   }
 
   function initializeHelper_() {
