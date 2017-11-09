@@ -19,10 +19,26 @@
       </p>
     </section>
     <script>
+
+
+    class PorterNode extends AudioWorkletNode {
+      constructor(context) {
+        super(context, 'porter');
+        console.log('node = ', this.port);
+        // this.port.start();
+        // this.port.postMessage('From Node');
+      }
+
+      handleMessage(event) {
+        console.log(event);
+      }
+    }
+
     function runDemo() {
       window.audioWorklet.addModule('js/porter.js').then(() => {
         const context = new AudioContext();
-        let porterNode = new AudioWorkletNode(context, 'porter');
+        let porterNode = new PorterNode(context);
+        porterNode.connect(context.destination);
       });
     }
 

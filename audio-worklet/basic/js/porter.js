@@ -4,11 +4,16 @@
  * @class ---
  * @extends AudioWorkletProcessor
  */
-class Porter extends AudioWorkletProcessor {
+class PorterProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    console.dir(this);
+    console.log('processor = ', this.port);
     this.port.onmessage = this.handleMessage.bind(this);
+    // this.port.start();
+  }
+
+  handleMessage(event) {
+    console.log(event);
   }
 
   process(inputs, outputs) {
@@ -18,12 +23,8 @@ class Porter extends AudioWorkletProcessor {
       output[channel].set(input[channel]);
     }
 
-    return true;
-  }
-
-  handleMessage(data) {
-    console.log(data);
+    return false;
   }
 }
 
-registerProcessor('porter', Porter);
+registerProcessor('porter', PorterProcessor);
