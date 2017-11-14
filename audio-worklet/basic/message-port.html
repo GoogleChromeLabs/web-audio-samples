@@ -24,14 +24,21 @@
     class PorterNode extends AudioWorkletNode {
       constructor(context) {
         super(context, 'porter');
-        console.log('node = ', this.port);
-        // this.port.start();
-        // this.port.postMessage('From Node');
+        // this.port.onmessage = this.handleMessage.bind(this);
+        // console.log('node = ', this.port);
       }
 
       handleMessage(event) {
-        console.log(event);
+        // console.log('[NODE:received] ', event.data.timeStamp);
+        // This is not effective.
+        // this.port.postMessage('acknowledged.');
       }
+    }
+
+    function sendMessage(node) {
+      console.log('message sent');
+      node.port.postMessage({timeStamp: node.context.currentTime});
+      setTimeout(sendMessage, 3000, node);
     }
 
     function runDemo() {
@@ -39,6 +46,7 @@
         const context = new AudioContext();
         let porterNode = new PorterNode(context);
         porterNode.connect(context.destination);
+        sendMessage(porterNode);
       });
     }
 

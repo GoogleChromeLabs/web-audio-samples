@@ -7,23 +7,23 @@
 class PorterProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    console.log('processor = ', this.port);
+    this._lastRQ = 0;
     this.port.onmessage = this.handleMessage.bind(this);
-    // this.port.start();
+    // console.log('processor = ', this.port);
+    // this.port.postMessage({timeStamp: currentTime});
   }
 
   handleMessage(event) {
-    console.log(event);
+    console.log('[PROCESSOR:received]', event.data);
   }
 
   process(inputs, outputs) {
-    let input = inputs[0];
-    let output = outputs[0];
-    for (let channel = 0; channel < output.length; ++channel) {
-      output[channel].set(input[channel]);
+    if (currentTime - this._lastRQ > 1.0) {
+      // this.port.postMessage({timeStamp: currentTime});
+      this._lastRQ = currentTime;
     }
 
-    return false;
+    return true;
   }
 }
 
