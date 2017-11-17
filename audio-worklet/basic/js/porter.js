@@ -1,26 +1,28 @@
 /**
- * ---
+ * A simple MessagePort tester.
  * 
- * @class ---
+ * @class PorterProcessor
  * @extends AudioWorkletProcessor
  */
 class PorterProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this._lastRQ = 0;
+    this._lastUpdate = currentTime;
     this.port.onmessage = this.handleMessage.bind(this);
-    // console.log('processor = ', this.port);
-    // this.port.postMessage({timeStamp: currentTime});
   }
 
   handleMessage(event) {
-    console.log('[PROCESSOR:received]', event.data);
+    console.log('[Processor:Received] "' + event.data.message + 
+                '" (' + event.data.timeStamp + ')');
   }
 
-  process(inputs, outputs) {
-    if (currentTime - this._lastRQ > 1.0) {
-      // this.port.postMessage({timeStamp: currentTime});
-      this._lastRQ = currentTime;
+  process() {
+    if (currentTime - this._lastUpdate > 1.0) {
+      this.port.postMessage({
+        message: 'Process is called.',
+        timeStamp: currentTime
+      });
+      this._lastUpdate = currentTime;
     }
 
     return true;

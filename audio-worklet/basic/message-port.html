@@ -12,33 +12,52 @@
     <a href="../index.html" class="link-small">« AudioWorklet home</a>
     <section>
       <h1>
-        --
+        MessagePort
       </h1>
       <p>
-        --
+        Demonstrates the basic bi-directionaly communication between
+        AudioWorkletNode and AudioWorkletProcessor.
       </p>
+      <p>
+        <strong>NOTE</strong>: Open up the console to see messages between them.
+      </p>
+      <ul>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/message-port.html">
+          message-port</a>
+        </li>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/porter.js">
+          js/porter.js</a>
+        </li>
+      </ul>
     </section>
     <script>
-
-
     class PorterNode extends AudioWorkletNode {
       constructor(context) {
         super(context, 'porter');
-        // this.port.onmessage = this.handleMessage.bind(this);
-        // console.log('node = ', this.port);
+        this.counter = 0;
+        this.port.onmessage = this.handleMessage.bind(this);
+        this.port.postMessage({
+          message: 'Are you ready?',
+          timeStamp: this.context.currentTime
+        });
       }
 
       handleMessage(event) {
-        // console.log('[NODE:received] ', event.data.timeStamp);
-        // This is not effective.
-        // this.port.postMessage('acknowledged.');
+        this.counter++;
+        console.log('[Node:Received] "' + event.data.message +
+                    '" (' + event.data.timeStamp + ')');
+        if (this.counter > 10) {
+          this.port.postMessage({
+            message: '10 messages!',
+            timeStamp: this.context.currentTime
+          });
+          this.counter = 0;
+        }
       }
-    }
-
-    function sendMessage(node) {
-      console.log('message sent');
-      node.port.postMessage({timeStamp: node.context.currentTime});
-      setTimeout(sendMessage, 3000, node);
     }
 
     function runDemo() {
@@ -46,7 +65,6 @@
         const context = new AudioContext();
         let porterNode = new PorterNode(context);
         porterNode.connect(context.destination);
-        sendMessage(porterNode);
       });
     }
 
