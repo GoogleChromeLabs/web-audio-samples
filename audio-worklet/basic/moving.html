@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>
+      Hello AudioWorklet! | Chrome WebAudio Samples
+    </title>
+    <link rel="stylesheet" href="../../resources/base.css">
+    <script src="../lib/audio-worklet-helper.js"></script>
+  </head>
+  <body>
+    <a href="../index.html" class="link-small">« AudioWorklet home</a>
+    <section>
+      <h1>
+        Demo: "Hello AudioWorklet!"
+      </h1>
+      <p>
+        A simple AudioWorkletNode that bypasses the incoming audio stream to
+        its output. The sound source a sine oscillator at 440Hz.
+      </p>
+      <ul>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/hello-audio-worklet.html">
+          hello-audio-worklet.html</a>
+        </li>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/bypasser.js">
+          js/bypasser.js</a>
+        </li>
+      </ul>
+    </section>
+    <script>
+    // Demonstrate the instantiation and the connection of AudioWorkletNode.
+    function runBypasserDemo() {
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/bypasser.js').then(() => {
+        let oscillator = new OscillatorNode(context);
+        let bypasser = new AudioWorkletNode(context, 'bypasser');
+        oscillator.connect(bypasser).connect(context.destination);
+        oscillator.start();
+      });
+    }
+
+    AudioWorkletHelper.addDemo(runBypasserDemo);
+    </script>
+  </body>
+</html>
