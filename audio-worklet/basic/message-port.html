@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>
+      MessagePort with AudioWorklet | Chrome WebAudio Samples
+    </title>
+    <link rel="stylesheet" href="../../resources/base.css">
+    <script src="../lib/audio-worklet-helper.js"></script>
+  </head>
+  <body>
+    <a href="../index.html" class="link-small">« AudioWorklet home</a>
+    <section>
+      <h1>
+        MessagePort with AudioWorklet
+      </h1>
+      <p>
+        Demonstrates basic bi-directional communication between AudioWorkletNode
+        and AudioWorkletProcessor.
+      </p>
+      <p>
+        <strong>NOTE</strong>: Open up the console to see messages between them.
+        <ul>
+          <li>- Upon the construction of <code>PortWorkletNode</code>, it will
+            post a message to <code>PortProcessor</code>.</li>
+          <li>- When connected, <code>PortProcessor</code> will post a message
+            to <code>PortWorkletNode</code> every second.</li>
+          <li>- When the node received 10 messages from the processor, it will
+            respond back to its processor.</li>
+        </ul>
+      </p>
+      <ul>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/message-port.html">
+          message-port</a>
+        </li>
+        <li>
+          <a href=
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/porter.js">
+          js/porter.js</a>
+        </li>
+      </ul>
+    </section>
+    <script>
+    class PortWorkletNode extends AudioWorkletNode {
+      constructor(context) {
+        super(context, 'port-processor');
+        this.counter = 0;
+        this.port.onmessage = this.handleMessage.bind(this);
+        this.port.postMessage({
+          message: 'Are you ready?',
+          timeStamp: this.context.currentTime
+        });
+      }
+
+      handleMessage(event) {
+        this.counter++;
+        console.log('[Node:Received] "' + event.data.message +
+                    '" (' + event.data.timeStamp + ')');
+        
+        // Notify the processor when the node gets 10 messages. Then reset the
+        // counter.
+        if (this.counter > 10) {
+          this.port.postMessage({
+            message: '10 messages!',
+            timeStamp: this.context.currentTime
+          });
+          this.counter = 0;
+        }
+      }
+    }
+
+    function runDemo() {
+      window.audioWorklet.addModule('js/port-processor.js').then(() => {
+        const context = new AudioContext();
+        let portWorkletNode = new PortWorkletNode(context);
+        portWorkletNode.connect(context.destination);
+      });
+    }
+
+    AudioWorkletHelper.addDemo(runDemo);
+    </script>
+  </body>
+</html>
