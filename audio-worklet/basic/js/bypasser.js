@@ -1,4 +1,6 @@
 /**
+ * A simple bypass node demo.
+ * 
  * @class Bypasser
  * @extends AudioWorkletProcessor
  */
