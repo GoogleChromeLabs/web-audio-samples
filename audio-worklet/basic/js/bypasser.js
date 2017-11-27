@@ -1,9 +1,6 @@
 /**
- * @class TimedProcessor
+ * @class Bypasser
  * @extends AudioWorkletProcessor
- *
- * This processor class is for the life cycle and the processor state event.
- * It only lives for 1 render quantum.
  */
 class Bypasser extends AudioWorkletProcessor {
   constructor() {
