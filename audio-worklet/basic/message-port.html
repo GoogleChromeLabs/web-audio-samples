@@ -15,11 +15,17 @@
         MessagePort with AudioWorklet
       </h1>
       <p>
-        Demonstrates the basic bi-directionaly communication between
-        AudioWorkletNode and AudioWorkletProcessor.
+        Demonstrates basic bi-directional communication between AudioWorkletNode
+        and AudioWorkletProcessor.
       </p>
       <p>
         <strong>NOTE</strong>: Open up the console to see messages between them.
+        <ul>
+          <li>- Upon the construction of <code>PortWorkletNode</code>, it will
+            post a message to <code>PortProcessor</code>.</li>
+          <li>- When connected, <code>PortProcessor</code> will post a message
+            to <code>PortWorkletNode</code> every second.</li>
+        </ul>
       </p>
       <ul>
         <li>
@@ -35,9 +41,9 @@
       </ul>
     </section>
     <script>
-    class PorterNode extends AudioWorkletNode {
+    class PortWorkletNode extends AudioWorkletNode {
       constructor(context) {
-        super(context, 'porter');
+        super(context, 'port-processor');
         this.counter = 0;
         this.port.onmessage = this.handleMessage.bind(this);
         this.port.postMessage({
@@ -50,6 +56,9 @@
         this.counter++;
         console.log('[Node:Received] "' + event.data.message +
                     '" (' + event.data.timeStamp + ')');
+        
+        // Notify the processor when the node gets 10 messages. Then reset the
+        // counter.
         if (this.counter > 10) {
           this.port.postMessage({
             message: '10 messages!',
@@ -61,10 +70,10 @@
     }
 
     function runDemo() {
-      window.audioWorklet.addModule('js/porter.js').then(() => {
+      window.audioWorklet.addModule('js/port-processor.js').then(() => {
         const context = new AudioContext();
-        let porterNode = new PorterNode(context);
-        porterNode.connect(context.destination);
+        let portWorkletNode = new PortWorkletNode(context);
+        portWorkletNode.connect(context.destination);
       });
     }
 

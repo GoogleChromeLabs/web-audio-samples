@@ -23,6 +23,16 @@
       <p>
         <strong>NOTE</strong>: Open up the console to see the events being
         fired.
+        <ul>
+          <li>- An instance of <code>TimerProcessor</code> will be in "pending"
+            state after the construction of AudioWorkletNode.</li>
+          <li>- Once <code>TimerProcessor</code> is ready, the state will
+            transition to "running".</li>
+          <li>- The internal timer in <code>TimerProcessor</code> advances when
+            the node is connected to the destination.</li>
+          <li>- When the timer is finished, <code>TimerProcessor</code> reaches
+            to "stopped" state.</li>
+        </ul>
       </p>
       <ul>
         <li>
@@ -45,23 +55,23 @@
     }
 
     function runDemo() {
-      window.audioWorklet.addModule('js/timed-processor.js').then(() => {
+      window.audioWorklet.addModule('js/timer-processor.js').then(() => {
         const context = new AudioContext();
-        let timedWorkletNode = new AudioWorkletNode(context, 'timed');
+        let timerWorkletNode = new AudioWorkletNode(context, 'timer-processor');
 
         // Right after the construction, the processor state will be 'pending'.
-        printProcessorState(timedWorkletNode);
+        printProcessorState(timerWorkletNode);
         
         // Whenever the processor state changes, this event handler gets called.
         // In this example, |running| state will be reported followed by
         // |stopped| state.
-        timedWorkletNode.onprocessorstatechange = () => {
-          printProcessorState(timedWorkletNode);
+        timerWorkletNode.onprocessorstatechange = () => {
+          printProcessorState(timerWorkletNode);
         };
 
         // To update processor's internal timer, the node must be connected to
         // the graph.
-        timedWorkletNode.connect(context.destination);
+        timerWorkletNode.connect(context.destination);
       });
     }
 
