@@ -14,23 +14,16 @@ const AudioWorkletHelper = (() => {
   let reporterInitialized_ = false;
   let eReporterDiv_;
 
-  let check_ = false;
-  let oac_ = new OfflineAudioContext(1, 1, 44100);
-
-  console.log(oac_.audioWorklet);
-  console.log(oac_.audioWorklet.addModule);
-  check_ = oac_.audioWorklet && 
-           typeof oac_.audioWorklet.addModule === 'function';
-  oac_.startRendering().then(() => { oac_ = null });
+  // Check if BaseAudioContext has AudioWorklet.
+  let IsAudioWorkletInBaseAudioContext_ = (() => {
+    let context = new OfflineAudioContext(1, 1, 44100);
+    return context.audioWorklet && 
+        typeof context.audioWorklet === 'AudioWorklet' &&
+        typeof context.audioWorklet.addModule === 'function';
+  });
 
   function isAvailable_() {
-    if (check_)
-      return true;
-    else {
-      return window.audioWorklet &&
-         typeof window.audioWorklet.addModule === 'function' &&
-         window.AudioWorkletNode
-    }
+    return IsAudioWorkletInBaseAudioContext_;
   }
 
   function initializeHelper_() {
