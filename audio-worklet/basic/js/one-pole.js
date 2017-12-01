@@ -22,7 +22,7 @@ class OnePole extends AudioWorkletProcessor {
     this.updateCoefficientsWithFrequency_(500);
   }
 
-  updateCoefficientsWithFrequency_ (frequency) {
+  updateCoefficientsWithFrequency_(frequency) {
     this.b1_ = Math.exp(-2 * Math.PI * frequency / sampleRate);
     this.a0_ = 1.0 - this.b1_;
     this.z1_ = 0;
