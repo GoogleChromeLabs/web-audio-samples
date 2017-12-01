@@ -43,7 +43,7 @@
         <li>
           <a href=
           "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/timed-processor.js">
-          js/timed-processor.js</a>
+          js/timer-processor.js</a>
         </li>
       </ul>
     </section>
@@ -55,8 +55,8 @@
     }
 
     function runDemo() {
-      window.audioWorklet.addModule('js/timer-processor.js').then(() => {
-        const context = new AudioContext();
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/timer-processor.js').then(() => {
         let timerWorkletNode = new AudioWorkletNode(context, 'timer-processor');
 
         // Right after the construction, the processor state will be 'pending'.
