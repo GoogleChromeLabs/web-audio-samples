@@ -17,8 +17,7 @@ const AudioWorkletHelper = (() => {
   // Check if BaseAudioContext has AudioWorklet.
   let IsAudioWorkletInBaseAudioContext_ = (() => {
     let context = new OfflineAudioContext(1, 1, 44100);
-    return context.audioWorklet && 
-        typeof context.audioWorklet === 'AudioWorklet' &&
+    return context.audioWorklet &&
         typeof context.audioWorklet.addModule === 'function';
   });
 
@@ -74,7 +73,7 @@ const AudioWorkletHelper = (() => {
         }
       });
     },
-    
+
     /**
      * Check if the browser supports AudioWorklet.
      * @return {Boolean} true if the browser supports AudioWorklet.
