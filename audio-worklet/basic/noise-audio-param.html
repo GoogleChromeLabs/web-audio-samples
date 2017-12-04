@@ -35,8 +35,8 @@
     // Run NoiseGenerator node. The demo code here is to demonstrate the
     // parameter modulation (a-rate) via AudioParam.
     function runNoiseGeneratorDemo() {
-      window.audioWorklet.addModule('js/noise-generator.js').then(() => {
-        const context = new AudioContext();
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/noise-generator.js').then(() => {
         let modulator = new OscillatorNode(context);
         let modGain = new GainNode(context);
         let noiseGenerator = new AudioWorkletNode(context, 'noise-generator');

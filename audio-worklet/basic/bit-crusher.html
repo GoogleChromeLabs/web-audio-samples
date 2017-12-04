@@ -36,8 +36,8 @@
     // Run BitCrusher node, that is largely based on the example on in the spec,
     // to demonstrate AudioParam automation.
     function runBitCrusherDemo() {
-      window.audioWorklet.addModule('js/bit-crusher.js').then(() => {
-        const context = new AudioContext();
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/bit-crusher.js').then(() => {
         let oscillator = new OscillatorNode(context);
         let bitCrusher = new AudioWorkletNode(context, 'bit-crusher');
 

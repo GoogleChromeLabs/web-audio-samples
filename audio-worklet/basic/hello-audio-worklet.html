@@ -34,8 +34,8 @@
     <script>
     // Demonstrate the instantiation and the connection of AudioWorkletNode.
     function runBypasserDemo() {
-      window.audioWorklet.addModule('js/bypasser.js').then(() => {
-        const context = new AudioContext();
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/bypasser.js').then(() => {
         let oscillator = new OscillatorNode(context);
         let bypasser = new AudioWorkletNode(context, 'bypasser');
         oscillator.connect(bypasser).connect(context.destination);

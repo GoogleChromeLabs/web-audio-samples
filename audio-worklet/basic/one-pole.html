@@ -37,11 +37,11 @@
     <script>
     // Demonstrate the instantiation and the connection of AudioWorkletNode.
     function runOnePoleDemo() {
+      const context = new AudioContext();
       Promise.all([
-          window.audioWorklet.addModule('js/noise-generator.js'),
-          window.audioWorklet.addModule('js/one-pole.js')
+          context.audioWorklet.addModule('js/noise-generator.js'),
+          context.audioWorklet.addModule('js/one-pole.js')
         ]).then(() => {
-          const context = new AudioContext();
           let noise = new AudioWorkletNode(context, 'noise-generator');
           let onePole = new AudioWorkletNode(context, 'one-pole');
           let frequencyParam = onePole.parameters.get('frequency');

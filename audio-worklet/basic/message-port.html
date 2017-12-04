@@ -37,8 +37,8 @@
         </li>
         <li>
           <a href=
-          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/porter.js">
-          js/porter.js</a>
+          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/port-processor.js">
+          js/port-processor.js</a>
         </li>
       </ul>
     </section>
@@ -72,8 +72,8 @@
     }
 
     function runDemo() {
-      window.audioWorklet.addModule('js/port-processor.js').then(() => {
-        const context = new AudioContext();
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/port-processor.js').then(() => {
         let portWorkletNode = new PortWorkletNode(context);
         portWorkletNode.connect(context.destination);
       });
