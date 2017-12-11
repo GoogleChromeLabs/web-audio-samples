@@ -58,9 +58,7 @@ pre {
   margin: 0 6px;
 }
 
-.worklet-status {
-  background-color: #4caf50;
-  border: 0.1rem solid #4caf50;
+#worklet-indicator {
   border-radius: .4rem;
   color: #fff;
   display: inline-block;
@@ -73,4 +71,16 @@ pre {
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.worklet-status-pending {
+  background-color: #B0BEC5;
+}
+
+.worklet-status-found {
+  background-color: #4caf50;
+}
+
+.worklet-status-missing {
+  background-color: #DD2C00;
 }
