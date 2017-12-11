@@ -5,68 +5,137 @@
     <title>
       AudioWorklet | Chrome WebAudio Samples
     </title>
-    <link rel="stylesheet" href="../resources/base.css">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../resources/base-v2.css">
   </head>
   <body>
-    <a href="../index.html" class="link-small">« Chrome WebAudio Sample Home</a>
-    <section>
-      <h1>
-        AudioWorklet
-      </h1>
-      <p>
-        <a href=
-        "https://webaudio.github.io/web-audio-api/#AudioWorklet">AudioWorklet
-        </a> is currently available on Chrome Canary behind the experimental
-        flag. Use the following <a href=
-        "https://www.chromium.org/developers/how-tos/run-chromium-with-flags">
-        command line option</a> to activate the feature.
-      </p>
-      <p>
-        <code class="flag">--enable-blink-features=Worklet,AudioWorklet</code>
-      </p>
-      <p>
-        Or you can enable Experimental Web Platform Features in Chrome's flag
-        setting. Note that this setting enables all the experimental features
-        in browser. Copy and paste the following URL in Chrome.
-      </p>
-      <p>
-        <code class=
-        "flag">chrome://flags/#enable-experimental-web-platform-features</code>
-      </p>
+
+    <div class="container">
+
+    <!-- Feature indicator -->
+    <div class="float-right">
+      <div class="worklet-status">AudioWorklet Ready</div>
+    </div>
+
+    <section class="nav-bar">
+      <a href="../index.html"><span>Chrome WebAudio Samples</span></a>
+      <span class="nav-divider">|</span>
+      <span>AudioWorklet</span>
     </section>
-    <section>
-      <h2>
-        Basic Demos
-      </h2>
-      <ul>
-        <li>
-          <a href="basic/hello-audio-worklet.html">"Hello AudioWorklet!"</a>
-        </li>
-        <li>
-          <a href="basic/noise-audio-param.html">Noise with AudioParam
-          Modulation</a>
-        </li>
-        <li>
-          <a href="basic/bit-crusher.html">BitCrusher with AudioParam
-          Automation</a>
-        </li>
-        <li>
-          <a href="basic/one-pole.html">One-Pole filter</a>
-        </li>
-        <li>
-          <a href="basic/message-port.html">MessagePort with AudioWorklet</a>
-        </li>
-        <li>
-          <a href="basic/event-processor-state.html">Event and
-          AudioWorkletProcessorState</a>
-        </li>
-      </ul>
+
+    <!-- Header and instruction -->
+    <section class="header">
+      <h1>AudioWorklet</h1>
+      <p><a href="https://webaudio.github.io/web-audio-api/#AudioWorklet" target="_blank">AudioWorklet</a> is currently available on <strong>Chrome Beta</strong> behind the experimental flag or <a href="https://docs.google.com/forms/d/e/1FAIpQLSfO0_ptFl8r8G0UFhT0xhV17eabG-erUWBDiKSRDTqEZ_9ULQ/viewform">Origin Trials</a>. To activate the feature locally, use the following <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags">command line option</a>.</p>
+      <pre><code>--enable-blink-features=Worklet,AudioWorklet</code></pre>
+      <p>Alternatively, you can enable Experimental Web Platform Features in Chrome's flag setting. Note that this setting enables all the experimental features in browser. Copy and paste the following URL in Chrome, enable the feature and relaunch the browser.
+      </p>
+      <pre><code>chrome://flags/#enable-experimental-web-platform-features</code></pre>
+      <p>If the status indicator on the top-right corner of this page is not green, it means either your browser does not support AudioWorklet or you need to follow the instruction above to activate the feature.</p>
     </section>
-    <section>
-      <h3>Found something broken?</h3>
-      <p><a target="_blank" href=
-        "https://bugs.chromium.org/p/chromium/issues/entry?template=Defect%20report%20from%20user&summary=[audioworklet]%20&components=Blink%3EWebAudio">
-        Report it via crbug.</p>
-    </section>
+
+    <!-- Contents -->
+    <section class="content">
+
+      <h2>Basic Demos</h2>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/hello-audio-worklet.html"><h4>Hello AudioWorklet!</h4></a>
+            <p>A simple AudioWorkletNode that bypasses the incoming audio stream to its output.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/noise-audio-param.html"><h4>Noise with AudioParam Modulation</h4></a>
+            <p>A simple noise generator with user-defined 'gain' AudioParam modulated by an OscillatorNode.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/bit-crusher.html"><h4>BitCrusher with AudioParam Automation</h4></a>
+            <p>A BitCrusher example from the specification, but modified to demonstrate AudioParam automations</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/one-pole.html"><h4>One-Pole Filter</h4></a>
+            <p>A one-pole filter implementation with AudioWorkletNode.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/message-port.html"><h4>MessagePort with AudioWorklet</h4></a>
+            <p>Demonstrates basic bi-directional communication between AudioWorkletNode and AudioWorkletProcessor.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+            <a href="basic/event-processor-state.html"><h4>Event and AudioWorkletProcessorState</h4></a>
+            <p>A simple demonstration of AudioWorkletProcessorState and how to catch processorstatechange event.</p>
+          </div>
+        </div>
+      </div>
+
+      <br><br>
+
+      <h2>Resources</h2>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="https://goo.gl/R2zWtR"><h4>Talk: AudioWorklet - What, Why and How</h4></a>
+            <p>An in-depth presentation about what the new AudioWorklet is, why it matters for Web Audio, and how it works.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+            <a href="https://goo.gl/5c5LPD"><h4>Slides: AudioWorklet - What, Why and How</h4></a>
+            <p>The slide deck for the presentation.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="https://webaudio.github.io/web-audio-api/#AudioWorklet"><h4>Web Audio API: AudioWorklet</h4></a>
+            <p>AudioWorklet section in Web Audio API specification.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+            <a href="https://github.com/WebAudio/web-audio-api/issues?q=is%3Aissue+audioworklet"><h4>Web Audio API discussions on AudioWorklet</h4></a>
+            <p>A set of discussions on AudioWorklet API design.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="demo-item">
+            <a href="#"><h4>Google Developer Blog Post: AudioWorklet</h4></a>
+            <p>An introductory article on AudioWorklet from Google Developer Portal.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="demo-item">
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <!-- Footer -->
+  <section class="footer">
+    <a target="_blank" href=
+        "https://bugs.chromium.org/p/chromium/issues/entry?template=Defect%20report%20from%20user&summary=[audioworklet]%20&components=Blink%3EWebAudio">Found something broken?</a>
+    <br><br>
+    <p>Chrome &#9829; WebAudio</p>
+  </section>
+
+</div>
   </body>
 </html>
