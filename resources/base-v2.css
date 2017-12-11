@@ -1,6 +1,7 @@
 /* Milligram-based Style (version 1.3.0) */
 
 body {
+  font-weight: 400;
   color: #37474F;
   letter-spacing: 0;
 }
