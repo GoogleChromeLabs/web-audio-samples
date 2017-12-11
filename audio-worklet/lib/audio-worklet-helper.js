@@ -57,7 +57,7 @@ const AudioWorkletHelper = (() => {
     addDemo: (demoFunction) => {
       window.addEventListener('load', () => {
         initializeHelper_();
-        if (isAvailable_()) {
+        if (isAudioWorkletAvailable_) {
           demoFunction_ = demoFunction;
           addButton_();
           reportMessage_('info',
