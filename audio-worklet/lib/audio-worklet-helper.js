@@ -15,15 +15,10 @@ const AudioWorkletHelper = (() => {
   let eReporterDiv_;
 
   // Check if BaseAudioContext has AudioWorklet.
-  let IsAudioWorkletInBaseAudioContext_ = (() => {
-    let context = new OfflineAudioContext(1, 1, 44100);
-    return context.audioWorklet &&
-        typeof context.audioWorklet.addModule === 'function';
-  });
-
-  function isAvailable_() {
-    return IsAudioWorkletInBaseAudioContext_;
-  }
+  let context = new OfflineAudioContext(1, 1, 44100);
+  let isAudioWorkletAvailable_ = Boolean(
+      context.audioWorklet &&
+      typeof context.audioWorklet.addModule === 'function');
 
   function initializeHelper_() {
     if (reporterInitialized_) return;
@@ -62,7 +57,7 @@ const AudioWorkletHelper = (() => {
     addDemo: (demoFunction) => {
       window.addEventListener('load', () => {
         initializeHelper_();
-        if (isAvailable_()) {
+        if (isAudioWorkletAvailable_) {
           demoFunction_ = demoFunction;
           addButton_();
           reportMessage_('info',
@@ -78,6 +73,8 @@ const AudioWorkletHelper = (() => {
      * Check if the browser supports AudioWorklet.
      * @return {Boolean} true if the browser supports AudioWorklet.
      */
-    isAvailable: isAvailable_
+    isAvailable: () => {
+      return isAudioWorkletAvailable_;
+    }
   };
 })();
