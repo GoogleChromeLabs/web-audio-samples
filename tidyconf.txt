@@ -2,6 +2,6 @@
 
 char-encoding: utf8
 indent: yes
-wrap: 80
+wrap: 78
 tidy-mark: no
 literal-attributes: yes

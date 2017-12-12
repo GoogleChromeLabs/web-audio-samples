@@ -43,6 +43,12 @@ const AudioWorkletHelper = (function() {
 
     if (warningMessageDiv) {
       warningMessageDiv.style.display = featureDetected ? 'none' : 'block';
+      if (!featureDetected) {
+        warningMessageDiv.innerHTML = 
+            `AudioWorklet is not available in your browser. Follow <a
+            href="https://googlechromelabs.github.io/web-audio-samples/">the
+            instruction</a> to enable the feature.`;
+      }
     }
   }
 
@@ -80,15 +86,17 @@ const AudioWorkletHelper = (function() {
    */
   function enableRunDemoButton() {
     const runDemoButton = document.querySelector('#btn-run-demo');
-    if (runDemoButton && isAudioWorkletAvailable_ && demoFunction_) {
+    if (!runDemoButton) {
+      console.error('"#btn-run-demo" button is not present.');
+    }
+
+    if (isAudioWorkletAvailable_ && demoFunction_) {
       runDemoButton.disabled = false;
       runDemoButton.onclick = () => {
         runDemoButton.textContent = 'Started';
         runDemoButton.disabled = true;
         demoFunction_();
       };
-    } else {
-      console.error('"#btn-run-demo" button is not present.');
     }
   }
 
