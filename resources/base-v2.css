@@ -35,7 +35,7 @@ a {
 
 a:focus,
 a:hover {
-  color: #81d4fa;
+  color: #4FC3F7;
 }
 
 pre {
@@ -105,9 +105,7 @@ li {
 
 .button:focus,
 .button:hover {
-  background-color: #b3e5fc;
-  border-color: #b3e5fc;
-  color: #0277bd;
+  background-color: #4FC3F7;
 }
 
 .button[disabled],

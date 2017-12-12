@@ -44,10 +44,10 @@ const AudioWorkletHelper = (function() {
     if (warningMessageDiv) {
       warningMessageDiv.style.display = featureDetected ? 'none' : 'block';
       if (!featureDetected) {
-        warningMessageDiv.innerHTML = 
-            `AudioWorklet is not available in your browser. Follow <a
-            href="https://googlechromelabs.github.io/web-audio-samples/">the
-            instruction</a> to enable the feature.`;
+        warningMessageDiv.innerHTML =
+            `AudioWorklet is not available in your browser. Follow
+            <a href="https://googlechromelabs.github.io/web-audio-samples/audio-worklet/">
+            the instruction</a> to enable the feature.`;
       }
     }
   }
@@ -60,6 +60,7 @@ const AudioWorkletHelper = (function() {
   function buildPageContent(demoData) {
     const titleNavBarSpan = document.querySelector('#title-navbar');
     const titleHeading = document.querySelector('#title-header');
+    const description = document.querySelector('#demo-description');
     const htmlSource = document.querySelector('#link-html-source');
     const jsSource = document.querySelector('#link-js-source');
 
@@ -70,6 +71,9 @@ const AudioWorkletHelper = (function() {
     }
     if (titleHeading) {
       titleHeading.textContent = demoData.title;
+    }
+    if (description) {
+      description.textContent = demoData.description;
     }
     if (htmlSource) {
       htmlSource.textContent = demoData.htmlSource;
@@ -118,7 +122,6 @@ const AudioWorkletHelper = (function() {
     updateFeatureIndicator(isAudioWorkletAvailable_);
     enableRunDemoButton();
   }
-
 
   return {
     /**
