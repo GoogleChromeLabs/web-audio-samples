@@ -1,20 +1,23 @@
+// Copyright (c) 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /**
  * A AudioWorklet-based BitCrusher demo from the spec example.
- * 
+ *
  * @class BitCrusher
  * @extends AudioWorkletProcessor
  * @see https://webaudio.github.io/web-audio-api/#the-bitcrusher-node
  */
 class BitCrusher extends AudioWorkletProcessor {
-
   static get parameterDescriptors() {
     return [
       {name: 'bitDepth', defaultValue: 12, minValue: 1, maxValue: 16}, {
         name: 'frequencyReduction',
         defaultValue: 0.5,
         minValue: 0,
-        maxValue: 1
-      }
+        maxValue: 1,
+      },
     ];
   }
 
@@ -46,7 +49,6 @@ class BitCrusher extends AudioWorkletProcessor {
 
     return true;
   }
-
 }
 
 registerProcessor('bit-crusher', BitCrusher);

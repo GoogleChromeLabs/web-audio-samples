@@ -1,2 +1,6 @@
+node_modules/
 .DS_Store
+.eslintrc.js
+package-lock.json
+package.json
 twistd.pid
