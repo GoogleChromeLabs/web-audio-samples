@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 const AudioWorkletHelper = (function() {
+  const landingPageLocation =
+      'https://googlechromelabs.github.io/web-audio-samples/audio-worklet/';
   const sourceLocationBase =
       'https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/';
 
@@ -46,8 +48,8 @@ const AudioWorkletHelper = (function() {
       if (!featureDetected) {
         warningMessageDiv.innerHTML =
             `AudioWorklet is not available in your browser. Follow
-            <a href="https://googlechromelabs.github.io/web-audio-samples/audio-worklet/">
-            the instruction</a> to enable the feature.`;
+            <a href="${landingPageLocation}"> the instruction</a> to enable the
+            feature.`;
       }
     }
   }
@@ -73,7 +75,7 @@ const AudioWorkletHelper = (function() {
       titleHeading.textContent = demoData.title;
     }
     if (description) {
-      description.textContent = demoData.description;
+      description.innerHTML = demoData.description;
     }
     if (htmlSource) {
       htmlSource.textContent = demoData.htmlSource;
@@ -110,17 +112,19 @@ const AudioWorkletHelper = (function() {
    * function below.
    */
   function initializeCallback(demoData) {
-    if (demoData.demoFunction &&
-        typeof demoData.demoFunction === 'function') {
-      demoFunction_ = demoData.demoFunction;
-    } else {
-      console.error('The "demoFunction" must be a function.');
-    }
-
-    buildPageContent(demoData);
     isAudioWorkletAvailable_ = detectAudioWorklet();
     updateFeatureIndicator(isAudioWorkletAvailable_);
-    enableRunDemoButton();
+
+    if (demoData) {
+      if (demoData && typeof demoData.demoFunction === 'function') {
+        demoFunction_ = demoData.demoFunction;
+      } else {
+        console.error('The "demoFunction" must be a function.');
+      }
+
+      buildPageContent(demoData);
+      enableRunDemoButton();  
+    }
   }
 
   return {

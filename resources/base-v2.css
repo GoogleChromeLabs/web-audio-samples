@@ -1,4 +1,10 @@
-/* Milligram-based Style (version 1.3.0) */
+/**
+ * Copyright (c) 2017 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/* Based on Milligram Style (version 1.3.0) */
 
 body {
   font-weight: 400;
@@ -35,7 +41,21 @@ a {
 
 a:focus,
 a:hover {
-  color: #4FC3F7;
+  color: #4fc3f7;
+}
+
+dl {
+  margin: 2rem 0;
+}
+
+dd {
+  margin-left: 2rem;
+  font-size: 1.4rem;
+  line-height: 1.2rem;
+}
+
+dd:before {
+  content: "- ";
 }
 
 pre {
@@ -59,7 +79,7 @@ li {
   font-size: 1.1rem;
   font-weight: 700;
   height: 3.8rem;
-  letter-spacing: .1rem;
+  letter-spacing: 0.1rem;
   text-transform: uppercase;
 }
 
@@ -81,8 +101,8 @@ li {
 }
 
 .worklet-status-pending {
-  color: #B0BEC5;
-  border: 0.1rem solid #B0BEC5;
+  color: #b0bec5;
+  border: 0.1rem solid #b0bec5;
 }
 
 .worklet-status-found {
@@ -91,8 +111,8 @@ li {
 }
 
 .worklet-status-missing {
-  color: #DD2C00;
-  border: 0.1rem solid #DD2C00;
+  color: #dd2c00;
+  border: 0.1rem solid #dd2c00;
 }
 
 .button {
@@ -105,7 +125,7 @@ li {
 
 .button:focus,
 .button:hover {
-  background-color: #4FC3F7;
+  background-color: #4fc3f7;
 }
 
 .button[disabled],

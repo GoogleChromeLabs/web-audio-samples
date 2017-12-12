@@ -1,42 +1,76 @@
+<!--
+Copyright (c) 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>
-      One-Pole Filter | Chrome WebAudio Samples
-    </title>
-    <link rel="stylesheet" href="../../resources/base.css">
-    <script src="../lib/audio-worklet-helper.js"></script>
+    <title></title>
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../../resources/base-v2.css">
   </head>
   <body>
-    <a href="../index.html" class="link-small">« AudioWorklet home</a>
-    <section>
-      <h1>
-        Demo: One-Pole Filter
-      </h1>
-      <p>
-        A <a href=
-        "https://ccrma.stanford.edu/~jos/fp/One_Pole.html">one-pole</a> filter
-        implementation with AudioWorkletNode. The noise generator goes into the
-        one-pole filter and a series of AudioParam automation moves the filter
-        frequency.
-      </p>
-      <ul>
-        <li>
-          <a href=
-          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/one-pole.html">
-          one-pole.html</a>
-        </li>
-        <li>
-          <a href=
-          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/one-pole.js">
-          js/one-pole.js</a>
-        </li>
-      </ul>
-    </section>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../.."><span>Chrome WebAudio Samples</span></a> <span class=
+        "nav-divider">|</span> <a href="../"><span>AudioWorklet</span></a>
+        <span class="nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>HTML: <a id="link-html-source" target="_blank"></a>
+              </li>
+              <li>Processor Script: <a id="link-js-source" target=
+              "_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run
+            Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="../lib/audio-worklet-helper.js"></script> 
     <script>
-    // Demonstrate the instantiation and the connection of AudioWorkletNode.
-    function runOnePoleDemo() {
+
+
+
+    function runDemo() {
       const context = new AudioContext();
       Promise.all([
           context.audioWorklet.addModule('js/noise-generator.js'),
@@ -55,7 +89,17 @@
         });
     }
 
-    AudioWorkletHelper.addDemo(runOnePoleDemo);
+    AudioWorkletHelper.initializeDemo({
+      title: 'One-Pole Filter',
+      description: 
+          `A <a href="https://ccrma.stanford.edu/~jos/fp/One_Pole.html">
+          one-pole<\/a> filter implementation with AudioWorkletNode. The noise
+          generator goes into the one-pole filter and a series of AudioParam
+          automation moves the filter frequency.`,
+      htmlSource: 'audio-worklet/basic/one-pole.html',
+      jsSource: 'audio-worklet/basic/js/one-pole.js',
+      demoFunction: runDemo
+    });
     </script>
   </body>
 </html>

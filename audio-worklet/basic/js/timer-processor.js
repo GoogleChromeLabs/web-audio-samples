@@ -1,9 +1,13 @@
+// Copyright (c) 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /**
- * @class TimerProcessor
- * @extends AudioWorkletProcessor
- *
  * This processor class is for the life cycle and the processor state event.
  * It only lives for 1 second.
+ *
+ * @class TimerProcessor
+ * @extends AudioWorkletProcessor
  */
 class TimerProcessor extends AudioWorkletProcessor {
   constructor() {

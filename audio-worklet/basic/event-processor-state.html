@@ -1,59 +1,78 @@
+<!-- 
+Copyright (c) 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>
-      Event and AudioWorkletProcessorState | Chrome WebAudio Samples
-    </title>
-    <link rel="stylesheet" href="../../resources/base.css">
-    <script src="../lib/audio-worklet-helper.js"></script>
+    <title></title>
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../../resources/base-v2.css">
   </head>
   <body>
-    <a href="../index.html" class="link-small">« AudioWorklet home</a>
-    <section>
-      <h1>
-        Event and AudioWorkletProcessorState
-      </h1>
-      <p>
-        A simple demonstration of <a href=
-        "https://webaudio.github.io/web-audio-api/#idl-def-audioworkletprocessorstate">
-        AudioWorkletProcessorState</a> and how to catch <code>
-        processorstatechange</code> event.
-      </p>
-      <p>
-        <strong>NOTE</strong>: Open up the console to see the events being
-        fired.
-        <ul>
-          <li>- An instance of <code>TimerProcessor</code> will be in "pending"
-            state after the construction of AudioWorkletNode.</li>
-          <li>- Once <code>TimerProcessor</code> is ready, the state will
-            transition to "running".</li>
-          <li>- The internal timer in <code>TimerProcessor</code> advances when
-            the node is connected to the destination.</li>
-          <li>- When the timer is finished, <code>TimerProcessor</code> reaches
-            to "stopped" state.</li>
-        </ul>
-      </p>
-      <ul>
-        <li>
-          <a href=
-          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/event-processor-state.html">
-          event-processor-state</a>
-        </li>
-        <li>
-          <a href=
-          "https://github.com/GoogleChromeLabs/web-audio-samples/blob/gh-pages/audio-worklet/basic/js/timer-processor.js">
-          js/timer-processor.js</a>
-        </li>
-      </ul>
-    </section>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../.."><span>Chrome WebAudio Samples</span></a> <span class=
+        "nav-divider">|</span> <a href="../"><span>AudioWorklet</span></a>
+        <span class="nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>HTML: <a id="link-html-source" target="_blank"></a>
+              </li>
+              <li>Processor Script: <a id="link-js-source" target=
+              "_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run
+            Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="../lib/audio-worklet-helper.js"></script> 
     <script>
     function printProcessorState(workletNode) {
       let prefix = '[ProcessorState:' + 
           workletNode.context.currentTime.toFixed(3) + '] ';
       console.log(prefix + workletNode.processorState);
     }
-
+    
     function runDemo() {
       const context = new AudioContext();
       context.audioWorklet.addModule('js/timer-processor.js').then(() => {
@@ -75,7 +94,28 @@
       });
     }
 
-    AudioWorkletHelper.addDemo(runDemo);
+    AudioWorkletHelper.initializeDemo({
+      title: 'Event and AudioWorkletProcessorState',
+      description: 
+          `A simple demonstration of
+          <a href="https://webaudio.github.io/web-audio-api/#idl-def-audioworkletprocessorstate">
+          AudioWorkletProcessorState<\/a> and how to catch <code>
+          processorstatechange<\/code> event. Open up the console to see the
+          events being fired.
+          <dl>
+            <dd>An instance of <code>TimerProcessor<\/code> will be in "pending"
+              state after the construction of AudioWorkletNode.<\/dd>
+            <dd>Once <code>TimerProcessor<\/code> is ready, the state will
+              transition to "running".<\/dd>
+            <dd>The internal timer in <code>TimerProcessor<\/code> advances when
+              the node is connected to the destination.<\/dd>
+            <dd>When the timer is finished, <code>TimerProcessor<\/code> reaches
+              to "stopped" state.<\/dd>
+          <\/dl>`,
+      htmlSource: 'audio-worklet/basic/event-processor-state.html',
+      jsSource: 'audio-worklet/basic/js/timer-processor.js',
+      demoFunction: runDemo
+    });
     </script>
   </body>
 </html>

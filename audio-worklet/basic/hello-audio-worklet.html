@@ -24,13 +24,9 @@ found in the LICENSE file.
         </div>
       </div>
       <section class="nav-bar">
-        <a href=
-        "https://googlechromelabs.github.io/web-audio-samples/"><span>Chrome
-        WebAudio Samples</span></a> <span class="nav-divider">|</span>
-        <a href=
-        "https://googlechromelabs.github.io/web-audio-samples/audio-worklet/">
-        <span>AudioWorklet</span></a> <span class="nav-divider">|</span>
-        <span id="title-navbar"></span>
+        <a href="../.."><span>Chrome WebAudio Samples</span></a> <span class=
+        "nav-divider">|</span> <a href="../"><span>AudioWorklet</span></a>
+        <span class="nav-divider">|</span> <span id="title-navbar"></span>
       </section>
       <section class="header">
         <h1 id="title-header"></h1>
@@ -44,9 +40,10 @@ found in the LICENSE file.
         <div class="row">
           <div class="column">
             <ul>
-              <li>HTML: <a id="link-html-source"></a>
+              <li>HTML: <a id="link-html-source" target="_blank"></a>
               </li>
-              <li>Processor Script: <a id="link-js-source"></a>
+              <li>Processor Script: <a id="link-js-source" target=
+              "_blank"></a>
               </li>
             </ul>
           </div>
@@ -70,11 +67,11 @@ found in the LICENSE file.
     </div>
     <script src="../lib/audio-worklet-helper.js"></script> 
     <script>
-    function demoHelloAudioWorklet() {
+    function runDemo() {
       const context = new AudioContext();
-      context.audioWorklet.addModule('js/bypasser.js').then(() => {
+      context.audioWorklet.addModule('js/bypass-processor.js').then(() => {
         let oscillator = new OscillatorNode(context);
-        let bypasser = new AudioWorkletNode(context, 'bypasser');
+        let bypasser = new AudioWorkletNode(context, 'bypass-processor');
         oscillator.connect(bypasser).connect(context.destination);
         oscillator.start();
       });
@@ -86,7 +83,7 @@ found in the LICENSE file.
           stream to its output. The sound source a sine oscillator at 440Hz.`,
       htmlSource: 'audio-worklet/basic/hello-audio-worklet.html',
       jsSource: 'audio-worklet/basic/js/bypasser.js',
-      demoFunction: demoHelloAudioWorklet
+      demoFunction: runDemo
     });
     </script>
   </body>

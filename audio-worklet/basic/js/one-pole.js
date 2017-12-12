@@ -1,3 +1,7 @@
+// Copyright (c) 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /**
  * A simple One pole filter.
  * 
@@ -9,10 +13,7 @@ class OnePole extends AudioWorkletProcessor {
     return [{
       name: 'frequency',
       defaultValue: 250,
-      minValue: 0
-      // |maxValue| is defaulted on purpose because we can't set it to the
-      // Nyquist frequency of the context. Note that |sampleRate| is 0.0 when
-      // this class definition is evaluated. 
+      minValue: 0,
       // maxValue: 0.5 * sampleRate
     }];
   }
