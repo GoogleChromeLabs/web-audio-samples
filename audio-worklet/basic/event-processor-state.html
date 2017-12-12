@@ -72,7 +72,7 @@ found in the LICENSE file.
           workletNode.context.currentTime.toFixed(3) + '] ';
       console.log(prefix + workletNode.processorState);
     }
-    
+
     function runDemo() {
       const context = new AudioContext();
       context.audioWorklet.addModule('js/timer-processor.js').then(() => {

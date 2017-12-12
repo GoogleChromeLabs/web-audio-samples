@@ -4,7 +4,7 @@
 
 /**
  * A simple One pole filter.
- * 
+ *
  * @class OnePole
  * @extends AudioWorkletProcessor
  */
