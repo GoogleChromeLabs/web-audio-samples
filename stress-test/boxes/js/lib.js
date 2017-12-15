@@ -46,8 +46,8 @@ const Lib = {
   getMousePosition: (element, clickEvent) => {
     let rect = element.getBoundingClientRect();
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+      x: clickEvent.clientX - rect.left,
+      y: clickEvent.clientY - rect.top
     };
   }
 };
