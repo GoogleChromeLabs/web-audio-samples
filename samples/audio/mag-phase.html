@@ -206,6 +206,13 @@
           );
       }
 
+      function stopSound() {
+        if (source) {
+          source.stop(0);
+          source = null;
+        }
+      }
+
       function loadSound(url) {
         // Load asynchronously
         var request = new XMLHttpRequest();
@@ -218,11 +225,13 @@
               source.stop(0);
               source = null;
             }
-            source = context.createBufferSource();
-            source.connect(filter);
-            source.loop = true;
-            source.buffer = buffer;
-            source.start(0);
+            context.resume().then(() => {
+              source = context.createBufferSource();
+              source.connect(filter);
+              source.loop = true;
+              source.buffer = buffer;
+              source.start(0);
+            });
 
           }, function(){console.log("error decoding file.")});
         };
@@ -323,8 +332,6 @@
       
       
         filter.connect(masterGain).connect(context.destination);
-        loadSound("sounds/tones/pinkgood.wav");
-
 
 	addSlider("cutoff");
 	addSlider("Q");
@@ -378,7 +385,8 @@
       <div id="sources" style="width:25%;float:left;">
 	<h2>Source</h2>
 	<form>
-	  <input type="radio" checked="checked" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
+	  <input type="radio" checked="checked" name="source" onClick="stopSound();">None<br/>
+	  <input type="radio" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/cauldron.wav');">Cauldron<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/waves.wav');">Waves<br/>
 	  <input type="radio" name="source"
@@ -391,7 +399,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Thu Aug 10 14:46:12 PDT 2017
+Last modified: Wed Feb  7 12:24:14 PST 2018
 <!-- hhmts end -->
       </div>
     </div>
