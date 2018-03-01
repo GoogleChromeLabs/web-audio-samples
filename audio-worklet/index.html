@@ -7,8 +7,8 @@ found in the LICENSE file.
 <html>
   <head>
     <meta charset="utf-8">
-    <!-- Origin Trial Token, feature = AudioWorklet, origin = https://googlechromelabs.github.io, expires = 2018-02-15 -->
-    <meta http-equiv="origin-trial" data-feature="AudioWorklet" data-expires="2018-02-15" content="AhdpV7aW9Jh3mQzxHVsKuXTF1YVbcdbpPBiVysYaFRhYgGuybOrQZWzrD1i43Ub3ZIj7UwzmJHd81wY8i2fz2g0AAABgeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MTg3MTY2MjN9">
+    <!-- Origin Trial Token, feature = AudioWorklet, origin = https://googlechromelabs.github.io, expires = 2018-03-06 -->
+    <meta http-equiv="origin-trial" data-feature="AudioWorklet" data-expires="2018-03-06" content="AovmToW2gb6HDZOPVB/YjvvGBEcCXL3WkGKtUvL6kw+FegHOCSHUg5+UKj+p4c0GaJlcUm0210+2G688uklrogYAAABgeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MjAyOTQ0MDB9">
     <title>
       AudioWorklet | Chrome WebAudio Samples
     </title>
@@ -35,10 +35,12 @@ found in the LICENSE file.
         <h1>
           AudioWorklet
         </h1>
-        <p>
-          <a href="https://webaudio.github.io/web-audio-api/#AudioWorklet"
+        <p><a href="https://webaudio.github.io/web-audio-api/#AudioWorklet"
           target="_blank">AudioWorklet</a> is currently available on
-          <strong>Chrome 64 (or later)</strong> via <a href=
+          <strong>Chrome 66 (or later)</strong> by default.
+        </p>
+        <p>
+          For Chrome 64 and 65, AudioWorklet is available via <a href=
           "https://docs.google.com/forms/d/e/1FAIpQLSfO0_ptFl8r8G0UFhT0xhV17eabG-erUWBDiKSRDTqEZ_9ULQ/viewform">
           Origin Trial</a> or behind the experimental flag. Using Origin Trial
           is highly recommended for AudioWorklet so that the page can be served
@@ -49,10 +51,11 @@ found in the LICENSE file.
         </p>
         <pre><code>--enable-blink-features=AudioWorklet</code></pre>
         <p>
-          Alternatively, you can enable Experimental Web Platform Features in
-          Chrome's flag setting. Note that this setting enables all the
-          experimental features in browser. Copy and paste the following URL
-          in Chrome, enable the feature and relaunch the browser.
+          Although it is <strong>NOT</strong> recommended, you can enable
+          Experimental Web Platform Features in Chrome's flag setting. Note that
+          this setting enables all the experimental features in browser. Copy
+          and paste the following URL in Chrome, enable the feature and relaunch
+          the browser.
         </p>
         <pre><code>chrome://flags/#enable-experimental-web-platform-features</code></pre>
         <p>
@@ -132,13 +135,13 @@ found in the LICENSE file.
           </div>
           <div class="column">
             <div class="demo-item">
-              <a href="basic/event-processor-state.html">
+              <a href="basic/node-onerror.html">
               <h4>
-                Event and AudioWorkletProcessorState
+                Catching error from AudioWorkletProcessor
               </h4></a>
               <p>
-                A simple demonstration of AudioWorkletProcessorState and how
-                to catch processorstatechange event.
+                A simple demonstration on how to use
+                AudioWorkletNode.onprocessorerror event handler.
               </p>
             </div>
           </div>
