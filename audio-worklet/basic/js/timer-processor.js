@@ -3,22 +3,39 @@
 // found in the LICENSE file.
 
 /**
- * This processor class is for the life cycle and the processor state event.
- * It only lives for 1 second.
- *
- * @class TimerProcessor
+ * A processor with an error in its constructor.
+ * 
+ * @class ConstructorErrorProcessor
  * @extends AudioWorkletProcessor
  */
-class TimerProcessor extends AudioWorkletProcessor {
+class ConstructorErrorProcessor extends AudioWorkletProcessor {
   constructor() {
-    super();
-    this.createdAt_ = currentTime;
-    this.lifetime_ = 1.0;
+    throw 'ConstructorErrorProcessor: an error thrown from constructor.';
   }
 
   process() {
-    return currentTime - this.createdAt_ > this.lifetime_ ? false : true;
+    return true;
   }
 }
 
-registerProcessor('timer-processor', TimerProcessor);
+
+/**
+ * A processor with an error in its process callback.
+ * 
+ * @class ProcessErrorProcessor
+ * @extends AudioWorkletProcessor
+ */
+class ProcessErrorProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+  }
+
+  process() {
+    throw 'ProcessErrorProcessor: an error throw from process method.';
+    return true;
+  }
+}
+
+
+registerProcessor('constructor-error', ConstructorErrorProcessor);
+registerProcessor('process-error', ProcessErrorProcessor);
