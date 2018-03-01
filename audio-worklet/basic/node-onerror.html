@@ -1,0 +1,108 @@
+<!-- 
+Copyright (c) 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- Origin Trial Token, feature = AudioWorklet, origin = https://googlechromelabs.github.io, expires = 2018-03-06 -->
+    <meta http-equiv="origin-trial" data-feature="AudioWorklet" data-expires="2018-03-06" content="AovmToW2gb6HDZOPVB/YjvvGBEcCXL3WkGKtUvL6kw+FegHOCSHUg5+UKj+p4c0GaJlcUm0210+2G688uklrogYAAABgeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MjAyOTQ0MDB9">
+    <title></title>
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../../resources/base-v2.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../.."><span>Chrome WebAudio Samples</span></a> <span class=
+        "nav-divider">|</span> <a href="../"><span>AudioWorklet</span></a>
+        <span class="nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>HTML: <a id="link-html-source" target="_blank"></a>
+              </li>
+              <li>Processor Script: <a id="link-js-source" target=
+              "_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run
+            Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="../lib/audio-worklet-helper.js"></script> 
+    <script>
+    function runDemo() {
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/error-processor.js').then(() => {
+        let constructorErrorWorkletNode =
+            new AudioWorkletNode(context, 'constructor-error');
+        constructorErrorWorkletNode.onprocessorerror = () => {
+          console.log('An error from AudioWorkletProcessor.constructor()'
+              + ' was detected.');
+        };
+
+        let processErrorWorkletNode =
+            new AudioWorkletNode(context, 'process-error');
+        processErrorWorkletNode.onprocessorerror = () => {
+          console.log('An error from AudioWorkletProcessor.process()'
+              + ' was detected.');
+        };
+
+        // To update processor's internal timer, the node must be connected to
+        // the graph.
+        processErrorWorkletNode.connect(context.destination);
+      });
+    }
+
+    AudioWorkletHelper.initializeDemo({
+      title: 'Catching error from AudioWorkletProcessor',
+      description: 
+          `A simple demonstration on how to catch an error from
+          AudioWorkletProcessor with <code>onprocessorerror<\/code> event
+          handler in AudioWorkletNode. Open up the console to see the events
+          being fired.`,
+      htmlSource: 'audio-worklet/basic/node-onerror.html',
+      jsSource: 'audio-worklet/basic/js/error-processor.js',
+      demoFunction: runDemo
+    });
+    </script>
+  </body>
+</html>
