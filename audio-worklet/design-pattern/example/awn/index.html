@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AudioWorkletNode | Examples | WebAudio + WASM</title>
+</head>
+<body>
+  <a href="../index.html">Example Index</a>
+  <h1>AudioWorkletNode</h1>
+  <button id="start-audio">Start Audio</button>
+  <script>
+    const context = new AudioContext();
+    context.audioWorklet.addModule('audio-worklet-module.js').then(() => {
+      let osc = new OscillatorNode(context);
+      let awn = new AudioWorkletNode(context, 'wasm-audio-worklet-processor');
+
+      context.suspend();
+      osc.connect(awn).connect(context.destination);
+      osc.start();
+
+      // For simple toggle mechanism.
+      const eButton = document.getElementById('start-audio');
+      eButton.onclick = () => {
+        if (eButton.textContent === 'Start Audio') {
+          context.resume();
+          eButton.textContent = 'Stop Audio';
+        } else {
+          context.suspend();
+          eButton.textContent = 'Start Audio';
+        }
+      };
+    });
+  </script>
+</body>
+</html>

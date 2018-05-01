@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AudioWorkletNode with SharedArrayBuffer | Examples | WebAudio + WASM</title>
+</head>
+<body>
+  <a href="../index.html">Example Index</a>
+  <h1>AudioWorkletNode with SharedArrayBuffer</h1>
+  <button id="start-audio">Start Audio</button>
+  <script>
+    const AGENT_ID = 0;
+    const bufferLength = 1024;
+
+    const audioWorker = new Worker('audio-worker.js');
+    let infoArray;
+    let bufferArray;
+
+    function renderAndWake() {
+      if (!infoArray || !bufferArray) return;
+
+      bufferArray[0].fill(0);
+
+      Atomics.store(infoArray, 3, performance.now() - Atomics.load(infoArray, 2));
+      Atomics.store(infoArray, 2, performance.now());
+      Atomics.store(infoArray, 1, AGENT_ID);
+      Atomics.store(infoArray, 0, 1);
+
+      console.log('renderAndWake', infoArray);
+
+      // The render task is completed. All the frames are consumed. Signal
+      // the worker. (fill [0] to non-zero value.)
+      Atomics.wake(infoArray, 0, 1);
+
+      // Repeat this every 1000ms.
+      setTimeout(() => {
+        renderAndWake();
+      }, 500);
+    }
+
+    function initializeSink(workerData) {
+      infoArray = new Int32Array(workerData.infoSAB);
+      bufferArray = [new Float32Array(workerData.bufferSAB)];
+      renderAndWake();
+    }
+
+    audioWorker.onmessage = (event) => {
+      switch(event.data.state) {
+        case 'started':
+          console.log('AudioWorker started.');
+          initializeSink(event.data);
+          break;
+      }
+    };
+
+    audioWorker.postMessage({
+      command: 'start'
+    });
+
+    // count();
+
+    // const context = new AudioContext();
+    // context.audioWorklet.addModule('shared-buffer-worklet-processor.js').then(() => {
+    //   let osc = new OscillatorNode(context);
+
+    //   context.suspend();
+    //   osc.connect(/** **/).connect(context.destination);
+    //   osc.start();
+
+    //   // For simple toggle mechanism.
+    //   const eButton = document.getElementById('start-audio');
+    //   eButton.onclick = () => {
+    //     if (eButton.textContent === 'Start Audio') {
+    //       context.resume();
+    //       eButton.textContent = 'Stop Audio';
+    //     } else {
+    //       context.suspend();
+    //       eButton.textContent = 'Start Audio';
+    //     }
+    //   };
+    // });
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ScriptProcessorNode | Examples | WebAudio + WASM</title>
+</head>
+<body>
+  <a href="../index.html">Index</a>
+  <h1>ScriptProcessorNode</h1>
+  <button id="start-audio">Start Audio</button>
+  <script src="multi-channel-kernel.js"></script>
+  <script type="text/javascript">
+    Module.onRuntimeInitialized = () => {
+      const bufferSize = 256;
+      const channelCount = 2;
+
+      // WASM-powered kernel for the ScriptProcessorNode.
+      let multiChannelKernel = new Module.MultiChannelKernel(bufferSize);
+
+      // HeapAudioBuffers to proxy the WASM heap location. The audio data
+      // from the WebAudio needs to be copied in and out from the WASM heap.
+      let heapInputBuffer = new HeapAudioBuffer(bufferSize, channelCount);
+      let heapOutputBuffer = new HeapAudioBuffer(bufferSize, channelCount);
+
+      const context = new AudioContext();
+      const osc = new OscillatorNode(context);
+      const scriptProcessorNode =
+          context.createScriptProcessor(bufferSize, channelCount, channelCount);
+
+      // Copy-in, process and copy-out.
+      scriptProcessorNode.onaudioprocess = (event) => {
+        WA2.copyAudioBuffer(event.inputBuffer, heapInputBuffer, channelCount);
+        multiChannelKernel.process(heapInputBuffer.getHeap(), channelCount,
+                                   heapOutputBuffer.getHeap(), channelCount);
+        WA2.copyAudioBuffer(heapOutputBuffer, event.outputBuffer, channelCount);
+      };
+
+      // We don't want to suprise the visitor with the sound.
+      context.suspend();
+      osc.connect(scriptProcessorNode).connect(context.destination);
+      osc.start();
+
+      // For simple toggle mechanism.
+      const eButton = document.getElementById('start-audio');
+      eButton.onclick = () => {
+        if (eButton.textContent === 'Start Audio') {
+          context.resume();
+          eButton.textContent = 'Stop Audio';
+        } else {
+          context.suspend();
+          eButton.textContent = 'Start Audio';
+        }
+      };
+    };
+  </script>
+</body>
+</html>
