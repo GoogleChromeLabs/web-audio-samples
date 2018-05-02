@@ -1,7 +1,6 @@
 /**
  * @fileOverview WA2 library. A set of utilities to support WASM operations
- * for the WebAudio. (Why WA2? It's "WebAudio and WebAssembly", which is "WAWA",
- * thus "WA2".)
+ * for the WebAudio.
  */
 
 
