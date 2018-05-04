@@ -23,22 +23,6 @@ var WA2 = {
 
 
 /**
- * Copy AudioBuffer by a specified channel count.
- * @param  {AudioBuffer} sourceBuffer
- * @param  {AudioBuffer} destinationBuffer
- * @param  {number} channelCount A number of channels to be copied.
- */
-WA2.copyAudioBuffer = function(sourceBuffer, destinationBuffer, channelCount) {
-  console.assert(channelCount <= sourceBuffer.numberOfChannels);
-  console.assert(channelCount <= destinationBuffer.numberOfChannels);
-
-  for (let i = 0; i < channelCount; ++i) {
-    destinationBuffer.getChannelData(i).set(sourceBuffer.getChannelData(i));
-  }
-};
-
-
-/**
  * A WASM HEAP wrapper for AudioBuffer class. This breaks down the AudioBuffer
  * into an Array of Float32Array for the convinient WASM opearion.
  *
@@ -108,7 +92,7 @@ class HeapAudioBuffer {
   /**
    * Getter for the buffer length in frames.
    *
-   * @return {number} Buffer length in frames.
+   * @return {?number} Buffer length in frames.
    */
   get length() {
     return this._isInitialized ? this._length : null;
@@ -117,7 +101,7 @@ class HeapAudioBuffer {
   /**
    * Getter for the number of channels.
    *
-   * @return {number} Buffer length in frames.
+   * @return {?number} Buffer length in frames.
    */
   get numberOfChannels() {
     return this._isInitialized ? this._channelCount : null;
@@ -126,7 +110,7 @@ class HeapAudioBuffer {
   /**
    * Getter for the maxixmum number of channels allowed for the instance.
    *
-   * @return {number} Buffer length in frames.
+   * @return {?number} Buffer length in frames.
    */
   get maxChannelCount() {
     return this._isInitialized ? this._maxChannelCount : null;
@@ -155,7 +139,7 @@ class HeapAudioBuffer {
    *
    * @return {number} WASM Heap address.
    */
-  getHeap() {
+  getHeapAddress() {
     console.assert(this._isInitialized);
 
     return this._dataPtr;
@@ -200,8 +184,8 @@ class RingBuffer {
    * @return {RingBuffer}
    */
   constructor(length, channelCount) {
-    this._ri = 0;
-    this._wi = 0;
+    this._readIndex = 0;
+    this._writeIndex = 0;
     this._framesAvailable = 0;
 
     this._channelCount = channelCount;
@@ -234,15 +218,15 @@ class RingBuffer {
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
     for (let i = 0; i < sourceLength; ++i) {
-      let writeIndex = (this._wi + i) % this._length;
+      let writeIndex = (this._writeIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         this._channelData[channel][writeIndex] = arraySequence[channel][i];
       }
     }
 
-    this._wi += sourceLength;
-    if (this._wi >= this._length) {
-      this._wi = 0;
+    this._writeIndex += sourceLength;
+    if (this._writeIndex >= this._length) {
+      this._writeIndex = 0;
     }
 
     // For excessive frames, the buffer will be overwritten.
@@ -269,15 +253,15 @@ class RingBuffer {
 
     // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      let readIndex = (this._ri + i) % this._length;
+      let readIndex = (this._readIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         arraySequence[channel][i] = this._channelData[channel][readIndex];
       }
     }
 
-    this._ri += destinationLength;
-    if (this._ri >= this._length) {
-      this._ri = 0;
+    this._readIndex += destinationLength;
+    if (this._readIndex >= this._length) {
+      this._readIndex = 0;
     }
 
     this._framesAvailable -= destinationLength;

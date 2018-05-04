@@ -20,9 +20,9 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs, parameters) {
-    // Use the 1st input and output only. |input| and |output| here have the
-    // simlar structure with the AudioBuffer interface. (An array of
-    // Float32Array)
+    // Use the 1st input and output only to make the example simpler. |input|
+    // and |output| here have the similar structure with the AudioBuffer
+    // interface. (i.e. An array of Float32Array)
     let input = inputs[0];
     let output = outputs[0];
 
@@ -38,8 +38,8 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     for (let channel = 0; channel < channelCount; ++channel) {
       this._heapInputBuffer.getChannelData(channel).set(input[channel]);
     }
-    this._kernel.process(this._heapInputBuffer.getHeap(),
-                         this._heapOutputBuffer.getHeap(),
+    this._kernel.process(this._heapInputBuffer.getHeapAddress(),
+                         this._heapOutputBuffer.getHeapAddress(),
                          channelCount);
     for (let channel = 0; channel < channelCount; ++channel) {
       output[channel].set(this._heapOutputBuffer.getChannelData(channel));

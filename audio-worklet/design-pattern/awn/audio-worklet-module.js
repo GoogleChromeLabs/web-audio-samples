@@ -3738,8 +3738,7 @@ run();
 
 /**
  * @fileOverview WA2 library. A set of utilities to support WASM operations
- * for the WebAudio. (Why WA2? It's "WebAudio and WebAssembly", which is "WAWA",
- * thus "WA2".)
+ * for the WebAudio.
  */
 
 
@@ -3758,22 +3757,6 @@ var WA2 = {
 
   // WebAudio's render quantum size.
   RENDER_QUANTUM_FRAMES: 128,
-};
-
-
-/**
- * Copy AudioBuffer by a specified channel count.
- * @param  {AudioBuffer} sourceBuffer
- * @param  {AudioBuffer} destinationBuffer
- * @param  {number} channelCount A number of channels to be copied.
- */
-WA2.copyAudioBuffer = function(sourceBuffer, destinationBuffer, channelCount) {
-  console.assert(channelCount <= sourceBuffer.numberOfChannels);
-  console.assert(channelCount <= destinationBuffer.numberOfChannels);
-
-  for (let i = 0; i < channelCount; ++i) {
-    destinationBuffer.getChannelData(i).set(sourceBuffer.getChannelData(i));
-  }
 };
 
 
@@ -3807,6 +3790,12 @@ class HeapAudioBuffer {
     this._isInitialized = true;
   }
 
+  /**
+   * Allocates memory in the WASM heap and set up Float32Array views for the
+   * channel data.
+   *
+   * @private
+   */
   _allocateHeap() {
     console.assert(!this._isInitialized);
 
@@ -3822,9 +3811,13 @@ class HeapAudioBuffer {
           Module.HEAPF32.subarray(startByteOffset >> WA2.BYTES_PER_UNIT,
                                   endByteOffset >> WA2.BYTES_PER_UNIT);
     }
-
   }
 
+  /**
+   * Adapt the current channel count to the new input buffer.
+   *
+   * @param  {number} newChannelCount The new channel count.
+   */
   adaptChannel(newChannelCount) {
     console.assert(this._isInitialized);
     console.assert(newChannelCount < this._maxChannelCount);
@@ -3834,42 +3827,194 @@ class HeapAudioBuffer {
     }
   }
 
+  /**
+   * Getter for the buffer length in frames.
+   *
+   * @return {?number} Buffer length in frames.
+   */
   get length() {
     return this._isInitialized ? this._length : null;
   }
 
+  /**
+   * Getter for the number of channels.
+   *
+   * @return {?number} Buffer length in frames.
+   */
   get numberOfChannels() {
     return this._isInitialized ? this._channelCount : null;
   }
 
+  /**
+   * Getter for the maxixmum number of channels allowed for the instance.
+   *
+   * @return {?number} Buffer length in frames.
+   */
   get maxChannelCount() {
     return this._isInitialized ? this._maxChannelCount : null;
   }
 
+  /**
+   * Returns a Float32Array object for a given channel index. If the channel
+   * index is undefined, it returns the reference to the base array of channel
+   * data.
+   *
+   * @param  {number|undefined} channelIndex Channel index.
+   * @return {Float32Array|Array[Float32Array]} a channel data array or an
+   * array of channel data.
+   */
   getChannelData(channelIndex) {
     console.assert(this._isInitialized);
-    console.assert(channelIndex < this._channelCount);
+    console.assert(typeof channelIndex === 'undefined' ||
+                   channelIndex < this._channelCount);
 
-    return this._channelData[channelIndex];
+    return typeof channelIndex === 'undefined'
+        ? this._channelData : this._channelData[channelIndex];
   }
 
-  getHeap() {
+  /**
+   * Returns the base address of the allocated memory space in the WASM heap.
+   *
+   * @return {number} WASM Heap address.
+   */
+  getHeapAddress() {
     console.assert(this._isInitialized);
 
     return this._dataPtr;
   }
 
+  /**
+   * Frees the allocated memory space in the WASM heap.
+   *
+   * @return {[type]} [description]
+   */
   free() {
     console.assert(this._isInitialized);
 
+    this._isInitialized = false;
     Module._free(this._dataPtr);
     Module._free(this._pointerArrayPtr);
-    this._isInitialized = false;
+    this._channelData = null;
   }
+
 }  // class HeapAudioBuffer
 
+
 /**
- * demo
+ * A JS FIFO implementation for the AudioWorklet. 3 assumptions for the
+ * simpler operation:
+ *  1. the push and the pull operation are done by 128 frames. (Web Audio
+ *    API's render quantum size in the speficiation)
+ *  2. the channel count of input/output cannot be changed dynamically.
+ *    The AudioWorkletNode should be configured with the `.channelCount = k`
+ *    (where k is the channel count you want) and
+ *    `.channelCountMode = explicit`.
+ *  3. This is for the single-thread operation. (obviously)
+ *
+ * @class
+ */
+class RingBuffer {
+
+  /**
+   * @constructor
+   * @param  {number} channelCount Buffer channel count.
+   * @param  {number} length Buffer length in frames.
+   * @return {RingBuffer}
+   */
+  constructor(length, channelCount) {
+    this._readIndex = 0;
+    this._writeIndex = 0;
+    this._framesAvailable = 0;
+
+    this._channelCount = channelCount;
+    this._length = length;
+    this._channelData = [];
+    for (let i = 0; i < this._channelCount; ++i) {
+      this._channelData[i] = new Float32Array(length);
+    }
+  }
+
+  /**
+   * Getter for Available frames in buffer.
+   *
+   * @return {number} Available frames in buffer.
+   */
+  get framesAvailable() {
+    return this._framesAvailable;
+  }
+
+  /**
+   * Push a sequence of Float32Arrays to buffer.
+   *
+   * @param  {array} arraySequence A sequence of Float32Arrays.
+   */
+  push(arraySequence) {
+    console.assert(arraySequence.length === this._channelCount);
+    console.assert(arraySequence[0].length <= this._length);
+
+    let sourceLength = arraySequence[0].length;
+
+    // Transfer data from the |arraySequence| storage to the internal buffer.
+    for (let i = 0; i < sourceLength; ++i) {
+      let writeIndex = (this._writeIndex + i) % this._length;
+      for (let channel = 0; channel < this._channelCount; ++channel) {
+        this._channelData[channel][writeIndex] = arraySequence[channel][i];
+      }
+    }
+
+    this._writeIndex += sourceLength;
+    if (this._writeIndex >= this._length) {
+      this._writeIndex = 0;
+    }
+
+    // For excessive frames, the buffer will be overwritten.
+    this._framesAvailable += sourceLength;
+    if (this._framesAvailable > this._length) {
+      this._framesAvailable = this._length;
+    }
+  }
+
+  /**
+   * Pull data out of buffer and fill a given sequence of Float32Arrays.
+   *
+   * @param  {array} arraySequence An array of Float32Arrays.
+   */
+  pull(arraySequence) {
+    console.assert(arraySequence.length === this._channelCount);
+    console.assert(arraySequence[0].length <= this._length);
+
+    // If the FIFO is competely empty, do nothing.
+    if (this._framesAvailable === 0)
+      return;
+
+    let destinationLength = arraySequence[0].length;
+
+    // Transfer data from the internal buffer to the |arraySequence| storage.
+    for (let i = 0; i < destinationLength; ++i) {
+      let readIndex = (this._readIndex + i) % this._length;
+      for (let channel = 0; channel < this._channelCount; ++channel) {
+        arraySequence[channel][i] = this._channelData[channel][readIndex];
+      }
+    }
+
+    this._readIndex += destinationLength;
+    if (this._readIndex >= this._length) {
+      this._readIndex = 0;
+    }
+
+    this._framesAvailable -= destinationLength;
+    if (this._framesAvailable < 0) {
+      this._framesAvailable = 0;
+    }
+  }
+
+}  // class RingBuffer
+
+/**
+ * A simple demonstration of WASM-powered AudioWorkletProcessor.
+ *
+ * @class WASMAudioWorkletProcessor
+ * @extends AudioWorkletProcessor
  */
 class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
 
@@ -3883,14 +4028,13 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     this._heapOutputBuffer =
         new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES, 2, 32);
 
-    console.log(this._heapOutputBuffer);
-
     this._kernel = new Module.AudioWorkletProcessorKernel();
   }
 
   process(inputs, outputs, parameters) {
-    // Use the 1st input and output only. |input| and |output| here have the
-    // same structure with the AudioBuffer interface. (An array of Float32Array)
+    // Use the 1st input and output only to make the example simpler. |input|
+    // and |output| here have the similar structure with the AudioBuffer
+    // interface. (i.e. An array of Float32Array)
     let input = inputs[0];
     let output = outputs[0];
 
@@ -3903,10 +4047,11 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     this._heapOutputBuffer.adaptChannel(channelCount);
 
     // Copy-in, process and copy-out.
-    for (let channel = 0; channel < channelCount; ++channel)
+    for (let channel = 0; channel < channelCount; ++channel) {
       this._heapInputBuffer.getChannelData(channel).set(input[channel]);
-    this._kernel.process(this._heapInputBuffer.getHeap(),
-                         this._heapOutputBuffer.getHeap(),
+    }
+    this._kernel.process(this._heapInputBuffer.getHeapAddress(),
+                         this._heapOutputBuffer.getHeapAddress(),
                          channelCount);
     for (let channel = 0; channel < channelCount; ++channel) {
       output[channel].set(this._heapOutputBuffer.getChannelData(channel));

@@ -5,11 +5,20 @@ using namespace emscripten;
 const unsigned kRenderQuantumFrames = 128;
 const unsigned kBytesPerChannel = kRenderQuantumFrames * sizeof(float);
 
-// A kernel corresponds to an input or an output of the processor. An single
-// input or an output can have multiple channels. It operates based on
-// 128-frames, which is the render quantum size of Web Audio API. Since the
-// frame size is aligned with the WebAudio's rendering enging, no additional
-// latency (buffering) is introduced.
+// The "kernel" is an object that processes a audio stream, which contains
+// one or more channels. It is supposed to obtain the frame data from an
+// |input|, process and fill an |output| of the AudioWorkletProcessor.
+//
+//       AudioWorkletProcessor Input(multi-channel, 128-frames)
+//                                 |
+//                                 V
+//                               Kernel
+//                                 |
+//                                 V
+//       AudioWorkletProcessor Output(multi-channel, 128-frames)
+//
+// In this implementation, the kernel operates based on 128-frames, which is
+// the render quantum size of Web Audio API.
 class AudioWorkletProcessorKernel {
  public:
   AudioWorkletProcessorKernel() {}
@@ -19,16 +28,12 @@ class AudioWorkletProcessorKernel {
     float* input_buffer = reinterpret_cast<float*>(input_ptr);
     float* output_buffer = reinterpret_cast<float*>(output_ptr);
 
-    // Bypasses the data. If the input channel is smaller than the output
-    // channel, it fills the output channel with zero.
+    // Bypasses the data. By design, the channel count will always be the same
+    // for |input_buffer| and |output_buffer|.
     for (unsigned channel = 0; channel < channel_count; ++channel) {
       float* destination = output_buffer + channel * kRenderQuantumFrames;
-      if (channel < channel_count) {
-        float* source = input_buffer + channel * kRenderQuantumFrames;
-        memcpy(destination, source, kBytesPerChannel);
-      } else {
-        memset(destination, 0, kBytesPerChannel);
-      }
+      float* source = input_buffer + channel * kRenderQuantumFrames;
+      memcpy(destination, source, kBytesPerChannel);
     }
   }
 };
