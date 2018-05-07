@@ -4024,9 +4024,11 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     // Allocate the buffer for the heap access. Start with stereo, but it can
     // be expanded up to 32 channels.
     this._heapInputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES, 2, 32);
+        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
+                            2, WA2.MAX_CHANNEL_COUNT);
     this._heapOutputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES, 2, 32);
+        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
+                            2, WA2.MAX_CHANNEL_COUNT);
 
     this._kernel = new Module.AudioWorkletProcessorKernel();
   }
@@ -4038,11 +4040,12 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     let input = inputs[0];
     let output = outputs[0];
 
-    // The channel count of the pipeline in the node is static within a given
-    // render quantum. Also identical for the input and output.
+    // For this given render quantum, the channel count of the node is fixed
+    // and identical for the input and the output.
     let channelCount = input.length;
 
-    // Prepare the dynamic channel count change.
+    // Prepare HeapAudioBuffer for the channel count change in the current
+    // render quantum.
     this._heapInputBuffer.adaptChannel(channelCount);
     this._heapOutputBuffer.adaptChannel(channelCount);
 
