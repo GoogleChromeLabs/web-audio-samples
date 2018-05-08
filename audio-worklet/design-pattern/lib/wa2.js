@@ -121,7 +121,7 @@ class HeapAudioBuffer { // eslint-disable-line no-unused-vars
    * array of channel data.
    */
   getChannelData(channelIndex) {
-    if (channelIndex < this._channelCount) {
+    if (channelIndex >= this._channelCount) {
       return null;
     }
 
