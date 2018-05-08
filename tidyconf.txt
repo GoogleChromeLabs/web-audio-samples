@@ -1,7 +1,0 @@
-# tidy -m -quiet -config tidyconf.txt
-
-char-encoding: utf8
-indent: yes
-wrap: 78
-tidy-mark: no
-literal-attributes: yes

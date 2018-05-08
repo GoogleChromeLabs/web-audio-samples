@@ -63,6 +63,9 @@ found in the LICENSE file.
   </div>
   <script src="../../lib/audio-worklet-helper.js"></script>
   <script>
+    /**
+     * Run demo. Invoked by the AudioWorkletHelper when the page is loaded.
+     */
     function runDemo() {
       const context = new AudioContext();
       context.audioWorklet.addModule('audio-worklet-module.js').then(() => {
@@ -80,7 +83,7 @@ found in the LICENSE file.
           function. See the article on the AudioWorklet design pattern for more
           details.`,
       htmlSource: 'audio-worklet/design-pattern/awn/',
-      demoFunction: runDemo
+      demoFunction: runDemo,
     });
   </script>
 </body>
