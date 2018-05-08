@@ -1,6 +1,6 @@
 /**
  * @fileOverview WA2 library. A set of utilities to support WASM operations
- * for the WebAudio.
+ * for the WebAudio. (WebAudio and WebAssembly => WAWA => WA2)
  */
 
 
@@ -39,8 +39,8 @@ class HeapAudioBuffer {
    * @return {object} HeapAudioBuffer object.
    */
   constructor(length, channelCount, maxChannelCount) {
-    console.assert(Module);
-    console.assert(0 < channelCount && channelCount <= WA2.MAX_CHANNEL_COUNT);
+    // The |channelCount| must be greater than 0, and less than or equal to
+    // the maximum channel count.
 
     this._isInitialized = false;
     this._length = length;
@@ -59,8 +59,6 @@ class HeapAudioBuffer {
    * @private
    */
   _allocateHeap() {
-    console.assert(!this._isInitialized);
-
     const channelByteSize = this._length * WA2.BYTES_PER_SAMPLE;
     const dataByteSize = this._channelCount * channelByteSize;
     this._dataPtr = Module._malloc(dataByteSize);
@@ -81,10 +79,7 @@ class HeapAudioBuffer {
    * @param  {number} newChannelCount The new channel count.
    */
   adaptChannel(newChannelCount) {
-    console.assert(this._isInitialized);
-    console.assert(newChannelCount < this._maxChannelCount);
-
-    if (this._channelCount !== newChannelCount) {
+    if (newChannelCount < this._maxChannelCount) {
       this._channelCount = newChannelCount;
     }
   }
@@ -126,9 +121,8 @@ class HeapAudioBuffer {
    * array of channel data.
    */
   getChannelData(channelIndex) {
-    console.assert(this._isInitialized);
-    console.assert(typeof channelIndex === 'undefined' ||
-                   channelIndex < this._channelCount);
+    if (channelIndex < this._channelCount)
+      return null;
 
     return typeof channelIndex === 'undefined'
         ? this._channelData : this._channelData[channelIndex];
@@ -140,8 +134,6 @@ class HeapAudioBuffer {
    * @return {number} WASM Heap address.
    */
   getHeapAddress() {
-    console.assert(this._isInitialized);
-
     return this._dataPtr;
   }
 
@@ -151,8 +143,6 @@ class HeapAudioBuffer {
    * @return {[type]} [description]
    */
   free() {
-    console.assert(this._isInitialized);
-
     this._isInitialized = false;
     Module._free(this._dataPtr);
     Module._free(this._pointerArrayPtr);
@@ -211,12 +201,11 @@ class RingBuffer {
    * @param  {array} arraySequence A sequence of Float32Arrays.
    */
   push(arraySequence) {
-    console.assert(arraySequence.length === this._channelCount);
-    console.assert(arraySequence[0].length <= this._length);
-
-    let sourceLength = arraySequence[0].length;
+    // The channel count of arraySequence and the length of each channel must
+    // match with this buffer obejct.
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
+    let sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
       let writeIndex = (this._writeIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
@@ -242,8 +231,8 @@ class RingBuffer {
    * @param  {array} arraySequence An array of Float32Arrays.
    */
   pull(arraySequence) {
-    console.assert(arraySequence.length === this._channelCount);
-    console.assert(arraySequence[0].length <= this._length);
+    // The channel count of arraySequence and the length of each channel must
+    // match with this buffer obejct.
 
     // If the FIFO is competely empty, do nothing.
     if (this._framesAvailable === 0)
