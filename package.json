@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/GoogleChromeLabs/web-audio-samples/issues"
   },
-  "homepage": "https://googlechromelabs.github.io/web-audio-samples/"
+  "homepage": "https://googlechromelabs.github.io/web-audio-samples/",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.9.1"
+  }
 }

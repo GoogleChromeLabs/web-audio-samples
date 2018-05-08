@@ -5,7 +5,9 @@
  * @extends AudioWorkletProcessor
  */
 class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
-
+  /**
+   * @constructor
+   */
   constructor() {
     super();
 
@@ -21,6 +23,13 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     this._kernel = new Module.AudioWorkletProcessorKernel();
   }
 
+  /**
+   * System-invoked process callback function.
+   * @param  {Array} inputs Incoming audio stream.
+   * @param  {Array} outputs Outgoing audio stream.
+   * @param  {Object} parameters AudioParam data.
+   * @return {Boolean} Active source flag.
+   */
   process(inputs, outputs, parameters) {
     // Use the 1st input and output only to make the example simpler. |input|
     // and |output| here have the similar structure with the AudioBuffer
