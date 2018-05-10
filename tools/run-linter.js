@@ -1,7 +1,22 @@
+const fs      = require('fs');
+const path    = require('path');
+const glob    = require('glob');
 const libtidy = require('libtidy');
 const eslint  = require('eslint');
-const fs      = require('fs');
 
+const eslintCLI = new eslint.CLIEngine({
+  "plugins": [
+    "html"
+  ],
+  "env": {
+    "es6": true,
+  },
+  "extends": "google",
+  "rules": {
+  }
+});
+
+const eslintFormatter = eslintCLI.getFormatter();
 
 // fs.readFileSync(filePath, 'utf8').toString();
 
@@ -12,6 +27,16 @@ const fs      = require('fs');
 //     'tidy-mark': 'no',
 //     'doctype': 'html5'
 //   },
+
+function formatJSfiles(targetFiles) {
+  let report = eslintCLI.executeOnFiles(targetFiles);
+  console.log(eslintFormatter(report.results));
+  // targetFiles.forEach((filePath) => {
+  //   if (path.extname(targetPath) === '.js') {
+  //     let codeString = fs.readFileSync(filePath, 'utf8').toString();
+  //   }
+  // });
+}
 
 
 
@@ -26,7 +51,8 @@ function main() {
       let stat = fs.lstatSync(targetPath);
       if (stat.isFile()) {
         let fileType = path.extname(targetPath);
-        if (fileType === '.html' || fileType === '.js') {
+        if (fileType === '.html' ||
+            (fileType === '.js' && !targetPath.includes('.wasmmodule.js'))) {
           files.push(targetPath);
         }
       }
@@ -42,8 +68,7 @@ function main() {
     }
   });
 
-  console.log(files);
-
+  formatJSfiles(files);
 }
 
 main();
