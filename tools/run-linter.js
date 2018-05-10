@@ -16,6 +16,16 @@ const eslintCLI = new eslint.CLIEngine({
   }
 });
 
+const tidyOptions = {
+  'indent': 'yes',
+  'indent-spaces': '2',
+  'wrap': '80',
+  'tidy-mark': 'no',
+  'doctype': 'html5',
+  'vertical-space': 'no',
+  'new-pre-tags': 'script'
+};
+
 const eslintFormatter = eslintCLI.getFormatter();
 
 // fs.readFileSync(filePath, 'utf8').toString();
@@ -28,7 +38,35 @@ const eslintFormatter = eslintCLI.getFormatter();
 //     'doctype': 'html5'
 //   },
 
-function formatJSfiles(targetFiles) {
+function formatHTML(targetFiles) {
+  targetFiles.forEach((filePath) => {
+    if (path.extname(filePath) !== '.html')
+      return;
+
+    let tidyDoc = new libtidy.TidyDoc();
+    for (let option in tidyOptions)
+      tidyDoc.optSet(option, tidyOptions[option]);
+
+    let pageString = fs.readFileSync(filePath, 'utf8').toString();
+
+    let logs = '';
+    logs += tidyDoc.parseBufferSync(Buffer(pageString));
+    logs += tidyDoc.cleanAndRepairSync();
+    logs += tidyDoc.runDiagnosticsSync();
+
+    pageString = tidyDoc.saveBufferSync().toString();
+
+    let re1 = new RegExp(/\/script> \n/, 'gm');
+    pageString = pageString.replace(re1, '\/script>\n');
+    let re2 = new RegExp(/\>\n{2,}/, 'gm');
+    pageString = pageString.replace(re2, '>\n');
+
+    fs.writeFileSync(filePath, pageString);
+  });
+}
+
+function formatJS(targetFiles) {
+  console.log('Applying ESLint...');
   let report = eslintCLI.executeOnFiles(targetFiles);
   console.log(eslintFormatter(report.results));
   // targetFiles.forEach((filePath) => {
@@ -54,6 +92,7 @@ function main() {
         if (fileType === '.html' ||
             (fileType === '.js' && !targetPath.includes('.wasmmodule.js'))) {
           files.push(targetPath);
+          console.log(targetPath);
         }
       }
       // } else if (
@@ -68,7 +107,10 @@ function main() {
     }
   });
 
-  formatJSfiles(files);
+  formatHTML(files);
+  // formatJS(files);
+
+  console.log('Linting completed.');
 }
 
 main();
