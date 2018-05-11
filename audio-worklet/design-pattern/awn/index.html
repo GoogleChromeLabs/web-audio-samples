@@ -14,55 +14,56 @@ found in the LICENSE file.
     <link rel="stylesheet" href=
     "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
     <link rel="stylesheet" href="../../../resources/base-v2.css">
-</head>
-<body>
-  <div class="container">
-    <div class="float-right">
-      <div id="div-worklet-indicator" class="worklet-status-pending">
-        Checking...
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
       </div>
+      <section class="nav-bar">
+        <a href="../../../"><span>Chrome WebAudio Samples</span></a>
+        <span class="nav-divider">|</span> <a href=
+        "../../"><span>AudioWorklet</span></a> <span class=
+        "nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>Source: <a id="link-html-source" target="_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
     </div>
-    <section class="nav-bar">
-      <a href="../../../"><span>Chrome WebAudio Samples</span></a> <span class=
-      "nav-divider">|</span> <a href="../../"><span>AudioWorklet</span></a>
-      <span class="nav-divider">|</span> <span id="title-navbar"></span>
-    </section>
-    <section class="header">
-      <h1 id="title-header"></h1>
-    </section>
-    <section class="content">
-      <div class="row">
-        <div class="column">
-          <p id="demo-description"></p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="column">
-          <ul>
-            <li>Source: <a id="link-html-source" target="_blank"></a>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="row">
-        <div class="column">
-          <button id="btn-run-demo" class="button" disabled>Run
-          Demo</button>
-          <div id="div-warning-message" class="warning"></div>
-        </div>
-      </div>
-    </section>
-    <section class="footer">
-      <a target="_blank" href="https://goo.gl/XW3f44">Found something
-      broken?</a><br>
-      <br>
-      <p>
-        Chrome ♥ WebAudio
-      </p>
-    </section>
-  </div>
-  <script src="../../lib/audio-worklet-helper.js"></script>
-  <script>
+    <script src="../../lib/audio-worklet-helper.js"></script>
+    <script>
     /**
      * Run demo. Invoked by the AudioWorkletHelper when the page is loaded.
      */
@@ -85,6 +86,6 @@ found in the LICENSE file.
       htmlSource: 'audio-worklet/design-pattern/awn/',
       demoFunction: runDemo,
     });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

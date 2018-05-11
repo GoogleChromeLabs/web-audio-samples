@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "A collection of samples, projects and resources for Web Audio API. Curated by Chrome WebAudio team.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "node tools/format.js audio-worklet/design-pattern/**/*"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "eslint": "^4.19.1",
     "eslint-config-google": "^0.9.1",
-    "eslint-plugin-html": "^4.0.3"
+    "eslint-plugin-html": "^4.0.3",
+    "libtidy": "^0.3.7"
   }
 }
