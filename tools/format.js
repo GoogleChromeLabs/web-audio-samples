@@ -11,86 +11,67 @@ const fs = require('fs');
 const path = require('path');
 const libtidy = require('libtidy');
 const eslint = require('eslint');
+const config = require('./format-config');
 
-// ESLint options.
-const eslintCLI = new eslint.CLIEngine({
-  'plugins': [
-    'html',
-  ],
-  'env': {
-    'es6': true,
-  },
-  'extends': 'google',
-});
-
-// HTMLTidy options.
-const tidyOptions = {
-  'indent': 'yes',
-  'indent-spaces': '2',
-  'wrap': '80',
-  'tidy-mark': 'no',
-  'doctype': 'html5',
-  'vertical-space': 'no',
-};
-
-
-// Formatter for lint errors.
+const eslintCLI = new eslint.CLIEngine(config.eslintOptions);
 const eslintFormatter = eslintCLI.getFormatter();
+
+const FILETYPE_FILTER = [
+  '.js',
+  '.html',
+];
 
 
 /**
  * Format HTML files with HTML Tidy.
  *
- * @param {Array} targetFiles File paths in array.
+ * @param {string} filePath Target file path.
  */
-function formatHTML(targetFiles) {
-  console.log('Applying HTMLTidy...');
+function tidyHTML(filePath) {
+  console.log('   > HTMLTidy...');
 
-  targetFiles.forEach((filePath) => {
-    // If the file is not HTML, don't tidy it up.
-    if (path.extname(filePath) !== '.html') {
-      return;
+  let tidyDoc = new libtidy.TidyDoc();
+  let tidyOptions = config.htmlTidyOptions;
+  for (let option in tidyOptions) {
+    if (tidyOptions[option]) {
+      tidyDoc.optSet(option, tidyOptions[option]);
     }
+  }
 
-    let tidyDoc = new libtidy.TidyDoc();
-    for (let option in tidyOptions) {
-      if (tidyOptions[option]) {
-        tidyDoc.optSet(option, tidyOptions[option]);
-      }
-    }
+  let pageString = fs.readFileSync(filePath, 'utf8').toString();
 
-    let pageString = fs.readFileSync(filePath, 'utf8').toString();
-
-    // Collect and print info from HTML Tidy.
-    let logs = '';
-    logs += tidyDoc.parseBufferSync(new Buffer(pageString));
-    logs += tidyDoc.cleanAndRepairSync();
-    logs += tidyDoc.runDiagnosticsSync();
+  let logs = '';
+  logs += tidyDoc.parseBufferSync(new Buffer(pageString));
+  logs += tidyDoc.cleanAndRepairSync();
+  logs += tidyDoc.runDiagnosticsSync();
+  if (!logs.includes('No warnings or errors were found')) {
     console.log(logs);
+  }
 
-    pageString = tidyDoc.saveBufferSync().toString();
+  pageString = tidyDoc.saveBufferSync().toString();
 
-    // HTLMTidy does not handle the script tag well. It adds a trailing space
-    // and a blank line before the script code starts. This RegExp cleans it up.
-    let re1 = new RegExp(/\/script> \n/, 'gm');
-    pageString = pageString.replace(re1, '\/script>\n');
-    let re2 = new RegExp(/\>\n{2,}/, 'gm');
-    pageString = pageString.replace(re2, '>\n');
+  // HTLMTidy does not handle the script tag well. It adds a trailing space
+  // and a blank line before the script code starts. This RegExp cleans it up.
+  let re1 = new RegExp(/\/script> \n/, 'gm');
+  pageString = pageString.replace(re1, '\/script>\n');
+  let re2 = new RegExp(/\>\n{2,}/, 'gm');
+  pageString = pageString.replace(re2, '>\n');
 
-    fs.writeFileSync(filePath, pageString);
-  });
+  fs.writeFileSync(filePath, pageString);
 }
 
 
 /**
  * Format JS files with ESLint.
  *
- * @param {Array} targetFiles File paths in array.
+ * @param {string} filePath Target file path.
  */
-function formatJS(targetFiles) {
-  console.log('Applying ESLint...');
+function lintJS(filePath) {
+  console.log('   > Linting...');
 
-  let report = eslintCLI.executeOnFiles(targetFiles);
+  let report = eslintCLI.executeOnFiles([filePath]);
+
+  // Print formatted results if there's any error.
   if (report.results[0].errorCount > 0) {
     console.log(eslintFormatter(report.results));
   }
@@ -98,35 +79,78 @@ function formatJS(targetFiles) {
 
 
 /**
- * Script entry point.
+ * Test file path to collect.
+ * @param {string} filePath Target file path.
+ * @return {Boolean} Test result.
  */
-function main() {
-  let args = process.argv.slice(2);
+function testFilePath(filePath) {
+  // If not a file, return false.
+  let stat = fs.lstatSync(filePath);
+  if (!stat.isFile()) {
+    return false;
+  }
+
+  // If it has a ignore keyword, return false.
+  for (let i = 0; i < config.ignore.length; ++i) {
+    if (filePath.includes(config.ignore[i])) {
+      return false;
+    }
+  }
+
+  // If it is not either HTML or JS, return false.
+  if (!FILETYPE_FILTER.includes(path.extname(filePath))) {
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Collect files to process based on criteria.
+ *   - Is it JS? or Is HTML?
+ *   - Does it have 'wasmemodule.js' in its file name?
+ * @param {Array} paths A list of file paths.
+ * @return {Array} Collected file paths after testing.
+ */
+function collectFiles(paths) {
   let files = [];
-  args.forEach((targetPath) => {
+  paths.forEach((filePath) => {
     try {
-      let stat = fs.lstatSync(targetPath);
-      if (stat.isFile()) {
-        // This linter only applies to JS and HTML file. The JS file generated
-        // by Emscripten is also excluded by the keyword in the file name.
-        let fileType = path.extname(targetPath);
-        if (fileType === '.html' ||
-            (fileType === '.js' && !targetPath.includes('.wasmmodule.js'))) {
-          files.push(targetPath);
-          console.log(targetPath);
-        }
+      if (testFilePath(filePath)) {
+        files.push(filePath);
       }
     } catch (error) {
-      let errorMessage = 'Invalid file path. (' + targetPath + ')\n' +
+      let errorMessage = 'Invalid file path. (' + filePath + ')\n' +
           '  > ' + error.toString();
-      console.error('main()', errorMessage);
+      console.error('[Format::collectFiles]', errorMessage);
     }
   });
 
-  formatHTML(files);
-  formatJS(files);
+  return files;
+}
 
-  console.log('Formatting completed.');
+
+/**
+ * Script entry point.
+ */
+function main() {
+  let paths = process.argv.slice(2);
+  collectFiles(paths).forEach((filePath) => {
+    console.log('[] Processing: ' + filePath);
+
+    switch (path.extname(filePath)) {
+      case '.js':
+        lintJS(filePath);
+        break;
+      case '.html':
+        tidyHTML(filePath);
+        lintJS(filePath);
+        break;
+    }
+  });
+
+  console.log('[] Formatting completed.');
 }
 
 
