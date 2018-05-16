@@ -52,7 +52,7 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
     let input = inputs[0];
     let output = outputs[0];
 
-    // AudioWorkletProcessor always gets 128 frams in and 128 frames out. Here
+    // AudioWorkletProcessor always gets 128 frames in and 128 frames out. Here
     // we push 128 frames into the ring buffer.
     this._inputRingBuffer.push(input);
 
