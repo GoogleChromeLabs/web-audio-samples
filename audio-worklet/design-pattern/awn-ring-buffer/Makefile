@@ -1,12 +1,12 @@
-DEPS = RingBufferWorkletProcessorKernel.cc
+DEPS = AWPKernelWithVariableBufferSize.cc
 
 build: $(DEPS)
 	@emcc --bind -O1 -s WASM=1 \
 		-s BINARYEN_ASYNC_COMPILATION=0 -s SINGLE_FILE=1 \
-		RingBufferWorkletProcessorKernel.cc \
-		-o ring-buffer-worklet.wasmmodule.js \
+		AWPKernelWithVariableBufferSize.cc \
+		-o audioworklet.wasmmodule.js \
 		--post-js ../lib/wa2.js \
 		--post-js ring-buffer-worklet-processor.js
 
 clean:
-	@rm -f ring-buffer-worklet.wasmmodule.js
+	@rm -f audioworklet.wasmmodule.js

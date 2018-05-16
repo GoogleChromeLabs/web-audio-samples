@@ -35,7 +35,7 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
 
     // WASM audio processing kernel.
     this._kernel =
-        new Module.RingBufferWorkletProcessorKernel(this._kernelBufferSize);
+        new Module.AWPKernelWithVariableBufferSize(this._kernelBufferSize);
   }
 
   /**
