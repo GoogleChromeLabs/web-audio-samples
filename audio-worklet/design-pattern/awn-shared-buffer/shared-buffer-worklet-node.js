@@ -1,7 +1,7 @@
 /**
  * The AudioWorkletNode that has a DedicatedWorker as a backend. The
  * communication between the worker and the AWP is done via SharedArrayBuffer,
- * which runs like a big ring buffer. This clas is to demonstrate a design
+ * which runs like a big ring buffer. This class is to demonstrate a design
  * of using Worker, SharedArrayBuffer and the AudioWorklet system in one place.
  *
  * In order to use this class, you need 3 files:
@@ -36,7 +36,6 @@ class SharedBufferWorkletNode extends AudioWorkletNode {
   _onWorkerInitialized(eventFromWorker) {
     const data = eventFromWorker.data;
     if (data.message === 'WORKER_READY') {
-      console.log(data.message);
       this.port.postMessage(data.sharedBuffer);
     }
   }
@@ -45,7 +44,6 @@ class SharedBufferWorkletNode extends AudioWorkletNode {
     const data = eventFromProcessor.data;
     if (data.message === 'PROCESSOR_READY' &&
         typeof this.onInitialized === 'function') {
-      console.log(data.message);
       this.onInitialized();
     }
   }
