@@ -16,22 +16,34 @@ const STATE = {
  */
 class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
 
+  /**
+   * @constructor
+   * @param {AudioWorkletNodeOptions} nodeOptions
+   */
   constructor(nodeOptions) {
     super(nodeOptions);
 
     this._initialized = false;
-    this.port.onmessage = this._initialize.bind(this);
+    this.port.onmessage = this._initializeOnEvent.bind(this);
   }
 
-  _initialize(eventFromWorker) {
-    const sharedBuffer = eventFromWorker.data;
-    this._states = new Int32Array(sharedBuffer.states);
+  /**
+   * Without a proper coordination with the worker backend, this processor
+   * cannot function. This ensures an initialization upon the event from the
+   * worker backend.
+   *
+   * @param {Event} eventFromWorker
+   */
+  _initializeOnEvent(eventFromWorker) {
+    const sharedBuffers = eventFromWorker.data;
+    
+    this._states = new Int32Array(sharedBuffers.states);
     this._inputChannelData =
-        [new Float32Array(sharedBuffer.inputChannelData)];
+        [new Float32Array(sharedBuffers.inputChannelData)];
     this._outputChannelData =
-        [new Float32Array(sharedBuffer.outputChannelData)];
-    this._initialized = true;
+        [new Float32Array(sharedBuffers.outputChannelData)];
 
+    this._initialized = true;
     this.port.postMessage({
       message: 'PROCESSOR_READY'
     });

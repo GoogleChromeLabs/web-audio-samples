@@ -15,7 +15,7 @@
  * signal the renderer (which is this worker). The renderer waits on this bit
  * and perform the rendering on signal.
  *
- * Note that the access on the state buffer must be atomic.
+ * The access on the state buffer must be atomic.
  */
 
 const STATE = {
