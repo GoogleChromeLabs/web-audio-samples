@@ -13,27 +13,38 @@
  * @class SharedBufferWorkletNode
  * @extends AudioWorkletNode
  */
-class SharedBufferWorkletNode extends AudioWorkletNode {
-
+class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
+    extends AudioWorkletNode {
+  /**
+   * @constructor
+   * @param {BaseAudioContext} context The associated BaseAudioContext.
+   * @param {BaseAudioContextOptions} options The user-supplied options for
+   * BaseAudioContext.
+   */
   constructor(context, options) {
     super(context, 'shared-buffer-workler-processor', options);
 
+    // TODO()
     this._options = options
         ? options
-        : { bufferLength: 1024, channelCount: 1 };
+        : {bufferLength: 1024, channelCount: 1};
 
+    // Worker backend.
     this._worker = new Worker('shared-buffer-worker.js');
 
-    // This node has all the connections to the worker and the AWP, so this is
-    // a messaging hub for them. After the initial setup, the message passing
-    // between the worker and the process are rarely necessary because of the
-    // SharedArrayBuffer.
+    // This node is a messaging hub for the Worker and AWP. After the initial
+    // setup, the message passing between the worker and the process are rarely
+    // necessary because of the SharedArrayBuffer.
     this._worker.onmessage = this._onWorkerInitialized.bind(this);
     this.port.onmessage = this._onProcessorInitialized.bind(this);
 
     // Initialize the worker.
     this._worker.postMessage({
-      message: 'INITIALIZE_WORKER'
+      message: 'INITIALIZE_WORKER',
+      config: {
+        ringBufferLength: 3072,
+        channelCount: 1,
+      },
     });
   }
 
@@ -45,7 +56,7 @@ class SharedBufferWorkletNode extends AudioWorkletNode {
   _onWorkerInitialized(eventFromWorker) {
     const data = eventFromWorker.data;
     if (data.message === 'WORKER_READY') {
-      // Send the pointer of SharedArrayBuffers to the processor.
+      // Send SharedArrayBuffers to the processor.
       this.port.postMessage(data.SharedBuffers);
     }
   }
@@ -62,4 +73,4 @@ class SharedBufferWorkletNode extends AudioWorkletNode {
       this.onInitialized();
     }
   }
-} // class SharedBufferWorkletNode
+}

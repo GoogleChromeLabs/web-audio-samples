@@ -20,8 +20,8 @@ const STATE = {
   'OB_FRAMES_AVAILABLE': 4,
   'OB_READ_INDEX': 5,
   'OB_WRITE_INDEX': 6,
-  'BUFFER_LENGTH': 7,
-  'WORKER_RENDER_QUANTUM': 8
+  'RING_BUFFER_LENGTH': 7,
+  'KERNEL_LENGTH': 8,
 };
 
 // Worker processor config.
@@ -34,9 +34,6 @@ const CONFIG = {
   channelCount: 1,
   waitTimeOut: 25000,
 };
-
-// AWN's MessagePort, passed from the main thread.
-let AudioWorkletNodePort;
 
 // Shared states between this worker and AWP.
 let States;
@@ -77,7 +74,6 @@ function processKernel() {
 function waitOnRenderRequest() {
   // As long as |REQUEST_RENDER| is zero, keep waiting. (sleep)
   if (Atomics.wait(States, STATE.REQUEST_RENDER, 0) === 'ok') {
-
     processKernel();
 
     // Update the number of available frames in the buffer.
@@ -122,13 +118,13 @@ function initialize(userConfig) {
   OutputRingBuffer = [new Float32Array(SharedBuffers.outputRingBuffer)];
 
   // Initialize |States| buffer.
-  Atomics.store(States, STATE.BUFFER_LENGTH, CONFIG.ringBufferLength);
-  Atomics.store(States, STATE.WORKER_RENDER_QUANTUM, CONFIG.kernelLength);
+  Atomics.store(States, STATE.RING_BUFFER_LENGTH, CONFIG.ringBufferLength);
+  Atomics.store(States, STATE.KERNEL_LENGTH, CONFIG.kernelLength);
 
   // Notify AWN in the main scope that the worker is ready.
   postMessage({
     message: 'WORKER_READY',
-    SharedBuffers: SharedBuffers
+    SharedBuffers: SharedBuffers,
   });
 
   // Start waiting.
