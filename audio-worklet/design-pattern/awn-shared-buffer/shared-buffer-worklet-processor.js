@@ -36,12 +36,12 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
    */
   _initializeOnEvent(eventFromWorker) {
     const sharedBuffers = eventFromWorker.data;
-    
+
     this._states = new Int32Array(sharedBuffers.states);
     this._inputChannelData =
-        [new Float32Array(sharedBuffers.inputChannelData)];
+        [new Float32Array(sharedBuffers.inputRingBuffer)];
     this._outputChannelData =
-        [new Float32Array(sharedBuffers.outputChannelData)];
+        [new Float32Array(sharedBuffers.outputRingBuffer)];
 
     this._initialized = true;
     this.port.postMessage({

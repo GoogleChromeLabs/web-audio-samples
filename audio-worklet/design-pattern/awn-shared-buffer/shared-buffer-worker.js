@@ -1,23 +1,17 @@
-/**
- * SharedBufferWorker : WorkerGlobalScope
- *
- * This Worker is initailized by the main thread AWN object.
- */
+// This Worker is the actual backend of AudioWorkletProcessor (AWP). After
+// instantiated/initialized by AudioWorkletNode (AWN), it communicates with the
+// associated AWP via SharedArrayBuffer (SAB).
+//
+// A pair of SABs is created by this Worker. The one is for the shared states
+// (Int32Array) of ring buffer between two obejcts and the other works like the
+// ring buffer for audio content (Float32Array).
+//
+// The synchronization mechanism between two object is done by wake/wait
+// function in Atomics API. When the ring buffer runs out of the data to
+// consume, the AWP will flip |REQUEST_RENDER| state to signal the worker. The
+// work wakes on the signal and renders the audio data requested.
 
-/**
- * This Worker is the constructor/owner of 2 SharedArrayBuffers. For the ring
- * buffer on top of the SAB, we need one SAB for sharing the state of the buffer
- * (Int32Array) and the other for the actual audio data (Float32Array).
- *
- * Because the sink (destination) will draw 128 frames from the buffer for
- * every render quantum, it will be the driver of the buffer. When the avilable
- * frame count reaches to 128, the sink will flip the |Request render| bit to
- * signal the renderer (which is this worker). The renderer waits on this bit
- * and perform the rendering on signal.
- *
- * The access on the state buffer must be atomic.
- */
-
+// Description of shared states.
 const STATE = {
   'REQUEST_RENDER': 0,
   'IB_FRAMES_AVAILABLE': 1,
@@ -30,99 +24,121 @@ const STATE = {
   'WORKER_RENDER_QUANTUM': 8
 };
 
+// Worker processor config.
+const CONFIG = {
+  bytesPerState: Int32Array.BYTES_PER_ELEMENT,
+  bytesPerSample: Float32Array.BYTES_PER_ELEMENT,
+  stateBufferLength: 16,
+  ringBufferLength: 4096,
+  kernelLength: 1024,
+  channelCount: 1,
+  waitTimeOut: 25000,
+};
 
-// TODO: make these configurable.
-const STATE_COUNT = 16;
-const BYTES_PER_STATE = 4;
-const WAIT_TIMEOUT = 25000;
+// AWN's MessagePort, passed from the main thread.
+let AudioWorkletNodePort;
 
-const RENDER_QUANTUM = 1024; // should be customizable
-const BUFFER_LENGTH = RENDER_QUANTUM * 3; // should be customizable
-const CHANNEL_COUNT = 1;
-const BYTES_PER_SAMPLES = 4;
+// Shared states between this worker and AWP.
+let States;
 
-// AWN's port object, passed from the main thread.
-let nodePort;
-
-// Backing shared buffer.
-let sharedBuffer = {};
-
-// Local buffer reference.
-let states;
-let inputChannelData;
-let outputChannelData;
+// Shared RingBuffers between this worker and AWP.
+let InputRingBuffer;
+let OutputRingBuffer;
 
 
-// Render function.
-function process(inputReadIndex, outputWriteIndex) {
-  // For the demonstration purpose, do sample-by-sample cloning.
-  for (let i = 0; i < RENDER_QUANTUM; ++i) {
-    outputChannelData[0][(outputWriteIndex + i) % BUFFER_LENGTH] =
-        inputChannelData[0][(inputReadIndex + i) % BUFFER_LENGTH];
+/**
+ * Process audio data in the ring buffer with the user-supplied kernel.
+ */
+function processKernel() {
+  let inputReadIndex = Atomics.load(States, STATE.IB_READ_INDEX);
+  let outputWriteIndex = Atomics.load(States, STATE.OB_WRITE_INDEX);
+
+  // A stupid processing kernel that clones audio data sample-by-sample. Also
+  // note here we are handling only the first channel.
+  for (let i = 0; i < CONFIG.kernelLength; ++i) {
+    OutputRingBuffer[0][outputWriteIndex] = InputRingBuffer[0][inputReadIndex];
+    if (outputWriteIndex++ === CONFIG.ringBufferLength) {
+      outputWriteIndex = 0;
+    }
+    if (inputReadIndex++ === CONFIG.ringBufferLength) {
+      inputReadIndex = 0;
+    }
   }
+
+  Atomics.store(States, STATE.IB_READ_INDEX, inputReadIndex);
+  Atomics.store(States, STATE.OB_WRITE_INDEX, outputWriteIndex);
 }
 
 
+/**
+ * Waits for the signal delivered via |States| SAB. When signaled, process
+ * the audio data to fill up |outputRingBuffer|.
+ */
 function waitOnRenderRequest() {
   // As long as |REQUEST_RENDER| is zero, keep waiting. (sleep)
-  if (Atomics.wait(states, STATE.REQUEST_RENDER, 0) === 'ok') {
-    // Any operation below does not guarantee the exclusive access on the
-    // SharedArrayBuffer unless it uses 'Atomics' function. Be careful.
+  if (Atomics.wait(States, STATE.REQUEST_RENDER, 0) === 'ok') {
 
-    /** DO THE PROCESSING HERE */
-    let inputReadIndex = Atomics.load(states, STATE.IB_READ_INDEX);
-    let outputWriteIndex = Atomics.load(states, STATE.OB_WRITE_INDEX);
+    processKernel();
 
-    process(inputReadIndex, outputWriteIndex);
-
-    inputReadIndex += RENDER_QUANTUM;
-    if (inputReadIndex > BUFFER_LENGTH)
-      inputReadIndex %= BUFFER_LENGTH;
-    Atomics.store(states, STATE.IB_READ_INDEX, inputReadIndex);
-
-    outputWriteIndex += RENDER_QUANTUM;
-    if (outputWriteIndex > BUFFER_LENGTH)
-      outputWriteIndex %= BUFFER_LENGTH;
-    Atomics.store(states, STATE.OB_WRITE_INDEX, outputWriteIndex);
-
-    // Just consumed a RENDER_QUANTUM.
-    Atomics.sub(states, STATE.IB_FRAMES_AVAILABLE, RENDER_QUANTUM);
+    // Update the number of available frames in the buffer.
+    Atomics.sub(States, STATE.IB_FRAMES_AVAILABLE, CONFIG.kernelLength);
+    Atomics.add(States, STATE.OB_FRAMES_AVAILABLE, CONFIG.kernelLength);
 
     // Reset the request render bit, and wait again.
-    Atomics.store(states, STATE.REQUEST_RENDER, 0);
+    Atomics.store(States, STATE.REQUEST_RENDER, 0);
     waitOnRenderRequest();
   }
 }
 
+/**
+ * Initialize the worker; allocates SAB, sets up TypedArrayViews, primes
+ * |States| buffer and notify the main thread.
+ *
+ * @param {Object} userConfig User-supplied configuration data.
+ */
+function initialize(userConfig) {
+  // Shallow-clones |userConfig| to |CONFIG|.
+  for (let property in userConfig) {
+    if (property in CONFIG) {
+      CONFIG[property] = userConfig[property];
+    }
+  }
 
-function initializeWorker(dataFromMain) {
-  sharedBuffer.states = new SharedArrayBuffer(STATE_COUNT * BYTES_PER_STATE);
-  sharedBuffer.inputChannelData =
-      new SharedArrayBuffer(BUFFER_LENGTH * CHANNEL_COUNT * BYTES_PER_SAMPLES);
-  sharedBuffer.outputChannelData =
-      new SharedArrayBuffer(BUFFER_LENGTH * CHANNEL_COUNT * BYTES_PER_SAMPLES);
+  // Allocate SABs.
+  const SharedBuffers = {
+    states:
+        new SharedArrayBuffer(CONFIG.stateBufferLength * CONFIG.bytesPerState),
+    inputRingBuffer:
+        new SharedArrayBuffer(CONFIG.ringBufferLength *
+                              CONFIG.channelCount * CONFIG.bytesPerSample),
+    outputRingBuffer:
+        new SharedArrayBuffer(CONFIG.ringBufferLength *
+                              CONFIG.channelCount * CONFIG.bytesPerSample),
+  };
 
-  states = new Int32Array(sharedBuffer.states);
-  inputChannelData = [new Float32Array(sharedBuffer.inputChannelData)];
-  outputChannelData = [new Float32Array(sharedBuffer.outputChannelData)];
+  // Get TypedArrayView from SAB.
+  States = new Int32Array(SharedBuffers.states);
+  InputRingBuffer = [new Float32Array(SharedBuffers.inputRingBuffer)];
+  OutputRingBuffer = [new Float32Array(SharedBuffers.outputRingBuffer)];
 
-  Atomics.store(states, STATE.BUFFER_LENGTH, BUFFER_LENGTH);
-  Atomics.store(states, STATE.WORKER_RENDER_QUANTUM, RENDER_QUANTUM);
+  // Initialize |States| buffer.
+  Atomics.store(States, STATE.BUFFER_LENGTH, CONFIG.ringBufferLength);
+  Atomics.store(States, STATE.WORKER_RENDER_QUANTUM, CONFIG.kernelLength);
 
+  // Notify AWN in the main scope that the worker is ready.
   postMessage({
     message: 'WORKER_READY',
-    sharedBuffer: sharedBuffer
+    SharedBuffers: SharedBuffers
   });
 
+  // Start waiting.
   waitOnRenderRequest();
 }
 
-
-// After the initial setup, no message passing will be necessary.
 onmessage = (eventFromMain) => {
   switch (eventFromMain.data.message) {
     case 'INITIALIZE_WORKER':
-      initializeWorker(eventFromMain.data);
+      initialize(eventFromMain.data);
       break;
   }
 };

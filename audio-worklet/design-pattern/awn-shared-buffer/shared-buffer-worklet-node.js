@@ -45,8 +45,8 @@ class SharedBufferWorkletNode extends AudioWorkletNode {
   _onWorkerInitialized(eventFromWorker) {
     const data = eventFromWorker.data;
     if (data.message === 'WORKER_READY') {
-      // Send the pointer of SharedArrayBuffer to the processor.
-      this.port.postMessage(data.sharedBuffer);
+      // Send the pointer of SharedArrayBuffers to the processor.
+      this.port.postMessage(data.SharedBuffers);
     }
   }
 
