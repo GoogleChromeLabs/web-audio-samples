@@ -9,4 +9,4 @@ build: $(DEPS)
 		--post-js audio-worklet-processor.js
 
 clean:
-	@rm -f audio-worklet-module.js
+	@rm -f audio-worklet.wasmmodule.js
