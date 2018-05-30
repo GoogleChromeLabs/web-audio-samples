@@ -18,16 +18,20 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
   /**
    * @constructor
    * @param {BaseAudioContext} context The associated BaseAudioContext.
-   * @param {BaseAudioContextOptions} options The user-supplied options for
-   * BaseAudioContext.
+   * @param {AudioWorkletNodeOptions} options User-supplied options for
+   * AudioWorkletNode.
+   * @param {object} options.worker Options for worker processor.
+   * @param {number} options.worker.ringBufferLength Ring buffer length of
+   * worker processor.
+   * @param {number} options.worker.channelCount Channel count of worker
+   * processor.
    */
   constructor(context, options) {
-    super(context, 'shared-buffer-workler-processor', options);
+    super(context, 'shared-buffer-worklet-processor', options);
 
-    // TODO()
-    this._options = options
-        ? options
-        : {bufferLength: 1024, channelCount: 1};
+    this._workerOptions = (options && options.worker)
+      ? options.worker
+      : {ringBufferLength: 3072, channelCount: 1};
 
     // Worker backend.
     this._worker = new Worker('shared-buffer-worker.js');
@@ -41,9 +45,9 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     // Initialize the worker.
     this._worker.postMessage({
       message: 'INITIALIZE_WORKER',
-      config: {
-        ringBufferLength: 3072,
-        channelCount: 1,
+      options: {
+        ringBufferLength: this._workerOptions.ringBufferLength,
+        channelCount: this._workerOptions.channelCount,
       },
     });
   }

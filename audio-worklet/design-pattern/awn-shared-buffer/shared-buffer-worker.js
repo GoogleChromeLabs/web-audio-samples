@@ -13,14 +13,31 @@
 
 // Description of shared states.
 const STATE = {
+  // Flag for Atomics.wait() and wake().
   'REQUEST_RENDER': 0,
+
+  // Available frames in Input SAB.
   'IB_FRAMES_AVAILABLE': 1,
+
+  // Read index of Input SAB.
   'IB_READ_INDEX': 2,
+
+  // Write index of Input SAB.
   'IB_WRITE_INDEX': 3,
+
+  // Available frames in Output SAB.
   'OB_FRAMES_AVAILABLE': 4,
+
+  // Read index of Output SAB.
   'OB_READ_INDEX': 5,
+
+  // Write index of Output SAB.
   'OB_WRITE_INDEX': 6,
+
+  // Size of Input and Output SAB.
   'RING_BUFFER_LENGTH': 7,
+
+  // Size of user-supplied processing callback.
   'KERNEL_LENGTH': 8,
 };
 
@@ -45,10 +62,13 @@ let OutputRingBuffer;
 
 /**
  * Process audio data in the ring buffer with the user-supplied kernel.
+ *
+ * NOTE: This assumes that no one will modify the buffer content while it is
+ * processed by this method.
  */
 function processKernel() {
-  let inputReadIndex = Atomics.load(States, STATE.IB_READ_INDEX);
-  let outputWriteIndex = Atomics.load(States, STATE.OB_WRITE_INDEX);
+  let inputReadIndex = States[STATE.IB_READ_INDEX];
+  let outputWriteIndex = States[STATE.OB_WRITE_INDEX];
 
   // A stupid processing kernel that clones audio data sample-by-sample. Also
   // note here we are handling only the first channel.
@@ -62,8 +82,8 @@ function processKernel() {
     }
   }
 
-  Atomics.store(States, STATE.IB_READ_INDEX, inputReadIndex);
-  Atomics.store(States, STATE.OB_WRITE_INDEX, outputWriteIndex);
+  States[STATE.IB_READ_INDEX] = inputReadIndex;
+  States[STATE.OB_WRITE_INDEX] = outputWriteIndex;
 }
 
 
@@ -90,14 +110,14 @@ function waitOnRenderRequest() {
  * Initialize the worker; allocates SAB, sets up TypedArrayViews, primes
  * |States| buffer and notify the main thread.
  *
- * @param {Object} userConfig User-supplied configuration data.
+ * @param {object} options User-supplied options.
  */
-function initialize(userConfig) {
-  // Shallow-clones |userConfig| to |CONFIG|.
-  for (let property in userConfig) {
-    if (property in CONFIG) {
-      CONFIG[property] = userConfig[property];
-    }
+function initialize(options) {
+  if (options.ringBufferLength) {
+    CONFIG.ringBufferLength = options.ringBufferLength;
+  }
+  if (options.channelCount) {
+    CONFIG.channelCount = options.channelCount;
   }
 
   // Allocate SABs.
@@ -132,9 +152,7 @@ function initialize(userConfig) {
 }
 
 onmessage = (eventFromMain) => {
-  switch (eventFromMain.data.message) {
-    case 'INITIALIZE_WORKER':
-      initialize(eventFromMain.data);
-      break;
+  if (eventFromMain.data.message === 'INITIALIZE_WORKER') {
+    initialize(eventFromMain.data.options);
   }
 };
