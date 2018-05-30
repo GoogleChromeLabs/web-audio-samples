@@ -69,7 +69,7 @@ found in the LICENSE file.
      */
     function runDemo() {
       const context = new AudioContext();
-      context.audioWorklet.addModule('audio-worklet-module.js').then(() => {
+      context.audioWorklet.addModule('audio-worklet.wasmmodule.js').then(() => {
         let osc = new OscillatorNode(context);
         let awn = new AudioWorkletNode(context, 'wasm-audio-worklet-processor');
         osc.connect(awn).connect(context.destination);
