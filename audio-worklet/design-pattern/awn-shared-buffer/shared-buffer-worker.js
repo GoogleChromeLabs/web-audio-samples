@@ -93,16 +93,15 @@ function processKernel() {
  */
 function waitOnRenderRequest() {
   // As long as |REQUEST_RENDER| is zero, keep waiting. (sleep)
-  if (Atomics.wait(States, STATE.REQUEST_RENDER, 0) === 'ok') {
+  while (Atomics.wait(States, STATE.REQUEST_RENDER, 0) === 'ok') {
     processKernel();
 
     // Update the number of available frames in the buffer.
-    Atomics.sub(States, STATE.IB_FRAMES_AVAILABLE, CONFIG.kernelLength);
-    Atomics.add(States, STATE.OB_FRAMES_AVAILABLE, CONFIG.kernelLength);
+    States[STATE.IB_FRAMES_AVAILABLE] -= CONFIG.kernelLength;
+    States[STATE.OB_FRAMES_AVAILABLE] += CONFIG.kernelLength;
 
     // Reset the request render bit, and wait again.
     Atomics.store(States, STATE.REQUEST_RENDER, 0);
-    waitOnRenderRequest();
   }
 }
 
