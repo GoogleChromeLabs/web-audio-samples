@@ -11,7 +11,7 @@
 // consume, the AWP will flip |REQUEST_RENDER| state to signal the worker. The
 // work wakes on the signal and renders the audio data requested.
 
-// Description of shared states.
+// Indices for the State SAB.
 const STATE = {
   // Flag for Atomics.wait() and wake().
   'REQUEST_RENDER': 0,
@@ -153,5 +153,8 @@ function initialize(options) {
 onmessage = (eventFromMain) => {
   if (eventFromMain.data.message === 'INITIALIZE_WORKER') {
     initialize(eventFromMain.data.options);
+    return;
   }
+
+  console.log('[SharedBufferWorker] Unknown message: ', eventFromMain);
 };

@@ -75,6 +75,10 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     if (data.message === 'PROCESSOR_READY' &&
         typeof this.onInitialized === 'function') {
       this.onInitialized();
+      return;
     }
+
+    console.log('[SharedBufferWorklet] Unknown message: ',
+                eventFromProcessor);
   }
 }
