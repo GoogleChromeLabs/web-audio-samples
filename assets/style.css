@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,600');
+
+html, body {
+  font-family: 'Roboto';
+  color: #102027;
+}
+
+p {
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+a, a:active, a:visited {
+  color: #0091ea;
+}
+
+a:hover {
+  color: #64c1ff;
+}
+
+.was-page-wrap {
+  max-width: 96rem;
+}
+
+.was-top-bar {
+  color: #90a4ae;
+  margin-top: 4rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.05rem;
+  font-weight: 600;
+}
+
+.was-top-bar ul {
+  list-style: none;
+  margin: 0;
+}
+
+.was-top-bar ul li {
+  display: inline;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.was-top-bar-divider {
+  margin: 0;
+  padding: 0 5px;
+}
+
+.was-header {
+  margin-top: 5rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.was-header h1 {
+  font-size: 4.0rem;
+  margin-bottom: 0;
+}
+
+.was-list-view {
+  flex-wrap: wrap;
+}
+
+.was-list-view h2 {
+  font-size: 3.6rem;
+  letter-spacing: 0.02rem;
+}
+
+.was-list-title {
+  margin: 3.4rem 0 1rem;
+}
+
+.was-project-entry {
+  margin-bottom: 3rem;
+}
+
+.was-project-title {
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: 0.01rem;
+  margin-bottom: 0.8rem;
+}
+
+.was-project-description {
+  font-size: 1.6rem;
+  line-height: 1.6;
+}
+
+.was-footer {
+  margin-top: 8rem;
+  margin-bottom: 4rem;
+  text-align: center;
+  color: #62727b;
+}
+
+.was-footer ul li {
+  display: inline;
+  padding: 0 5px;
+}
+
+.was-footer ul li::before {
+  content: "\2022  ";
+}

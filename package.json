@@ -1,0 +1,11 @@
+{
+  "name": "web-audio-samples",
+  "version": "2.0.0",
+  "scripts": {},
+  "author": "Chromium authors",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@webcomponents/webcomponentsjs": "^2.0.1"
+  }
+}
