@@ -18,6 +18,7 @@ const GitHubRepo = 'https://googlechromelabs.github.io/web-audio-samples/';
 export default {
 
   Projects: {
+    listTitle: 'Featured Projects',
     listData: [
       {
         title: 'AudioWorklet Portal',
@@ -34,6 +35,11 @@ export default {
         description:
             'Learning music through web technology',
         url: '//musiclab.chromeexperiments.com',
+      },
+      {
+        title: 'WebAudio Demos',
+        description: 'WebAudio demo collection',
+        url: 'http://webaudiodemos.appspot.com/',
       },
       {
         title: 'Filter Playground',
@@ -60,6 +66,43 @@ export default {
         description: 'Clara Rockmore’s 105th Birthday',
         url: '//www.google.com/doodles/clara-rockmores-105th-birthday',
       },
+      {
+        title: 'Google Doodle: Robert Moog&#39;s 78th Birthday',
+        description: 'Robert Moog&#39;s 78th Birthday',
+        url: '//www.google.com/doodles/robert-moogs-78th-birthday',
+      },
+      {
+        title: 'Beautiful Audio Editor',
+        description: 'Web-based multitrack recorder/editor',
+        url: '//beautifulaudioeditor.appspot.com/',
+      },
+      {
+        title: 'WebAudio Inspector DevTool Extension',
+        description: 'Chrome DevTool extension for Web Audio API',
+        url: '//github.com/google/audion',
+      },
     ]
+  },
+
+  Demos: {
+    listTitle: 'Early Demos',
+    listData: [
+      {
+        title: 'WaveTable Synthesizer',
+        url: '#',
+      },
+      {
+        title: 'WebGL visualizaiton with AnalyserNode',
+        url: '#',
+      },
+      {
+        title: 'Panning and Reverberation',
+        url: '#',
+      },
+      {
+        title: '8 Ball',
+        url: '#',
+      }
+    ],
   },
 };

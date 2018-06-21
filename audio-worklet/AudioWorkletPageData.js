@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-const GitHubRepo = 'https://googlechromelabs.github.io/web-audio-samples/';
-
 export default {
 
   TopBar: {
@@ -33,7 +31,7 @@ export default {
         description: `
             A simple AudioWorkletNode that bypasses the incominng audio stream
             to its output.`,
-        url: 'basic/hello-audio-worklet.html',
+        url: 'hello-audio-worklet/',
       },
       {
         title: 'Noise with AudioParam Modulation',

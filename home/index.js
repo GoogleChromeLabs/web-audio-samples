@@ -16,10 +16,12 @@
 import HomePageData from './HomePageData.js';
 
 import TwoColumnListView from '../module/TwoColumnListView.js';
+import ThreeColumnListView from '../module/ThreeColumnListView.js';
 import Footer from '../module/Footer.js';
 
 const buildPage = () => {
   TwoColumnListView('Projects', HomePageData.Projects);
+  ThreeColumnListView('Demos', HomePageData.Demos);
   Footer('Footer');
 };
 

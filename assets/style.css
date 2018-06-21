@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,600');
 
 html, body {
-  font-family: 'Roboto';
   color: #102027;
 }
 
@@ -53,7 +52,7 @@ a:hover {
 }
 
 .was-header h1 {
-  font-size: 4.0rem;
+  font-size: 4.4rem;
   margin-bottom: 0;
 }
 
@@ -62,12 +61,17 @@ a:hover {
 }
 
 .was-list-view h2 {
-  font-size: 3.6rem;
+  font-size: 3.2rem;
+  letter-spacing: 0.02rem;
+}
+
+.was-list-view h4 {
+  font-size: 2rem;
   letter-spacing: 0.02rem;
 }
 
 .was-list-title {
-  margin: 3.4rem 0 1rem;
+  margin: 3.0rem 0 1rem;
 }
 
 .was-project-entry {
