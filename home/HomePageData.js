@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const GitHubRepo = 'https://googlechromelabs.github.io/web-audio-samples/';
+const GitHubRepo = '//googlechromelabs.github.io/web-audio-samples/';
 
 export default {
 
@@ -94,23 +94,23 @@ export default {
       {
         title: 'Box2D Stress Test',
         description: 'Box2D WebAudio Stress Test',
-        url: '#',
+        url: GitHubRepo + 'stress-test/boxes',
       },
       {
         title: 'WaveTable Synthesizer',
-        url: '#',
+        url: GitHubRepo + 'samples/audio/wavetable-synth.html',
       },
       {
         title: 'WebGL visualizaiton with AnalyserNode',
-        url: '#',
+        url: GitHubRepo + 'samples/audio/visualizer-gl.html',
       },
       {
         title: 'Panning and Reverberation',
-        url: '#',
+        url: GitHubRepo + 'samples/audio/simple.html',
       },
       {
         title: '8 Ball',
-        url: '#',
+        url: GitHubRepo + 'samples/audio/o3d-webgl-samples/pool.html',
       }
     ]
   },
