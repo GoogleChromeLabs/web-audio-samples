@@ -9,19 +9,19 @@
     <link href="/assets/style.css" rel="stylesheet">
     <title>AudioWorklet | WebAudio Samples</title>
     <script type="module">
-    import { render, at, buildPage } from '../module/Base.js';
-    import TopBar from '../module/TopBar.js';
-    import TwoColumnListView from '../module/TwoColumnListView.js';
-    import Footer from '../module/Footer.js';
-    import PageData from './AudioWorkletPageData.js';
+      import { render, at, buildPage } from '../module/Base.js';
+      import TopBar from '../module/TopBar.js';
+      import TwoColumnListView from '../module/TwoColumnListView.js';
+      import Footer from '../module/Footer.js';
+      import PageData from './AudioWorkletPageData.js';
 
-    buildPage(() => {
-      render(TopBar(PageData.TopBar), at('TopBar'));
-      render(TwoColumnListView(PageData.BasicDemo), at('BasicDemo'));
-      render(TwoColumnListView(PageData.DesignPattern), at('DesignPattern'));
-      render(TwoColumnListView(PageData.Resources), at('Resources'));
-      render(Footer(), at('Footer'));
-    });
+      buildPage(() => {
+        render(TopBar(PageData.TopBar), at('TopBar'));
+        render(TwoColumnListView(PageData.BasicDemo), at('BasicDemo'));
+        render(TwoColumnListView(PageData.DesignPattern), at('DesignPattern'));
+        render(TwoColumnListView(PageData.Resources), at('Resources'));
+        render(Footer(), at('Footer'));
+      });
     </script>
   </head>
   <body>

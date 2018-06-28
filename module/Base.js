@@ -5,7 +5,11 @@ const at = (targetDivId) => {
 };
 
 const buildPage = (renderFunctions) => {
-  window.addEventListener('load', renderFunctions);
+  // TODO: how do I fix the "flickering issue"? How can these render calls
+  // can be synchronized?
+  window.addEventListener('load', () => {
+    renderFunctions();
+  });
 };
 
 export {
