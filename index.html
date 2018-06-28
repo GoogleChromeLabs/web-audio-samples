@@ -10,10 +10,22 @@
     <link href="/assets/milligram.min.css" rel="stylesheet">
     <link href="/assets/style.css" rel="stylesheet">
     <title>WebAudio Samples | Google Chrome Labs</title>
+    <script type="module">
+      import { render, at, buildPage } from './module/Base.js';
+      import TwoColumnListView from './module/TwoColumnListView.js';
+      import Footer from './module/Footer.js';
+      import PageData from './home/HomePageData.js';
+
+      buildPage(() => {
+        render(TwoColumnListView(PageData.Resources), at('Resources'));
+        render(TwoColumnListView(PageData.Projects), at('Projects'));
+        render(Footer(), at('Footer'));
+      });
+    </script>
   </head>
   <body>
     <div class="container was-page-wrap">
-      <div id="TopBar" class="row was-top-bar"></div>
+      <div id="TopBar"></div>
       <div class="row was-header">
         <div class="column">
           <h1>WebAudio Samples</h1>
@@ -22,10 +34,9 @@
             API. Curated by <strong>Chrome WebAudio</strong> team.</p>
         </div>
       </div>
-      <div id="Projects" class="row was-list-view"></div>
-      <div id="Demos" class="row was-list-view"></div>
-      <div id="Footer" class="row was-footer"></div>
+      <div id="Resources"></div>
+      <div id="Projects"></div>
+      <div id="Footer"></div>
     </div>
   </body>
-  <script src="/home/index.js" type="module"></script>
 </html>

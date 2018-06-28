@@ -66,7 +66,7 @@ export default {
   },
 
   DesignPattern: {
-    listTitle: 'Advanced Design Patterns',
+    listTitle: 'Advanced Design Pattern',
     listData: [
       {
         title: 'AudioWorklet and WebAssembly',
@@ -93,23 +93,23 @@ export default {
       {
         title: 'Talk: AudioWorklet - What, Why and How',
         description: `An in-depth presentation about the new AudioWorklet.`,
-        url: 'https://goo.gl/R2zWtR',
+        url: '//goo.gl/R2zWtR',
       },
       {
         title: 'Slides: AudioWorklet - What, Why and How',
         description: `The slide deck for the presentation.`,
-        url: 'https://goo.gl/5c5LPD',
+        url: '//goo.gl/5c5LPD',
       },
       {
         title: 'Google Developer Blog Post: AudioWorklet',
         description: `An introductory article on AudioWorklet from Google
             Developer Portal.`,
-        url: 'https://developers.google.com/web/updates/2017/12/audio-worklet',
+        url: '//developers.google.com/web/updates/2017/12/audio-worklet',
       },
       {
         title: 'Web Audio API: AudioWorklet',
         description: `AudioWorklet section in Web Audio API specification.`,
-        url: 'https://webaudio.github.io/web-audio-api/#AudioWorklet',
+        url: '//webaudio.github.io/web-audio-api/#AudioWorklet',
       }
     ],
   }

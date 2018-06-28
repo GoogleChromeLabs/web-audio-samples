@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link href="/assets/normalize.css" rel="stylesheet">
+    <link href="/assets/milligram.min.css" rel="stylesheet">
+    <link href="/assets/style.css" rel="stylesheet">
+    <title></title>
+  </head>
+  <body>
+    <div class="container was-page-wrap">
+      <div id="TopBar" class="row was-top-bar"></div>
+      <div class="row was-header">
+        <div class="column">
+          <h1>Hello AudioWorklet!</h1>
+          <h2></h2>
+          <p>A simple AudioWorkletNode that bypasses the incoming audio stream
+            to its output. The sound source a sine oscillator at 440Hz.
+          </p>
+        </div>
+      </div>
+      <div id="DemoPlayer" class="row was-demo-player"></div>
+      <div id="Footer" class="row was-footer"></div>
+    </div>
+    <script>
+    DemoPlayer.addDemo(async (audioContext) => {
+      await audioContext.audioWorklet.addModule('bypass-processor.js');
+      let oscillator = new OscillatorNode(audioContext);
+      let bypasser = new AudioWorkletNode(audioContext, 'bypass-processor');
+      oscillator.connect(bypasser).connect(audioContext.destination);
+      oscillator.start();
+    });
+    </script>
+  </body>
+</html>

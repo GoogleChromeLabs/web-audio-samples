@@ -1,25 +1,30 @@
-export default (targetDivId, context) => {
-  let content = `
+import { html } from './Base.js';
+
+export default (context) => {
+  let content = html`
     <li>
       <a href="/">HOME</a>
     </li>
   `;
 
-  context.pathData.forEach((path) => {
-    const linkElement = path.url
-        ? `<a href="${path.url}">${path.title}</a>`
-        : path.title;
-    content += `
-        <li class="was-top-bar-divider">|</li>
-        <li>${linkElement}</li>
-      `;
-  }),
-
-  document.getElementById(targetDivId).innerHTML = `
+  return html`
+    <div class="row was-top-bar">
       <div class="column">
         <ul>
-          ${content}
+          <li>
+            <a href="/">HOME</a>
+          </li>
+      ${context.pathData.map((path) => html`
+          <li class="was-top-bar-divider">|</li>
+          <li>
+            ${path.url
+                ? html`<a href="${path.url}">${path.title}</a>`
+                : html`${path.title}`
+            }
+          </li>
+      `)}
         </ul>
       </div>
-    `;
+    </div>
+  `;
 };

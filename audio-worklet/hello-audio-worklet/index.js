@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import HomePageData from './HomePageData.js';
+import HelloAudioWorkletPageData from './HelloAudioWorkletPageData.js';
 
-import TwoColumnListView from '../module/TwoColumnListView.js';
-import Footer from '../module/Footer.js';
+import TopBar from '/module/TopBar.js';
+import Footer from '/module/Footer.js';
 
-import { render, at, buildPage } from '../module/Base.js';
+const buildPage = () => {
+  TopBar('TopBar', HelloAudioWorkletPageData.TopBar);
+  Footer('Footer');
+};
 
-buildPage(() => {
-  render(TwoColumnListView(HomePageData.Resources), at('Resources'));
-  render(TwoColumnListView(HomePageData.Projects), at('Projects'));
-  render(Footer(), at('Footer'));
-});
+window.addEventListener('load', buildPage);

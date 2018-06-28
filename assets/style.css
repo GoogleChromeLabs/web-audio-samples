@@ -56,10 +56,6 @@ a:hover {
   margin-bottom: 0;
 }
 
-.was-list-view {
-  flex-wrap: wrap;
-}
-
 .was-list-view h2 {
   font-size: 3.2rem;
   letter-spacing: 0.02rem;
@@ -71,27 +67,27 @@ a:hover {
 }
 
 .was-list-title {
-  margin: 3.0rem 0 1rem;
+  margin: 3rem 0 2rem;
 }
 
-.was-project-entry {
-  margin-bottom: 3rem;
+.was-list-entry {
+  margin-bottom: 1.75rem;
 }
 
-.was-project-title {
+.was-list-entry-title {
   font-size: 2.2rem;
   font-weight: 400;
   letter-spacing: 0.01rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.4rem;
 }
 
-.was-project-description {
+.was-list-entry-description {
   font-size: 1.6rem;
   line-height: 1.6;
 }
 
 .was-footer {
-  margin-top: 8rem;
+  margin-top: 6rem;
   margin-bottom: 4rem;
   text-align: center;
   color: #62727b;
@@ -99,9 +95,12 @@ a:hover {
 
 .was-footer ul li {
   display: inline;
-  padding: 0 5px;
 }
 
 .was-footer ul li::before {
+  content: "\2022  ";
+}
+
+.was-footer ul li:last-child::after {
   content: "\2022  ";
 }

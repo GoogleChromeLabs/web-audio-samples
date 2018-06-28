@@ -17,44 +17,54 @@ const GitHubRepo = 'https://googlechromelabs.github.io/web-audio-samples/';
 
 export default {
 
-  Projects: {
-    listTitle: 'Featured Projects',
+  Resources: {
+    listTitle: 'Tools and Resources',
     listData: [
       {
-        title: 'AudioWorklet Portal',
+        title: 'AudioWorklet',
         description: 'Examples and resources for AudioWorklet development',
         url: 'audio-worklet',
       },
       {
+        title: 'Tone.js',
+        description: 'Framework for creating interactive music in the browser',
+        url: '//tonejs.github.io/',
+      },
+      {
         title: 'Omnitone',
-        description: 'VR audio renderer for web',
+        description: '360 audio renderer for web',
         url: '//googlechrome.github.io/omnitone',
       },
       {
-        title: 'Chrome Music Lab',
-        description:
-            'Learning music through web technology',
-        url: '//musiclab.chromeexperiments.com',
+        title: 'Resonance Audio for Web',
+        description: 'SDK for interactive Ambisonic soundfield',
+        url: '//developers.google.com/resonance-audio/develop/web/getting-started',
       },
       {
-        title: 'WebAudio Demos',
-        description: 'WebAudio demo collection',
-        url: 'http://webaudiodemos.appspot.com/',
-      },
-      {
-        title: 'Filter Playground',
-        description: 'Interactive filter design tool on web',
-        url: '//borismus.github.io/filter-playground',
+        title: 'WebAudio Inspector DevTool Extension',
+        description: 'Chrome DevTool extension for Web Audio API',
+        url: '//github.com/google/audion',
       },
       {
         title: 'Canopy',
         description: 'WebAudio tool for tinkering and debugging',
         url: '//hoch.github.io/canopy/',
       },
+    ],
+  },
+
+  Projects: {
+    listTitle: 'Projects',
+    listData: [
       {
-        title: 'Resonance Audio for Web',
-        description: 'SDK for interactive/scalable Ambisonic soundfield',
-        url: '//developers.google.com/resonance-audio/develop/web/getting-started',
+        title: 'Chrome Music Lab',
+        description: 'Learning music through web technology',
+        url: '//musiclab.chromeexperiments.com',
+      },
+      {
+        title: 'WebAudio Demos',
+        description: 'WebAudio demo collection by Chris Wilson',
+        url: '//webaudiodemos.appspot.com/',
       },
       {
         title: 'Google Doodle: Hiphop',
@@ -67,8 +77,8 @@ export default {
         url: '//www.google.com/doodles/clara-rockmores-105th-birthday',
       },
       {
-        title: 'Google Doodle: Robert Moog&#39;s 78th Birthday',
-        description: 'Robert Moog&#39;s 78th Birthday',
+        title: 'Google Doodle: Robert Moog’s 78th Birthday',
+        description: 'Robert Moog’s 78th Birthday',
         url: '//www.google.com/doodles/robert-moogs-78th-birthday',
       },
       {
@@ -77,16 +87,15 @@ export default {
         url: '//beautifulaudioeditor.appspot.com/',
       },
       {
-        title: 'WebAudio Inspector DevTool Extension',
-        description: 'Chrome DevTool extension for Web Audio API',
-        url: '//github.com/google/audion',
+        title: 'Filter Playground',
+        description: 'Interactive filter design tool on web',
+        url: '//borismus.github.io/filter-playground',
       },
-    ]
-  },
-
-  Demos: {
-    listTitle: 'Early Demos',
-    listData: [
+      {
+        title: 'Box2D Stress Test',
+        description: 'Box2D WebAudio Stress Test',
+        url: '#',
+      },
       {
         title: 'WaveTable Synthesizer',
         url: '#',
@@ -103,6 +112,7 @@ export default {
         title: '8 Ball',
         url: '#',
       }
-    ],
+    ]
   },
+
 };

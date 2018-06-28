@@ -2,36 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Web Audio API, Web MIDI API, Chrome">
-    <meta name="description" content="A collection of projects, examples and resource for Web Audio API. Curated by Chrome WebAudio team.">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="mobile-web-app-capable" content="yes">
     <link href="/assets/normalize.css" rel="stylesheet">
     <link href="/assets/milligram.min.css" rel="stylesheet">
     <link href="/assets/style.css" rel="stylesheet">
     <title>AudioWorklet | WebAudio Samples</title>
+    <script type="module">
+    import { render, at, buildPage } from '../module/Base.js';
+    import TopBar from '../module/TopBar.js';
+    import TwoColumnListView from '../module/TwoColumnListView.js';
+    import Footer from '../module/Footer.js';
+    import PageData from './AudioWorkletPageData.js';
+
+    buildPage(() => {
+      render(TopBar(PageData.TopBar), at('TopBar'));
+      render(TwoColumnListView(PageData.BasicDemo), at('BasicDemo'));
+      render(TwoColumnListView(PageData.DesignPattern), at('DesignPattern'));
+      render(TwoColumnListView(PageData.Resources), at('Resources'));
+      render(Footer(), at('Footer'));
+    });
+    </script>
   </head>
   <body>
     <div class="container was-page-wrap">
-      <div id="TopBar" class="row was-top-bar"></div>
+      <div id="TopBar"></div>
       <div class="row was-header">
         <div class="column">
           <h1>AudioWorklet</h1>
           <h2></h2>
           <p><a href="https://webaudio.github.io/web-audio-api/#AudioWorklet"
-            target="_blank">AudioWorklet</a> is available on <strong>Chrome 66 (or
-            later) by default</strong>. If the status indicator on the top-right
-            corner of this page is not green, it means either your browser does
-            not support AudioWorklet. If you are using Chrome, please update to
-            Chrome.
+            target="_blank">AudioWorklet</a> is available on <strong>Chrome 66
+            (or later) by default</strong>. If the status indicator on the
+            top-right corner of this page is not green, it means either your
+            browser does not support AudioWorklet. If you are using Chrome,
+            please update to the latest version.
           </p>
         </div>
       </div>
-      <div id="BasicDemo" class="row was-list-view"></div>
-      <div id="DesignPattern" class="row was-list-view"></div>
-      <div id="Resources" class="row was-list-view"></div>
-      <div id="Footer" class="row was-footer"></div>
+      <div id="BasicDemo"></div>
+      <div id="DesignPattern"></div>
+      <div id="Resources"></div>
+      <div id="Footer"></div>
     </div>
   </body>
-  <script src="./index.js" type="module"></script>
 </html>

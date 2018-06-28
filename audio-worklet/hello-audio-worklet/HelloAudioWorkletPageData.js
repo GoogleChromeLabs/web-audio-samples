@@ -13,15 +13,18 @@
  * limitations under the License.
  */
 
-import HomePageData from './HomePageData.js';
+export default {
 
-import TwoColumnListView from '../module/TwoColumnListView.js';
-import Footer from '../module/Footer.js';
+  TopBar: {
+    pathData: [
+      {
+        title: 'AudioWorklet',
+        url: '../',
+      },
+      {
+        title: 'Hello AudioWorklet!',
+      },
+    ],
+  },
 
-import { render, at, buildPage } from '../module/Base.js';
-
-buildPage(() => {
-  render(TwoColumnListView(HomePageData.Resources), at('Resources'));
-  render(TwoColumnListView(HomePageData.Projects), at('Projects'));
-  render(Footer(), at('Footer'));
-});
+};
