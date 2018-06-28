@@ -31,7 +31,7 @@ export default {
         description: `
             A simple AudioWorkletNode that bypasses the incominng audio stream
             to its output.`,
-        url: 'hello-audio-worklet/',
+        url: 'basic/hello-audio-worklet.html',
       },
       {
         title: 'Noise with AudioParam Modulation',
