@@ -20,19 +20,19 @@ export default (context) => html`
     <div class="column">
       <ul>
         <li>
-          <a href="/">Home</a>
+          <a href="//googlechromelabs.github.io/web-audio-samples/">Home</a>
         </li>
         <li>
-          <a href="https://github.com/GoogleChromeLabs/web-audio-samples">GitHub</a>
+          <a href="//github.com/GoogleChromeLabs/web-audio-samples/">GitHub</a>
         </li>
         <li>
-          <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new">Question?</a>
+          <a href="//github.com/GoogleChromeLabs/web-audio-samples/issues/new">Question?</a>
         </li>
         <li>
-          <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new">Found something broken?</a>
+          <a href="//github.com/GoogleChromeLabs/web-audio-samples/issues/new">Found something broken?</a>
         </li>
         <li>
-          <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio">Found a Chrome bug?</a>
+          <a href="//bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio">Found a Chrome bug?</a>
         </li>
       </ul>
       <p>Chrome ♥ WebAudio</p>

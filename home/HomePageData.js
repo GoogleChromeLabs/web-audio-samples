@@ -23,7 +23,7 @@ export default {
       {
         title: 'AudioWorklet',
         description: 'Examples and resources for AudioWorklet development',
-        url: 'audio-worklet',
+        url: 'audio-worklet/',
       },
       {
         title: 'Tone.js',
@@ -33,7 +33,7 @@ export default {
       {
         title: 'Omnitone',
         description: '360 audio renderer for web',
-        url: '//googlechrome.github.io/omnitone',
+        url: '//googlechrome.github.io/omnitone/',
       },
       {
         title: 'Resonance Audio for Web',
@@ -43,7 +43,7 @@ export default {
       {
         title: 'WebAudio Inspector DevTool Extension',
         description: 'Chrome DevTool extension for Web Audio API',
-        url: '//github.com/google/audion',
+        url: '//github.com/google/audion/',
       },
       {
         title: 'Canopy',
@@ -59,7 +59,7 @@ export default {
       {
         title: 'Chrome Music Lab',
         description: 'Learning music through web technology',
-        url: '//musiclab.chromeexperiments.com',
+        url: '//musiclab.chromeexperiments.com/',
       },
       {
         title: 'WebAudio Demos',
@@ -89,12 +89,12 @@ export default {
       {
         title: 'Filter Playground',
         description: 'Interactive filter design tool on web',
-        url: '//borismus.github.io/filter-playground',
+        url: '//borismus.github.io/filter-playground/',
       },
       {
         title: 'Box2D Stress Test',
         description: 'Box2D WebAudio Stress Test',
-        url: GitHubRepo + 'stress-test/boxes',
+        url: GitHubRepo + 'stress-test/boxes/',
       },
       {
         title: 'WaveTable Synthesizer',
