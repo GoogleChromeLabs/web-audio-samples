@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,600');
+
+html, body {
+  color: #102027;
+}
+
+p {
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+a, a:active, a:visited {
+  color: #0091ea;
+}
+
+a:hover {
+  color: #64c1ff;
+}
+
+.was-render-pending {
+  display: none;
+}
+
+.was-page-wrap {
+  max-width: 96rem;
+}
+
+.was-top-bar {
+  color: #90a4ae;
+  margin-top: 5rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.05rem;
+  font-weight: 600;
+  min-height: 2rem;
+  line-height: 2rem;
+}
+
+.was-top-bar ul {
+  list-style: none;
+  margin: 0;
+}
+
+.was-top-bar ul li {
+  display: inline;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.was-top-bar ul li::before {
+  content: "|";
+  padding: 0.5rem;
+}
+
+.was-top-bar ul li:first-child::before {
+  content: none;
+}
+
+.was-header {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.was-header h1 {
+  font-size: 4.4rem;
+  margin-bottom: 0;
+}
+
+.was-list-view h2 {
+  font-size: 3.2rem;
+  letter-spacing: 0.02rem;
+}
+
+.was-list-view h4 {
+  font-size: 2rem;
+  letter-spacing: 0.02rem;
+}
+
+.was-list-title {
+  margin: 3rem 0 2rem;
+}
+
+.was-list-entry {
+  margin-bottom: 1.75rem;
+}
+
+.was-list-entry-title {
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: 0.01rem;
+  margin-bottom: 0.4rem;
+}
+
+.was-list-entry-description {
+  font-size: 1.6rem;
+  line-height: 1.6;
+}
+
+.was-footer {
+  margin-top: 6rem;
+  margin-bottom: 4rem;
+  text-align: center;
+  color: #62727b;
+}
+
+.was-footer ul li {
+  display: inline;
+}
+
+.was-footer ul li::before {
+  content: "\2022  ";
+}
+
+.was-footer ul li:last-child::after {
+  content: "\2022  ";
+}
