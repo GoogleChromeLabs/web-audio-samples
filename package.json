@@ -6,6 +6,9 @@
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
-    "lit-html": "^0.10.2"
+    "gulp": "^3.9.1",
+    "gulp-concat-css": "^3.1.0",
+    "lit-html": "^0.10.2",
+    "run-sequence": "^2.2.1"
   }
 }
