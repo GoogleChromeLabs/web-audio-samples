@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { html, render } from '../dist/lit-html/lib/lit-extended.js';
+import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 /**
  * Gets a DOM object with an element ID.
