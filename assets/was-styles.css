@@ -1010,16 +1010,22 @@ a:hover {
   color: #64c1ff;
 }
 
+.was-render-pending {
+  display: none;
+}
+
 .was-page-wrap {
   max-width: 96rem;
 }
 
 .was-top-bar {
   color: #90a4ae;
-  margin-top: 4rem;
+  margin-top: 5rem;
   font-size: 1.3rem;
   letter-spacing: 0.05rem;
   font-weight: 600;
+  min-height: 2rem;
+  line-height: 2rem;
 }
 
 .was-top-bar ul {
@@ -1033,14 +1039,18 @@ a:hover {
   text-transform: uppercase;
 }
 
-.was-top-bar-divider {
-  margin: 0;
-  padding: 0 5px;
+.was-top-bar ul li::before {
+  content: "|";
+  padding: 0.5rem;
+}
+
+.was-top-bar ul li:first-child::before {
+  content: none;
 }
 
 .was-header {
-  margin-top: 5rem;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
   position: relative;
 }
 

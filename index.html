@@ -1,3 +1,18 @@
+<!--
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,21 +23,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link href="./assets/was-styles.css" rel="stylesheet">
     <title>WebAudio Samples | Google Chrome Labs</title>
-    <script type="module">
-      import { render, at, buildPage } from './modules/Base.js';
-      import TwoColumnListView from './modules/TwoColumnListView.js';
-      import Footer from './modules/Footer.js';
-      import PageData from './home/HomePageData.js';
-
-      buildPage(() => {
-        render(TwoColumnListView(PageData.Resources), at('Resources'));
-        render(TwoColumnListView(PageData.Projects), at('Projects'));
-        render(Footer(), at('Footer'));
-      });
-    </script>
   </head>
   <body>
     <div class="container was-page-wrap">
+      <div id="TopBar"></div>
       <div class="row was-header">
         <div class="column">
           <h1>WebAudio Samples</h1>
@@ -35,5 +39,16 @@
       <div id="Projects"></div>
       <div id="Footer"></div>
     </div>
+    <script type="module">
+      import { Component, TopBar, Footer, TwoColumnListView }
+          from './assets/Components.js';
+      import PageData from './home/PageData.js';
+
+      Component.build('TopBar', TopBar);
+      Component.build('Resources', TwoColumnListView, PageData.Resources);
+      Component.build('Projects', TwoColumnListView, PageData.Projects);
+      Component.build('Footer', Footer);
+      Component.present();
+    </script>
   </body>
 </html>

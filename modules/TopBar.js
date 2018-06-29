@@ -18,11 +18,10 @@ import { html } from './Base.js';
 function generatePathList(pathData) {
   return html`
     ${pathData.map((path) => html`
-      <li class="was-top-bar-divider">|</li>
       <li>
-        ${path.url
-            ? html`<a href="${path.url}">${path.title}</a>`
-            : html`${path.title}`
+        ${path.length === 2
+            ? html`<a href="${path[1]}">${path[0]}</a>`
+            : html`${path[0]}`
         }
       </li>
     `)}
@@ -34,9 +33,6 @@ export default (context) => {
     <div class="row was-top-bar">
       <div class="column">
         <ul>
-          <li>
-            <a href="/">HOME</a>
-          </li>
           ${ context && context.pathData
               ? generatePathList(context.pathData)
               : html``

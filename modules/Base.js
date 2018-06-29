@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+document.documentElement.classList.add('was-render-pending');
+
 import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 /**
@@ -31,14 +33,17 @@ const at = (targetDivId) => {
 const buildPage = (renderFunctions) => {
   // TODO: how do I fix the "flickering issue"? How can these render calls
   // can be synchronized?
-  window.addEventListener('load', () => {
-    renderFunctions();
-  });
 };
+
+const Page = {
+  ready: () => {
+    document.documentElement.classList.remove('was-render-pending');
+  },
+}
 
 export {
   html,
   render,
   at,
-  buildPage,
+  Page,
 };
