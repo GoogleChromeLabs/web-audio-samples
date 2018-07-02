@@ -1,6 +1,3 @@
-var Module = function(Module) {
-  Module = Module || {};
-
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
 // 1. Not defined. We create it here
@@ -18,7 +15,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// {{PRE_JSES}}
+
 
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
@@ -106,7 +103,9 @@ if (ENVIRONMENT_IS_NODE) {
 
   Module['arguments'] = process['argv'].slice(2);
 
-  // MODULARIZE will export the module in the proper place outside, we don't need to export here
+  if (typeof module !== 'undefined') {
+    module['exports'] = Module;
+  }
 
   process['on']('uncaughtException', function(ex) {
     // suppress ExitStatus exceptions from showing an error
@@ -3590,28 +3589,6 @@ Module['asm'] = asm;
 
 
 
-// Modularize mode returns a function, which can be called to
-// create instances. The instances provide a then() method,
-// must like a Promise, that receives a callback. The callback
-// is called when the module is ready to run, with the module
-// as a parameter. (Like a Promise, it also returns the module
-// so you can use the output of .then(..)).
-Module['then'] = function(func) {
-  // We may already be ready to run code at this time. if
-  // so, just queue a call to the callback.
-  if (Module['calledRun']) {
-    func(Module);
-  } else {
-    // we are not ready to call then() yet. we must call it
-    // at the same time we would call onRuntimeInitialized.
-    var old = Module['onRuntimeInitialized'];
-    Module['onRuntimeInitialized'] = function() {
-      if (old) old();
-      func(Module);
-    };
-  }
-  return Module;
-};
 
 /**
  * @constructor
@@ -3759,15 +3736,7 @@ run();
 
 
 
-
-
-  return Module;
-};
-if (typeof exports === 'object' && typeof module === 'object')
-  module.exports = Module;
-else if (typeof define === 'function' && define['amd'])
-  define([], function() { return Module; });
-else if (typeof exports === 'object')
-  exports["Module"] = Module;
-
-  export default Module;
+// EXPORT_ES6 option does not work as described at
+// https://github.com/kripken/emscripten/issues/6284, so we have to
+// manually add this by '--post-js' setting when the emcc compilation.
+export default Module;
