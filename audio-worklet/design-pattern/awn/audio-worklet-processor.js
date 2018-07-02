@@ -1,3 +1,8 @@
+import Module from './audio-worklet.wasmmodule.js';
+import { WA2, HeapAudioBuffer } from '../lib/wa2.js';
+
+const wasmModule = new Module();
+
 /**
  * A simple demonstration of WASM-powered AudioWorkletProcessor.
  *
@@ -14,13 +19,13 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     // Allocate the buffer for the heap access. Start with stereo, but it can
     // be expanded up to 32 channels.
     this._heapInputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
+        new HeapAudioBuffer(wasmModule, WA2.RENDER_QUANTUM_FRAMES,
                             2, WA2.MAX_CHANNEL_COUNT);
     this._heapOutputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
+        new HeapAudioBuffer(wasmModule, WA2.RENDER_QUANTUM_FRAMES,
                             2, WA2.MAX_CHANNEL_COUNT);
 
-    this._kernel = new Module.AudioWorkletProcessorKernel();
+    this._kernel = new wasmModule.AudioWorkletProcessorKernel();
   }
 
   /**
