@@ -69,9 +69,9 @@ found in the LICENSE file.
      */
     function runDemo() {
       const context = new AudioContext();
-      context.audioWorklet.addModule('audio-worklet-processor.js').then(() => {
+      context.audioWorklet.addModule('wasm-worklet-processor.js').then(() => {
         let osc = new OscillatorNode(context);
-        let awn = new AudioWorkletNode(context, 'wasm-audio-worklet-processor');
+        let awn = new AudioWorkletNode(context, 'wasm-worklet-processor');
         osc.connect(awn).connect(context.destination);
         osc.start();
       });
@@ -83,7 +83,7 @@ found in the LICENSE file.
           The AudioWorkletProcessor simply bypasses the audio via the WASM
           function. See the article on the AudioWorklet design pattern for more
           details.`,
-      htmlSource: 'audio-worklet/design-pattern/awn/',
+      htmlSource: 'audio-worklet/design-pattern/wasm/',
       demoFunction: runDemo,
     });
     </script>

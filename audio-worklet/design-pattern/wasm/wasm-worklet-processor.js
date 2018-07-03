@@ -12,10 +12,10 @@ import { RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, HeapAudioBuffer }
 /**
  * A simple demonstration of WASM-powered AudioWorkletProcessor.
  *
- * @class WASMAudioWorkletProcessor
+ * @class WASMWorkletProcessor
  * @extends AudioWorkletProcessor
  */
-class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
+class WASMWorkletProcessor extends AudioWorkletProcessor {
   /**
    * @constructor
    */
@@ -71,4 +71,4 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
 }
 
 
-registerProcessor('wasm-audio-worklet-processor', WASMAudioWorkletProcessor);
+registerProcessor('wasm-worklet-processor', WASMWorkletProcessor);
