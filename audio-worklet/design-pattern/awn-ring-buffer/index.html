@@ -69,9 +69,10 @@ found in the LICENSE file.
      */
     function runDemo() {
       const context = new AudioContext();
-      context.audioWorklet.addModule('audioworklet.wasmmodule.js').then(() => {
-        let osc = new OscillatorNode(context);
-        let ringBufferWorkletNode =
+      context.audioWorklet.addModule('ring-buffer-worklet-processor.js')
+          .then(() => {
+        const osc = new OscillatorNode(context);
+        const ringBufferWorkletNode =
             new AudioWorkletNode(context, 'ring-buffer-worklet-processor', {
               processorOptions: {
                 kernelBufferSize: 1024,

@@ -1,12 +1,13 @@
-DEPS = AWPKernelWithVariableBufferSize.cc
+DEPS = VariableBufferKernel.cc
 
 build: $(DEPS)
-	@emcc --bind -O1 -s WASM=1 \
-		-s BINARYEN_ASYNC_COMPILATION=0 -s SINGLE_FILE=1 \
-		AWPKernelWithVariableBufferSize.cc \
-		-o audioworklet.wasmmodule.js \
-		--post-js ../lib/wa2.js \
-		--post-js ring-buffer-worklet-processor.js
+	@emcc --bind -O1 \
+	  -s WASM=1 \
+		-s BINARYEN_ASYNC_COMPILATION=0 \
+		-s SINGLE_FILE=1 \
+		VariableBufferKernel.cc \
+		-o variable-buffer-kernel.wasmmodule.js \
+		--post-js ../lib/em-es6-module.js
 
 clean:
-	@rm -f audioworklet.wasmmodule.js
+	@rm -f variable-buffer-kernel.wasmmodule.js

@@ -4,7 +4,7 @@
  * found in the LICENSE file.
  */
 
-import Module from './audio-worklet.wasmmodule.js';
+import Module from './simple-kernel.wasmmodule.js';
 import { RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, HeapAudioBuffer }
     from '../lib/wasm-audio-helper.js';
 
@@ -29,7 +29,7 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
     this._heapOutputBuffer = new HeapAudioBuffer(Module, RENDER_QUANTUM_FRAMES,
                                                  2, MAX_CHANNEL_COUNT);
 
-    this._kernel = new Module.AudioWorkletProcessorKernel();
+    this._kernel = new Module.SimpleKernel();
   }
 
   /**

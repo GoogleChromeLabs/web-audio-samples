@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) 2018 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+
+/**
  * The AudioWorkletNode that has a DedicatedWorker as a backend. The
  * communication between Worker and AWP is done via SharedArrayBuffer,
  * which runs like a big ring buffer between two objects. This class is to
@@ -62,7 +69,20 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     if (data.message === 'WORKER_READY') {
       // Send SharedArrayBuffers to the processor.
       this.port.postMessage(data.SharedBuffers);
+      return;
     }
+
+    if (data.message === 'WORKER_ERROR') {
+      console.log('[SharedBufferWorklet] Worker Error:',
+                  data.detail);
+      if (typeof this.onError === 'function') {
+        this.onError(data);
+      }
+      return;
+    }
+
+    console.log('[SharedBufferWorklet] Unknown message: ',
+                eventFromWorker);
   }
 
   /**
@@ -81,4 +101,7 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     console.log('[SharedBufferWorklet] Unknown message: ',
                 eventFromProcessor);
   }
-}
+} // class SharedBufferWorkletNode
+
+
+export default SharedBufferWorkletNode;

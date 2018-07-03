@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+
 // This Worker is the actual backend of AudioWorkletProcessor (AWP). After
 // instantiated/initialized by AudioWorkletNode (AWN), it communicates with the
 // associated AWP via SharedArrayBuffer (SAB).
@@ -117,6 +124,15 @@ function initialize(options) {
   }
   if (options.channelCount) {
     CONFIG.channelCount = options.channelCount;
+  }
+
+  if (!self.SharedArrayBuffer) {
+    postMessage({
+      message: 'WORKER_ERROR',
+      detail: `SharedArrayBuffer is not supported. See the article above to
+          enable the feature.`,
+    });
+    return;
   }
 
   // Allocate SABs.

@@ -63,23 +63,29 @@ found in the LICENSE file.
       </section>
     </div>
     <script src="../../lib/audio-worklet-helper.js"></script>
-    <script src="shared-buffer-worklet-node.js"></script>
-    <script>
+    <script type="module">
     /**
      * Run demo. Invoked by the AudioWorkletHelper when the page is loaded.
      */
+    import SharedBufferWorkletNode from './shared-buffer-worklet-node.js';
+
     function runDemo() {
       const context = new AudioContext();
-
       context.audioWorklet
           .addModule('shared-buffer-worklet-processor.js')
           .then(() => {
-            let osc = new OscillatorNode(context);
-            let sbwNode = new SharedBufferWorkletNode(context);
+            const osc = new OscillatorNode(context);
+            const sbwNode = new SharedBufferWorkletNode(context);
 
             sbwNode.onInitialized = () => {
               osc.connect(sbwNode).connect(context.destination);
               osc.start();
+            };
+
+            sbwNode.onError = (errorData) => {
+              const warningDiv = document.getElementById('div-warning-message');
+              warningDiv.textContent = errorData.detail;
+              warningDiv.style.display = 'block';
             };
           });
     }
