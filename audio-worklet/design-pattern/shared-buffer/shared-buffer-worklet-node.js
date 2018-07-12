@@ -1,4 +1,20 @@
 /**
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+/**
  * The AudioWorkletNode that has a DedicatedWorker as a backend. The
  * communication between Worker and AWP is done via SharedArrayBuffer,
  * which runs like a big ring buffer between two objects. This class is to
@@ -62,7 +78,20 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     if (data.message === 'WORKER_READY') {
       // Send SharedArrayBuffers to the processor.
       this.port.postMessage(data.SharedBuffers);
+      return;
     }
+
+    if (data.message === 'WORKER_ERROR') {
+      console.log('[SharedBufferWorklet] Worker Error:',
+                  data.detail);
+      if (typeof this.onError === 'function') {
+        this.onError(data);
+      }
+      return;
+    }
+
+    console.log('[SharedBufferWorklet] Unknown message: ',
+                eventFromWorker);
   }
 
   /**
@@ -81,4 +110,7 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     console.log('[SharedBufferWorklet] Unknown message: ',
                 eventFromProcessor);
   }
-}
+} // class SharedBufferWorkletNode
+
+
+export default SharedBufferWorkletNode;

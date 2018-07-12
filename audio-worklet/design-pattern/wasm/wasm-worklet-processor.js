@@ -1,10 +1,31 @@
 /**
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+import Module from './simple-kernel.wasmmodule.js';
+import { RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, HeapAudioBuffer }
+    from '../lib/wasm-audio-helper.js';
+
+
+/**
  * A simple demonstration of WASM-powered AudioWorkletProcessor.
  *
- * @class WASMAudioWorkletProcessor
+ * @class WASMWorkletProcessor
  * @extends AudioWorkletProcessor
  */
-class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
+class WASMWorkletProcessor extends AudioWorkletProcessor {
   /**
    * @constructor
    */
@@ -13,14 +34,12 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
 
     // Allocate the buffer for the heap access. Start with stereo, but it can
     // be expanded up to 32 channels.
-    this._heapInputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
-                            2, WA2.MAX_CHANNEL_COUNT);
-    this._heapOutputBuffer =
-        new HeapAudioBuffer(WA2.RENDER_QUANTUM_FRAMES,
-                            2, WA2.MAX_CHANNEL_COUNT);
+    this._heapInputBuffer = new HeapAudioBuffer(Module, RENDER_QUANTUM_FRAMES,
+                                                2, MAX_CHANNEL_COUNT);
+    this._heapOutputBuffer = new HeapAudioBuffer(Module, RENDER_QUANTUM_FRAMES,
+                                                 2, MAX_CHANNEL_COUNT);
 
-    this._kernel = new Module.AudioWorkletProcessorKernel();
+    this._kernel = new Module.SimpleKernel();
   }
 
   /**
@@ -61,4 +80,5 @@ class WASMAudioWorkletProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('wasm-audio-worklet-processor', WASMAudioWorkletProcessor);
+
+registerProcessor('wasm-worklet-processor', WASMWorkletProcessor);

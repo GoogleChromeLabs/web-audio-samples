@@ -1,3 +1,19 @@
+/**
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 #include "emscripten/bind.h"
 
 using namespace emscripten;
@@ -8,9 +24,9 @@ using namespace emscripten;
 //   2. The channel count can be changed dynamically.
 //   3. The given channel count must be smaller than the size of the array
 //      being passed in.
-class AWPKernelWithVariableBufferSize {
+class VariableBufferKernel {
  public:
-  AWPKernelWithVariableBufferSize(unsigned kernel_buffer_size)
+  VariableBufferKernel(unsigned kernel_buffer_size)
       : kernel_buffer_size_(kernel_buffer_size),
         bytes_per_channel_(kernel_buffer_size * sizeof(float)) {}
 
@@ -38,9 +54,9 @@ class AWPKernelWithVariableBufferSize {
 };
 
 EMSCRIPTEN_BINDINGS(CLASS_AWPKernelWithVariableBufferSize) {
-  class_<AWPKernelWithVariableBufferSize>("AWPKernelWithVariableBufferSize")
+  class_<VariableBufferKernel>("VariableBufferKernel")
       .constructor<unsigned>()
       .function("process",
-                &AWPKernelWithVariableBufferSize::Process,
+                &VariableBufferKernel::Process,
                 allow_raw_pointers());
 }

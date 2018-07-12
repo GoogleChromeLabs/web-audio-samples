@@ -1,7 +1,17 @@
 <!--
-Copyright (c) 2018 The Chromium Authors. All rights reserved.
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
+Copyright 2018 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
 -->
 <!DOCTYPE html>
 <html>
@@ -63,23 +73,29 @@ found in the LICENSE file.
       </section>
     </div>
     <script src="../../lib/audio-worklet-helper.js"></script>
-    <script src="shared-buffer-worklet-node.js"></script>
-    <script>
+    <script type="module">
     /**
      * Run demo. Invoked by the AudioWorkletHelper when the page is loaded.
      */
+    import SharedBufferWorkletNode from './shared-buffer-worklet-node.js';
+
     function runDemo() {
       const context = new AudioContext();
-
       context.audioWorklet
           .addModule('shared-buffer-worklet-processor.js')
           .then(() => {
-            let osc = new OscillatorNode(context);
-            let sbwNode = new SharedBufferWorkletNode(context);
+            const osc = new OscillatorNode(context);
+            const sbwNode = new SharedBufferWorkletNode(context);
 
             sbwNode.onInitialized = () => {
               osc.connect(sbwNode).connect(context.destination);
               osc.start();
+            };
+
+            sbwNode.onError = (errorData) => {
+              const warningDiv = document.getElementById('div-warning-message');
+              warningDiv.textContent = errorData.detail;
+              warningDiv.style.display = 'block';
             };
           });
     }
@@ -91,7 +107,7 @@ found in the LICENSE file.
           useful when bringing legacy audio application written in C/C++ into
           the web platform. See the article on the AudioWorklet design pattern
           or more details.`,
-      htmlSource: 'audio-worklet/design-pattern/awn-shared-buffer/',
+      htmlSource: 'audio-worklet/design-pattern/shared-buffer/',
       demoFunction: runDemo,
     });
     </script>
