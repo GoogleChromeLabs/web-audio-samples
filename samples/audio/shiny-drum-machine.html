@@ -470,11 +470,6 @@ function init() {
     effectLevelNode.gain.value = 1.0; // effect level slider controls this
     effectLevelNode.connect(masterGainNode);
 
-    // Create convolver for effect
-    convolver = context.createConvolver();
-    convolver.connect(effectLevelNode);
-
-
     var elKitCombo = document.getElementById('kitcombo');
     elKitCombo.addEventListener("mousedown", handleKitComboMouseDown, true);
 
@@ -945,8 +940,16 @@ function setEffect(index) {
     theBeat.effectIndex = index;
     effectDryMix = impulseResponseInfoList[index].dryMix;
     effectWetMix = impulseResponseInfoList[index].wetMix;            
+    
+    if (convolver != undefined) {
+      // Disconnect old convolver from downstream nodes before creating a new one.
+      convolver.disconnect(effectLevelNode);
+    }
+    // Create convolver for effect
+    convolver = context.createConvolver();
     convolver.buffer = impulseResponseList[index].buffer;
-
+    convolver.connect(effectLevelNode);
+      
   // Hack - if the effect is meant to be entirely wet (not unprocessed signal)
   // then put the effect level all the way up.
     if (effectDryMix == 0)
