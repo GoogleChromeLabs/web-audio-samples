@@ -21,8 +21,13 @@ export default {
     listTitle: 'Tools and Resources',
     listData: [
       {
-        title: 'AudioWorklet',
-        description: 'Examples and resources for AudioWorklet development',
+        title: 'Web Audio API Specification',
+        description: 'Latest version of API specification',
+        url: '//webaudio.github.io/web-audio-api/'
+      },
+      {
+        title: 'AudioWorklet Hub',
+        description: 'Examples and resources for AudioWorklet',
         url: 'audio-worklet/',
       },
       {
@@ -32,12 +37,12 @@ export default {
       },
       {
         title: 'Omnitone',
-        description: '360 audio renderer for web',
+        description: '360° audio renderer for web',
         url: '//googlechrome.github.io/omnitone/',
       },
       {
         title: 'Resonance Audio for Web',
-        description: 'SDK for interactive Ambisonic soundfield',
+        description: 'SDK for interactive ambisonic soundfield',
         url: '//developers.google.com/resonance-audio/develop/web/getting-started',
       },
       {
@@ -54,17 +59,12 @@ export default {
   },
 
   Projects: {
-    listTitle: 'Projects',
+    listTitle: 'Selected Projects',
     listData: [
       {
         title: 'Chrome Music Lab',
         description: 'Learning music through web technology',
         url: '//musiclab.chromeexperiments.com/',
-      },
-      {
-        title: 'WebAudio Demos',
-        description: 'WebAudio demo collection by Chris Wilson',
-        url: '//webaudiodemos.appspot.com/',
       },
       {
         title: 'Google Doodle: Hiphop',
@@ -82,26 +82,40 @@ export default {
         url: '//www.google.com/doodles/robert-moogs-78th-birthday',
       },
       {
+        title: 'WebAudio Demos',
+        description: 'WebAudio demo collection by Chris Wilson',
+        url: '//webaudiodemos.appspot.com/',
+      },
+      {
         title: 'Beautiful Audio Editor',
         description: 'Web-based multitrack recorder/editor',
         url: '//beautifulaudioeditor.appspot.com/',
       },
       {
         title: 'Filter Playground',
-        description: 'Interactive filter design tool on web',
+        description: 'Interactive filter design tool on web by Boris Smus',
         url: '//borismus.github.io/filter-playground/',
+      },
+    ]
+  },
+
+  Demos: {
+    listTitle: 'Demos',
+    listData: [
+      {
+        title: 'Old demo collection',
+        url: GitHubRepo + 'archive/',
       },
       {
         title: 'Box2D Stress Test',
-        description: 'Box2D WebAudio Stress Test',
         url: GitHubRepo + 'stress-test/boxes/',
       },
       {
-        title: 'WaveTable Synthesizer',
+        title: 'Wavetable Synthesizer',
         url: GitHubRepo + 'samples/audio/wavetable-synth.html',
       },
       {
-        title: 'WebGL visualizaiton with AnalyserNode',
+        title: 'AnalyserNode with visualizaiton ',
         url: GitHubRepo + 'samples/audio/visualizer-gl.html',
       },
       {
@@ -109,7 +123,7 @@ export default {
         url: GitHubRepo + 'samples/audio/simple.html',
       },
       {
-        title: '8 Ball',
+        title: '8 Ball with 3D audio',
         url: GitHubRepo + 'samples/audio/o3d-webgl-samples/pool.html',
       }
     ]
