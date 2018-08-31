@@ -1,0 +1,108 @@
+<!--
+Copyright 2018 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../../../resources/base-v2.css">
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../../../"><span>Chrome WebAudio Samples</span></a>
+        <span class="nav-divider">|</span> <a href=
+        "../../"><span>AudioWorklet</span></a> <span class=
+        "nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>Source: <a id="link-html-source" target="_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="../../lib/audio-worklet-helper.js"></script>
+    <script>
+    /**
+     * Run demo. Invoked by the AudioWorkletHelper when the page is loaded.
+     */
+    function runDemo() {
+      const context = new AudioContext();
+      context.audioWorklet.addModule('ring-buffer-worklet-processor.js')
+          .then(() => {
+        const osc = new OscillatorNode(context);
+        const ringBufferWorkletNode =
+            new AudioWorkletNode(context, 'ring-buffer-worklet-processor', {
+              processorOptions: {
+                kernelBufferSize: 1024,
+                channelCount: 1,
+              },
+            });
+
+        osc.connect(ringBufferWorkletNode).connect(context.destination);
+        osc.start();
+      });
+    }
+
+    AudioWorkletHelper.initializeDemo({
+      title: 'Ring Buffer in AudioWorkletProcessor',
+      description: `Demonstrates how to handle buffer size difference between
+          audio processing kernel and AudioWorkletProcessor. See the article
+          on the AudioWorklet design pattern for more details.`,
+      htmlSource: 'audio-worklet/design-pattern/wasm-ring-buffer/',
+      demoFunction: runDemo,
+    });
+    </script>
+  </body>
+</html>

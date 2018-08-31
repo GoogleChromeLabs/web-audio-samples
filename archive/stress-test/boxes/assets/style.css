@@ -1,0 +1,12 @@
+canvas {
+  padding: 0; 
+  margin: 0; 
+  background-color: #333388;
+  user-select: none;
+}
+
+.log {
+  font-family: monospace;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
