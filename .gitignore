@@ -1,5 +1,6 @@
 .DS_Store
 package-lock.json
+twistd.pid
 
 node_modules/
 pvt/
