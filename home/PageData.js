@@ -104,27 +104,27 @@ export default {
     listData: [
       {
         title: 'Old demo collection',
-        url: GitHubRepo + 'archive/demos/',
+        url: 'archive/demos/',
       },
       {
         title: 'Box2D Stress Test',
-        url: GitHubRepo + 'stress-box/',
+        url: 'stress-box/',
       },
       {
         title: 'Wavetable Synthesizer',
-        url: GitHubRepo + 'archive/demos/wavetable-synth.html',
+        url: 'archive/demos/wavetable-synth.html',
       },
       {
         title: 'AnalyserNode with visualizaiton ',
-        url: GitHubRepo + 'archive/demos/visualizer-gl.html',
+        url: 'archive/demos/visualizer-gl.html',
       },
       {
         title: 'Panning and Reverberation',
-        url: GitHubRepo + 'archive/demos/simple.html',
+        url: 'archive/demos/simple.html',
       },
       {
         title: '8 Ball with 3D audio',
-        url: GitHubRepo + 'archive/demos/o3d-webgl-samples/pool.html',
+        url: 'archive/demos/o3d-webgl-samples/pool.html',
       }
     ]
   },
