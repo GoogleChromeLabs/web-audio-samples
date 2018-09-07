@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+ 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+</head> 
+
+<link href="doc.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript" src="resources/buffer-loader.js"></script>
+
+<script type="text/javascript">
+
+var context;
+var bufferLoader;
+
+function loadAndPlay() {
+    try {
+        context = new webkitAudioContext();
+    }
+    catch(e) {
+        alert("Web Audio API is not supported in this browser");
+    }
+
+    bufferLoader = new BufferLoader(
+        context,
+        [
+        "../sounds/hyper-reality/br-jam-loop.wav",
+        "../sounds/hyper-reality/laughter.wav",
+        ],
+        finishedLoading
+    );
+
+    bufferLoader.load();
+}
+
+function finishedLoading(bufferList) {
+    // Create two sources and play them both together.
+    var source1 = context.createBufferSource();
+    var source2 = context.createBufferSource();
+    source1.buffer = bufferList[0];
+    source2.buffer = bufferList[1];
+    
+    source1.connect(context.destination);
+    source2.connect(context.destination);
+    source1.noteOn(0);
+    source2.noteOn(0);
+}
+
+</script>
+
+
+
+
+<body> 
+<h1>Loading Sounds</h1>
+
+  
+<p>
+The Web Audio API uses an <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section">AudioBuffer</a> 
+for short to medium length sounds.  The basic approach is to use XMLHttpRequest.
+</p>
+
+<ul>
+<li>For loading short to medium length sounds over the network, we use XMLHttpRequest.</li>
+<li>We're loading audio file data, such as
+WAV, MP3, AAC, or OGG data (please note that browser support for the different formats varies).
+<li>
+The audio file data is binary (not text) so we set the .responseType of the request to "arraybuffer".
+</li>
+
+<li>
+Once the (undecoded) audio file data has been received (in the XMLHttpRequest .onload handler), then it can be kept around for later decoding, or more normally, it can
+be decoded right away using the AudioContext decodeAudioData() method.  This method takes the audio file data stored in request.response (as an ArrayBuffer) and decodes it asynchronously
+(not blocking the main JavaScript execution).
+</li>
+
+<li>
+When decodeAudioData() is finished it calls a callback function which provides the decoded PCM audio data as an
+ <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section">AudioBuffer</a>.
+</li>
+
+<li>
+Please note that decodeAudioData() is only available in Chrome 14 and later.
+</li>
+
+
+</ul>
+
+<div id="dogBarking">
+
+<p>
+    Here's a small code snippet
+  for loading a single AudioBuffer.
+</p>
+
+<pre>
+var dogBarkingBuffer = 0;
+var context = new webkitAudioContext();
+
+function loadDogSound(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() {
+        // Decode asynchronously
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                dogBarkingBuffer = buffer;
+            }    
+        );
+    }
+
+    request.send();
+}
+
+</pre>
+</div>
+
+<br><br>
+
+<div id="BufferLoader">
+
+<p>
+Of course, it would be better to create a more general loading system which isn't hard-coded to loading this specific sound.  There are many approaches for dealing with the many
+short to medium length sounds that an audio application or game would use - here's one way using a <em>BufferLoader</em> class:
+</p>
+
+<pre>
+function BufferLoader(context, urlList, callback) {
+    this.context = context;
+    this.urlList = urlList;
+    this.onload = callback;
+    this.bufferList = new Array();
+    this.loadCount = 0;
+}
+
+BufferLoader.prototype.loadBuffer = function(url, index) {
+    // Load buffer asynchronously
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    var loader = this;
+
+    request.onload = function() {
+        // Asynchronously decode the audio file data in request.response
+        loader.context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                if (!buffer) {
+                    alert('error decoding file data: ' + url);
+                    return;
+                }
+                loader.bufferList[index] = buffer;
+                if (++loader.loadCount == loader.urlList.length)
+                    loader.onload(loader.bufferList);
+            }    
+        );
+    }
+
+    request.onerror = function() {
+        alert('BufferLoader: XHR error');        
+    }
+
+    request.send();
+}
+
+BufferLoader.prototype.load = function() {
+    for (var i = 0; i < this.urlList.length; ++i)
+        this.loadBuffer(this.urlList[i], i);
+}
+
+</pre>
+
+</div>
+
+<br><br>
+
+<p>
+Here's how the BufferLoader class can be used.  In this simple example, two AudioBuffers are created and when they are
+finished loading, they are played back at the same time.
+</p>
+
+
+<input type="button" value="Load and Play!" onclick="loadAndPlay();" />
+
+
+<pre>
+window.onload = init;
+
+var context;
+var bufferLoader;
+
+function init() {
+    context = new webkitAudioContext();
+
+    bufferLoader = new BufferLoader(
+        context,
+        [
+        "../sounds/hyper-reality/br-jam-loop.wav",
+        "../sounds/hyper-reality/laughter.wav",
+        ],
+        finishedLoading
+    );
+
+    bufferLoader.load();
+}
+
+function finishedLoading(bufferList) {
+    // Create two sources and play them both together.
+    var source1 = context.createBufferSource();
+    var source2 = context.createBufferSource();
+    source1.buffer = bufferList[0];
+    source2.buffer = bufferList[1];
+    
+    source1.connect(context.destination);
+    source2.connect(context.destination);
+    source1.noteOn(0);
+    source2.noteOn(0);
+}
+
+</pre>
+
+
+<br><br>
+<div class="home">
+<a href="index.html" class="home">Home</a>
+</div>
+  
+  </body> 
+</html>

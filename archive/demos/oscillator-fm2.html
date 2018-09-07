@@ -1,0 +1,441 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+FM Synthesis
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+o3djs.require('o3djs.shader');
+
+window.onload = init;
+
+var context;
+var synthNote;
+
+var analyser;
+var analyserView1;
+var views;
+
+var kFreq1 = 32;
+var kFreq2 = 64;
+var kFreq3 = 128;
+
+var kModulationCrossfade = 0.5;  // 0->1
+var kModulationIndex = 0.5;
+var kModulationIndex1 = 0.5;
+var kModulationIndex2 = 0.5;
+
+var kDetune2 = -3;
+var kDetune3 = 5;
+
+var kN1 = 1;
+var kN2 = 4;
+var kN3 = 32;
+
+//----------------------------------------------------------------------------------------------------
+
+function SynthNote() {
+    var osc1 = context.createOscillator();
+    var osc2 = context.createOscillator();
+    var osc3 = context.createOscillator();
+
+    osc1.type = "sine";
+    osc2.type = "sine";
+    osc3.type = "sine";
+    osc1.start(0);
+    osc2.start(0);
+    osc3.start(0);
+
+    var gainNode = context.createGain();
+    gainNode.gain.value = 0.75;
+
+    var filter = context.createBiquadFilter();
+    filter.Q.value = 0 ;
+    filter.frequency.value = 24000; // initially inactive
+    filter.connect(gainNode);
+    gainNode.connect(analyser);
+
+    var dest = filter;
+
+    // Modulation index.
+    var modulationGain1 = context.createGain();
+    var modulationGain2 = context.createGain();
+    osc2.connect(modulationGain1);
+    osc3.connect(modulationGain2);    
+
+    // Feed modulators into osc1.
+    modulationGain1.connect(osc1.frequency);
+    modulationGain2.connect(osc1.frequency);
+
+
+    // EXPERIMENTAL feedback
+    var feedbackGain = context.createGain();
+    var delay = context.createDelay();
+    delay.delayTime.value = 0.001;
+    osc1.connect(delay);
+    delay.connect(feedbackGain);
+    feedbackGain.gain.value = 0;
+    feedbackGain.connect(osc1.frequency);
+
+    osc1.connect(dest);
+
+    osc1.frequency.value = kFreq1;
+    osc2.frequency.value = kFreq2;
+    osc3.frequency.value = kFreq3;
+
+    //
+    this.osc1 = osc1;
+    this.osc2 = osc2;
+    this.osc3 = osc3;
+    this.gainNode = gainNode;
+    this.filter = filter;
+    
+    this.modulationGain1 = modulationGain1;
+    this.modulationGain2 = modulationGain2;
+    this.feedbackGain = feedbackGain;
+    
+    this.detune = 0;
+    this.detune2 = kDetune2;
+    this.detune3 = kDetune3;
+    
+    this.modulationCrossfade = kModulationCrossfade;
+    this.modulationIndex = kModulationIndex;
+    this.modulationIndex1 = kModulationIndex1;
+    this.modulationIndex2 = kModulationIndex2;
+    
+    this.snapToDetune = 0;
+    this.randomization1 = 0;
+    this.randomization2 = 0;
+    this.randomization3 = 0;
+
+    this.N1 = kN1;
+    this.N2 = kN2;
+    this.N3 = kN3;
+
+    this.recalc();
+}
+
+SynthNote.prototype.setDetune = function(value) {
+    this.detune = value;
+    this.snapToDetune = 20;
+}
+
+SynthNote.prototype.setDetune2 = function(value) {
+    this.detune2 = value;
+    this.snapToDetune = true;
+}
+
+SynthNote.prototype.setDetune3 = function(value) {
+    this.detune3 = value;
+    this.snapToDetune = true;
+}
+
+SynthNote.prototype.setRandomization1 = function(value) {
+    this.randomization1 = value;
+    this.snapToDetune = true;
+}
+
+SynthNote.prototype.setRandomization2 = function(value) {
+    this.randomization2 = value;
+    this.snapToDetune = true;
+}
+
+SynthNote.prototype.setRandomization3 = function(value) {
+    this.randomization3 = value;
+    this.snapToDetune = true;
+}
+
+SynthNote.prototype.setFilterFrequency = function(value) {
+    this.filter.frequency.value = value;
+}
+
+SynthNote.prototype.setFeedbackGain = function(value) {
+    this.feedbackGain.gain.value = value;
+}
+
+SynthNote.prototype.setOSC1Frequency = function(value) {
+    this.osc1.frequency.value = value;
+    this.setN2(this.N2);
+    this.setN3(this.N3);
+}
+
+SynthNote.prototype.setModulationCrossfade = function(value) {
+    this.modulationCrossfade = value;
+    this.setModulationIndex(this.modulationIndex);
+}
+
+SynthNote.prototype.recalc = function() {
+    this.setN2(this.N2);
+    this.setN3(this.N3);
+}
+
+SynthNote.prototype.setModulationIndex = function(value) {
+    this.modulationIndex = value;
+    
+    this.modulationIndex1 = this.modulationIndex * (1 - this.modulationCrossfade);
+    this.modulationIndex2 = this.modulationIndex * this.modulationCrossfade;
+    
+    this.setModulationIndex1(this.modulationIndex1);
+    this.setModulationIndex2(this.modulationIndex2);
+}
+
+SynthNote.prototype.setModulationIndex1 = function(value) {
+    this.modulationIndex1 = value;
+    this.modulationGain1.gain.value = this.osc2.frequency.value * this.modulationIndex1;
+}
+
+SynthNote.prototype.setModulationIndex2 = function(value) {
+    this.modulationIndex2 = value;
+    this.modulationGain2.gain.value = this.osc3.frequency.value * this.modulationIndex2;
+}
+
+SynthNote.prototype.setN1 = function(value) {
+    this.N1 = value;
+    this.setN2(this.N2);
+    this.setN3(this.N3);
+}
+
+SynthNote.prototype.setN2 = function(value) {
+    this.N2 = value;
+    this.osc2.frequency.value = (this.N2 / this.N1) * this.osc1.frequency.value;
+    
+    this.setModulationIndex1(this.modulationIndex1);
+}
+
+SynthNote.prototype.setN3 = function(value) {
+    this.N3 = value;
+    this.osc3.frequency.value = (this.N3 / this.N1) * this.osc1.frequency.value;
+    
+    this.setModulationIndex2(this.modulationIndex2);
+}
+
+SynthNote.prototype.setOsc1Type = function(type) {
+    this.osc1.type = type;
+}
+
+SynthNote.prototype.setOsc2Type = function(type) {
+    this.osc2.type = type;
+}
+
+SynthNote.prototype.setOsc3Type = function(type) {
+    this.osc3.type = type;
+}
+
+SynthNote.prototype.handleDetune = function() {
+    var d1 = (2*Math.random() - 1) * 0.5*this.randomization1;
+    var d2 = (2*Math.random() - 1) * 0.5*this.randomization2;
+    var d3 = (2*Math.random() - 1) * 0.5*this.randomization3;
+    var k = 0.050;
+
+    if (this.snapToDetune > 0) {
+        k = 0.010;
+        d1 = 0;
+        d2 = 0;
+        d3 = 0;
+        --this.snapToDetune;
+    }
+
+d1 = 0;
+d2 = 0;
+d3 = 0;
+
+    var t = 0;
+    this.osc1.detune.setTargetAtTime(this.detune + d1, t, k);
+    this.osc2.detune.setTargetAtTime(this.detune + this.detune2 + d2, t, k);
+    this.osc3.detune.setTargetAtTime(this.detune + this.detune3 + d3, t, k);
+}
+
+
+function initAudio() {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
+
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(context.destination);
+
+    synthNote = new SynthNote();
+
+
+
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("carrier freq", kFreq1, 1, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setOSC1Frequency(value); } );
+    views[j++] = new KnobView("mod2 detune", kDetune2, -1200, 1200, UNITS.cents, 0, false, function(value) { synthNote.setDetune2(value); } );
+    views[j++] = new KnobView("mod3 detune", kDetune3, -1200, 1200, UNITS.cents, 0, false, function(value) { synthNote.setDetune3(value); } );
+
+    views[j++] = new KnobView("N1", kN1, 1, 5, UNITS.indexed, 0, false, function(value) { synthNote.setN1(value); } );
+    views[j++] = new KnobView("N2", kN2, 0, 64, UNITS.indexed, 0, false, function(value) { synthNote.setN2(value); } );
+    views[j++] = new KnobView("N3", kN3, 0, 64, UNITS.indexed, 0, false, function(value) { synthNote.setN3(value); } );
+
+    views[j++] = new KnobView("modIndex", kModulationIndex, 0, 30, UNITS.generic, 0.1, false, function(value) { synthNote.setModulationIndex(value); } );
+    views[j++] = new KnobView("modCrossfade", kModulationCrossfade, 0, 1, UNITS.generic, 0.1, false, function(value) { synthNote.setModulationCrossfade(value); } );
+
+    views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { synthNote.setDetune(value); } );
+    views[j++] = new KnobView("filter", 24000, 20, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFilterFrequency(value); } );
+
+    views[j++] = new KnobView("feedback", 0, 0, 5000, UNITS.generic, 0, false, function(value) { synthNote.setFeedbackGain(value); } );
+    views[j++] = new KnobView("randomization1", 0, 0, 100, UNITS.cents, 0, false, function(value) { synthNote.setRandomization1(value); } );
+    views[j++] = new KnobView("randomization2", 0, 0, 100, UNITS.cents, 0, false, function(value) { synthNote.setRandomization2(value); } );
+    views[j++] = new KnobView("randomization3", 0, 0, 100, UNITS.cents, 0, false, function(value) { synthNote.setRandomization3(value); } );
+
+    installViews(views, controls);
+}
+
+
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+
+    initAudio();
+    analyserView1.initByteBuffer();
+    analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);
+    draw();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+}
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    
+    synthNote.handleDetune()
+    
+    window.requestAnimationFrame(draw);
+}
+
+
+</script>
+</head>
+
+<body style="-webkit-user-select: none;"  ondragstart="return false;" ondrop="return false;">
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Canvas tag for WebGL output -->
+
+<canvas id="view1" width="1280px" height="800px"></canvas>
+<br>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+<!-- Waveform type -->
+<br>
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="synthNote.setOsc1Type('sine');" />
+SINE
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.setOsc1Type('square');" />
+SQUARE
+<input type="radio" name="Waveform1" value="data"  onMouseDown="synthNote.setOsc1Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.setOsc1Type('triangle');"/>
+TRIANGLE
+
+<br>
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="synthNote.setOsc2Type('sine');" />
+SINE
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.setOsc2Type('square');" />
+SQUARE
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.setOsc2Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform2" value="data" onMouseDown="synthNote.setOsc2Type('triangle');"/>
+TRIANGLE
+
+<br>
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="synthNote.setOsc3Type('sine');" />
+SINE
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.setOsc3Type('square');" />
+SQUARE
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.setOsc3Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform3" value="data" onMouseDown="synthNote.setOsc3Type('triangle');"/>
+TRIANGLE
+
+
+</body>
+</html>

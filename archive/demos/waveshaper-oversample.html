@@ -1,0 +1,272 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+<script type="text/javascript" src="lib/waveshaper.js"></script>
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+o3djs.require('o3djs.shader');
+
+window.onload = init;
+
+
+
+var context;
+var synthNote;
+
+var wavetable;
+var frequencyData;
+var analyser;
+var analyserView1;
+var views;
+
+var FREQ1 = 1000;
+
+// Chebyshev Polynomials.
+function T0(x) { return 1; }
+function T1(x) { return x; }
+function T2(x) { return 2*x*x - 1; }
+function T3(x) { return 4*x*x*x - 3*x; }
+function T4(x) { return 8*x*x*x*x - 8*x*x + 1; }
+
+function createCurve() {
+    var n = 65536;
+    var n2 = n / 2;
+    var curve = new Float32Array(n);
+    
+    for (var i = 0; i < n; ++i) {
+        var x = (i - n2) / n2;
+        var y = 0.25 * (T1(x) + T2(x) + T3(x) + T4(x));
+        curve[i] = y;
+    }
+
+    return curve;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+function SynthNote() {
+    this.detune = 0;
+    this.snapToDetune = 0;    
+    
+    var source = context.createBufferSource();
+
+    var osc1 = context.createOscillator();
+    osc1.frequency.value = FREQ1;
+    osc1.start(0);
+    
+    var waveshaper = context.createWaveShaper();
+    waveshaper.curve = createCurve();
+    waveshaper.oversample = "4x";
+    
+    osc1.connect(waveshaper);
+    waveshaper.connect(analyser);
+
+    var gainNode = context.createGain();
+    gainNode.gain.value = 0.25;
+
+    //
+    this.osc1 = osc1;
+    this.source = source;
+    this.waveshaper = waveshaper;
+    this.gainNode = gainNode;
+}
+
+SynthNote.prototype.setFrequency1 = function(value) {
+    this.osc1.frequency.value = value;
+}
+
+SynthNote.prototype.setGain = function(value) {
+    this.gainNode.gain.value = value
+}
+
+SynthNote.prototype.setOversample = function(value) {
+    this.waveshaper.oversample = value;
+}
+
+function initAudio() {
+    context = new AudioContext();
+    
+    // 
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(context.destination);
+
+    synthNote = new SynthNote();
+
+    var controls = document.getElementById("controls");
+    views = new Array();
+
+    var j = 0;
+    views[j++] = new KnobView("pitch1", FREQ1, 10, 24000, UNITS.hertz, 0, true, function(value) { synthNote.setFrequency1(value); } );
+    views[j++] = new KnobView("gain", 1, 0, 1, UNITS.generic, 0, false, function(value) { synthNote.setGain(value); } );
+
+    installViews(views, controls);
+}
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+
+    initAudio();
+    analyserView1.initByteBuffer();
+    analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);
+
+    // loadAudioBuffer("sounds/hyper-reality/human-voice.mp4");
+    // loadAudioBuffer("sounds/Truth_2_Jon_Gilham.mp3");
+
+    draw();
+}
+
+function loadAudioBuffer(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            synthNote.source.buffer = audioBuffer;
+            synthNote.source.loop = true;
+
+            synthNote.source.start(0.0);
+        }, function(error) {
+            console.error(error);
+        });
+    };
+
+    request.send();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+}
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();    
+    window.requestAnimationFrame(draw);
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Canvas tag for WebGL output -->
+
+<canvas id="view1" width="1280px" height="800px"></canvas>
+
+<br>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="synthNote.osc1.type = 'sine';" />
+SINE
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'square';" />
+SQUARE
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'sawtooth';" />
+SAWTOOTH
+<input type="radio" name="Waveform1" value="data" onMouseDown="synthNote.osc1.type = 'triangle';"/>
+TRIANGLE
+
+<br>
+<!-- Oversample type -->
+<input type="radio" name="Oversample" value="data" onMouseDown="synthNote.setOversample('none');" />
+none
+<input type="radio" name="Oversample" value="data" onMouseDown="synthNote.setOversample('2x');" />
+2x
+<input type="radio" name="Oversample" value="data" checked="checked" onMouseDown="synthNote.setOversample('4x');" />
+4x
+
+</body>
+</html>

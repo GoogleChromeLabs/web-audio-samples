@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Box2DJS - Physics Engine for JavaScript</title>
+
+		<!--=============================-->
+		<!-- Copy this part to your app. -->
+		<!-- START                       -->
+		<!--=============================-->
+		<!-- libs -->
+		<!--[if IE]><script type="text/javascript" src="lib/excanvas.js"></script><![endif]-->
+    <script src="lib/prototype-1.6.0.2.js"></script>
+
+		<!-- box2djs -->
+
+<script>
+    var context;
+    var convolver;
+    var compressor;
+    
+    var pingFileName = "../sounds/hyper-reality/filter-noise-2.wav";
+    var pingBuffer = 0;
+    var gCount = 0;
+    
+    // Temporary patch until all browsers support unprefixed context.
+    AudioContext = AudioContext || webkitAudioContext;
+
+    // Callback when a collision occurs
+    function countContact(body1, body2) {
+      gCount++;
+
+      var velocity1 = body1.GetLinearVelocity();
+      var velocity2 = body2.GetLinearVelocity();
+
+      var v1 = velocity1.Length();
+      var v2 = velocity2.Length();
+      var maxV = v1 > v2 ? v1 : v2;
+
+      // base volume on velocity
+      var xx = maxV / 150.0; //200.0;
+      if (xx > 1.0) xx = 1.0;
+      if (xx < 0.0) xx = 0.0;
+      // var s = Math.sin(0.5 * xx * Math.PI);
+      var s = xx;
+      s = s*s;
+      var gain = s;
+
+      var position1 = body1.GetCenterPosition();
+      var position2 = body2.GetCenterPosition();
+      var x = v1 > v2 ? position1.x : position2.x;
+      var y = position1.y;
+
+      if (gCount > 0) {
+        var ping = context.createBufferSource();
+
+        if (ping) {
+          var isQuiet = (gain < 0.5);
+          ping.buffer = pingBuffer; // isQuiet ? quietBuffer : pingBuffer;
+
+          // Use biquad filter API if available.
+          var filter = context.createBiquadFilter();
+          var panner = context.createPanner();
+          
+          // Create inputs to dry/wet mixers
+          var dryGainNode = context.createGain();
+          var wetGainNode = context.createGain();
+          wetGainNode.gain.value = gain < 0.125 ? 0.15 : 0.1;
+          dryGainNode.gain.value = gain;  //isQuiet ? 0.0 : gain;
+          
+          ping.connect(filter);
+          filter.connect(panner);
+          panner.connect(dryGainNode);
+          dryGainNode.connect(compressor);
+
+          panner.connect(wetGainNode);
+          wetGainNode.connect(convolver);
+
+          // Randomize pitch          
+          var r = Math.random();
+          var cents = 600.0 * (r - 0.5);
+          var rate = Math.pow(2.0, cents / 1200.0);
+          ping.playbackRate.value = rate;
+
+          // Adjust filter
+          var value = 0.5 + 0.5 * xx;
+          var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
+          var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+
+          var sampleRate = 44100.0;
+          var nyquist = sampleRate * 0.5;
+
+          filter.frequency.value = v2 * nyquist;
+          filter.Q.value = 10.0; // this is actually resonance in dB
+
+          var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
+          if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
+          if (azimuth > 0.5*Math.PI) azimuth = 0.5*Math.PI;
+
+          var posX = 10.0 * Math.sin(azimuth);
+          var posZ = 10.0 * Math.cos(azimuth);
+
+          var elevation = -0.5*Math.PI * (y - 250.0) / 150.0;
+          if (elevation < -0.5*Math.PI) elevation = -0.5*Math.PI;
+          if (elevation > 0.5*Math.PI) elevation = 0.5*Math.PI;
+
+          var scaleY = Math.sin(elevation);
+          var scaleXZ = Math.cos(elevation);
+          posX *= scaleXZ;
+          posZ *= scaleXZ;
+          var posY = scaleY * 10.0;
+
+          panner.setPosition(posX, posY /*0*/, isQuiet ? +posZ : -posZ);
+
+          ping.start(0);
+          var stopTime = context.currentTime + ping.buffer.duration / rate + 1;
+          var cleanupDelay = stopTime + 1 - context.currentTime;
+          ping.stop(stopTime);
+          setTimeout(function() {
+            dryGainNode.disconnect();
+            wetGainNode.disconnect();
+            ping.disconnect();
+          }, cleanupDelay * 1000);
+        }
+      }
+    }
+
+    function mixToMono(buffer) {
+        if (buffer.numberOfChannels == 2) {
+            var pL = buffer.getChannelData(0);
+            var pR = buffer.getChannelData(1);
+            var length = buffer.length;
+
+            for (var i = 0; i < length; ++i) {
+                var mono = 0.5 * (pL[i] + pR[i]);
+                pL[i] = mono;
+                pR[i] = mono;
+            }
+        }
+    }
+
+    function loadPing(url) {
+      // Load asynchronously
+      var request = new XMLHttpRequest();
+      request.open("GET", url, true);
+      request.responseType = "arraybuffer";
+
+      request.onload = function() { 
+          context.decodeAudioData(
+              request.response,
+              function(buffer) {
+                  mixToMono(buffer);
+                  pingBuffer = buffer;
+              },
+
+              function(buffer) {
+                  console.log("Error decoding ping!");
+              }
+          );
+      }
+
+      request.send();
+    }
+
+    function loadImpulseResponse(url) {
+      // Load impulse response asynchronously
+      var request = new XMLHttpRequest();
+      request.open("GET", url, true);
+      request.responseType = "arraybuffer";
+
+      request.onload = function() { 
+          context.decodeAudioData(
+              request.response,
+              function(buffer) {
+                  convolver.buffer = buffer;
+              },
+
+              function(buffer) {
+                  console.log("Error decoding impulse response!");
+              }
+          );
+      }
+
+      request.send();
+    }
+
+    function init() {
+      prettyPrint();
+
+      context = new AudioContext();
+      
+      if (context.createDynamicsCompressor) {
+          // Create dynamics compressor to sweeten the overall mix.
+          compressor = context.createDynamicsCompressor();
+          compressor.connect(context.destination);
+      } else {
+          // Compressor is not available on this implementation - bypass and simply point to destination.
+          compressor = context.destination;
+      }
+      
+      convolver = context.createConvolver();
+      convolver.connect(compressor);
+
+      pingBuffer = 0;
+      loadPing(pingFileName);
+
+      // loadImpulseResponse('../impulse-responses/spreader55-75ms.wav');
+      // loadImpulseResponse('../impulse-responses/house-impulses/dining-living-true-stereo.wav');
+      loadImpulseResponse('../impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav');
+    }
+
+</script>
+
+
+    <script src='js/box2d/common/b2Settings.js'></script>
+    <script src='js/box2d/common/math/b2Vec2.js'></script>
+    <script src='js/box2d/common/math/b2Mat22.js'></script>
+    <script src='js/box2d/common/math/b2Math.js'></script>
+    <script src='js/box2d/collision/b2AABB.js'></script>
+    <script src='js/box2d/collision/b2Bound.js'></script>
+    <script src='js/box2d/collision/b2BoundValues.js'></script>
+    <script src='js/box2d/collision/b2Pair.js'></script>
+    <script src='js/box2d/collision/b2PairCallback.js'></script>
+    <script src='js/box2d/collision/b2BufferedPair.js'></script>
+    <script src='js/box2d/collision/b2PairManager.js'></script>
+    <script src='js/box2d/collision/b2BroadPhase.js'></script>
+    <script src='js/box2d/collision/b2Collision.js'></script>
+    <script src='js/box2d/collision/Features.js'></script>
+    <script src='js/box2d/collision/b2ContactID.js'></script>
+    <script src='js/box2d/collision/b2ContactPoint.js'></script>
+    <script src='js/box2d/collision/b2Distance.js'></script>
+    <script src='js/box2d/collision/b2Manifold.js'></script>
+    <script src='js/box2d/collision/b2OBB.js'></script>
+    <script src='js/box2d/collision/b2Proxy.js'></script>
+    <script src='js/box2d/collision/ClipVertex.js'></script>
+    <script src='js/box2d/collision/shapes/b2Shape.js'></script>
+    <script src='js/box2d/collision/shapes/b2ShapeDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2BoxDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2CircleDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2CircleShape.js'></script>
+    <script src='js/box2d/collision/shapes/b2MassData.js'></script>
+    <script src='js/box2d/collision/shapes/b2PolyDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2PolyShape.js'></script>
+    <script src='js/box2d/dynamics/b2Body.js'></script>
+    <script src='js/box2d/dynamics/b2BodyDef.js'></script>
+    <script src='js/box2d/dynamics/b2CollisionFilter.js'></script>
+    <script src='js/box2d/dynamics/b2Island.js'></script>
+    <script src='js/box2d/dynamics/b2TimeStep.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactNode.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Contact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraintPoint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactRegister.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactSolver.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2CircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Conservative.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2NullContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyAndCircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyContact.js'></script>
+    <script src='js/box2d/dynamics/b2ContactManager.js'></script>
+    <script src='js/box2d/dynamics/b2World.js'></script>
+    <script src='js/box2d/dynamics/b2WorldListener.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointNode.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Joint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2DistanceJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2DistanceJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Jacobian.js'></script>
+    <script src='js/box2d/dynamics/joints/b2GearJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2GearJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PrismaticJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PrismaticJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PulleyJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2PulleyJointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2RevoluteJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2RevoluteJointDef.js'></script>
+		<!--=============================-->
+		<!-- Copy this part to your app. -->
+		<!-- END                         -->
+		<!--=============================-->
+
+		<!-- demos -->
+    <script src='demos/draw_world.js'></script>
+    <script src='demos/demo_base.js'></script>
+    <script src='demos/top.js'></script>
+    <script src='demos/stack.js'></script>
+    <script src='demos/compound.js'></script>
+    <script src='demos/pendulum.js'></script>
+    <script src='demos/crank.js'></script>
+    <script src='demos/demos.js'></script>
+
+    <script src='style/prettify.js'></script>
+		<link href="style/prettify.css" rel="stylesheet" type="text/css" />
+
+<script>
+		Event.observe(window, 'load', init );
+</script>
+
+		<link href="style/distant-planet.css" rel="stylesheet" type="text/css" />
+		<link href="style/box2d.css" rel="stylesheet" type="text/css" />
+  </head>
+<body>
+    <canvas id="canvas" width='500' height='300' style="top:30px; left:20px;"></canvas>
+
+    <div id="info">0</div>
+</body>
+</html>

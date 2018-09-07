@@ -1,0 +1,273 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<link href="style/codesite.css" rel="stylesheet" type="text/css" /> 
+<title>Web Audio</title> 
+</head> 
+ 
+<body>
+
+<h2>Web Audio Examples</h2>
+<p>The Web Audio API introduces a variety of new audio features to the web platform. It can be used with the <code>canvas</code> 2D and 
+	<code>WebGL</code> 3D graphics APIs for creating a new generation of games and interactive applications.
+  The API is capable of dynamically positioning/spatializing and mixing multiple sound sources in three-dimensional space.
+   It has a powerful modular routing system, supporting effects, a convolution engine for room simulation, multiple sends, submixes, etc.
+    Scheduled sound playback is provided for musical applications requiring a high degree of rhythmic precision.  Realtime analysis / visualizer support and direct JavaScript processing is also supported.</p> 
+<p>These APIs are currently under development and are described in this <a href="http://chromium.googlecode.com/svn/trunk/samples/audio/specification/specification.html">specification</a> document.
+</p>
+
+<p>
+	  Please direct any feedback to
+	the W3C audio mailing list - <b>public-audio@w3.org</b>.
+</p> 
+	
+	
+<h2>Getting Started</h2>
+
+<p>
+<em>*** These samples require a browser which supports the Web Audio API. *** </em>
+</p>
+<br>
+
+
+<img src="assets/chrome.png" width=64px/>
+
+<h4> Mac OS X, Windows, and Linux </h4>
+<p>
+Builds are available in <a href='http://www.google.com/chrome'> stable releases</a> of Chrome.
+</p>
+
+<p>
+More cutting-edge builds are available in the <a href='http://tools.google.com/dlpage/chromesxs'>Canary</a> builds.  Please be aware that the
+Canary builds are nightly builds which are not very well tested and can be unstable.
+</p>
+
+<br><br>
+
+<img src="assets/safari.png" width=64px/>
+<h4> Mac OS X</h4>
+
+<p>
+Web Audio is available in Apple Safari 6 in Mountain Lion, and in iOS 6.
+</p>
+
+<p>
+More cutting-edge <a href="http://nightly.webkit.org/">nightly builds</a> are also available.  For these builds,
+before running, it might be necessary to enable by going into the "Terminal" application and typing:
+</p>
+
+
+<pre>
+$ defaults write com.apple.Safari WebKitWebGLEnabled -bool YES
+$ defaults write com.apple.Safari WebKitWebAudioEnabled -bool YES
+$ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2WebAudioEnabled -bool YES
+$ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2WebGLEnabled -bool YES
+</pre>
+
+<br><br>
+
+<img src="assets/firefox.png" width=64px/>
+<h4> Firefox</h4>
+
+<p>
+Firefox has also started work on the Web Audio API, with cutting-edge builds available <a href="http://nightly.mozilla.org/">here</a>.
+</p>
+
+<h2>Samples</h2> 
+<br> 
+ 
+ 
+<table> 
+<tbody> 
+ 
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="shiny-drum-machine.html" imageanchor="1"><img src="images/shiny-drum-machine.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="shiny-drum-machine.html">
+
+<b>Drum Machine</b></a>
+
+ is an interactive musical application illustrating the concept of "scheduled playback" where sounds can be sequenced very accurately in time.
+   A variety of special effects are available.  Have fun with the demo presets, then experiment with your own creations.  Demo courtesy of Ken Moore.
+   <br><br>
+   (old demo <a href='drum-machine.html'>here</a>)
+   </td> 
+
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="convolution-effects.html" imageanchor="1"><img src="images/convolution-effects.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="convolution-effects.html"><b>Convolution Effects.</b></a> The powerful convolution engine is able to reproduce the sound of just about any real-world acoustic space but is also able to create some interesting special effects such as backward reverbs and strange filters.</td> 
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="wavetable-synth.html" imageanchor="1"><img src="images/synth.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="wavetable-synth.html"><b>WaveTable Synth</b></a>
+ is a four oscillator mono/poly synth.  Have fun tweaking the delays and other controls.</td> 
+</tr> 
+  
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="dj.html" imageanchor="1"><img src="images/dj.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="dj.html"><b>Digital DJ</b></a> is a fun example where beat-matched loops may be loaded onto a left and right virtual turntable and controlled with a cross-fader, 2pole resonant filters, and an echo-delay effect.</td> 
+</tr> 
+ 
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="granular.html" imageanchor="1"><img src="images/granular-effects.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="granular.html"><b>Granular Effects</b></a> is another example of "scheduled playback" like Drum Machine.  Here, the sound samples are small pieces (called "grains") taken from a larger sound buffer of a woman speaking. These small grains are then composited in various time sequences controllable by the sliders to achieve a crude but interesting time-stretching effect.  Each of the grains may be changed in pitch, time, diffusion, and panning (positioning).</td> 
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="visualizer-gl.html" imageanchor="1"><img src="images/visualizer2-gl.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="visualizer-gl.html"><b>Realtime Analyser.</b></a> is a visualizer using WebGL.
+
+<br><br>
+Also check out a version of this which <a href="visualizer-live.html">visualizes live audio input</a> from your microphone or other audio source.  This one currently only
+ works in Mac Chrome Canary and requires enabling "Web Audio Input" in "about:flags":
+</td> 
+</tr> 
+
+ <tr> 
+ <td style="width: 60px;"> 
+ <div style="display: block; text-align: left;"><a href="box2d-js/box2d-audio.html" imageanchor="1"><img src="images/box2d.png" border="1"></a></div> 
+ </td> 
+ <td style="width: 300px;"><a href="box2d-js/box2d-audio.html"><b>box2d</b></a> is an example of an interactive application with a real-time physics engine.
+   You can drop objects by clicking anywhere on the screen.
+     The collisions between the objects are accompanied by sound effects which take into account the  positions of the objects,
+      as well as the force of the impacts.
+      
+      <p>
+      Physics engine courtesy of <a href="http://www.box2d.org/">www.box2d.org</a>.
+      </p>
+      
+      </td> 
+ </tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="oscillator.html" imageanchor="1"><img src="images/oscillator.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="oscillator.html"><b>Oscillators</b></a> This is a basic example using three oscillators.</td> 
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="oscillator-fm2.html" imageanchor="1"><img src="images/oscillator-fm2.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="oscillator-fm2.html"><b>FM Synthesis</b></a> This shows off an FM structure, using three oscillators: two modulators and one carrier.</td> 
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="subtractive.html" imageanchor="1"><img src="images/subtractive.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="subtractive.html"><b>Web MIDI API synth</b></a> This subtractive synth can be played with the <a href="http://webaudio.github.io/web-midi-api/">
+ Web MIDI API </a>, which is available as an experimental feature in Chrome Canary (currently OSX).  To enable it, please go to "about:flags" and "Enable Web MIDI", then click on the "Relaunch" button at the bottom.
+
+ </td> 
+</tr> 
+
+ 
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="simple.html" imageanchor="1"><img src="images/panning-reverb.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="simple.html"><b>Panning/Reverb</b></a> This sample allows the user to move various sounds around in 3D space and explore different kinds of acoustic environments.</td> 
+</tr> 
+ 
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="o3d-webgl-samples/pool.html" imageanchor="1"><img src="images/8-ball2.png" border="1"></a></div> 
+</td> 
+<td style="width: 300px;"><a href="o3d-webgl-samples/pool.html"><b>8-ball</b></a> A virtual pool game complete with sound effects.
+    It uses WebGL (originally ported from o3d).</td> 
+</tr> 
+
+<tr> 
+<td cellpadding="10" style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="javascript-processing.html"><img src="images/javascript-processing.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="javascript-processing.html"><b>JavaScript Processing</b></a> demonstrates how it's possible to do custom audio signal processing directly
+in JavaScript.  Here we're processing audio using a simple amplitude modulator effect, then visualizing the results.  It's interesting to see how the side-bands move
+as the modulation frequency is changed.<br> 
+</td> 
+</tr>
+
+<tr> 
+<td cellpadding="10" style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="doppler.html"><img src="images/doppler.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="doppler.html"><b>Doppler Shift</b></a> is a demo where an object is animated around the listener and illustrates
+both 3D spatialized positioning and doppler shifting, where the pitch of a sound increases as it moves toward the listener and decreases as it moves away.
+It's possible to change the trajectory of the object left/right, front/back, and up/down, as well as to select some parameters such as speed, pitch,
+and sound source.<br> 
+</td> 
+</tr> 
+
+</tbody> 
+</table> 
+
+<br><br><br>
+
+<h2>More Demos</h2>
+<a href="samples.html"><img src="images/ring-visualizer.png"></a>
+<a href="samples.html"><img src="images/webgl-city.png"></a>
+<a href="samples.html"><img src="images/pedalboard.png"></a>
+<a href="samples.html"><img src="images/trigger-rally.png"></a>
+<a href="samples.html"><img src="images/funklet.png"></a>
+<a href="samples.html"><img src="images/filter-editor.png"></a>
+<a href="samples.html"><img src="images/mixer.png"></a>
+<a href="samples.html"><img src="images/xylophone.png"></a>
+
+<a href="samples.html"><img src="images/plink.png"></a>
+<a href="samples.html"><img src="images/tonecraft.png"></a>
+<a href="samples.html"><img src="images/b.uild.in.png"></a>
+<a href="samples.html"><img src="images/storiesinflight.png"></a>
+<a href="samples.html"><img src="images/technocrat.png"></a>
+<a href="samples.html"><img src="images/bohemian.png"></a>
+
+ 
+</body> 
+</html> 

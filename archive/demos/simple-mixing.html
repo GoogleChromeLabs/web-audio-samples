@@ -1,0 +1,202 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+
+<link rel="stylesheet" type="text/css" href="style/simple.css" />
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// init() once the page has finished loading.
+window.onload = init;
+
+// globals
+var context = 0;
+var bufferLoader = 0;
+var source1;
+var source2;
+var source3;
+
+function BufferLoader(url1, url2, url3) {
+    this.urlList = new Array();
+    this.urlList[0] = url1;
+    this.urlList[1] = url2;
+    this.urlList[2] = url3;
+
+    this.bufferList = new Array();
+    this.bufferList[0] = 0;
+    this.bufferList[1] = 0;
+    this.bufferList[2] = 0;
+
+    this.bufferCount = 3;
+    this.loadCount = 0;
+}
+
+BufferLoader.prototype.loadAllBuffers = function() {
+    this.loadBuffer(0);
+    this.loadBuffer(1);
+    this.loadBuffer(2);    
+}
+
+BufferLoader.prototype.loadBuffer = function(i) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", this.urlList[i], true);
+    request.responseType = "arraybuffer";
+
+    var bufferLoader = this;
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            bufferLoader.bufferList[i] = audioBuffer;
+            bufferLoader.loadCount++;
+            if (bufferLoader.loadCount === bufferLoader.bufferCount) {
+                finishedLoading();
+            }
+        }, function(error) {
+            console.error(error);
+        });
+    };
+
+    request.onerror = function() {
+        alert("error loading");
+    };
+
+    request.send();
+}
+
+function finishedLoading() {
+    // Set buffers on sources
+    source1.buffer = bufferLoader.bufferList[0];
+    source2.buffer = bufferLoader.bufferList[1];
+    source3.buffer = bufferLoader.bufferList[2];
+
+    // Try to start sources at the same time
+    var time = context.currentTime + 0.020;
+    source1.start(time);
+    source2.start(time);
+    source3.start(time);
+}
+
+function gainHandler1(event, ui) {
+    var value = ui.value;
+    var info = document.getElementById("gain1-value");
+    info.innerHTML = "gain1 = " + value;
+    gain1.gain.value = value;
+}
+
+function gainHandler2(event, ui) {
+    var value = ui.value;
+    var info = document.getElementById("gain2-value");
+    info.innerHTML = "gain2 = " + value;
+    gain2.gain.value = value;
+}
+
+function gainHandler3(event, ui) {
+    var value = ui.value;
+    var info = document.getElementById("gain3-value");
+    info.innerHTML = "gain3 = " + value;
+    gain3.gain.value = value;
+}
+
+function addSliders() {
+    addSlider("gain1");
+    addSlider("gain2");
+    addSlider("gain3");
+    configureSlider("gain1", 1.0, 0.0, 1.0, gainHandler1);
+    configureSlider("gain2", 1.0, 0.0, 1.0, gainHandler2);
+    configureSlider("gain3", 1.0, 0.0, 1.0, gainHandler3);
+}
+
+function init() {
+    context = new AudioContext();
+
+    source1 = context.createBufferSource();
+    source2 = context.createBufferSource();
+    source3 = context.createBufferSource();
+    source1.loop = true;
+    source2.loop = true;
+    source3.loop = true;
+
+    gain1 = context.createGain();
+    gain2 = context.createGain();
+    gain3 = context.createGain();
+    source1.connect(gain1);
+    source2.connect(gain2);
+    source3.connect(gain3);
+    gain1.connect(context.destination);
+    gain2.connect(context.destination);
+    gain3.connect(context.destination);
+
+    addSliders();
+
+    bufferLoader = new BufferLoader(
+        "sounds/hyper-reality/human-voice.mp4",
+        "sounds/hyper-reality/br-jam-loop.wav",
+        "sounds/hyper-reality/laughter.wav");
+
+    // finishedLoading() will be called when we're done
+    bufferLoader.loadAllBuffers();
+}
+
+</script>
+</head>
+
+<body>
+
+<p>
+Simple Mixing
+</p>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+</html>

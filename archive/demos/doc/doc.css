@@ -1,0 +1,10 @@
+body {background:#fff;}
+h1 {color:#111;}
+a {color:blue; text-decoration:none; }
+#canvasID {background:#fff;}
+#canvasElevationID {background:#fff;}
+.bigList {color:blue; font-size:large; font-weight:bold}
+.smallList {color:blue; font-size:medium; font-weight:bold}
+pre {color:#181; background:#ddd;}
+
+.home {color:blue; font-size:x-large; font-weight:bold}

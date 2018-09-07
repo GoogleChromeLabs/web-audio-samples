@@ -1,0 +1,186 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var source;
+var buffer;
+var curve;
+var gainNode;
+var waveshaper;
+var hihatShort;
+var drive = 1;
+
+var threshold = -24; // dB
+var headroom = 21; // dB
+
+function driveHandler(event, ui) {
+    drive = ui.value;
+    var info = document.getElementById("drive-value");
+    info.innerHTML = "drive = " + drive;
+}
+
+function headroomHandler(event, ui) {
+    headroom = ui.value;
+    var info = document.getElementById("headroom-value");
+    info.innerHTML = "headroom = " + headroom;
+
+    if (gainNode)
+        gainNode.gain.value = Math.pow(10, 0.05 * headroom);
+}
+
+function finishLoad() {
+    addSlider("drive");
+    configureSlider("drive", 0.5, 0.0, 1.0, driveHandler);
+
+    var ui = {value: 1.0};
+    ui.value = 0.0;
+    driveHandler(0, ui);
+}
+
+function createToneBuffer() {
+    var toneBuffer = context.createBuffer(1, 1024, context.sampleRate);
+    var n = toneBuffer.length;
+    var channelL = toneBuffer.getChannelData(0);
+    var sampleRate = toneBuffer.sampleRate;
+    
+    for (var i = 0; i < n; ++i) {
+        channelL[i] = Math.sin(2.0*Math.PI * i / n);
+    }
+    
+    return toneBuffer;
+}
+
+function e4(x, k)
+{
+    return 1.0 - Math.exp(-k * x);
+}
+
+function dBToLinear(db) {
+    return Math.pow(10.0, 0.05 * db);
+}
+
+function shape(x) {
+    var linearThreshold = dBToLinear(threshold);
+    var linearHeadroom = dBToLinear(headroom);
+    
+    var maximum = 1.05 * linearHeadroom * linearThreshold;
+    var kk = (maximum - linearThreshold);
+    
+    var sign = x < 0 ? -1 : +1;
+    var absx = Math.abs(x);
+    
+    var shapedInput = absx < linearThreshold ? absx : linearThreshold + kk * e4(absx - linearThreshold, 1.0 / kk);
+    shapedInput *= sign;
+    
+    return shapedInput;
+}
+
+function generateWaveShapingCurve(curve) {
+    var n = 65536;
+    var n2 = n / 2;
+    
+    for (var i = 0; i < n2; ++i) {
+        x = i / n2;
+        x = shape(x);
+        
+        curve[n2 + i] = x;
+        curve[n2 - i - 1] = -x;
+    }
+
+    // for (var i = 0; i < n; ++i) {
+    //     x = i / n;
+    //     x = 2 * x - 1;
+    //     curve[i] = x;
+    // }
+    
+    
+    return curve;
+}
+
+function init() {
+    addSlider("headroom");
+    configureSlider("headroom", 0, -20, 40, headroomHandler);
+    
+    context = new AudioContext();
+    source = context.createBufferSource();
+    buffer = createToneBuffer();
+    curve = new Float32Array(65536);
+    generateWaveShapingCurve(curve);
+    source.buffer = buffer;
+    source.loop = true;
+    waveshaper = context.createWaveShaper();
+    waveshaper.curve = curve;
+    
+    gainNode = context.createGain();
+    
+    source.connect(gainNode);
+    gainNode.connect(waveshaper);
+    waveshaper.connect(context.destination);
+    
+    source.start(0);
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+</html>

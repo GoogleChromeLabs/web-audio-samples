@@ -1,0 +1,299 @@
+/* Styles for Drum Machine Demo */
+body {
+	background-color: rgb(245, 245, 245);
+	color: rgb(121, 121, 121);
+	font-family: 'Droid Sans', Arial, sans-serif;
+	font-size: 13px;
+}
+
+* {
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	cursor: pointer !important;
+}
+
+#title {
+	font-family: 'Michroma', 'Droid Sans', Arial, sans-serif;
+	font-size: 25px;
+	font-weight: bold;
+	display: block;
+	margin: 20px 0 15px 0;
+	text-align: center;
+}
+
+#version {
+	font-weight: bold;
+	font-size: 12px;
+}
+
+.container {
+	border-radius: 10px;
+	border: 1px solid rgb(230, 230, 230);
+	width: 695px;
+	background-color: rgb(255, 255, 255);
+	margin: 0px auto;
+	padding: 20px 20px 15px 20px;
+  -webkit-box-shadow:0px 2px 3px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+.container.active {
+	display: block;
+}
+
+.buttons_row {
+}
+
+#LED_row {
+	margin-top: 8px;
+	margin-bottom: 12px;
+}
+
+.label {
+	display: inline-block;
+	vertical-align: top;
+	width: 60px;
+	position: relative;
+	top: 12px;
+	text-align: right;
+	margin-right: 15px;
+}
+
+#pad {
+	height: 268px;
+}
+
+#params {
+	height: 155px;
+}
+
+#tools {
+	height: 36px;
+}
+
+#paramsleft_container {
+	display: inline-block;
+	vertical-align: top;
+	margin-right: 13px;
+}
+
+.btn {
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+#kitlabel, #effectlabel, #swinglabel {
+	top: 6px;
+}
+
+#beatlabel {
+	top: 8px;
+}
+
+.combo {
+	width: 158px;
+	height: 15px;
+	background: -webkit-gradient(linear, left top, left bottom, from(rgb(255, 255, 255)), 
+		color-stop(2%, rgb(255, 255, 255)), color-stop(5%, rgb(244, 244, 244)), 
+		color-stop(90%, rgb(255, 255, 255)), to(rgb(232, 232, 232)));
+	border-radius: 3px;
+	border: 1px solid rgb(220, 220, 220);
+	color: rgb(76, 76, 76);
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+	padding: 6px;
+	margin-bottom: 10px;
+}
+
+.combo img {
+	position: absolute;
+	left: 150px;
+	top: 11px;
+}
+
+.combolist {
+	list-style-type: none;
+	position: absolute;
+	top: 27px;
+	left: -1px;
+	margin: 0;
+	background-color: rgb(249, 249, 249);
+	border-radius: 2px;
+	border: 1px solid rgb(200, 200, 200);
+	width: 160px;
+	padding: 5px;
+	display: none;
+	z-index: 1;
+}
+
+#effectlist {
+	height: 200px;
+	overflow: auto;
+}
+
+.combo.active .combolist {
+	display: block;
+}
+
+.combolist li {
+	padding: 2px;
+	border-radius: 2px;
+}
+
+.combolist li:hover {
+	color: rgb(255, 255, 255);
+	background-color: rgb(38, 47, 104);
+}
+
+.slider_container {
+	width: 50px;
+	height: 175px;
+	margin: 0 1px;
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+}
+
+#swing_container {
+	width: 250px;
+	height: 30px;
+	margin-bottom: 10px;
+}
+
+.slider_groove {
+	margin: 0 auto;
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+}
+
+.slider_thumb {
+	position: absolute;
+	left: 10px;
+	top: 0;
+}
+
+.slider_label {
+	text-align: center;
+	margin-top: 13px;
+}
+
+#tempo_container {
+	height: 40px;
+	margin-bottom: 10px;
+}
+
+#tempodisplay {
+	background-image: url('../images/tempo_bg.png');
+	width: 57px;
+	height: 20px;
+	display: inline-block;
+	vertical-align: top;
+	padding: 10px 20px;
+	text-align: right;
+	color: rgb(76, 76 ,76);
+}
+
+#tempo {
+	font-weight: bold;
+	font-size: 18px;
+}
+
+#bpm {
+	font-size: 14px;
+}
+
+#tempoinc, #tempodec {
+	position: relative;
+	top: 3px;
+	left: 1px;
+}
+
+.vrule {
+	width: 1px;
+	height: 160px;
+	background-color: rgb(229, 229, 229);
+	margin: 0 8px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+#play, #stop {
+	margin-right: 12px;
+}
+
+#stop {
+	display: none;
+}
+
+#play.playing {
+	display: none;
+}
+
+#stop.playing {
+	display: inline;
+}
+
+#demos_container {
+	margin-left: 10px;
+}
+
+#save_container, #load_container {
+	height: 521px;
+}
+
+#save_textarea, #load_textarea {
+	width: 607px;
+	height: 270px;
+	margin: 20px 40px;
+	font-size: 12px;
+	-webkit-user-select: text !important;
+}
+
+#save_ok {
+	display: block;
+	margin: 0 auto;
+}
+
+#load_buttons {
+	margin: 0 auto;
+	width: 160px;
+}
+
+#load_ok, #load_cancel {
+	margin: 0 3px;
+}
+
+#loading {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+#loadingcard {
+	background: -webkit-gradient(linear, left top, left bottom, from(rgb(235, 235, 235)), 
+	 to(rgb(255, 255, 255)));
+  -webkit-box-shadow:0px 2px 3px rgba(0, 0, 0, 0.2);
+	width: 260px;
+	height: 60px;
+	border-radius: 10px;
+	margin: 210px auto;
+	padding: 10px;
+}
+
+#loadingtext {
+	text-align: center;
+	margin: 5px 0;
+}
+
+#loadingcard img {
+	margin: 15px auto;
+	display: block;
+}
+
+img.preload { display: none; }

@@ -1,0 +1,512 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Butterworth equations adapted from:
+http://www.musicdsp.org/files/filters004.txt
+By baltrax@hotmail.com (Zxform)
+
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var filter;
+var filter2;
+var frequency = 2000;
+var resonance = 5;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+
+var curveColor = "rgb(192,192,192)";
+var playheadColor = "rgb(80, 100, 80)";
+var gridColor = "rgb(100,100,100)";
+
+var dbScale = 30;
+var pixelsPerDb;
+var width;
+var height;
+
+var Q = 1;
+var resonance = 5;
+var offsetResonance = 0.5;
+
+//************************************************************************************
+
+function Section(section, fc, Q) {
+    this.section = section;
+    this.fc = fc;
+    this.Q = Q;
+    
+    if (section == 0) {
+    	// 1st section
+    	this.a0 = 1.0;
+    	this.a1 = 0;
+    	this.a2 = 0;
+
+    	this.b0 = 1.0;
+    	this.b1 = 0.765367 / Q;      /* Divide by resonance or Q */
+    	this.b2 = 1.0;
+    } else {
+    	// 2nd section
+    	this.a0 = 1.0;
+    	this.a1 = 0;
+    	this.a2 = 0;
+
+    	this.b0 = 1.0;
+    	this.b1 = 1.847759 / Q;      /* Divide by resonance or Q */
+    	this.b2 = 1.0;
+    }
+
+	this.szxform();
+}
+
+/*
+ * ----------------------------------------------------------
+ *      Pre-warp the coefficients of a numerator or denominator.
+ *      Note that a0 is assumed to be 1, so there is no warping
+ *      of it.
+ * ----------------------------------------------------------
+ */
+Section.prototype.prewarp = function(fc) {
+    var fs = context.sampleRate;
+    var wp = 2.0 * fs * Math.tan(Math.PI * fc / fs);
+
+    this.a2 /= (wp * wp);
+    this.a1 /= wp;
+}
+
+
+/*
+ * ----------------------------------------------------------
+ * Transform from s to z domain using bilinear transform
+ * with prewarp.
+ * ----------------------------------------------------------
+ */
+Section.prototype.szxform = function()
+{
+    // Pre-warp using bilinear transform.
+    var fs = context.sampleRate;
+    var fc = this.fc;
+    
+    var wp = 2.0 * fs * Math.tan(Math.PI * fc / fs);
+    
+    this.a2 /= (wp * wp);
+    this.a1 /= wp;
+
+    this.b2 /= (wp * wp);
+    this.b1 /= wp;
+        
+	this.bilinear();
+}
+
+Section.prototype.bilinear = function()
+{	
+	var fs = context.sampleRate;
+	var kSR_Squared = fs * fs;
+
+                 /* alpha (Numerator in s-domain) */
+    var ad = 4. * this.a2 * kSR_Squared + 2. * this.a1 * fs + this.a0;
+                 /* beta (Denominator in s-domain) */
+    var bd = 4. * this.b2 * kSR_Squared + 2. * this.b1 * fs + this.b0;
+
+                 /* update gain constant for this section */
+    this.k = ad / bd;
+
+    console.log("k: " + k);
+
+                 /* Denominator */
+    this.beta1 = (2. * this.b0 - 8. * this.b2 * kSR_Squared) / bd;         	/* beta1 */
+    this.beta2 = (4. * this.b2 * kSR_Squared - 2. * this.b1 * fs + this.b0) / bd; 	/* beta2 */
+
+                 /* Nominator */
+    this.alpha1 = (2. * this.a0 - 8. * this.a2 * kSR_Squared) / ad;         	/* alpha1 */
+    this.alpha2 = (4. * this.a2 * kSR_Squared - 2. * this.a1 * fs + this.a0) / ad;  /* alpha2 */
+}
+
+Section.prototype.magResponse = function(frequency)
+{
+    //            1 + alpha1 * z^(-1) + alpha2 * z^(-2)
+    // H(z) = -------------------------------------
+    //        1 + beta1 * z^(-1) + beta2 * z^(-2)
+
+	var fs = context.sampleRate;
+    var nyquist = 0.5 * fs;
+    var theta = Math.PI * frequency / nyquist;
+    
+    var z1r = Math.cos(-theta);
+    var z1i = Math.sin(-theta);
+    
+    var z2r = Math.cos(-theta*2);
+    var z2i = Math.sin(-theta*2);
+
+    var num_r = 1 + this.alpha1 * z1r + this.alpha2 * z2r;
+    var num_i = this.alpha1 * z1i + this.alpha2 * z2i;
+
+    var den_r = 1 + this.beta1 * z1r + this.beta2 * z2r;
+    var den_i = this.beta1 * z1i + this.beta2 * z2i;
+    
+    var mag = Math.sqrt(num_r*num_r + num_i*num_i) / Math.sqrt(den_r*den_r + den_i*den_i);
+        
+    return mag * this.k;
+}
+
+
+//************************************************************************************
+
+
+function dbToY(db) {
+    var y = (0.5 * height) - pixelsPerDb * db;
+    return y;
+}
+
+function drawCurve() {
+    k = 1;
+    var section1 = new Section(0, filter.frequency.value, Q);
+    var section2 = new Section(1, filter.frequency.value, Q);
+    
+    
+    // draw center
+    width = canvas.width;
+    height = canvas.height;
+
+    canvasContext.fillStyle = "rgb(0, 0, 0)";
+    canvasContext.fillRect(0, 0, width, height);
+
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.lineWidth = 3;
+
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+
+    pixelsPerDb = (0.5 * height) / dbScale;
+    
+    var noctaves = 11;
+    
+    var frequencyHz = new Float32Array(width);
+    var magResponse = new Float32Array(width);
+    var phaseResponse = new Float32Array(width);
+    var magResponse2 = new Float32Array(width);
+    var phaseResponse2 = new Float32Array(width);
+    var nyquist = 0.5 * context.sampleRate;
+    // First get response.
+    for (var i = 0; i < width; ++i) {
+        var f = i / width;
+        
+        // Convert to log frequency scale (octaves).
+        f = nyquist * Math.pow(2.0, noctaves * (f - 1.0));
+        
+        frequencyHz[i] = f;
+    }
+
+    filter.getFrequencyResponse(frequencyHz, magResponse, phaseResponse);
+    filter2.getFrequencyResponse(frequencyHz, magResponse2, phaseResponse2);
+
+    
+    canvasContext.strokeStyle = "rgb(0, 255, 0)";
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+    for (var i = 0; i < width; ++i) {
+        var response = magResponse[i];
+        var response2 = magResponse2[i];
+
+        response *= response2;
+
+        var dbResponse = 20.0 * Math.log(response) / Math.LN10;
+// dbResponse *= 2; // simulate two chained Biquads (for 4-pole lowpass)
+        
+        var x = i;
+        var y = dbToY(dbResponse);
+        
+        canvasContext.lineTo(x, y);
+    }
+    canvasContext.stroke();
+    
+    // Now, draw 4-pole Butterworth
+    canvasContext.strokeStyle = "rgb(255, 0, 0)";
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+    for (var i = 0; i < width; ++i) {
+        var frequency = frequencyHz[i];
+        var response1 = section1.magResponse(frequency);
+        var response2 = section2.magResponse(frequency);
+        var response = response1 * response2;
+        
+        var dbResponse = 20.0 * Math.log(response) / Math.LN10;
+    
+        var x = i;
+        var y = dbToY(dbResponse);
+    
+        canvasContext.lineTo(x, y);
+    }
+    canvasContext.stroke();
+ 
+    // // Now, draw 2nd section of 4-pole Butterworth
+    // canvasContext.strokeStyle = "rgb(0, 0, 255)";
+    // canvasContext.beginPath();
+    // canvasContext.moveTo(0, 0);
+    // for (var i = 0; i < width; ++i) {
+    //     var frequency = frequencyHz[i];
+    //     var response1 = section1.magResponse(frequency);
+    //     var response2 = 1; //section2.magResponse(frequency);
+    //     var response = response1 * response2;
+    //     
+    //     var dbResponse = 20.0 * Math.log(response) / Math.LN10;
+    // 
+    //     var x = i;
+    //     var y = dbToY(dbResponse);
+    // 
+    //     canvasContext.lineTo(x, y);
+    // }
+    // canvasContext.stroke();
+    
+    
+    
+    canvasContext.beginPath();
+    
+    canvasContext.lineWidth = 1;
+    
+    canvasContext.strokeStyle = gridColor;
+    
+    
+    
+    // Draw frequency scale.
+    for (var octave = 0; octave <= noctaves; octave++) {
+        var x = octave * width / noctaves;
+        
+        canvasContext.strokeStyle = gridColor;
+        canvasContext.moveTo(x, 30);
+        canvasContext.lineTo(x, height);
+        canvasContext.stroke();
+
+        var f = nyquist * Math.pow(2.0, octave - noctaves);
+        canvasContext.textAlign = "center";
+        canvasContext.strokeStyle = curveColor;
+        canvasContext.strokeText(f.toFixed(0) + "Hz", x, 20);
+    }
+
+    // Draw 0dB line.
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0.5 * height);
+    canvasContext.lineTo(width, 0.5 * height);
+    canvasContext.stroke();
+    
+    // Draw decibel scale.
+    
+    for (var db = -dbScale; db < dbScale; db += 5) {
+        var y = dbToY(db);
+        canvasContext.strokeStyle = curveColor;
+        canvasContext.strokeText(db.toFixed(0) + "dB", width - 40, y);
+
+        canvasContext.strokeStyle = gridColor;
+        canvasContext.beginPath();
+        canvasContext.moveTo(0, y);
+        canvasContext.lineTo(width, y);
+        canvasContext.stroke();
+    }
+}
+
+function frequencyHandler(event, ui) {
+  var value = ui.value;
+  var nyquist = context.sampleRate * 0.5;
+  var noctaves = Math.log(nyquist / 10.0) / Math.LN2;
+  var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+  var cutoff = v2*nyquist;
+  
+  var info = document.getElementById("frequency-value");
+  var s = cutoff.toFixed(2);
+  info.innerHTML = "frequency = " + s + " Hz";
+
+  filter.frequency.value = cutoff;
+  filter2.frequency.value = cutoff;
+  drawCurve();
+}
+
+function resonanceHandler(event, ui) {
+  var value = parseFloat(ui.value);
+  resonance = value;
+
+  var info = document.getElementById("resonance-value");
+  info.innerHTML = "resonance = " + value + " dB";
+  
+  var blend1 = offsetResonance;
+  var blend2 = 1-offsetResonance;
+  blend1 = Math.pow(blend1, 1.5);
+  blend2 = Math.pow(blend2, 1.5);
+  filter.Q.value = blend1*resonance; // !! Q value not same as resonance...
+  filter2.Q.value = blend2*resonance;
+
+  drawCurve();
+}
+
+function offsetHandler(event, ui) {
+    var value = parseFloat(ui.value);
+
+  var info = document.getElementById("offset-value");
+  info.innerHTML = "offset = " + value + " dB";
+  
+  offsetResonance = value;
+
+  var blend1 = offsetResonance;
+  var blend2 = 1-offsetResonance;
+  blend1 = Math.pow(blend1, 1.4);
+  blend2 = Math.pow(blend2, 1.4);
+  filter.Q.value = blend1*resonance; // !! Q value not same as resonance...
+  filter2.Q.value = blend2*resonance;
+
+  drawCurve();
+}
+
+function QHandler(event, ui) {
+  var value = ui.value;
+
+  var info = document.getElementById("Q-value");
+  info.innerHTML = "Q = " + value + " dB";
+  
+  Q = value;
+  drawCurve();
+}
+
+
+
+function initAudio() {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
+    filter = context.createBiquadFilter();
+    filter.Q.value = 5;
+    filter.frequency.value = 2000;
+    filter.connect(context.destination);
+
+    filter2 = context.createBiquadFilter();
+    filter2.Q.value = 5;
+    filter2.frequency.value = 2000;
+    filter2.connect(context.destination);
+}
+
+function init() {
+    initAudio();
+    
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    canvas.addEventListener("mousedown", handleMouseDown, true);
+    canvas.addEventListener("mousemove", handleMouseMove, true);
+    canvas.addEventListener("mouseup", handleMouseUp, true);
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+    
+    
+    addSlider("frequency");
+    addSlider("resonance");
+    addSlider("Q");
+    addSlider("offset");
+    configureSlider("frequency", frequency, 0, 1, frequencyHandler);
+    configureSlider("resonance", resonance, 0, 20, resonanceHandler);
+    configureSlider("Q", Q, 0, 20, QHandler);
+    configureSlider("offset", offsetResonance, 0, 0.5, offsetHandler);
+        
+    drawCurve();
+}
+
+var gIsMouseDown = false;
+var gLastX = 0;
+var gLastY = 0;
+
+function handleMouseDown(event) {
+    gIsMouseDown = true;
+
+    var posx = event.clientX;
+    var posy = event.clientY;
+
+    var eventInfo = {event: event, element:canvas};
+
+    var c = getRelativeCoordinates(eventInfo);
+    var x = c.x;
+    var y = c.y;
+}
+
+function handleMouseUp(event) {
+    gIsMouseDown = false;
+}
+
+function handleMouseMove(event) {
+    if (gIsMouseDown) {
+    }
+}
+
+</script>
+</head>
+
+<body>
+
+
+<div id="info">
+</div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<br><br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<div id="kits">
+</div>
+
+</body>
+</html>

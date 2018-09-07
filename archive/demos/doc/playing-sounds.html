@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+ 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+</head> 
+
+<link href="doc.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript">
+
+</script>
+
+
+
+
+<body> 
+<h1>Playing Sounds</h1>
+
+<p>
+Once one or more AudioBuffers are <a href="loading-sounds.html">loaded</a>  then we're ready to play sounds.
+
+Let's assume we've just loaded an AudioBuffer with the <a href="loading-sounds.html#dogBarking">sound of a dog barking</a> and
+that the loading has finished.
+</p>
+
+<p>
+Then we can play this <em>dogBarkingBuffer</em> with a the following code.
+</p>
+
+<pre>
+var context = new webkitAudioContext();
+
+function playSound() {
+    var source = context.createBufferSource();  // creates a sound source
+    source.buffer = dogBarkingBuffer;           // tell the source which sound to play
+    source.connect(context.destination);        // connect the source to the context's destination (the speakers)
+    source.noteOn(0);                           // play the source now
+}
+
+</pre>
+
+<p>
+This playSound() function could be called every time somebody presses a key or clicks something with the mouse.
+</p>
+
+<p>
+Even better, we could make the function take the <em>buffer</em> and <em>time</em> as arguments:
+</p>
+
+<pre>
+var context = new webkitAudioContext();
+
+function playSound(buffer, time) {
+    var source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.noteOn(time);
+}
+
+</pre>
+
+<p>
+Then a different sound could be played depending on different events (like which key is pressed).  Normally, a time of 0 would be used
+to "play sound now".  But, sounds can be played at exact times to <a href="playing-rhythms.html">create rhythms</a>.
+</p>
+
+
+
+<br><br>
+<div class="home">
+<a href="index.html" class="home">Home</a>
+</div>
+  
+</body> 
+</html>

@@ -1,0 +1,245 @@
+<!--
+Copyright 2011, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+
+var backgroundColor = "rgb(0, 0, 0)";
+var curveColor = "rgb(192,192,192)";
+var gridColor = "rgb(200,200,200)";
+
+var sampleRate = 44100.0;
+var nyquist = 0.5 * sampleRate;
+
+var threshold = 60.0 * (0.6 - 1.0);
+var headroom = 0.7 * 30.0;
+
+var maxOutputDb = 6;
+var minOutputDb = -36;
+
+function xpixelToDb(x) {
+    // This is right even though it looks like we should scale by width.
+    // We want the same pixel/dB scale for both.
+    var k = x / canvas.height;
+    var db = minOutputDb + k * (maxOutputDb - minOutputDb);
+    return db;
+}
+
+function dBToXPixel(db) {
+    var k = (db - minOutputDb) / (maxOutputDb - minOutputDb);
+    var x = k * canvas.height;
+    return x;
+}
+
+function ypixelToDb(y) {
+    var k = y / canvas.height;
+    var db = maxOutputDb - k * (maxOutputDb - minOutputDb);
+    return db;
+}
+
+function dBToYPixel(db) {
+    var k = (maxOutputDb - db) / (maxOutputDb - minOutputDb);
+    var y = k * canvas.height;
+    return y;
+}
+
+function dBToLinear(db) {
+    return Math.pow(10.0, 0.05 * db);
+}
+
+function linearToDb(x) {
+    return 20.0 * Math.log(x) / Math.LN10;
+}
+
+function e4(x, k)
+{
+    return 1.0 - Math.exp(-k * x);
+}
+
+function shape(x) {
+    var linearThreshold = dBToLinear(threshold);
+    var linearHeadroom = dBToLinear(headroom);
+    
+    var maximum = 1.05 * linearHeadroom * linearThreshold;
+    var kk = (maximum - linearThreshold);
+    
+    var shapedInput = x < linearThreshold ? x : linearThreshold + kk * e4(x - linearThreshold, 1.0 / kk);
+    
+    return shapedInput;
+}
+
+function drawCurve() {
+    var info = document.getElementById("info");
+    
+    
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
+
+    canvasContext.fillStyle = backgroundColor;
+    canvasContext.fillRect(0, 0, width, height);
+
+    // Draw linear response.
+    canvasContext.strokeStyle = gridColor;
+    canvasContext.lineWidth = 1;
+    canvasContext.beginPath();
+    canvasContext.moveTo(dBToXPixel(minOutputDb), dBToYPixel(minOutputDb));
+    canvasContext.lineTo(dBToXPixel(maxOutputDb), dBToYPixel(maxOutputDb));
+    canvasContext.stroke();    
+
+    // Draw 0dBFS output levels from 0dBFS down to -36dBFS
+    for (var dbFS = 0; dbFS >= -36; dbFS -= 6) {
+        canvasContext.beginPath();
+        
+        var y = dBToYPixel(dbFS);
+        canvasContext.moveTo(0, y);
+        canvasContext.lineTo(width, y);
+        canvasContext.stroke();
+
+        canvasContext.textAlign = "center";
+        canvasContext.strokeText(dbFS.toFixed(0) + " dBFS", 25, y - 5);
+    }
+    
+    // Draw 0dBFS input line
+    canvasContext.beginPath();
+    canvasContext.moveTo(dBToXPixel(0), 0);
+    canvasContext.lineTo(dBToXPixel(0), height);
+    canvasContext.stroke();
+    
+
+
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.lineWidth = 3;
+
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+
+    var pixelsPerDb = (0.5 * height) / 40.0;
+    
+    var noctaves = 8;
+    
+    
+    for (var x = 0; x < width; ++x) {
+        var inputDb = xpixelToDb(x);
+        var inputLinear = dBToLinear(inputDb);
+        var outputLinear = shape(inputLinear);
+        var outputDb = linearToDb(outputLinear);
+        var y = dBToYPixel(outputDb);
+                
+        canvasContext.lineTo(x, y);
+        
+        // info.innerHTML += info.innerHTML + "<br>" + x + ", " + y;
+    }
+    canvasContext.stroke();    
+}
+
+function thresholdHandler(event, ui) {
+  threshold = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("threshold-value");
+  info.innerHTML = "threshold = " + threshold;
+}
+
+function headroomHandler(event, ui) {
+  headroom = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("headroom-value");
+  info.innerHTML = "headroom = " + headroom;
+}
+
+function init() {
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);    
+    
+    addSlider("threshold");
+    addSlider("headroom");
+    configureSlider("threshold", threshold, -36.0, 0, thresholdHandler);
+    configureSlider("headroom", headroom, 0.0, 30.0, headroomHandler);
+        
+    drawCurve();
+}
+
+</script>
+</head>
+
+<body>
+
+<h1>Static Compression Curve</h1>
+
+<div id="info">
+</div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<br><br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<div id="kits">
+</div>
+
+</body>
+</html>

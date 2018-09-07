@@ -1,0 +1,231 @@
+<!--
+Copyright 2013, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/buffer-loader.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var canvas;
+var cc;
+
+var backgroundColor = "rgb(0, 0, 0)";
+var greenColor = "rgb(0, 255, 0)";
+var gridColor = "rgb(100,100,100)";
+var gridColor2 = "rgb(255,50,50)";
+
+var print = true;
+
+var context;
+var gain;
+var delta = 0;
+var aveDelta = -1;
+
+var kDisplayBufferSize = 1024;
+
+var index = 0;
+var optimalBuffer = new Float32Array(kDisplayBufferSize);
+var contextTimeBuffer = new Float32Array(kDisplayBufferSize);
+var deviationBuffer = new Float32Array(kDisplayBufferSize);
+
+var halfHeightScale = 0.003; // milliseconds
+
+var startTime = -1; // initialize first time
+
+function drawCurve() {
+    var info = document.getElementById("info");
+    var width = canvas.width;
+    var height = canvas.height;
+    var halfHeight = 0.5 * height;
+
+    cc.fillStyle = backgroundColor;
+    cc.fillRect(0, 0, width, height);
+    cc.lineWidth = 1;
+    
+    cc.strokeStyle = gridColor;
+
+    var timeToPixelScale = halfHeight / halfHeightScale;
+
+    // Draw microsecond markers from -3ms to 3ms in 100us steps.
+    for (var seconds = -halfHeightScale; seconds <= halfHeightScale; seconds += 0.0001) {
+        cc.beginPath();
+        
+        var y = halfHeight - seconds * timeToPixelScale;
+        
+        cc.moveTo(40, y);
+        cc.lineTo(width, y);
+        cc.stroke();
+    
+        cc.textAlign = "center";
+        
+        var microseconds = seconds * 1000000;
+        cc.strokeText(microseconds.toFixed(0) + " us", 25, y + 3);
+    }
+
+    // Draw synthesized clock deviation from ideal.
+    cc.beginPath();
+    cc.strokeStyle = gridColor2;
+    cc.moveTo(0, 0);
+
+    for (var i = 0; i < kDisplayBufferSize; ++i) {
+        var value = halfHeight - timeToPixelScale * deviationBuffer[i];
+        cc.lineTo(i, value);
+    }
+    cc.stroke();
+
+    cc.beginPath();
+    cc.strokeStyle = greenColor;
+
+    cc.moveTo(0, halfHeight);
+    cc.lineTo(width, halfHeight);
+
+    cc.stroke();
+}
+
+function discreteTimeConstantForSampleRate(timeConstant, sampleRate) {
+    return 1 - Math.exp(-1 / (sampleRate * timeConstant));
+}
+
+var performanceTime;
+
+var oldEstimatedTime;
+var oldOptimalTime;
+
+function draw() {
+    var currentTime = context.currentTime;
+    performanceTime = context.performanceTime;
+
+    var performanceNowInSeconds = 0.001 * performance.now(); // convert to seconds
+
+    if (startTime == -1)
+        startTime = performanceNowInSeconds;
+
+    // Calculated based on adding a new .performanceTime attribute.
+    var optimalTime = context.performanceTimeToContextTime( performance.now() );
+
+    // Create a synthetic clock by averaging the difference between the performance.now() clock and the AudioContext.currentTime
+    delta = performanceNowInSeconds - currentTime;
+
+    // Average with a fast time constant at the beginning, but much slower and smoother once we've converged to a close value.
+    // We're averaging this about 60 times a seconds (requestAnimationFrame())
+    var convergenceTimeConstant = 0.5 * (performanceNowInSeconds - startTime);
+    convergenceTimeConstant = Math.min(5, convergenceTimeConstant);
+    var k = discreteTimeConstantForSampleRate(convergenceTimeConstant, 60); // sampling 60fps
+
+    if (aveDelta == -1) {
+        // Initialize to first known delta.
+        aveDelta = delta;
+    } else {
+        aveDelta += (delta - aveDelta) * k;
+    }
+
+    // halfRenderBufferTime offsets the fact that the average delta is going to be about 1/2 buffer late on average.
+    var halfRenderBufferTime = 0.5 * 128 / context.sampleRate;
+    var estimatedTime = performanceNowInSeconds - aveDelta + halfRenderBufferTime;
+
+    var deviation = estimatedTime - optimalTime;
+
+    oldEstimatedTime = estimatedTime;
+    oldOptimalTime = optimalTime;
+
+    optimalBuffer[index] = optimalTime;
+    contextTimeBuffer[index] = currentTime;
+    deviationBuffer[index] = deviation;
+    
+    if (Math.abs(deviation) > 0.001) {
+        var d1 = oldEstimatedTime-estimatedTime;
+        var d2 = oldOptimalTime-optimalTime;
+        console.log("bad: " + deviation + " estimatedTime: " + estimatedTime + " optimalTime: " + optimalTime + " oldEstimatedTime: " + d1 +
+            " oldOptimalTime: " + d2);
+    }
+
+    index++;
+    if (index == kDisplayBufferSize)
+        index = 0;
+
+    if (print) {
+        drawCurve();
+        window.requestAnimationFrame(draw);
+    }
+}
+
+function init() {
+    canvas = document.getElementById('canvasID');
+    cc = canvas.getContext('2d');
+
+    context = new AudioContext();
+    gain = context.createGain();
+    gain.connect(context.destination);
+
+    drawCurve();
+    draw();
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<div id="info"> </div>
+
+<div onmousedown="print = false;">
+stop
+</div>
+
+</body>
+</html>

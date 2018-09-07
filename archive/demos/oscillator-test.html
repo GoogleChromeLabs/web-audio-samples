@@ -1,0 +1,436 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+
+
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+o3djs.require('o3djs.shader');
+
+window.onload = init;
+
+
+
+var analyser;
+var analyserView1;
+
+var buffer;
+var audioBuffer;
+
+
+var context;
+var wavetable;
+
+var osc1;
+var osc2;
+var osc3;
+
+var gainNode;
+var resonanceGainNode;
+var filter;
+var filter2;
+var views;
+var frequencyData;
+var detune = 0;
+
+function loadWaveTable(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    
+    request.onload = function() {
+        // Get the frequency-domain waveform data.
+        var f = eval('(' + request.responseText + ')');
+
+        // Copy into more efficient Float32Arrays.
+        var n = f.real.length;
+        frequencyData = { "real": new Float32Array(n), "imag": new Float32Array(n) };
+
+        for (var i = 0; i < n; ++i) {
+            frequencyData.real[i] = f.real[i];
+            frequencyData.imag[i] = f.imag[i];
+        }
+        
+        wavetable = context.createPeriodicWave(frequencyData.real, frequencyData.imag);
+        osc1.setPeriodicWave(wavetable);
+        osc2.setPeriodicWave(wavetable);
+        osc3.setPeriodicWave(wavetable);
+        console.log("loaded wavetable");   
+    };
+
+    request.onerror = function() {
+        alert("error loading: " + url);
+    };
+
+    request.send();
+}
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
+var snapToDetune = 0;
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    
+    var t = 0; //context.currentTime;
+    var maxDetune = 50; //1200;
+    // var d1 = (2*Math.random() - 1) * 0.5*maxDetune;
+    // var d2 = (2*Math.random() - 1) * 0.5*maxDetune;
+    // var d3 = (2*Math.random() - 1) * 0.5*maxDetune;
+    var d1 = 0;
+    var d2 = 0;
+    var d3 = 0;
+    var k = 1;
+    
+    if (snapToDetune > 0) {
+        k = 0.010;
+        d1 = 0;
+        d2 = 0;
+        d3 = 0;
+        --snapToDetune;
+    }
+    osc1.detune.setTargetAtTime(detune + d1, t, k);
+    osc2.detune.setTargetAtTime(detune + d2, t, k);
+    osc3.detune.setTargetAtTime(detune + d3, t, k);
+    
+    window.requestAnimationFrame(draw);
+}
+
+var FREQ1 = 40;
+var FREQ2 = 40;
+var FREQ3 = 80;
+var FILTERCUTOFF = 24000;
+var resonance = 3;
+
+var noiseSource1;
+var noiseSource2;
+var noiseSource3;
+
+function createNoiseBuffer() {
+    var n =  5 * context.sampleRate;
+    var buffer = context.createBuffer(1, n, context.sampleRate);
+    var p = buffer.getChannelData(0);
+    
+    for (var i = 0; i < n; ++i) {
+        var x = 2*Math.random() - 1;        
+        p[i] = x;
+    }
+
+    return buffer;
+}
+
+function createRandomPitchSource() {
+    var noiseBuffer = createNoiseBuffer();
+    var noiseSource = context.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+    
+    var cutoff = 1;
+    var noiseLowpass = context.createBiquadFilter();
+    noiseLowpass.frequency.value = cutoff;
+    noiseLowpass.frequency.Q = 0;
+    
+    var noiseGain = context.createGain();
+    noiseGain.gain.value = 1;
+        
+    noiseSource.connect(noiseLowpass);
+    noiseLowpass.connect(noiseGain);
+    noiseSource.start(0);
+    
+    return noiseGain;
+}
+
+
+function initAudio() {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
+            
+    osc1 = context.createOscillator();
+    osc1.type = "sine";
+    
+    osc2 = context.createOscillator();
+    osc3 = context.createOscillator();
+    osc1.frequency.value = FREQ1;
+    osc2.frequency.value = FREQ2;
+    osc3.frequency.value = FREQ3;
+
+    osc1.start(0);
+    osc2.start(0);
+    osc3.start(0);
+
+    noiseSource1 = createRandomPitchSource();
+    noiseSource2 = createRandomPitchSource();
+    noiseSource3 = createRandomPitchSource();
+    noiseSource1.connect(osc1.frequency);
+    noiseSource2.connect(osc2.frequency);
+    noiseSource3.connect(osc3.frequency);
+    
+    // 
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(context.destination);
+    
+    gainNode = context.createGain();
+    gainNode.gain.value = 0.25;
+
+    resonanceGainNode = context.createGain();
+    
+    
+    filter = context.createBiquadFilter();
+    filter.Q.value = resonance ;
+    filter.frequency.value = FILTERCUTOFF;
+
+    filter2 = context.createBiquadFilter();
+    filter2.Q.value = resonance;
+    filter2.frequency.value = FILTERCUTOFF;
+
+    filter.connect(filter2);
+    filter2.connect(gainNode);
+
+    gainNode.connect(resonanceGainNode);
+    resonanceGainNode.connect(analyser);
+
+    
+    
+    var dest = filter;
+
+    osc1.connect(dest);
+    osc2.connect(dest);
+    osc3.connect(dest);
+
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("pitch1", FREQ1, 10, 24000, UNITS.hertz, 0, true, function(value) { osc1.frequency.value = value; } );
+    views[j++] = new KnobView("pitch2", FREQ2, 10, 24000, UNITS.hertz, 0, true, function(value) { osc2.frequency.value = value; } );
+    views[j++] = new KnobView("pitch3", FREQ3, 10, 24000, UNITS.hertz, 0, true, function(value) { osc3.frequency.value = value; } );
+    views[j++] = new KnobView("detune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { detune = value; snapToDetune = 20; } );
+    views[j++] = new KnobView("filter", FILTERCUTOFF, 30, 24000, UNITS.hertz, 0, true, function(value) { filter.frequency.value = value; filter2.frequency.value = value } );
+    views[j++] = new KnobView("resonance", resonance, 0, 40, UNITS.decibels, 0, false, function(value) {
+        filter.Q.value = value;
+        filter2.Q.value = value - 6;
+        
+        // Resonance gain compensation.
+        var gain = Math.pow(10, -value * 0.05);
+        resonanceGainNode.gain.setTargetAtTime(gain, 0, 0.020);
+    } );
+
+    views[j++] = new KnobView("randomization", 1, 0, 100, UNITS.percent, 0, false, function(value) {
+        noiseSource1.gain.value = 0.01*value * osc1.frequency.value;
+        noiseSource2.gain.value = 0.01*value * osc2.frequency.value;
+        noiseSource3.gain.value = 0.01*value * osc3.frequency.value;
+    } );
+
+    views[j++] = new KnobView("gain", 0.15, 0, 1, UNITS.generic, 0, false, function(value) { gainNode.gain.value = value; } );
+    
+    installViews(views, controls);
+
+    loadWaveTable("wave-tables/Phoneme_ah");    
+
+    //
+    // 01_Saw
+    // 02_Triangle
+    // 03_Square
+    // 04_Noise
+    // 05_Pulse
+    // 06_Warm_Saw
+    // 07_Warm_Triangle
+    // 08_Warm_Square
+    // 09_Dropped_Saw
+    // 10_Dropped_Square
+    // 11_TB303_Square
+    // Bass
+    // Bass_Amp360
+    // Bass_Fuzz
+    // Bass_Fuzz_ 2
+    // Bass_Sub_Dub
+    // Bass_Sub_Dub_2
+    // Brass
+    // Brit_Blues
+    // Brit_Blues_Driven
+    // Buzzy_1
+    // Buzzy_2
+    // Celeste
+    // Chorus_Strings
+    // Dissonant Piano
+    // Dissonant_1
+    // Dissonant_2
+    // Dyna_EP_Bright
+    // Dyna_EP_Med
+    // Ethnic_33
+    // Full_1
+    // Full_2
+    // Guitar_Fuzz
+    // Harsh
+    // Mkl_Hard
+    // Organ_2
+    // Organ_3
+    // Phoneme_ah
+    // Phoneme_bah
+    // Phoneme_ee
+    // Phoneme_o
+    // Phoneme_ooh
+    // Phoneme_pop_ahhhs
+    // Piano
+    // Putney_Wavering
+    // Throaty
+    // Trombone
+    // Twelve String Guitar 1
+    // Twelve_OpTines
+    // Wurlitzer
+    // Wurlitzer_2
+
+
+}
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+
+    initAudio();
+    analyserView1.initByteBuffer();
+    analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);
+    draw();
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Canvas tag for WebGL output -->
+
+<canvas id="view1" width="1280px" height="800px"></canvas>
+
+<br>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = 'sine';" />
+SINE
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = 'square';" />
+SQUARE
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="osc1.type = 'sawtooth';" />
+SAWTOOTH
+<input type="radio" name="Waveform1" value="data" onMouseDown="osc1.type = 'triangle';"/>
+TRIANGLE
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = 'sine';" />
+SINE
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = 'square';" />
+SQUARE
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="osc2.type = 'sawtooth';" />
+SAWTOOTH
+<input type="radio" name="Waveform2" value="data" onMouseDown="osc2.type = 'triangle';"/>
+TRIANGLE
+
+<br>
+<!-- Waveform type -->
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = 'sine';" />
+SINE
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = 'square';" />
+SQUARE
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="osc3.type = 'sawtooth';" />
+SAWTOOTH
+<input type="radio" name="Waveform3" value="data" onMouseDown="osc3.type = 'triangle';"/>
+TRIANGLE
+
+<!-- 
+// Celeste
+// Full_1
+// Organ_2
+// Phoneme_ah
+// Twelve String Guitar 1
+// Wurlitzer
+-->
+
+</body>
+</html>

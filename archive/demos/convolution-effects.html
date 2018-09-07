@@ -1,0 +1,421 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Real-time Convolution Effects
+</title>
+
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+
+// Temporary patch until all browsers support unprefixed context.
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var context = 0;
+var source = 0;
+var convolver = 0;
+var gainNode1 = 0;
+var gainNode2 = 0;
+
+// Source buffers
+var humanVoice = 0;
+var guitar = 0;
+
+var backwards = 0;
+var loadCount = 0;
+var hilightedElement = 0;
+
+var fileCount = 29;
+var responseOffset = 4;
+
+var fileList = [
+    "sounds/hyper-reality/human-voice.mp3",       // 0
+    "sounds/hyper-reality/obama-oilspill.mp3",    // 1
+    "sounds/drum-samples/conga-rhythm.wav",       // 2
+    "sounds/hyper-reality/br-jam-loop.wav",       // 3
+
+    // impulse responses
+    "impulse-responses/spatialized5.wav",         // 0
+    "impulse-responses/cosmic-ping-long.wav",     // 1
+    "impulse-responses/filter-telephone.wav",     // 2
+    "impulse-responses/comb-saw2.wav",            // 3
+    "impulse-responses/filter-rhythm1.wav",       // 4
+    "impulse-responses/filter-rhythm3.wav",       // 5
+    "impulse-responses/comb-saw1.wav",            // 6
+    "impulse-responses/comb-saw2.wav",            // 7
+    "impulse-responses/matrix-reverb2.wav",       // 8
+    "impulse-responses/matrix-reverb3.wav",       // 9
+    "impulse-responses/spatialized4.wav",         // 10
+
+    "impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.wav",          // 11
+
+    "impulse-responses/diffusor3.wav",            // 12
+    "impulse-responses/matrix6-backwards.wav",    // 13
+    "impulse-responses/bin_dfeq/s2_r4_bd.wav",    // 14
+    "impulse-responses/wildecho.wav",             // 15
+    "impulse-responses/impulse-rhythm2.wav",      // 16
+    "impulse-responses/spreader50-65ms.wav",      // 17
+    "impulse-responses/feedback-spring.wav",      // 18
+
+    "impulse-responses/house-impulses/kitchen.wav",                   // 19
+    "impulse-responses/house-impulses/kitchen-true-stereo.wav",       // 20
+    "impulse-responses/house-impulses/dining-living-true-stereo.wav", // 21
+    "impulse-responses/house-impulses/dining-far-kitchen.wav",        // 22
+
+    "impulse-responses/house-impulses/living-bedroom-leveled.wav",    // 23
+    "impulse-responses/filter-lopass160.wav"                          // 24
+];
+
+var assetList = 0;
+var presetList = 0;
+
+function getPreset(index) {
+    if (index < presetList.length)
+        return presetList[index];
+    return 0;
+}
+
+function Asset(url, index, type) {
+    this.url = url;
+    this.index = index;
+    this.type = type;
+    this.startedLoading = false;
+    this.loaded = false;
+    this.buffer = 0;
+    this.presetList = new Array();
+}
+
+Asset.prototype.load = function(preset) {
+    if (this.loaded) {
+        // Already loaded
+        preset.assetFinishedLoading(this);
+        return;
+    }
+
+    // Keep track of this preset as a dependency
+    var n = this.presetList.length;
+    this.presetList[n] = preset;
+    
+    if (this.startedLoading) {
+        return;
+    }
+
+    this.startedLoading = true;
+        
+    // Load asynchronously
+    var request = new XMLHttpRequest();
+    request.open("GET", this.url, true);
+    request.responseType = "arraybuffer";
+    this.request = request;
+    
+    var asset = this;
+
+    request.onload = function() {
+        context.decodeAudioData(
+            request.response,
+            function(buffer) {
+                asset.buffer = buffer;
+                asset.loaded = true;
+                
+                // Tell all the presets that depend on us that we're ready
+                for (i = 0; i < asset.presetList.length; i++) {
+                    var preset = asset.presetList[i];
+                    preset.assetFinishedLoading(asset);
+                }
+            },
+            
+            function(buffer) {
+                // alert("ERROR!!!!! " + asset.url);
+            }
+        );
+    }
+
+    request.send();
+}
+
+function Preset(presetIndex, title, sampleIndex, impulseResponseIndex, mainGain, sendGain) {
+    this.mainGain = mainGain;
+    this.sendGain = sendGain;
+
+    this.title = title;
+    this.divName = 'preset' + presetIndex;
+    this.presetIndex = presetIndex;
+    this.sampleIndex = sampleIndex;
+    this.impulseResponseIndex = impulseResponseIndex + responseOffset; // passed in index starts at 0 for responses
+    this.sampleBuffer = 0;
+    this.impulseResponseBuffer = 0;
+
+    // Add div for this preset
+    var presetListDiv = document.getElementById('presetList');
+
+    var presetDiv = '<div id="'
+    presetDiv += this.divName;
+    presetDiv += '">';
+    var s = this.generateDivString(false);
+    presetDiv += s;
+    presetDiv += '</div>';
+    presetListDiv.innerHTML += presetDiv;
+}
+
+Preset.prototype.div = function() {
+    var myDiv = document.getElementById(this.divName);
+    return myDiv;
+}
+
+Preset.prototype.generateDivString = function(isLoaded) {
+    var s = '<div class="bigList"';
+
+    if (isLoaded) {
+        s += ' onmousedown="presetList[';
+        s += this.presetIndex;
+        s += '].play(); highlightElement(this);"';
+    }
+
+    s += '>';
+
+    if (!isLoaded) {
+        s += '<img src="images/loading.gif">';
+    }
+
+    s += this.title;
+    s += '</div>';
+
+    return s;
+}
+
+Preset.prototype.assetFinishedLoading = function(asset) {
+    switch (asset.type) {
+        case 0: this.sampleBuffer = asset.buffer; break;
+        case 1: this.impulseResponseBuffer = asset.buffer; break;
+    }
+    
+    if (this.isFullyLoaded()) {
+        // Remove loading animation
+        var div = document.getElementById(this.divName);
+        var s = this.generateDivString(true);
+        div.innerHTML = s;
+        
+        // Autoplay first preset
+        if (this.presetIndex == 0) {
+            this.play();
+            highlightElement(this.div());
+        }
+    }
+}
+
+Preset.prototype.isFullyLoaded = function() {
+    return this.sampleBuffer && this.impulseResponseBuffer;
+}
+
+Preset.prototype.load = function() {
+    sampleAsset = assetList[this.sampleIndex];
+    impulseResponseAsset = assetList[this.impulseResponseIndex];
+    
+    sampleAsset.load(this);
+    impulseResponseAsset.load(this);    
+}
+
+Preset.prototype.play = function() {
+    if (source.buffer) {
+        source.stop();
+    }
+    source = context.createBufferSource();
+    source.buffer = this.sampleBuffer;
+    convolver.buffer = this.impulseResponseBuffer;
+
+    source.connect(gainNode1);
+    source.connect(convolver);
+    source.loop = true;
+
+    gainNode1.gain.value = this.mainGain;
+    gainNode2.gain.value = this.sendGain;
+
+    source.start(0);
+}
+
+function highlightElement(object) {
+    if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+    hilightedElement = object;
+
+    object.style.backgroundColor = "green";
+}
+
+function initAssets() {
+    assetList = new Array();
+    
+    for (i = 0; i < fileList.length; i++) {
+        var type = i < responseOffset ? 0 : 1;
+        assetList[i] = new Asset(fileList[i], i, type);
+    }
+}
+
+function initPresets() {
+    presetList = new Array();
+    
+    var n = 0;
+    
+    presetList[n] = new Preset(n++, 'Spoken Word (unprocessed)', 0, 0, 0.35, 0.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (spreader)', 0, 17, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (telephone filter)', 0, 2, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (lowpass filter)', 0, 24, 0.0, 0.3);
+    presetList[n] = new Preset(n++, 'Spoken Word (spring reverb simulation)', 0, 18, 0.0, 0.8);
+    presetList[n] = new Preset(n++, 'Spoken Word (comb filter 1)', 0, 6, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Spoken Word (comb filter 2)', 0, 7, 0.0, 0.7);
+    
+    presetList[n] = new Preset(n++, 'Spoken Word (wild echo)', 0, 15, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Spoken Word (chorus rhythm)', 0, 16, 0.25, 1.25);
+    presetList[n] = new Preset(n++, 'Spoken Word (backwards)', 0, 0, 0.0, 0.4);
+    
+    presetList[n] = new Preset(n++, 'Spoken Word (extreme backwards - be patient!)', 0, 13, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (real warehouse)', 0, 11, 0.15, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (real binaurally recorded hall)', 0, 14, 0.3, 0.5);
+    presetList[n] = new Preset(n++, 'Spoken Word (matrix reverb)', 0, 9, 0.3, 0.8);
+    presetList[n] = new Preset(n++, 'Spoken Word (synthetic dense hall)', 0, 10, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Spoken Word (real living-bedroom)', 0, 23, 0.2, 0.8);
+
+    presetList[n] = new Preset(n++, 'Congas (unprocessed)', 2, 2, 0.3, 0.0);
+    presetList[n] = new Preset(n++, 'Congas (filter rhythm 1)', 2, 4, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (filter rhythm 2)', 2, 5, 0.25, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (comb filter 2)', 2, 7, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Congas (spring reverb simulation)', 2, 18, 0.1, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (telephone filter)', 2, 2, 0.0, 0.6);
+    presetList[n] = new Preset(n++, 'Congas (real warehouse)', 2, 11, 0.1, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (real binaurally recorded hall)', 2, 14, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Congas (spreader)', 2, 17, 0.15, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (matrix reverb 2)', 2, 8, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (matrix reverb 3)', 2, 9, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Congas (synthetic dense hall)', 2, 10, 0.2, 0.07);
+    presetList[n] = new Preset(n++, 'Congas (synthetic diffusor)', 2, 12, 0.2, 0.2);
+
+    presetList[n] = new Preset(n++, 'Obama (unprocessed)', 1, 0, 0.35, 0.0);
+    presetList[n] = new Preset(n++, 'Obama (spreader)', 1, 17, 0.2, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (telephone filter)', 1, 2, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Obama (lowpass filter)', 1, 24, 0.0, 0.3);
+    presetList[n] = new Preset(n++, 'Obama (spring reverb simulation)', 1, 18, 0.0, 0.8);
+    presetList[n] = new Preset(n++, 'Obama (comb filter 1)', 1, 6, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Obama (comb filter 2)', 1, 7, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Obama (wild echo)', 1, 15, 0.0, 1.0);
+    presetList[n] = new Preset(n++, 'Obama (chorus rhythm)', 1, 16, 0.25, 1.25);
+    presetList[n] = new Preset(n++, 'Obama (backwards)', 1, 0, 0.0, 0.4);
+    presetList[n] = new Preset(n++, 'Obama (extreme backwards - be patient!)', 1, 13, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (real warehouse)', 1, 11, 0.15, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (real binaurally recorded hall)', 1, 14, 0.3, 0.5);
+    presetList[n] = new Preset(n++, 'Obama (matrix reverb)', 1, 9, 0.3, 0.8);
+    presetList[n] = new Preset(n++, 'Obama (synthetic dense hall)', 1, 10, 0.2, 0.2);
+    presetList[n] = new Preset(n++, 'Obama (real living-bedroom)', 1, 23, 0.2, 0.8);
+
+    presetList[n] = new Preset(n++, 'Dumbek (unprocessed)', 3, 2, 0.5, 0.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real warehouse)', 3, 11, 0.2, 0.3);
+    presetList[n] = new Preset(n++, 'Dumbek (real binaurally recorded hall)', 3, 14, 0.4, 0.2);
+    presetList[n] = new Preset(n++, 'Dumbek (backwards)', 3, 0, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Dumbek (comb filter 2)', 3, 7, 0.0, 0.5);
+    presetList[n] = new Preset(n++, 'Dumbek (wild echo)', 3, 15, 0.0, 0.7);
+    presetList[n] = new Preset(n++, 'Dumbek (real kitchen-true-stereo)', 3, 20, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-living-true-stereo)', 3, 21, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-far-kitchen)', 3, 22, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real dining-far-bedroom)', 3, 22, 0.2, 1.0);
+    presetList[n] = new Preset(n++, 'Dumbek (real living-bedroom)', 3, 23, 0.2, 0.7);
+}
+
+function init() {
+    context = new AudioContext();
+    
+    convolver = context.createConvolver();
+    source = context.createBufferSource();
+
+    gainNode1 = context.createGain();
+    gainNode2 = context.createGain();
+    gainNode1.gain.value = 1.0;
+    gainNode2.gain.value = 2.0;
+
+    source.connect(gainNode1);
+    gainNode1.connect(context.destination);
+    
+    source.connect(convolver);
+    convolver.connect(gainNode2);
+    gainNode2.connect(context.destination);
+
+    source.loop = true;
+
+    // Start loading
+    initAssets();
+    initPresets();
+    
+    for (var i = 0; i < presetList.length; ++i) {
+        presetList[i].load();
+    }
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<!-- Initial loading animation 
+<div id="loading">
+<img src="images/loading.gif">
+</div>
+-->
+
+<h1> Real-time Convolution Effects </h1>
+
+<p>
+The following illustrate a diverse range of effects which are possible using the convolution engine:
+</p>
+
+<!-- Information -->
+<div id="presetList"> </div>
+
+</body>
+</html>

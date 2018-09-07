@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    
+    <body>
+    <script>
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+        function error() {
+            alert('Stream generation failed.');
+        }
+
+        function getUserMedia(dictionary, callback) {
+            try {
+                navigator.webkitGetUserMedia(dictionary, callback, error);
+            } catch (e) {
+                alert('webkitGetUserMedia threw exception :' + e);
+            }
+        }
+
+        function gotStream(stream) {
+            var context = new AudioContext();
+
+            // Create an AudioNode from the stream.
+            var mediaStreamSource = context.createMediaStreamSource(stream);
+
+            // Connect it to the destination.
+            mediaStreamSource.connect(context.destination);
+        }
+
+        var constraints = { audio: { optional: [{ echoCancellation: false }] } };
+        getUserMedia(constraints, gotStream);
+    </script>
+    </body>
+</html>

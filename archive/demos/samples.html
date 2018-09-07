@@ -1,0 +1,547 @@
+<!--
+Copyright 2011, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<link href="style/codesite.css" rel="stylesheet" type="text/css" /> 
+<title>Web Audio</title> 
+</head> 
+ 
+<body>
+
+<h2>Web Audio API Demos</h2> 
+
+<p>More demos and details on how to run them <a href="index.html">here</a></p>
+
+<br> 
+ 
+ 
+<table> 
+<tbody> 
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.jamwithchrome.com/" imageanchor="1"><img src="images/jamwithchrome.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.jamwithchrome.com/"><b>JAM with Chrome</b></a> 
+Lets you play music live with your friends online.
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://static.echonest.com/InfiniteGangnamStyle/" imageanchor="1"><img src="images/infinite-gangnam-style.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://static.echonest.com/InfiniteGangnamStyle/"><b>Infinite Gangnam Style</b></a> 
+As Paul Lamere <a href="http://musicmachinery.com/2012/10/28/infinite-gangnam-style/">explains</a>:
+<p>
+The app works by taking the audio and analyzing it with The Echo Nest analyzer to break it up into its individual beats. Next, an analysis pass is run on all the beats finding each beat’s nearest similar sounding neighbors that fall within a similarity threshold.  Then, the song is played beat-by-beat – but with the added twist that any time we play a particular beat there’s a chance that we will transition instead to one of the beat’s similar sounding neighbors. For a pop song like Gangnam Style there’s lots of repetition so there’s plenty of good transition points.  The result is that we can loop through the song forever with the song always morphing.
+.
+</p>
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://alxgbsn.co.uk/wavepad/" imageanchor="1"><img src="images/wavepad.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://alxgbsn.co.uk/wavepad/"><b>WAVE-PD1</b></a> 
+is a touch-enabled theremin-like instrument by Alex Gibson.  Check it out on an iOS-enabled device, or a desktop browser.
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.cappel-nord.de/webaudio/acid-defender/" imageanchor="1"><img src="images/acid-defender.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.cappel-nord.de/webaudio/acid-defender/"><b>Acid Defender</b></a> 
+is a web experiment, merging music-making with gameplay. All sounds (except for the snare and kick drum) 
+are synthesized in the web browser and all sounds are sequenced in the web browser.
+You can either play the game, in which you must evade the "evil" red squares who want to destroy your notes, or you can play the jam mode with no enemies and more controls.
+<br><br>
+Demo courtesy of Patrick Borgeat (@cappelnord)
+
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://dashersw.github.com/pedalboard.js/demo/" imageanchor="1"><img src="images/pedalboard.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://dashersw.github.com/pedalboard.js/demo/"><b>Pedalboard.js</b></a> 
+by Armagan Amcalar lets you play live guitar through an effects rack!  The "live audio" feature is currently only available in Mac Chrome Canary and requires enabling "Web Audio Input" in "about:flags".  Check out Armagan's <a href="http://dashersw.github.com/pedalboard.js/">blog post</a>.
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://static.echonest.com/BeatDriver/" imageanchor="1"><img src="images/bangarang-boomerang.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://static.echonest.com/BeatDriver/"><b>Bangarang Boomerang</b></a> 
+is Paul Lamere's latest creation from the Echo Nest.  In his <a href="http://musicmachinery.com/2012/08/18/bangarang-boomerang/">blog post</a>,
+Paul describes it as:
+"My latest music hack is Bangarang Boomerang. It is a web app (runs in Chrome or the latest Safari),
+that lets you ‘drive’ the Skrillex song.  You can freeze-frame the song on  a beat, you can make the song go backwards beat by beat,
+you can advance through the song at  double time, or triple time, and set bookmarks to let you easily jump to different sections of the song. It is a rather fun app that lets you feel like a musician, even if you have very little musical talent.
+"
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.tenthcirclesound.com/ksdemo/" imageanchor="1"><img src="images/kickstarter.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.tenthcirclesound.com/ksdemo/"><b>StarBound</b></a> 
+A great live remix application with real-time effects.  Demo courtesy of CopperWire / Tenth Circle Sound.
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.tenthcirclesound.com/kickstarter/#5a " imageanchor="1"><img src="images/remix.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.tenthcirclesound.com/kickstarter/#5a "><b>RemiX</b></a> 
+A very unique interactive remix application with great audio and visual design.  Demo courtesy of Chris Coniglio.
+Also check out <a href="http://www.tenthcirclesound.com/sympyrean/">Sympyrean</a>!</td> 
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.soundstep.com/blog/2012/03/22/javascript-motion-detection/?utm_source=rss&utm_medium=rss&utm_campaign=javascript-motion-detection"
+ imageanchor="1"><img src="images/xylophone.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.soundstep.com/blog/2012/03/22/javascript-motion-detection/?utm_source=rss&utm_medium=rss&utm_campaign=javascript-motion-detection">
+<b>javascript motion detection</b></a> 
+Play the Xylophone using your webcam!  Demo courtesy of Romuald Quantin.
+</td> 
+</tr>
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://labs.dinahmoe.com/plink/" imageanchor="1"><img src="images/plink.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://labs.dinahmoe.com/plink/">
+
+
+<b>Plink</b></a>
+
+An interactive music application from <a href="http://www.dinahmoe.com/">DinahMoe</a>.  This one is multiplayer!</a>.
+   </td> 
+
+</tr>
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://labs.dinahmoe.com/ToneCraft/" imageanchor="1"><img src="images/tonecraft.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://labs.dinahmoe.com/ToneCraft/">
+
+
+<b>ToneCraft</b></a>
+
+A great interactive music application - demo courtesy of <a href="http://www.dinahmoe.com/">DinahMoe</a>.  More ToneCraft details <a href="http://www.dinahmoe.com/?p=1706">here</a>.
+   </td> 
+
+</tr> 
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://phenomnomnominal.github.com/" imageanchor="1"><img src="images/guitar-tuner.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://phenomnomnominal.github.com/"><b>Guitar Tuner</b></a> 
+by Craig Spence lets you tune your guitar, voice, or other instrument.
+The "live audio" feature is currently only available in Mac Chrome Canary and requires enabling "Web Audio Input" in "about:flags".
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://beta.dutchgramophone.com/rocketship/" imageanchor="1"><img src="images/rocketship.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://beta.dutchgramophone.com/rocketship/"><b>ROCKETSHIP</b></a> 
+is an experiment in creating music which is specific to the browser.
+By recording each layer of the same song at multiple "energy" levels and using Web Audio to smoothly interpolate between them,
+ users are able to fly at their own speed and create a unique and custom version of the song with each listen.  Demo courtesy of Yotam Mann.
+.</td>
+</tr>
+
+
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://triggerrally.com/drive?track=preview.json&car=car1.json" imageanchor="1"><img src="images/trigger-rally.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://triggerrally.com/drive?track=preview.json&car=car1.json"><b>Trigger Rally</b></a> 
+is an immersive open source racing game by Richard Davey.  Please see his blog post <a href="http://creativejs.com/2012/03/trigger-rally-online-edition/">here</a>.
+</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="https://skid.gamagio.com/play/" imageanchor="1"><img src="images/skid.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="https://skid.gamagio.com/play/"><b>Skid</b></a> 
+A fast-paced racing game by <a href="http://gamagio.com/">Gamagio</a> featuring 3D audio.</td>
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.technitone.com/" imageanchor="1"><img src="images/technitone.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.technitone.com/"><b>Technitone</b></a> 
+is a fusion of WebGL, Canvas, Web Sockets, CSS3, Javascript, Flash, and the Web Audio API.</td> 
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://funklet.com/" imageanchor="1"><img src="images/funklet.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://funklet.com/"><b>Funklet</b></a> 
+is an interactive funk sequencer delving into some very interesting musical history.  Demo courtesy of Rob Stenson.</td> 
+</tr>
+
+<tr>
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://tibersynth.prtcl.cc/" imageanchor="1"><img src="images/tibersynth.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://tibersynth.prtcl.cc/"><b>TiberSynth</b></a> 
+Real-time audio synthesis and many-to-many vector mapping in the web browser.  Here's a <a href="http://createdigitalmusic.com/2012/08/timbersynth-makes-crazy-sounds-in-your-browser-free/">nice blog post</a> describing it.  Demo courtesy of Cory O'Brian.</td> 
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://matt-diamond.com/drone.html" imageanchor="1"><img src="images/ambient-drone.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://matt-diamond.com/drone.html"><b>Ambient Drone</b></a> 
+synthesizes an ambient sound texture using filtered noise.  Demo courtesy of Matt Diamond.</td> 
+</tr>
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://airtightinteractive.com/demos/js/reactive/" imageanchor="1"><img src="images/ring-visualizer.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://airtightinteractive.com/demos/js/reactive/"><b>Ring Visualizer</b></a> 
+By Felix Turner is a fantastic WebGL visualizer.  Have fun interacting using the mouse and scrollwheel.</td> 
+</tr> 
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://alteredqualia.com/three/examples/webgl_city.html" imageanchor="1"><img src="images/webgl-city.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://alteredqualia.com/three/examples/webgl_city.html"><b>WebGL City</b></a> 
+By alteredqualia, Nick Royer, nofeedbak, and Erik McClure.  Enjoy this rich 3D environment.  To hear the spatialized helicopter, disable the music track "m", and enable
+the helicopter "n".</td> 
+</tr> 
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://kevincennis.com/mix/#{"Kit_L":{"pan":-1,"left":0,"volume":0.5809523809523809,"top":88},"Kit_R":{"pan":1,"left":42,"volume":0.5809523809523809,"top":88},"Gtr_1":{"pan":-0.38095238095238104,"left":13,"volume":0.8285714285714285,"top":36},"Synth_1":{"volume":0.8142857142857143,"top":39,"pan":-0.047619047619047734,"left":20},"Keys":{"volume":0.8571428571428572,"top":30,"pan":0,"left":21},"Triggers":{"volume":0.27142857142857146,"top":153,"pan":-0.047619047619047734,"left":20},"Bass":{"volume":0.9809523809523809,"top":4,"pan":-0.28571428571428553,"left":15},"Vox_FX":{"volume":0.15714285714285714,"top":177,"pan":0.09523809523809533,"left":23},"Ld_Vox":{"volume":0.19047619047619047,"top":170,"pan":-0.8571428571428572,"left":3},"Gtr_2":{"volume":0.319047619047619,"top":143,"pan":0.19047619047619052,"left":25},"Siren":{"volume":0.5333333333333333,"top":98,"pan":0.8095238095238095,"left":38},"Synth_2":{"volume":0.5904761904761905,"top":86,"pan":-0.6666666666666669,"left":7}}"
+ imageanchor="1"><img src="images/mixer.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://kevincennis.com/mix/#{"Kit_L":{"pan":-1,"left":0,"volume":0.5809523809523809,"top":88},"Kit_R":{"pan":1,"left":42,"volume":0.5809523809523809,"top":88},"Gtr_1":{"pan":-0.38095238095238104,"left":13,"volume":0.8285714285714285,"top":36},"Synth_1":{"volume":0.8142857142857143,"top":39,"pan":-0.047619047619047734,"left":20},"Keys":{"volume":0.8571428571428572,"top":30,"pan":0,"left":21},"Triggers":{"volume":0.27142857142857146,"top":153,"pan":-0.047619047619047734,"left":20},"Bass":{"volume":0.9809523809523809,"top":4,"pan":-0.28571428571428553,"left":15},"Vox_FX":{"volume":0.15714285714285714,"top":177,"pan":0.09523809523809533,"left":23},"Ld_Vox":{"volume":0.19047619047619047,"top":170,"pan":-0.8571428571428572,"left":3},"Gtr_2":{"volume":0.319047619047619,"top":143,"pan":0.19047619047619052,"left":25},"Siren":{"volume":0.5333333333333333,"top":98,"pan":0.8095238095238095,"left":38},"Synth_2":{"volume":0.5904761904761905,"top":86,"pan":-0.6666666666666669,"left":7}}"><b>Mix.js</b></a> 
+By Kevin Ennis.  Two demos let you apply a high-quality reverberation effect and control the real-time mixing of a song!</td>
+</tr> 
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.danedington.co.uk/superThings/HTML5Guitar/index.html" imageanchor="1"><img src="images/guitar.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.danedington.co.uk/superThings/HTML5Guitar/index.html"><b>HTML5 Guitar</b></a> 
+By Dan Edington lets you strum guitar with room effects!</td>
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://static.echonest.com/BohemianRhapsichord/index.html" imageanchor="1"><img src="images/bohemian.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://static.echonest.com/BohemianRhapsichord/index.html">
+
+
+<b>Bohemian Rhapsichord</b></a>
+
+A Music Hack Day hack by Jennie and Paul Lamere.  For more information see <a href="http://musicmachinery.com/">Music Machinery</a>
+   </td> 
+
+</tr> 
+
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://carlosrafaelgn.com.br/GraphicalFilterEditor/index.html"
+ imageanchor="1"><img src="images/filter-editor.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://carlosrafaelgn.com.br/GraphicalFilterEditor/index.html">
+<b>Graphical Filter Editor</b></a> 
+Draw a complex filter and watch the visualization.  Demo courtesy of Carlos Rafael Gimenes das Neves.
+</td> 
+</tr>
+
+
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://chrome.angrybirds.com/" imageanchor="1"><img src="images/angrybirds.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://chrome.angrybirds.com/"><b>Angry Birds</b></a> 
+The ever-popular game now uses the Web Audio API, if available.</td> 
+</tr>
+
+
+
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.multiplayerpiano.com/" imageanchor="1"><img src="images/multiplayer-piano.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.multiplayerpiano.com/">
+
+
+<b>Multiplayer Piano</b></a>
+
+By Brandon Lockaby.  Play the piano with people from all around the world!  github project <a href="http://github.com/brandon-lockaby">here</a>.
+   </td> 
+
+</tr>
+
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://apps.playcanvas.com/dave/tutorials/3d_audio" imageanchor="1"><img src="images/playcanvas.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://apps.playcanvas.com/dave/tutorials/3d_audio">
+
+<b>PlayCanvas 3D Positional Audio</b></a>
+
+by Dave Evans of <a href="http://playcanvas.com/">playcanvas</a>
+   </td> 
+
+</tr> 
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.iquilezles.org/apps/soundtoy/index.html" imageanchor="1"><img src="images/sound-toy.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.iquilezles.org/apps/soundtoy/index.html">
+
+<b>Sound Toy</b></a>
+
+Design your own sounds with code and maths.  Demo courtesy of Iñigo Quilez - please see his <a href="http://www.iquilezles.org/blog/?p=1587">blog</a> for more info.
+   </td> 
+
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://audiojedit.herokuapp.com" imageanchor="1"><img src="images/audiojedit.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://audiojedit.herokuapp.com">
+
+
+<b>AudioJedit</b></a>
+
+Edit tracks from SoundCloud and upload a new creation!  Demo courtesy of Tomás Senart - github code <a href="https://github.com/tsenart/audiojedit">here</a>.
+   </td> 
+
+</tr> 
+
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://greggman.com/downloads/examples/html5bytebeat/html5bytebeat.html" imageanchor="1"><img src="images/bytebeat.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://greggman.com/downloads/examples/html5bytebeat/html5bytebeat.html">
+
+<b>Bytebeat</b></a>
+
+HTML5 version by Gregg Tavares.  It lets you write a musical function given only "t" as input.  See Gregg's <a href="http://games.greggman.com/game/html5-bytebeat/#more-2238">blog</a> for more information.
+   </td> 
+
+</tr> 
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://aikelab.net/websynth/" imageanchor="1"><img src="images/websynth.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://aikelab.net/websynth/">
+
+
+<b>Web Synth</b></a>
+is a two oscillator synthesizer - demo courtesy of Aike.
+</td> 
+
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://bitterspring.net/ms/morningstar/" imageanchor="1"><img src="images/morningstar.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://bitterspring.net/ms/morningstar/">
+
+
+<b>Morning Star Synth</b></a>
+
+is a monophonic bassline synthesizer controlled by a step sequencer.  It features resonant filters, distortion, and a reverb - demo courtesy of Jane's Conference.
+</td> 
+
+</tr> 
+
+ 
+<tr> 
+<td  style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.htmlfivewow.com/demos/audio-visualizer/index.html" imageanchor="1"><img src="images/html5wow.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.htmlfivewow.com/demos/audio-visualizer/index.html"><b>HTML5 Wow Visualizer.</b></a> 
+Shown at Google I/O 2011 - demo courtesy of Eric Bidelman and Arne Roomann-Kurrik.</td> 
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.htmlfivewow.com/demos/hal/index.html" imageanchor="1"><img src="images/gal9000.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.htmlfivewow.com/demos/hal/index.html">
+
+
+<b>GAL 9000</b></a>
+
+Shown at Google I/O 2011 - demo courtesy of Eric Bidelman and Arne Roomann-Kurrik.
+   </td> 
+
+</tr> 
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://b.uild.in/synth/" imageanchor="1"><img src="images/b.uild.in.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://b.uild.in/synth/">
+
+
+<b>b.uild.in/synth</b></a>
+
+Another cool drum-machine based application - demo courtesy of Rob Stenson.
+</td> 
+
+</tr> 
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.storiesinflight.com/jsfft/visualizer_webaudio/" imageanchor="1"><img src="images/storiesinflight.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.storiesinflight.com/jsfft/visualizer_webaudio/">
+
+
+<b>Stories in Flight Visualizer</b></a>
+
+courtesy of Thomas Sturm.
+</td> 
+
+</tr> 
+
+
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://www.oampo.co.uk/labs/technocrat/" imageanchor="1"><img src="images/technocrat.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://www.oampo.co.uk/labs/technocrat/">
+
+
+<b>Technocrat</b></a>
+
+is a fun interactive ambient techno machine courtesy of Joe Turner - more info <a href="http://www.oampo.co.uk/2011/05/technocrat/">here</a>.
+</td> 
+
+</tr> 
+
+<tr> 
+<td style="width: 60px;"> 
+<div style="display: block; text-align: left;"><a href="http://niiden.com/orbisyn/" imageanchor="1"><img src="images/orbisyn.png" border="1"></a></div> 
+</td> 
+<td style="width: 3000px;"><a href="http://niiden.com/orbisyn/">
+
+
+<b>Orbisyn</b></a>
+
+is a custom synthesizer with programmable rhthymic modulations by Jussi Kalliokoski.
+</td> 
+
+</tr> 
+
+
+<tr>
+<td style="width: 60px;">
+<div style="display: block; text-align: left;"><a target="_blank" href="http://acompas.audio" imageanchor="1"><img src="images/acompas.png" border="1"></a></div>
+</td>
+<td style="width: 3000px;"><a target="_blank" href="http://acompas.audio">
+
+
+<b>A Compás</b></a>
+
+is a flamenco metronome web application.
+</td>
+
+</tr>
+
+
+<tr>
+<td style="width: 60px;">
+<div style="display: block; text-align: left;">
+	<a target="_blank" href="http://korilakkuma.github.io/X-Sound/" imageanchor="1">
+		<img src="images/x-sound.png" border="1">
+	</a>
+</div>
+</td>
+<td style="width: 3000px;">
+	<a target="_blank" href="http://korilakkuma.github.io/X-Sound/"><b>X Sound</b></a> is Multi Sound Application that uses <a href="https://github.com/Korilakkuma/XSound" target="_blank">XSound.js</a> (Web Audio API Library).
+</td>
+</tr>
+
+ 
+ 
+ 
+
+
+</tbody> 
+</table> 
+
+<br><br>
+
+
+ 
+</body> 
+</html> 

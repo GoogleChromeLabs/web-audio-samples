@@ -1,0 +1,233 @@
+<!--
+Copyright 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!doctype html>
+<html>
+
+<head>
+  <title>StereoPannerNode | Web Audio API sample</title>
+  <link rel="stylesheet" type="text/css" href="style/base.css">
+  <style>
+    body {
+      margin: 2rem;
+    }
+    label.btn-radio {
+      display: inline-block;
+      margin: 0.75rem 0.75rem 0.75rem 0.25rem;
+      width: 80px;
+    }
+    .tab {
+      margin-top: 0.75rem;
+    }
+    label.slider {
+      display: inline-block;
+      margin: 0.5rem;
+      width: 65px;
+    }
+    input.slider {
+      margin: 0.5rem;
+      width: 175px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="fdu-overlay"></div>
+  <h1>Stereo Panner <small>stereopanner.html</small></h1>
+
+  <fieldset>
+    <legend>Panner Behavior</legend>
+    <input id="btn-manual" type="radio" name="behavior" checked="checked"
+      onclick="onTabSwitch('tab-manual')" />
+    <label class="btn-radio" for="btn-manual">Manual</label>
+    <input id="btn-auto" type="radio" name="behavior" 
+      onclick="onTabSwitch('tab-auto')" />
+    <label class="btn-radio" for="btn-auto">Automated</label>
+
+    <div id="tab-manual" class="tab">
+      <label class="slider" for="slider-pan">Pan</label>
+      <input class="slider" id="slider" type="range" min="-1" max="1" value="0.0" step="0.1" 
+        oninput="onPanSliderChange(value)" />
+      <output for="slider-pan" id="slider-pan-value">0.0</output>
+    </div>
+    
+    <div id="tab-auto" class="tab">
+      <label class="slider" for="slider-freq">Frequency</label>
+      <input class="slider" id="slider-freq" type="range" min="0.1" max="20" value="0.1" 
+        step="0.1" oninput="onFreqSliderChange(value)" />
+      <output for="slider-freq" id="slider-freq-value">0.1</output>
+      <br>
+      <label class="slider" for="slider-depth">Depth</label>
+      <input class="slider" id="slider-depth" type="range" min="0.0" max="1.0" value="1.0" 
+        step="0.1" oninput="onDepthSliderChange(value)" />
+      <output for="slider-depth" id="slider-depth-value">1.0</output>
+      <br>
+      <label class="slider" for="slider-waveform">Waveform</label>
+      <input class="slider" id="slider-waveform" type="range" min="0" max="3" value="3" 
+        step="1" oninput="onWaveformSliderChange(value)" />
+      <output for="slider-waveform" id="slider-waveform-value">triangle</output>
+      <br>
+    </div>
+
+  </fieldset>
+
+  <script>
+
+  // TODO: audio feature detection and dependency verification utility?
+  (function () {
+    'use strict';
+
+    var dependency = [
+      'createStereoPanner'
+    ];
+    
+    // Monkey patching for AudioContext.
+    var webkitAC = window.hasOwnProperty('webkitAudioContext');
+    var AC = window.hasOwnProperty('AudioContext');
+    var message;
+    if (!webkitAC && !AC) {
+      message = 'Web Audio API is not supported on your browser.';
+      alert(message);
+      throw new Error(message);
+    } else {
+      if (webkitAC && !AC) {
+        window.AudioContext = window.webkitAudioContext;
+      }
+    }
+
+    var audioContext = new AudioContext();
+
+    // If dependency is not resolved, alert message and halt.
+    for (var i = 0; i < dependency.length; i++) {
+      if (typeof audioContext[dependency[i]] === 'undefined') {
+        message = 'Error: "' + dependency + '" is not supported in AudioContext.';
+        alert(message);
+        throw new Error(message);
+      }
+    }
+
+    // Otherwise, unlock the overlay.
+    var overlay = document.querySelector('#fdu-overlay');
+    overlay.style.display = 'none';
+
+  })();
+
+  var context, source, lfo, lfoDepth;
+  var pannerManual, pannerAuto, gainManual, gainAuto;
+
+  var WAVEFORM = [
+    'sinewave',
+    'square',
+    'sawtooth',
+    'triangle'
+  ];
+
+  var panSlider = document.querySelector('#slider-pan');
+  var panSliderValue = document.querySelector('#slider-pan-value');
+
+  var freqSlider = document.querySelector('#slider-freq');
+  var depthSlider = document.querySelector('#slider-depth');
+  var waveformSlider = document.querySelector('#slider-waveform');
+
+  var freqSliderValue = document.querySelector('#slider-freq-value');
+  var depthSliderValue = document.querySelector('#slider-depth-value');
+  var waveformSliderValue = document.querySelector('#slider-waveform-value');
+  
+  function onTabSwitch(id) {
+    var tabManual = document.querySelector('#tab-manual');
+    var tabAuto = document.querySelector('#tab-auto');
+    if (id === 'tab-manual') {
+      tabManual.style.display = 'block';
+      tabAuto.style.display = 'none';  
+      gainManual.gain.value = 1.0;
+      gainAuto.gain.value = 0.0;
+    } else {
+      tabManual.style.display = 'none';
+      tabAuto.style.display = 'block';  
+      gainManual.gain.value = 0.0;
+      gainAuto.gain.value = 1.0;
+    }
+  }
+
+  function onPanSliderChange(value) {
+    panSliderValue.value = value;
+    pannerManual.pan.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onFreqSliderChange(value) {
+    freqSliderValue.value = value;
+    lfo.frequency.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onDepthSliderChange(value) {
+    depthSliderValue.value = value;
+    lfoDepth.gain.linearRampToValueAtTime(value, context.currentTime + 0.2);
+  }
+
+  function onWaveformSliderChange(value) {
+    waveformSliderValue.value = WAVEFORM[value];
+    lfo.type = WAVEFORM[value];
+  }  
+
+  function async_loadBuffer(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function (event) {
+      context.decodeAudioData(
+        xhr.response,
+        function (buffer) {
+          source.buffer = buffer;
+          console.log('Buffer loaded.');
+        }
+      );
+    };
+    xhr.send();
+  }
+
+  function buildAudiograph() {
+    context = new AudioContext();
+    source = context.createBufferSource();
+    lfo = context.createOscillator();
+    lfoDepth = context.createGain();
+    pannerManual = context.createStereoPanner();
+    pannerAuto = context.createStereoPanner();
+    gainManual = context.createGain();
+    gainAuto = context.createGain();
+    source.connect(pannerManual);
+    source.connect(pannerAuto);
+    
+    // StereoPanner's AudioParam modulation, automated panning.
+    lfo.connect(lfoDepth);
+    lfoDepth.connect(pannerAuto.pan);
+
+    pannerManual.connect(gainManual);
+    pannerAuto.connect(gainAuto);
+    gainManual.connect(context.destination);
+    gainAuto.connect(context.destination);
+
+    lfo.frequency.value = 0.1;
+    lfoDepth.gain.value = 1.0;
+    lfo.start();
+    lfo.type = 'triangle';
+
+    source.loop = true;
+    source.loopStart = 0.079;
+    source.loopEnd = 5.120;
+    source.start();
+  }
+
+  function init() {
+    buildAudiograph();
+    async_loadBuffer('sounds/effects/ethnic8.wav');
+    onTabSwitch('tab-manual');
+  }
+
+  window.onload = init;
+  </script>
+</body>
+
+</html>
