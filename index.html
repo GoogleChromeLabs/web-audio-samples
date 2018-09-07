@@ -26,7 +26,6 @@
   </head>
   <body>
     <div class="container was-page-wrap">
-      <div id="TopBar"></div>
       <div class="row was-header">
         <div class="column">
           <h1>WebAudio Samples</h1>
@@ -41,11 +40,10 @@
       <div id="Footer"></div>
     </div>
     <script type="module">
-      import { Component, TopBar, Footer, TwoColumnListView }
+      import { Component, Footer, TwoColumnListView }
           from './assets/Components.js';
       import PageData from './home/PageData.js';
 
-      Component.build('TopBar', TopBar);
       Component.build('Resources', TwoColumnListView, PageData.Resources);
       Component.build('Projects', TwoColumnListView, PageData.Projects);
       Component.build('Demos', TwoColumnListView, PageData.Demos);
