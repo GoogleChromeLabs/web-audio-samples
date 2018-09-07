@@ -90,20 +90,31 @@ export default {
     listTitle: 'Resources',
     listData: [
       {
+        title: 'Enter AudioWorklet',
+        description: `An introductory article on AudioWorklet from Google
+            Developer Portal.`,
+        url: '//developers.google.com/web/updates/2017/12/audio-worklet',
+      },
+      {
+        title: 'AudioWorklet Design Pattern',
+        description: `An in-depth article on useful design patterns for
+            WebAssembly and SharedArrayBuffer.`,
+        url: '//developers.google.com/web/updates/2018/06/audio-worklet-design-pattern',
+      },
+      {
         title: 'Talk: AudioWorklet - What, Why and How',
-        description: `An in-depth presentation about the new AudioWorklet.`,
+        description: `A recorded talk about the launch of AudioWorklet. (2017)`,
         url: '//goo.gl/R2zWtR',
       },
       {
         title: 'Slides: AudioWorklet - What, Why and How',
-        description: `The slide deck for the presentation.`,
-        url: '//goo.gl/5c5LPD',
+        description: `The slide deck for the recorded talk. (2017)`,
+        url: '//docs.google.com/presentation/d/11OZyHyWRTWOCETW4x7m5gCPNSdSl9HevCQ1aiR_0xFE/edit?usp=sharing',
       },
       {
-        title: 'Google Developer Blog Post: AudioWorklet',
-        description: `An introductory article on AudioWorklet from Google
-            Developer Portal.`,
-        url: '//developers.google.com/web/updates/2017/12/audio-worklet',
+        title: 'AudioWorklet - The future of web audio',
+        description: `The first conference paper (ICMC 2018) about the design and the technical aspect of AudioWorklet.`,
+        url: '//drive.google.com/file/d/1-SZvEESLa7SgqqjW7ACdIXZRS4YHTQAR/view',
       },
       {
         title: 'Web Audio API: AudioWorklet',
