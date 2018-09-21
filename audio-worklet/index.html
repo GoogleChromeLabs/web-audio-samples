@@ -25,6 +25,7 @@
   <body>
     <div class="container was-page-wrap">
       <div id="TopBar"></div>
+      <div id="WorkletIndicator"></div>
       <div class="row was-header">
         <div class="column">
           <h1>AudioWorklet</h1>
@@ -44,10 +45,11 @@
       <div id="Footer"></div>
     </div>
     <script type="module">
-      import { Component, TopBar, Footer, TwoColumnListView }
+      import { Component, WorkletIndicator, TopBar, Footer, TwoColumnListView }
           from '../assets/Components.js';
       import PageData from './PageData.js';
 
+      Component.build('WorkletIndicator', WorkletIndicator);
       Component.build('TopBar', TopBar, PageData.TopBar);
       Component.build('BasicDemo', TwoColumnListView, PageData.BasicDemo);
       Component.build('DesignPattern',

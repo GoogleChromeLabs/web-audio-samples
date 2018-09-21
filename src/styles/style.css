@@ -4,6 +4,17 @@ html, body {
   color: #102027;
 }
 
+button, button:focus {
+  width: 140px;
+  background-color: #0091ea;
+  border: 0.1rem solid #0091ea;
+}
+
+button:hover {
+  background-color: #29b6f6;
+  border-color: #29b6f6;
+}
+
 p {
   font-size: 1.6rem;
   line-height: 1.5;
@@ -32,7 +43,7 @@ a:hover {
   letter-spacing: 0.05rem;
   font-weight: 600;
   min-height: 2rem;
-  line-height: 2rem;
+  line-height: 3.2rem;
 }
 
 .was-top-bar ul {
@@ -53,6 +64,28 @@ a:hover {
 
 .was-top-bar ul li:first-child::before {
   content: none;
+}
+
+#WorkletIndicator {
+  text-transform: uppercase;
+  font-size: 13px;
+  width: 170px;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  right: 20px;
+}
+
+.was-indicator-found {
+  color: #4caf50;
+  border: 0.1rem solid #4caf50;
+  padding: 0.5rem;
+}
+
+.was-indicator-missing {
+  color: #dd2c00;
+  border: 0.1rem solid #dd2c00;
+  padding: 0.5rem;
 }
 
 .was-header {
@@ -96,6 +129,13 @@ a:hover {
   line-height: 1.6;
 }
 
+.was-demo-area {
+  background-color: #EFEFEF;
+  padding: 0.75em;
+  border-radius: 0.25em;
+  margin: 1em 0;
+}
+
 .was-footer {
   margin-top: 6rem;
   margin-bottom: 4rem;
@@ -105,12 +145,9 @@ a:hover {
 
 .was-footer ul li {
   display: inline;
+  margin-right: 1em;
 }
 
 .was-footer ul li::before {
-  content: "\2022  ";
-}
-
-.was-footer ul li:last-child::after {
   content: "\2022  ";
 }

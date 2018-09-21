@@ -21,23 +21,18 @@ export default {
     listTitle: 'Tools and Resources',
     listData: [
       {
-        title: 'Web Audio API Specification',
-        description: 'Latest version of API specification',
-        url: '//webaudio.github.io/web-audio-api/'
-      },
-      {
         title: 'AudioWorklet Hub',
-        description: 'Examples and resources for AudioWorklet',
+        description: 'AudioWorklet examples and resources',
         url: 'audio-worklet/',
       },
       {
         title: 'Tone.js',
-        description: 'Framework for creating interactive music in the browser',
+        description: 'Framework for creating interactive music in browser',
         url: '//tonejs.github.io/',
       },
       {
         title: 'Omnitone',
-        description: '360° audio renderer for web',
+        description: '360° audio renderer for WebXR/AR applications',
         url: '//googlechrome.github.io/omnitone/',
       },
       {
@@ -52,8 +47,13 @@ export default {
       },
       {
         title: 'Canopy',
-        description: 'WebAudio tool for tinkering and debugging',
+        description: 'WebAudio code editor for tinkering and debugging',
         url: '//hoch.github.io/canopy/',
+      },
+      {
+        title: 'Web Audio API Specification',
+        description: 'Latest version of API specification',
+        url: '//webaudio.github.io/web-audio-api/'
       },
     ],
   },
@@ -82,19 +82,19 @@ export default {
         url: '//www.google.com/doodles/robert-moogs-78th-birthday',
       },
       {
-        title: 'WebAudio Demos',
-        description: 'WebAudio demo collection by Chris Wilson',
+        title: 'Web Audio Demos',
+        description: 'A demo collection by Chris Wilson',
         url: '//webaudiodemos.appspot.com/',
+      },
+      {
+        title: 'Filter Playground',
+        description: 'Interactive filter design tool by Boris Smus',
+        url: '//borismus.github.io/filter-playground/',
       },
       {
         title: 'Beautiful Audio Editor',
         description: 'Web-based multitrack recorder/editor',
         url: '//beautifulaudioeditor.appspot.com/',
-      },
-      {
-        title: 'Filter Playground',
-        description: 'Interactive filter design tool on web by Boris Smus',
-        url: '//borismus.github.io/filter-playground/',
       },
     ]
   },

@@ -19,6 +19,7 @@ document.documentElement.classList.add('was-render-pending');
 import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 const LogPrefix = '[Component] ';
+const GitHubBaseUrl = 'https://github.com/GoogleChromeLabs/web-audio-samples/tree/gh-pages';
 
 /**
  * Page builder utility object.
@@ -178,6 +179,63 @@ function _getColumn(entry) {
 
 
 /**
+ * WorkletIndicator component
+ */
+const WorkletIndicator = () => {
+  const isAudioWorkletAvailable = _detectAudioWorklet();
+  return isAudioWorkletAvailable
+      ? html`<div class="was-indicator-found">AudioWorklet Ready</div>`
+      : html`<div class="was-indicator-missing">No AudioWorklet</div>`;
+};
+
+// Check if AudioWorklet is available.
+function _detectAudioWorklet() {
+  let context = new OfflineAudioContext(1, 1, 44100);
+  return Boolean(
+      context.audioWorklet &&
+      typeof context.audioWorklet.addModule === 'function');
+}
+
+
+/**
+ * DemoRunner component
+ */
+const DemoRunner = (demoFunction) => {
+  const sourceUrl = GitHubBaseUrl + window.location.pathname;
+  const audioContext = new AudioContext();
+
+  // Creates a button and its logic.
+  let isFirstClick = true;
+  const eButton = document.createElement('button');
+  eButton.textContent = 'START';
+  eButton.onclick = (event) => {
+    if (eButton.textContent === 'START') {
+      if (isFirstClick) {
+        demoFunction(audioContext);
+        isFirstClick = false;
+      }
+      audioContext.resume();
+      eButton.textContent = 'STOP';
+    } else {
+      audioContext.suspend();
+      eButton.textContent = 'START';
+    }
+  };
+
+  return html`
+    <div class="row was-demo-runner">
+      <div class="column">
+        <div class="was-demo-area">
+          ${eButton}
+        </div>
+        <a href="${sourceUrl}">See sources on GitHub</a>
+      </div>
+    </div>
+  `;
+};
+
+
+/**
  * Exports
  */
 export {
@@ -185,4 +243,6 @@ export {
   TopBar,
   Footer,
   TwoColumnListView,
+  WorkletIndicator,
+  DemoRunner,
 };

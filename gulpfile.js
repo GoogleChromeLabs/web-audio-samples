@@ -40,7 +40,7 @@ gulp.task('assets-styles', () => {
 
 gulp.task('watch', () => {
   gulp.watch(['src/components/Components.js'], ['assets-components']);
-  gulp.watch(['src/styles/*.css'], ['asset-style']);
+  gulp.watch(['src/styles/*.css'], ['assets-styles']);
 });
 
 gulp.task('default', () => {
