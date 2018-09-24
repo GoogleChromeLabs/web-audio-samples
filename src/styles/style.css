@@ -4,7 +4,7 @@ html, body {
   color: #102027;
 }
 
-button, button:focus {
+button, button:focus, button[disabled]:focus, button[disabled]:hover {
   width: 140px;
   background-color: #0091ea;
   border: 0.1rem solid #0091ea;
@@ -13,6 +13,10 @@ button, button:focus {
 button:hover {
   background-color: #29b6f6;
   border-color: #29b6f6;
+}
+
+button[disabled] {
+  opacity: 0.25;
 }
 
 p {
@@ -130,13 +134,34 @@ a:hover {
 }
 
 .was-demo-area {
-  background-color: #EFEFEF;
-  padding: 0.75em;
+  padding: 1.25em 0.75em;
   border-radius: 0.25em;
   margin: 1em 0;
+  border: 1px solid #c1d5e0;
+  position: relative;
+}
+
+.was-demo-area-label {
+  position: absolute;
+  top: -12px;
+  font-size: 14px;
+  color: #90a4ae;
+  background: #FFF;
+  width: 60px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.was-demo-area-source {
+  font-size: 12px;
+  text-align: right;
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
 }
 
 .was-footer {
+  font-size: 14px;
   margin-top: 6rem;
   margin-bottom: 4rem;
   text-align: center;

@@ -102,7 +102,7 @@ const Footer = (context) => {
             <a href="//bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio">Found a Chrome bug?</a>
           </li>
         </ul>
-        <p>Chrome ♥ WebAudio</p>
+        Chrome ♥ WebAudio
       </div>
     </div>
     <script>
@@ -113,6 +113,21 @@ const Footer = (context) => {
       ga('create', 'UA-57132539-4', 'auto');
       ga('send', 'pageview');
     </script>
+  `;
+};
+
+
+/**
+ * OneColumnView component
+ */
+const OneColumnView = (context) => {
+  return html`
+    <div class="row">
+      <div class="column">
+        <h1>${context.title}</h1>
+        <p>${context.detail}</p>
+      </div>
+    </div>
   `;
 };
 
@@ -208,6 +223,7 @@ const DemoRunner = (demoFunction) => {
   let isFirstClick = true;
   const eButton = document.createElement('button');
   eButton.textContent = 'START';
+  eButton.disabled = _detectAudioWorklet() ? false : true;
   eButton.onclick = (event) => {
     if (eButton.textContent === 'START') {
       if (isFirstClick) {
@@ -226,9 +242,12 @@ const DemoRunner = (demoFunction) => {
     <div class="row was-demo-runner">
       <div class="column">
         <div class="was-demo-area">
+          <div class="was-demo-area-label">DEMO</div>
           ${eButton}
+          <div class="was-demo-area-source">
+            <a href="${sourceUrl}">See sources on GitHub</a>
+          </div>
         </div>
-        <a href="${sourceUrl}">See sources on GitHub</a>
       </div>
     </div>
   `;
@@ -242,6 +261,7 @@ export {
   Component,
   TopBar,
   Footer,
+  OneColumnView,
   TwoColumnListView,
   WorkletIndicator,
   DemoRunner,
