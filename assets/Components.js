@@ -258,6 +258,8 @@ const DemoRunner = (demoFunction) => {
  * Exports
  */
 export {
+  html,
+  render,
   Component,
   TopBar,
   Footer,

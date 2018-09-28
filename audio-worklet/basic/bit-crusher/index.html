@@ -20,7 +20,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="mobile-web-app-capable" content="yes">
     <link href="../../../assets/was-styles.css" rel="stylesheet">
-    <title>Hello Audio Worklet! | WebAudio Samples</title>
+    <title>BitCrusher | WebAudio Samples</title>
   </head>
   <body>
     <div class="container was-page-wrap"></div>
@@ -29,11 +29,28 @@
       import PageData from './PageData.js';
 
       const demoCode = async (context) => {
-        await context.audioWorklet.addModule('bypass-processor.js');
+        await context.audioWorklet.addModule('bit-crusher-processor.js');
         const oscillator = new OscillatorNode(context);
-        const bypasser = new AudioWorkletNode(context, 'bypass-processor');
-        oscillator.connect(bypasser).connect(context.destination);
+        const bitCrusher =
+            new AudioWorkletNode(context, 'bit-crusher-processor');
+        const paramBitDepth = bitCrusher.parameters.get('bitDepth');
+        const paramReduction = bitCrusher.parameters.get('frequencyReduction');
+
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.value = 5000;
+        paramBitDepth.setValueAtTime(1, 0);
+
+        oscillator.connect(bitCrusher).connect(context.destination);
+
+        // |frequencyReduction| parameters will be automated and changing over
+        // time. Thus its parameter array will have 128 values.
+        paramReduction.setValueAtTime(0.01, 0);
+        paramReduction.linearRampToValueAtTime(0.1, 4);
+        paramReduction.exponentialRampToValueAtTime(0.01, 8);
+
+        // Play the tone for 8 seconds.
         oscillator.start();
+        oscillator.stop(8);
       };
 
       WorkletDemoBuilder(PageData, demoCode);
