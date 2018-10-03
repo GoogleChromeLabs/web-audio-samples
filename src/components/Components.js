@@ -213,11 +213,41 @@ function _detectAudioWorklet() {
 
 
 /**
+ * Logger class
+ */
+class Logger {
+  constructor(maxItem) {
+    this.maxItem_ = maxItem || 5;
+    this.eContainer_ = document.createElement('div');
+    this.eContainer_.className = 'was-logger-container';
+  }
+
+  getElement() {
+    return this.eContainer_;
+  }
+
+  post(message) {
+    const newDiv = document.createElement('div');
+    newDiv.textContent = message;
+    this.eContainer_.insertBefore(newDiv, this.eContainer_.firstChild);
+    if (this.eContainer_.children.length > this.maxItem_) {
+      this.eContainer_.removeChild(this.eContainer_.lastChild);
+    }
+  }
+
+  clear() {
+    this.eContainer_.innerHTML = '';
+  }
+}
+
+
+/**
  * DemoRunner component
  */
 const DemoRunner = (demoFunction) => {
   const sourceUrl = GitHubBaseUrl + window.location.pathname;
   const audioContext = new AudioContext();
+  const logger = new Logger();
 
   // Creates a button and its logic.
   let isFirstClick = true;
@@ -227,13 +257,15 @@ const DemoRunner = (demoFunction) => {
   eButton.onclick = (event) => {
     if (eButton.textContent === 'START') {
       if (isFirstClick) {
-        demoFunction(audioContext);
+        demoFunction(audioContext, logger);
         isFirstClick = false;
       }
       audioContext.resume();
+      logger.post('Context resumed.');
       eButton.textContent = 'STOP';
     } else {
       audioContext.suspend();
+      logger.post('Context suspended.');
       eButton.textContent = 'START';
     }
   };
@@ -244,6 +276,7 @@ const DemoRunner = (demoFunction) => {
         <div class="was-demo-area">
           <div class="was-demo-area-label">DEMO</div>
           ${eButton}
+          ${logger.getElement()}
           <div class="was-demo-area-source">
             <a href="${sourceUrl}">See sources on GitHub</a>
           </div>
@@ -258,6 +291,8 @@ const DemoRunner = (demoFunction) => {
  * Exports
  */
 export {
+  render,
+  html,
   Component,
   TopBar,
   Footer,

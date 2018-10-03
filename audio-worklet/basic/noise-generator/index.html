@@ -20,7 +20,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="mobile-web-app-capable" content="yes">
     <link href="../../../assets/was-styles.css" rel="stylesheet">
-    <title>One Pole Filter | WebAudio Samples</title>
+    <title>Noise generator with modulation | WebAudio Samples</title>
   </head>
   <body>
     <div class="container was-page-wrap"></div>
@@ -29,18 +29,19 @@
       import PageData from './PageData.js';
 
       const demoCode = async (context) => {
-        await context.audioWorklet.addModule('one-pole-processor.js');
-        const oscillator = new OscillatorNode(context);
-        const filter = new AudioWorkletNode(context, 'one-pole-processor');
-        const frequencyParam = filter.parameters.get('frequency');
+        await context.audioWorklet.addModule('noise-generator.js');
+        const modulator = new OscillatorNode(context);
+        const modGain = new GainNode(context);
+        const noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
+        noiseGenerator.connect(context.destination);
 
-        oscillator.connect(filter).connect(context.destination);
-        oscillator.start();
+        // Connect the oscillator to 'amplitude' AudioParam.
+        const paramAmp = noiseGenerator.parameters.get('amplitude');
+        modulator.connect(modGain).connect(paramAmp);
 
-        frequencyParam
-            .setValueAtTime(0.01, 0)
-            .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
-            .exponentialRampToValueAtTime(0.01, 8.0);
+        modulator.frequency.value = 0.5;
+        modGain.gain.value = 0.75;
+        modulator.start();
       };
 
       WorkletDemoBuilder(PageData, demoCode);

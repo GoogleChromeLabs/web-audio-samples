@@ -160,6 +160,12 @@ a:hover {
   bottom: 4px;
 }
 
+.was-logger-container {
+  font-family: monospace;
+  font-size: 12px;
+  margin: 10px 0;
+}
+
 .was-footer {
   font-size: 14px;
   margin-top: 6rem;

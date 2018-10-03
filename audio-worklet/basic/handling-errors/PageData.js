@@ -18,14 +18,14 @@ export default {
     pathData: [
       ['Home', '../../../'],
       ['AudioWorklet', '../../'],
-      ['BitCrusher with AudioParam'],
+      ['Handling Errors'],
     ],
   },
 
   Description: {
-    title: 'BitCrusher with AudioParam',
-    detail: `A BitCrusher example from the Web Audio API specification, but
-        modified to demonstrate AudioParam automations. The sound source is a
-        sawtooth oscillator at 5000Hz. The demo runs for 8 seconds.`
+    title: 'Handling Errors',
+    detail: `A simple demonstration on how to catch an error from
+        AudioWorkletProcessor with onprocessorerror event handler in
+        AudioWorkletNode. Open up the console to see the events being fired.`
   },
 };

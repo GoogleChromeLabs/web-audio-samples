@@ -26,40 +26,38 @@ export default {
     listTitle: 'Basic Demo',
     listData: [
       {
-        title: 'Hello AudioWorklet!',
+        title: 'Hello Audio Worklet!',
         description: `
-            A simple AudioWorkletNode that bypasses the incominng audio stream
-            to its output.`,
-        url: 'basic/hello-audio-worklet.html',
+            A simple AudioWorkletNode that bypasses its input to output.`,
+        url: 'basic/hello-audio-worklet/',
       },
       {
-        title: 'Noise with AudioParam Modulation',
-        description: `A simple noise generator with user-defined 'gain'
-            AudioParam modulated by an OscillatorNode.`,
-        url: 'basic/noise-audio-param.html',
+        title: 'One Pole Filter',
+        description: `A one-pole filter built with AudioWorkletNode.`,
+        url: 'basic/one-pole-filter/',
       },
       {
-        title: 'BitCrusher with AudioParam Automation',
-        description: `A BitCrusher example from the specification, but modified
-            to demonstrate AudioParam automations.`,
-        url: 'basic/bit-crusher.html',
+        title: 'Noise Generator with AudioParam',
+        description: `A simple noise generator with user-defined AudioParam
+            modulated by an oscillator.`,
+        url: 'basic/noise-generator/',
       },
       {
-        title: 'One-Pole Filter',
-        description: `A one-pole filter implementation with AudioWorkletNode.`,
-        url: 'basic/one-pole.html',
+        title: 'BitCrusher with AudioParam',
+        description: `A BitCrusher example from the specification, plus
+            AudioParam automation.`,
+        url: 'basic/bit-crusher/',
       },
       {
-        title: 'MessagePort with AudioWorklet',
-        description: `Demonstrates basic bi-directional communication between
+        title: 'MessagePort',
+        description: `A simple demo of bi-directional communication between
             AudioWorkletNode and AudioWorkletProcessor.`,
-        url: 'basic/message-port.html',
+        url: 'basic/message-port/',
       },
       {
-        title: 'Catching error from AudioWorkletProcessor',
-        description: `A simple demonstration on how to use
-            AudioWorkletNode.onprocessorerror event handler.`,
-        url: 'basic/node-onerror.html',
+        title: 'Handling Errors',
+        description: `A simple demo on how to use error event handler.`,
+        url: 'basic/handling-errors/',
       }
     ],
   },

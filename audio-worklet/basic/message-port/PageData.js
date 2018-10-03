@@ -18,14 +18,14 @@ export default {
     pathData: [
       ['Home', '../../../'],
       ['AudioWorklet', '../../'],
-      ['BitCrusher with AudioParam'],
+      ['MessagePort'],
     ],
   },
 
   Description: {
-    title: 'BitCrusher with AudioParam',
-    detail: `A BitCrusher example from the Web Audio API specification, but
-        modified to demonstrate AudioParam automations. The sound source is a
-        sawtooth oscillator at 5000Hz. The demo runs for 8 seconds.`
+    title: 'MessagePort',
+    detail: `Demonstrates basic bi-directional communication between
+        AudioWorkletNode and AudioWorkletProcessor. Open up the console to
+        see messages from AudioWorkletGlobalScope.`
   },
 };

@@ -20,7 +20,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="mobile-web-app-capable" content="yes">
     <link href="../../../assets/was-styles.css" rel="stylesheet">
-    <title>One Pole Filter | WebAudio Samples</title>
+    <title>Hello Audio Worklet! | WebAudio Samples</title>
   </head>
   <body>
     <div class="container was-page-wrap"></div>
@@ -28,19 +28,26 @@
       import WorkletDemoBuilder from '../../assets/WorkletDemoBuilder.js'
       import PageData from './PageData.js';
 
-      const demoCode = async (context) => {
-        await context.audioWorklet.addModule('one-pole-processor.js');
-        const oscillator = new OscillatorNode(context);
-        const filter = new AudioWorkletNode(context, 'one-pole-processor');
-        const frequencyParam = filter.parameters.get('frequency');
+      const demoCode = async (context, logger) => {
+        await context.audioWorklet.addModule('error-processor.js');
 
-        oscillator.connect(filter).connect(context.destination);
-        oscillator.start();
+        const constructorErrorWorkletNode =
+            new AudioWorkletNode(context, 'constructor-error');
+        constructorErrorWorkletNode.onprocessorerror = () => {
+          logger.post('An error from AudioWorkletProcessor.constructor()'
+              + ' was detected.');
+        };
 
-        frequencyParam
-            .setValueAtTime(0.01, 0)
-            .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
-            .exponentialRampToValueAtTime(0.01, 8.0);
+        const processErrorWorkletNode =
+            new AudioWorkletNode(context, 'process-error');
+        processErrorWorkletNode.onprocessorerror = () => {
+          logger.post('An error from AudioWorkletProcessor.process()'
+              + ' was detected.');
+        };
+
+        // To update processor's internal timer, the node must be connected to
+        // the graph.
+        processErrorWorkletNode.connect(context.destination);
       };
 
       WorkletDemoBuilder(PageData, demoCode);
