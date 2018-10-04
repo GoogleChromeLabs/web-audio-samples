@@ -66,17 +66,17 @@ export default {
       {
         title: 'Audio Worklet and WebAssembly',
         description: `A basic set up for AudioWorklet and WebAssembly.`,
-        url: 'design-pattern/awn/index.html',
+        url: 'design-pattern/wasm/',
       },
       {
-        title: 'Ring Buffer and AudioWorkletProcessor',
+        title: 'Ring Buffer in AudioWorkletProcessor',
         description: `Using Ring Buffer to work around buffer size mismatch.`,
-        url: 'design-pattern/awn-ring-buffer/index.html',
+        url: 'design-pattern/wasm-ring-buffer/',
       },
       {
         title: 'Audio Worklet, SharedArrayBuffer and Worker',
         description: `For high performance large scale audio applications.`,
-        url: 'design-pattern/awn-shared-buffer/index.html',
+        url: 'design-pattern/shared-buffer/',
       }
     ],
   },

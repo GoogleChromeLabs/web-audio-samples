@@ -1,7 +1,7 @@
-# AudioWorklet Design Patterns
+# Audio Worklet Design Patterns
 
-These code examples go with the article about [AudioWorklet design pattern]()
-published at developer.google.com/web/.
+These code examples go with the article about
+[AudioWorklet design pattern](https://developers.google.com/web/updates/2018/06/audio-worklet-design-pattern).
 
 ## Prerequisites
 
