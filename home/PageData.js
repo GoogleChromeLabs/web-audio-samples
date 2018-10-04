@@ -21,8 +21,8 @@ export default {
     listTitle: 'Tools and Resources',
     listData: [
       {
-        title: 'AudioWorklet Hub',
-        description: 'AudioWorklet examples and resources',
+        title: 'Audio Worklet',
+        description: 'Audio Worklet examples and resources',
         url: 'audio-worklet/',
       },
       {
@@ -32,7 +32,7 @@ export default {
       },
       {
         title: 'Omnitone',
-        description: '360° audio renderer for WebXR/AR applications',
+        description: '360° audio renderer for WebXR applications',
         url: '//googlechrome.github.io/omnitone/',
       },
       {
@@ -41,13 +41,13 @@ export default {
         url: '//developers.google.com/resonance-audio/develop/web/getting-started',
       },
       {
-        title: 'WebAudio Inspector DevTool Extension',
-        description: 'Chrome DevTool extension for Web Audio API',
+        title: 'Web Audio Inspector DevTools Extension',
+        description: 'Chrome DevTools extension for Web Audio API',
         url: '//github.com/google/audion/',
       },
       {
         title: 'Canopy',
-        description: 'WebAudio code editor for tinkering and debugging',
+        description: 'Web audio code editor for tinkering and debugging',
         url: '//hoch.github.io/canopy/',
       },
       {

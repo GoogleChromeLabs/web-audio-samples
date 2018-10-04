@@ -18,7 +18,7 @@ export default {
   TopBar: {
     pathData: [
       ['Home', '../'],
-      ['AudioWorklet']
+      ['Audio Worklet']
     ],
   },
 
@@ -33,30 +33,28 @@ export default {
       },
       {
         title: 'One Pole Filter',
-        description: `A one-pole filter built with AudioWorkletNode.`,
+        description: `A one-pole filter built with Audio Worklet.`,
         url: 'basic/one-pole-filter/',
       },
       {
         title: 'Noise Generator with AudioParam',
-        description: `A simple noise generator with user-defined AudioParam
-            modulated by an oscillator.`,
+        description: `A noise generator with user-defined AudioParam.`,
         url: 'basic/noise-generator/',
       },
       {
         title: 'BitCrusher with AudioParam',
-        description: `A BitCrusher example from the specification, plus
-            AudioParam automation.`,
+        description: `An example from the specification, plus AudioParam
+            automation.`,
         url: 'basic/bit-crusher/',
       },
       {
         title: 'MessagePort',
-        description: `A simple demo of bi-directional communication between
-            AudioWorkletNode and AudioWorkletProcessor.`,
+        description: `Messaging between node and processor.`,
         url: 'basic/message-port/',
       },
       {
         title: 'Handling Errors',
-        description: `A simple demo on how to use error event handler.`,
+        description: `How to handle errors from processor.`,
         url: 'basic/handling-errors/',
       }
     ],
@@ -66,19 +64,18 @@ export default {
     listTitle: 'Advanced Design Pattern',
     listData: [
       {
-        title: 'AudioWorklet and WebAssembly',
+        title: 'Audio Worklet and WebAssembly',
         description: `A basic set up for AudioWorklet and WebAssembly.`,
         url: 'design-pattern/awn/index.html',
       },
       {
         title: 'Ring Buffer and AudioWorkletProcessor',
-        description: `Using Ring Buffer to work with buffer size difference.`,
+        description: `Using Ring Buffer to work around buffer size mismatch.`,
         url: 'design-pattern/awn-ring-buffer/index.html',
       },
       {
-        title: 'AudioWorklet, SharedArrayBuffer and Worker',
-        description: `Suitable for large-scale audio application requires a
-            seperate thread for intensive audio processing.`,
+        title: 'Audio Worklet, SharedArrayBuffer and Worker',
+        description: `For high performance large scale audio applications.`,
         url: 'design-pattern/awn-shared-buffer/index.html',
       }
     ],
@@ -88,35 +85,34 @@ export default {
     listTitle: 'Resources',
     listData: [
       {
-        title: 'Enter AudioWorklet',
-        description: `An introductory article on AudioWorklet from Google
-            Developer Portal.`,
+        title: 'Enter Audio Worklet',
+        description: `An introductory article on Audio Worklet.`,
         url: '//developers.google.com/web/updates/2017/12/audio-worklet',
       },
       {
-        title: 'AudioWorklet Design Pattern',
-        description: `An in-depth article on useful design patterns for
-            WebAssembly and SharedArrayBuffer.`,
+        title: 'Audio Worklet Design Pattern',
+        description: `Design with WebAssembly, SharedArrayBuffer and more.`,
         url: '//developers.google.com/web/updates/2018/06/audio-worklet-design-pattern',
       },
       {
-        title: 'Talk: AudioWorklet - What, Why and How',
-        description: `A recorded talk about the launch of AudioWorklet. (2017)`,
+        title: 'Talk: Audio Worklet - What, Why and How',
+        description: `The first recorded talk on the Audio Worklet.`,
         url: '//goo.gl/R2zWtR',
       },
       {
-        title: 'Slides: AudioWorklet - What, Why and How',
-        description: `The slide deck for the recorded talk. (2017)`,
+        title: 'Deck: Audio Worklet - What, Why and How',
+        description: `The slide deck for the recorded talk.`,
         url: '//docs.google.com/presentation/d/11OZyHyWRTWOCETW4x7m5gCPNSdSl9HevCQ1aiR_0xFE/edit?usp=sharing',
       },
       {
-        title: 'AudioWorklet - The future of web audio',
-        description: `The first conference paper (ICMC 2018) about the design and the technical aspect of AudioWorklet.`,
+        title: 'Paper: Audio Worklet - The future of web audio',
+        description: `The first conference paper about Audio Worklet.
+            (ICMC 2018)`,
         url: '//drive.google.com/file/d/1-SZvEESLa7SgqqjW7ACdIXZRS4YHTQAR/view',
       },
       {
-        title: 'Web Audio API: AudioWorklet',
-        description: `AudioWorklet section in Web Audio API specification.`,
+        title: 'Web Audio API: Audio Worklet',
+        description: `Audio Worklet section in Web Audio API specification.`,
         url: '//webaudio.github.io/web-audio-api/#AudioWorklet',
       }
     ],
