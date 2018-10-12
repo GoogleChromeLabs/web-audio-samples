@@ -33,7 +33,8 @@
 
         const constructorErrorWorkletNode =
             new AudioWorkletNode(context, 'constructor-error');
-        constructorErrorWorkletNode.onprocessorerror = () => {
+        constructorErrorWorkletNode.onprocessorerror = (event) => {
+          console.log(event);
           logger.post('An error from AudioWorkletProcessor.constructor()'
               + ' was detected.');
         };
