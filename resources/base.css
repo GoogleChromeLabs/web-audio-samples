@@ -1,4 +1,80 @@
 body {
   font-family: "Roboto", sans-serif;
+  background-color: #FAFAFA;
+  margin: 26px;
+}
+
+section {
+  max-width: 768px;
+}
+
+h1 {
+  font-size: 34px;
+}
+
+h2 {
+  font-size: 28px;
+}
+
+p {
+  margin-left: 26px;
+}
+
+a, a:active, a:visited {
+  text-decoration: none;
+  color: #03a9f4;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a.link-small {
+  font-size: 13px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin-left: 26px;
+}
+
+ul.two-columns {
+  list-style: none;
+  columns: 2;
+}
+
+ul > li {
+  line-height: 26px;
+  padding: 0;
+}
+
+code.flag {
+  font-size: 16px;
+  color: #607d8b;
+}
+
+#lib-audioworklet-reporter {
+  font-size: 14px;
+  margin: 26px 0;
   background-color: #ECEFF1;
+  padding: 13px;
+  border-radius: 6px;
+}
+
+#lib-audioworklet-reporter > button {
+  font-size: 20px;
+  margin-bottom: 13px;
+}
+
+#lib-audioworklet-reporter .error {
+  color: #F44336;
+}
+
+#lib-audioworklet-reporter .warning {
+  color: #FF9800;
+}
+
+#lib-audioworklet-reporter .info {
+  color: #455A64;
 }

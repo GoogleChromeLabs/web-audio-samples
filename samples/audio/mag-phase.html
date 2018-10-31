@@ -17,6 +17,7 @@
       window.onload = init;
       var context;
       var filter;
+      var masterGain;
       var sound;
       var cutoff = .5;
       var q = 10.0; // in dB
@@ -205,6 +206,13 @@
           );
       }
 
+      function stopSound() {
+        if (source) {
+          source.stop(0);
+          source = null;
+        }
+      }
+
       function loadSound(url) {
         // Load asynchronously
         var request = new XMLHttpRequest();
@@ -217,11 +225,13 @@
               source.stop(0);
               source = null;
             }
-            source = context.createBufferSource();
-            source.connect(filter);
-            source.loop = true;
-            source.buffer = buffer;
-            source.start(0);
+            context.resume().then(() => {
+              source = context.createBufferSource();
+              source.connect(filter);
+              source.loop = true;
+              source.buffer = buffer;
+              source.start(0);
+            });
 
           }, function(){console.log("error decoding file.")});
         };
@@ -264,8 +274,36 @@
         info.innerHTML = "gain = " + gain.toFixed(3) + "dB";
       }
       
+      function masterGainHandler(event, ui) {
+        let g = new Number(ui.value);
+        // The master gain is in dB.
+        masterGain.gain.value = Math.pow(10, g/20);;
+
+        let element= document.getElementById("master-gain-value");
+        element.innerHTML = 'Master volume = ' + g.toFixed(3) + ' dB';
+      }
+
       function setFilterType(filterType) {
         filter.type = filterType;
+
+        // Need to adjust the Q slider range depending on the filter type.  This
+        // is because the Q parameter for the lowpass and highpass filters is in
+        // dB, but linear for the others.
+        if (filterType === 'lowpass' || filterType === 'highpass') {
+          let slider = document.getElementById('QSlider');
+          slider.min = -50;
+          slider.max = 50;
+          // Clamp the value to the slider range, just in case.
+          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
+          qHandler(null, {value: slider.value});
+        } else {
+          let slider = document.getElementById('QSlider');
+          slider.min = 0;
+          slider.max = 1000;
+          // Clamp the value to the slider range, just in case.
+          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
+          qHandler(null, {value: slider.value});
+        }
         drawCurve();
       }
 
@@ -283,6 +321,7 @@
         filter.frequency.value = normalizedCutoffToHz(cutoff, cutoffOctaves); // cutoff
         filter.Q.value = q;
         filter.gain.value = gain;
+        masterGain = context.createGain();
         var period = 2;
         var startTime = context.currentTime;
       
@@ -292,16 +331,16 @@
 //	}
       
       
-        filter.connect(context.destination);
-        loadSound("sounds/tones/pinkgood.wav");
-
+        filter.connect(masterGain).connect(context.destination);
 
 	addSlider("cutoff");
 	addSlider("Q");
         addSlider("gain");
+        addSlider("master-gain");
 	configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
 	configureSlider("Q", q, 0.0, 1000.0, qHandler);
         configureSlider("gain", gain, -40.0, 40.0, gainHandler);
+        configureSlider("master-gain", 0, -10, 10, masterGainHandler);
         
         // Give audio process some time initialize itself.
         drawCurve();
@@ -346,7 +385,8 @@
       <div id="sources" style="width:25%;float:left;">
 	<h2>Source</h2>
 	<form>
-	  <input type="radio" checked="checked" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
+	  <input type="radio" checked="checked" name="source" onClick="stopSound();">None<br/>
+	  <input type="radio" name="source" onClick="loadSound('sounds/tones/pinkgood.wav');">Noise<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/cauldron.wav');">Cauldron<br/>
 	  <input type="radio" name="source" onClick="loadSound('sounds/effects/waves.wav');">Waves<br/>
 	  <input type="radio" name="source"
@@ -359,7 +399,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Fri Nov  7 10:07:02 PST 2014
+Last modified: Wed Feb  7 12:24:14 PST 2018
 <!-- hhmts end -->
       </div>
     </div>
