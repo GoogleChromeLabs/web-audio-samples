@@ -1,0 +1,99 @@
+<!-- 
+Copyright (c) 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../../resources/base-v2.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../.."><span>Chrome WebAudio Samples</span></a> <span class=
+        "nav-divider">|</span> <a href="../"><span>AudioWorklet</span></a>
+        <span class="nav-divider">|</span> <span id="title-navbar"></span>
+      </section>
+      <section class="header">
+        <h1 id="title-header"></h1>
+      </section>
+      <section class="content">
+        <div class="row">
+          <div class="column">
+            <p id="demo-description"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <ul>
+              <li>HTML: <a id="link-html-source" target="_blank"></a>
+              </li>
+              <li>Processor Script: <a id="link-js-source" target=
+              "_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <button id="btn-run-demo" class="button" disabled>Run
+            Demo</button>
+            <div id="div-warning-message" class="warning"></div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="../lib/audio-worklet-helper.js"></script> 
+    <script>
+    function runDemo() {
+      const context = new AudioContext();
+      context.audioWorklet.addModule('js/noise-generator.js').then(() => {
+        let modulator = new OscillatorNode(context);
+        let modGain = new GainNode(context);
+        let noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
+        noiseGenerator.connect(context.destination);
+
+        // Connect the oscillator to 'amplitude' AudioParam.
+        let paramAmp = noiseGenerator.parameters.get('amplitude');
+        modulator.connect(modGain).connect(paramAmp);
+
+        modulator.frequency.value = 0.5;
+        modGain.gain.value = 0.75;
+        modulator.start();
+      });
+    }
+
+    AudioWorkletHelper.initializeDemo({
+      title: 'Noise with AudioParam Modulation',
+      description: `A simple noise generator with user-defined 'gain' AudioParam
+          modulated by an OscillatorNode. That is, the tremolo effect on noise
+          generator.`,
+      htmlSource: 'audio-worklet/basic/noise-audio-param.html',
+      jsSource: 'audio-worklet/basic/js/noise-generator.js',
+      demoFunction: runDemo
+    });
+    </script>
+  </body>
+</html>

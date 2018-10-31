@@ -1,0 +1,142 @@
+/**
+ * Copyright (c) 2017 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/* Based on Milligram Style (version 1.3.0) */
+
+body {
+  font-weight: 400;
+  color: #37474f;
+  letter-spacing: 0;
+}
+
+section {
+  margin: 32px 0 0 0;
+}
+
+section.content {
+  margin: 64px 0;
+}
+
+section.footer {
+  color: #455a64;
+  font-size: 13px;
+  letter-spacing: 0.015rem;
+  text-align: center;
+  padding-bottom: 64px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: 0.015rem;
+}
+
+a {
+  color: #03a9f4;
+}
+
+a:focus,
+a:hover {
+  color: #4fc3f7;
+}
+
+dl {
+  margin: 2rem 0;
+}
+
+dd {
+  margin-left: 2rem;
+  font-size: 1.4rem;
+  line-height: 1.2rem;
+}
+
+dd:before {
+  content: "- ";
+}
+
+pre {
+  border-left: 0.3rem solid #2196f3;
+  color: #455a64;
+}
+
+ul {
+  list-style: disc inside;
+}
+
+li {
+  margin-bottom: 0.2rem;
+}
+
+.demo-item > a > h4 {
+  margin-bottom: 6px;
+}
+
+.nav-bar {
+  font-size: 1.1rem;
+  font-weight: 700;
+  height: 3.8rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+.nav-bar > span.nav-divider {
+  margin: 0 6px;
+}
+
+#div-worklet-indicator {
+  display: inline-block;
+  font-size: 1.3rem;
+  font-weight: 400;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  padding: 0 1rem;
+  letter-spacing: 0.05rem;
+  text-align: center;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.worklet-status-pending {
+  color: #b0bec5;
+  border: 0.1rem solid #b0bec5;
+}
+
+.worklet-status-found {
+  color: #4caf50;
+  border: 0.1rem solid #4caf50;
+}
+
+.worklet-status-missing {
+  color: #dd2c00;
+  border: 0.1rem solid #dd2c00;
+}
+
+.button {
+  color: #ffffff;
+  background-color: #03a9f4;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: 400;
+}
+
+.button:focus,
+.button:hover {
+  background-color: #4fc3f7;
+}
+
+.button[disabled],
+.button[disabled]:hover {
+  color: #fff;
+  background-color: #78909c;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.warning {
+  color: #ef5350;
+  font-size: 1.2rem;
+}

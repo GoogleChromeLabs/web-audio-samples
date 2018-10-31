@@ -1,35 +1,273 @@
+<!--
+Copyright (c) 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>
       AudioWorklet | Chrome WebAudio Samples
     </title>
-    <link rel="stylesheet" href="../resources/base.css">
+    <link rel="stylesheet" href=
+    "//fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href=
+    "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="../resources/base-v2.css">
   </head>
   <body>
-    <a href="../index.html" class="link-small">&#171; WebAudio sample home</a>
-    <h1>
-      AudioWorklet
-    </h1>
-    <ul>
-      <li>
-        <a href=
-        "https://webaudio.github.io/web-audio-api/#AudioWorkletNode">Specification</a>
-      </li>
-    </ul>
-    <h2>
-      Basic
-    </h2>
-    <ul>
-      <li>
-        <a href="basic/hello-audio-worklet.html">Hello AudioWorklet</a>
-      </li>
-      <li>
-        <a href="basic/audio-param-modulation.html">AudioParam Modulation</a>
-      </li>
-      <li>
-        <a href="basic/bit-crusher.html">BitCrusher</a>
-      </li>
-    </ul>
+    <div class="container">
+      <div class="float-right">
+        <div id="div-worklet-indicator" class="worklet-status-pending">
+          Checking...
+        </div>
+      </div>
+      <section class="nav-bar">
+        <a href="../index.html"><span>Chrome WebAudio Samples</span></a>
+        <span class="nav-divider">|</span> <span>AudioWorklet</span>
+      </section>
+      <section class="header">
+        <h1>
+          AudioWorklet
+        </h1>
+        <p><a href="https://webaudio.github.io/web-audio-api/#AudioWorklet"
+          target="_blank">AudioWorklet</a> is available on <strong>Chrome 66 (or
+          later) by default</strong>. If the status indicator on the top-right
+          corner of this page is not green, it means either your browser does
+          not support AudioWorklet. If you are using Chrome, please update to
+          Chrome 66.
+        </p>
+      </section>
+      <section class="content">
+        <h2>
+          Basic Demos
+        </h2>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/hello-audio-worklet.html">
+              <h4>
+                Hello AudioWorklet!
+              </h4></a>
+              <p>
+                A simple AudioWorkletNode that bypasses the incoming audio
+                stream to its output.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/noise-audio-param.html">
+              <h4>
+                Noise with AudioParam Modulation
+              </h4></a>
+              <p>
+                A simple noise generator with user-defined 'gain' AudioParam
+                modulated by an OscillatorNode.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/bit-crusher.html">
+              <h4>
+                BitCrusher with AudioParam Automation
+              </h4></a>
+              <p>
+                A BitCrusher example from the specification, but modified to
+                demonstrate AudioParam automations
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/one-pole.html">
+              <h4>
+                One-Pole Filter
+              </h4></a>
+              <p>
+                A one-pole filter implementation with AudioWorkletNode.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/message-port.html">
+              <h4>
+                MessagePort with AudioWorklet
+              </h4></a>
+              <p>
+                Demonstrates basic bi-directional communication between
+                AudioWorkletNode and AudioWorkletProcessor.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href="basic/node-onerror.html">
+              <h4>
+                Catching error from AudioWorkletProcessor
+              </h4></a>
+              <p>
+                A simple demonstration on how to use
+                AudioWorkletNode.onprocessorerror event handler.
+              </p>
+            </div>
+          </div>
+        </div>
+        <br>
+        <br>
+        <h2>
+          Design Patterns
+        </h2>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="design-pattern/wasm/">
+              <h4>
+                AudioWorklet with WebAssembly
+              </h4></a>
+              <p>
+                A basic set up for AudioWorklet and WebAssembly.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href="design-pattern/wasm-ring-buffer/">
+              <h4>
+                AudioWorklet with Ring Buffer
+              </h4></a>
+              <p>
+                Using Ring Buffer to work with buffer size difference.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="design-pattern/shared-buffer/">
+              <h4>
+                AudioWorklet with SharedArrayBuffer and Worker
+              </h4></a>
+              <p>
+                Suitable for large-scale audio application requires a seperate
+                thread for intensive audio processing.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+          </div>
+        </div>
+        <br>
+        <br>
+        <h2>
+          Resources
+        </h2>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href="https://goo.gl/R2zWtR">
+              <h4>
+                Talk: AudioWorklet - What, Why and How
+              </h4></a>
+              <p>
+                An in-depth presentation about the new AudioWorklet.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href="https://goo.gl/5c5LPD">
+              <h4>
+                Slides: AudioWorklet - What, Why and How
+              </h4></a>
+              <p>
+                The slide deck for the presentation.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href=
+              "https://developers.google.com/web/updates/2017/12/audio-worklet">
+              <h4>
+                Google Developer Blog: Enter AudioWorklet
+              </h4></a>
+              <p>
+                An introductory article on AudioWorklet.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+              <div class="demo-item">
+                <a href=
+                "https://developers.google.com/web/updates/2018/06/audio-worklet-design-pattern">
+                <h4>
+                  Google Developer Blog: AudioWorklet Design Pattern
+                </h4></a>
+                <p>
+                  An in-depth article on various AudioWorklet design patterns.
+                </p>
+              </div>
+            </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <div class="demo-item">
+              <a href=
+              "https://webaudio.github.io/web-audio-api/#AudioWorklet">
+              <h4>
+                Web Audio API: AudioWorklet
+              </h4></a>
+              <p>
+                AudioWorklet section in Web Audio API specification.
+              </p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="demo-item">
+              <a href=
+              "https://github.com/WebAudio/web-audio-api/issues?q=is%3Aissue+audioworklet">
+              <h4>
+                Web Audio API discussions on AudioWorklet
+              </h4></a>
+              <p>
+                A set of discussions on AudioWorklet API design.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="footer">
+        <a target="_blank" href="https://goo.gl/XW3f44">Found something
+        broken?</a><br>
+        <br>
+        <p>
+          Chrome ♥ WebAudio
+        </p>
+      </section>
+    </div>
+    <script src="lib/audio-worklet-helper.js"></script>
+    <script>
+      AudioWorkletHelper.initializeDemo();
+
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-57132539-4', 'auto');
+      ga('send', 'pageview');
+    </script>
   </body>
 </html>

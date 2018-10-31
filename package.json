@@ -1,0 +1,29 @@
+{
+  "name": "web-audio-samples",
+  "version": "0.0.1",
+  "description": "A collection of samples, projects and resources for Web Audio API. Curated by Chrome WebAudio team.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "node tools/format.js audio-worklet/design-pattern/**/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoogleChromeLabs/web-audio-samples.git"
+  },
+  "keywords": [
+    "Web Audio API",
+    "Google Chrome"
+  ],
+  "author": "Chromium Authors",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/GoogleChromeLabs/web-audio-samples/issues"
+  },
+  "homepage": "https://googlechromelabs.github.io/web-audio-samples/",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.9.1",
+    "eslint-plugin-html": "^4.0.3",
+    "libtidy": "^0.3.7"
+  }
+}

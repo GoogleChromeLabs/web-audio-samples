@@ -1,22 +1,23 @@
+// Copyright (c) 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /**
+ * A AudioWorklet-based BitCrusher demo from the spec example.
+ *
  * @class BitCrusher
  * @extends AudioWorkletProcessor
- *
- * This is an adaptation of: 
- * https://webaudio.github.io/web-audio-api/#the-bitcrusher-node
+ * @see https://webaudio.github.io/web-audio-api/#the-bitcrusher-node
  */
-
-
-registerProcessor('bit-crusher', class BitCrusher extends AudioWorkletProcessor {
-
+class BitCrusher extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [
       {name: 'bitDepth', defaultValue: 12, minValue: 1, maxValue: 16}, {
         name: 'frequencyReduction',
         defaultValue: 0.5,
         minValue: 0,
-        maxValue: 1
-      }
+        maxValue: 1,
+      },
     ];
   }
 
@@ -26,22 +27,28 @@ registerProcessor('bit-crusher', class BitCrusher extends AudioWorkletProcessor 
     this.lastSampleValue_ = 0;
   }
 
-  process(input, output, parameters) {
-    let inputChannelData = input.getChannelData(0);
-    let outputChannelData = output.getChannelData(0);
+  process(inputs, outputs, parameters) {
+    let input = inputs[0];
+    let output = outputs[0];
     let bitDepth = parameters.bitDepth;
     let frequencyReduction = parameters.frequencyReduction;
-
-    for (let i = 0; i < 128; ++i) {
-      let step = Math.pow(0.5, bitDepth[i]);
-      this.phase_ += frequencyReduction[i];
-      if (this.phase_ >= 1.0) {
-        this.phase_ -= 1.0;
-        this.lastSampleValue_ =
-            step * Math.floor(inputChannelData[i] / step + 0.5);
+    for (let channel = 0; channel < input.length; ++channel) {
+      let inputChannel = input[channel];
+      let outputChannel = output[channel];
+      for (let i = 0; i < inputChannel.length; ++i) {
+        let step = Math.pow(0.5, bitDepth[i]);
+        this.phase_ += frequencyReduction[i];
+        if (this.phase_ >= 1.0) {
+          this.phase_ -= 1.0;
+          this.lastSampleValue_ =
+              step * Math.floor(inputChannel[i] / step + 0.5);
+        }
+        outputChannel[i] = this.lastSampleValue_;
       }
-      outputChannelData[i] = this.lastSampleValue_;
     }
-  }
 
-});
+    return true;
+  }
+}
+
+registerProcessor('bit-crusher', BitCrusher);
