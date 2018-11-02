@@ -19,7 +19,7 @@ document.documentElement.classList.add('was-render-pending');
 import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 const LogPrefix = '[Component] ';
-const GitHubBaseUrl = 'https://github.com/GoogleChromeLabs/web-audio-samples/tree/gh-pages';
+const GitHubBaseUrl = 'https://github.com/GoogleChromeLabs/web-audio-samples/tree/master';
 
 /**
  * Page builder utility object.
