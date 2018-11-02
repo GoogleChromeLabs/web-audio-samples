@@ -1,40 +1,36 @@
 {
-  "_args": [
-    [
-      "lit-html@0.10.2",
-      "/Users/hongchan/a/web-audio-samples-v2"
-    ]
-  ],
-  "_development": true,
-  "_from": "lit-html@0.10.2",
+  "_from": "lit-html@^0.10.2",
   "_id": "lit-html@0.10.2",
   "_inBundle": false,
   "_integrity": "sha512-ue0pIX3Fj5gUsNSozdRQIb1MAgNqFQsHgvHE/FU34xyu9NN/af3EISr7Bb+vP9YeLXIA4vLLOoYp2Z22dVYhww==",
   "_location": "/lit-html",
   "_phantomChildren": {},
   "_requested": {
-    "type": "version",
+    "type": "range",
     "registry": true,
-    "raw": "lit-html@0.10.2",
+    "raw": "lit-html@^0.10.2",
     "name": "lit-html",
     "escapedName": "lit-html",
-    "rawSpec": "0.10.2",
+    "rawSpec": "^0.10.2",
     "saveSpec": null,
-    "fetchSpec": "0.10.2"
+    "fetchSpec": "^0.10.2"
   },
   "_requiredBy": [
     "#DEV:/"
   ],
   "_resolved": "https://registry.npmjs.org/lit-html/-/lit-html-0.10.2.tgz",
-  "_spec": "0.10.2",
-  "_where": "/Users/hongchan/a/web-audio-samples-v2",
+  "_shasum": "53c846afcf91bb1e6623179ef22e327ab8ac0e0e",
+  "_spec": "lit-html@^0.10.2",
+  "_where": "/Users/hongchan/a/web-audio-samples",
   "author": {
     "name": "The Polymer Authors"
   },
   "bugs": {
     "url": "https://github.com/Polymer/lit-html/issues"
   },
+  "bundleDependencies": false,
   "dependencies": {},
+  "deprecated": false,
   "description": "HTML template literals in JavaScript",
   "devDependencies": {
     "@types/chai": "^4.1.0",
