@@ -108,14 +108,14 @@ export default {
       },
       {
         title: 'Box2D Stress Test',
-        url: 'stress-box/',
+        url: 'archive/stress-box/',
       },
       {
         title: 'Wavetable Synthesizer',
         url: 'archive/demos/wavetable-synth.html',
       },
       {
-        title: 'AnalyserNode with visualizaiton ',
+        title: 'AnalyserNode with visualization ',
         url: 'archive/demos/visualizer-gl.html',
       },
       {
