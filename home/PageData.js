@@ -93,7 +93,7 @@ export default {
       },
       {
         title: 'Beautiful Audio Editor',
-        description: 'Web-based multitrack recorder/editor',
+        description: 'Multitrack recorder/editor by Chi Zeng',
         url: '//beautifulaudioeditor.appspot.com/',
       },
     ]
