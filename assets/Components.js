@@ -19,7 +19,9 @@ document.documentElement.classList.add('was-render-pending');
 import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 const LogPrefix = '[Component] ';
-const GitHubBaseUrl = 'https://github.com/GoogleChromeLabs/web-audio-samples/tree/master';
+const GitHubSourceUrl =
+    'https://github.com/GoogleChromeLabs/web-audio-samples/tree/master/';
+const RepoPrefix = '/web-audio-samples/';
 
 /**
  * Page builder utility object.
@@ -245,7 +247,8 @@ class Logger {
  * DemoRunner component
  */
 const DemoRunner = (demoFunction) => {
-  const sourceUrl = GitHubBaseUrl + window.location.pathname;
+  const sourceUrl =
+      GitHubSourceUrl + window.location.pathname.slice(RepoPrefix.length);
   const audioContext = new AudioContext();
   const logger = new Logger();
 
