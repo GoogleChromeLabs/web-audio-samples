@@ -1,6 +1,6 @@
 const filePath = {
-  ping: '../../samples/audio/sounds/hyper-reality/filter-noise-2.wav',
-  impulse: '../../samples/audio/impulse-responses/tim-warehouse/' +
+  ping: '../demos/sounds/hyper-reality/filter-noise-2.wav',
+  impulse: '../demos/impulse-responses/tim-warehouse/' +
       'cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav'
 };
 
