@@ -34,16 +34,15 @@
         const constructorErrorWorkletNode =
             new AudioWorkletNode(context, 'constructor-error');
         constructorErrorWorkletNode.onprocessorerror = (event) => {
-          console.log(event);
-          logger.post('An error from AudioWorkletProcessor.constructor()'
-              + ' was detected.');
+          logger.post(`An error from AudioWorkletProcessor.constructor() was
+              detected.`);
         };
 
         const processErrorWorkletNode =
             new AudioWorkletNode(context, 'process-error');
         processErrorWorkletNode.onprocessorerror = () => {
-          logger.post('An error from AudioWorkletProcessor.process()'
-              + ' was detected.');
+          logger.post(`An error from AudioWorkletProcessor.process() was
+              detected.`);
         };
 
         // To update processor's internal timer, the node must be connected to
