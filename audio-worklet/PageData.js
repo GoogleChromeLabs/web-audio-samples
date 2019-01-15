@@ -108,7 +108,7 @@ export default {
         title: 'Paper: Audio Worklet - The future of web audio',
         description: `The first conference paper about Audio Worklet
             (ICMC 2018)`,
-        url: '//drive.google.com/file/d/1-SZvEESLa7SgqqjW7ACdIXZRS4YHTQAR/view',
+        url: '//hoch.io/assets/publications/icmc-2018-choi-audioworklet.pdf',
       },
       {
         title: 'Web Audio API: Audio Worklet',
