@@ -2,7 +2,7 @@
 body {
 	background-color: rgb(245, 245, 245);
 	color: rgb(121, 121, 121);
-	font-family: 'Droid Sans', Arial, sans-serif;
+	font-family: 'Open Sans', Arial, sans-serif;
 	font-size: 13px;
 }
 
@@ -13,7 +13,7 @@ body {
 }
 
 #title {
-	font-family: 'Michroma', 'Droid Sans', Arial, sans-serif;
+	font-family: 'Michroma', 'Open Sans', Arial, sans-serif;
 	font-size: 25px;
 	font-weight: bold;
 	display: block;
@@ -29,7 +29,7 @@ body {
 .container {
 	border-radius: 10px;
 	border: 1px solid rgb(230, 230, 230);
-	width: 695px;
+	width: 700px;
 	background-color: rgb(255, 255, 255);
 	margin: 0px auto;
 	padding: 20px 20px 15px 20px;
