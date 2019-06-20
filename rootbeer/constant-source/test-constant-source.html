@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <title></title>
+  </head>
+
+  <body>
+    <script>
+      let processorPath = "../processors/constant-source-processor.js";
+      let c = new OfflineAudioContext(2, 48000, 48000);
+      let m = new ChannelMergerNode(c, {numberOfInputs: c.destination.channelCount});
+      m.connect(c.destination);
+
+      class FooNode {
+        constructor(context, options) {
+          this._context = context;
+        }
+
+        start(when) {
+          console.log(`FooNode.start(${when})`);
+        }
+        stop(when) {
+          console.log(`FooNode.stop(${when})`);
+        }
+        get onended() {
+          return this._onended;
+        }
+
+        get context() {
+          return this._context;
+        }
+        set context(c) {
+          this.context = c;
+        }
+
+        get numberOfInputs() {
+          return 1;
+        }
+        get numberOfOutputs() {
+          return 1;
+        }
+        get channelCount() {
+          return this._channelCount;
+        }
+        get channelCountMode() {
+          return this._channelCountMode;
+        }
+        get channelInterpretation() {
+          return this._channelInterpretation;
+        }
+      }
+
+      class RB_ConstantSourceNode extends AudioWorkletNode {
+        constructor(context, options) {
+          let procOptions = {
+            numberOfinputs: options.numberOfInputs,
+            numberOfOutputs: options.numberOfOutputs,
+            parameterData: {offset: options.offset || 1}
+          }
+
+      console.log(`Node options`);
+      console.log(options);
+          super(context, 'rb-constant-source-processor', procOptions)
+        }
+
+        start(when) {
+          console.log(`start(${when})`);
+          this.port.postMessage({startTime: when});
+        }
+
+        stop(when) {
+          console.log(`stop(${when})`);
+          this.port.postMessage({stopTime: when});
+        }
+
+        get offset() {
+          return this.parameters.get("offset");
+        }
+      }
+
+      async function runTest() {
+        await c.audioWorklet.addModule(processorPath);
+
+        let s = new ConstantSourceNode(c, {offset: 0.25});
+        s.connect(m, 0, 0);
+
+        s_rb = new RB_ConstantSourceNode(c, {offset: 0.25});
+        s_rb.connect(m, 0, 1);
+
+/*
+        s.offset.setValueAtTime(0, 0);
+        s_rb.offset.setValueAtTime(0, 0);
+
+        s.offset.linearRampToValueAtTime(1, 1);
+        s_rb.offset.linearRampToValueAtTime(1, 1);
+*/
+        c.suspend(0).then(() => {
+          s.start(5 / c.sampleRate);
+          s_rb.start(5 / c.sampleRate);
+          s.stop(129 / c.sampleRate);
+          s_rb.stop(129 / c.sampleRate);
+        })
+          .then(() => c.resume());;
+        c.startRendering()
+          .then(resultBuffer => {
+            console.log(resultBuffer.getChannelData(0));
+            console.log(resultBuffer.getChannelData(1));
+          });
+      }
+
+      runTest();
+    </script>
+  </body>
+</html>
