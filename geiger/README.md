@@ -16,6 +16,7 @@ $ python -m SimpleHTTPServer
 ```
 This serves Vocoder locally at [localhost:8000](http://localhost:8000). In our case, Vocoder is embeded as an iframe within the graph visualizer. Also, you can view it in a separate tab.
 
-## Extra config
+## Extra docs
 1. [Trace Vocoder](./docs/how-to-trace-Vocoder.md)
 2. [Use Web Worker](./docs/config-web-worker.md)
+3. [react-gh-pages](https://github.com/gitname/react-gh-pages). Deploying a React App (created using create-react-app) to GitHub Pages

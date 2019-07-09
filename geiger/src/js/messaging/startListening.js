@@ -7,8 +7,8 @@ import { computeNodeGraphId } from '../graph/label';
 
 const messager = new MockMessager();
 // for debug
-const addNodesButton = document.getElementById('add-nodes-btn');
-const removeNodesButton = document.getElementById('remove-nodes-btn');
+// const addNodesButton = document.getElementById('add-nodes-btn');
+// const removeNodesButton = document.getElementById('remove-nodes-btn');
 
 export const startListening = (graph) => {
   // TODO: does it start with lower-case k or upper-case K?
@@ -33,19 +33,19 @@ export const startListening = (graph) => {
   });
   // ??, is there any disconnectNodeParam?
 
-  addNodesButton.addEventListener('click', (e) => {
-    messager.addRandomNodesAndLinks(6);
-  });
+  // addNodesButton.addEventListener('click', (e) => {
+  //   messager.addRandomNodesAndLinks(6);
+  // });
 
-  removeNodesButton.addEventListener('click', (e) => {
-    messager.removeRandomNodesAndLinks(6);
-  });
+  // removeNodesButton.addEventListener('click', (e) => {
+  //   messager.removeRandomNodesAndLinks(6);
+  // });
 
   // messager.startMock({manualMode: false});
 
   // Listen to the message sent from the iframe of demo page
   window.addEventListener('message', (event) => {
-    if (!event.origin.startsWith('http://localhost:8000')) return;
+    // if (!event.origin.startsWith('http://localhost:8000')) return;
     const message = event.data;
     let edge;
     switch (message.eventType) {
