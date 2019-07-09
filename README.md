@@ -7,7 +7,7 @@ by **Chrome Web Audio team**.
 ## Support
 
 If you have found an error in this library, please file an issue at:
-https://github.com/GoogleChromeLab/web-audio-samples/issues.
+https://github.com/GoogleChromeLabs/web-audio-samples/issues.
 
 Patches are encouraged, and may be submitted by forking this project and
 submitting a pull request through GitHub. See CONTRIBUTING for more detail.
