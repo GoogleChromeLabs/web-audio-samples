@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/web-audio-samples/static/css/main.cd89552b.chunk.css",
+    "main.js": "/web-audio-samples/static/js/main.f7159603.chunk.js",
+    "main.js.map": "/web-audio-samples/static/js/main.f7159603.chunk.js.map",
+    "runtime~main.js": "/web-audio-samples/static/js/runtime~main.2049a02d.js",
+    "runtime~main.js.map": "/web-audio-samples/static/js/runtime~main.2049a02d.js.map",
+    "static/js/2.913a24ac.chunk.js": "/web-audio-samples/static/js/2.913a24ac.chunk.js",
+    "static/js/2.913a24ac.chunk.js.map": "/web-audio-samples/static/js/2.913a24ac.chunk.js.map",
+    "3d326f9fb3ff3d04e088.worker.js": "/web-audio-samples/3d326f9fb3ff3d04e088.worker.js",
+    "3d326f9fb3ff3d04e088.worker.js.map": "/web-audio-samples/3d326f9fb3ff3d04e088.worker.js.map",
+    "index.html": "/web-audio-samples/index.html",
+    "precache-manifest.348f81f1f54f81a0a99423b44440ddb5.js": "/web-audio-samples/precache-manifest.348f81f1f54f81a0a99423b44440ddb5.js",
+    "service-worker.js": "/web-audio-samples/service-worker.js",
+    "static/css/main.cd89552b.chunk.css.map": "/web-audio-samples/static/css/main.cd89552b.chunk.css.map"
+  }
+}

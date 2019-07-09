@@ -1,0 +1,17 @@
+{
+	"manifest_version": 2,
+	"version": "1.1",
+	"name": "Web Audio Vocoder",
+	"icons": {
+	    "16": "img/mic16.png",
+	    "128": "img/mic128.png"
+	},
+	"app": {
+		"background": {
+			"scripts": ["js/app.js"]
+		}
+	},
+	"permissions": [
+	    "audioCapture"
+  	]
+}
