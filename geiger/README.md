@@ -8,6 +8,7 @@ In the project directory, you can run:
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 2. `yarn test` - Runs tests.
 3. `yarn build` - Builds the app for production to the `build` folder.
+4. `yarn deploy` - Builds the app and pushs to `gh-pages` branch. Then visit: https://gaopinghuang0.github.io/web-audio-samples/
 
 ## Run Vocoder as Test Case
 ```sh
