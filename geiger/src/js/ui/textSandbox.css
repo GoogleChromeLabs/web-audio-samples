@@ -1,0 +1,18 @@
+#text-sandbox {
+    font-size: 14px;
+    font-family: Georgia;
+    height: auto;
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: auto;
+    z-index: -4242;
+}
+
+#text-sandbox.audioParamText {
+    font-size: 12px;
+}
+
+#text-sandbox.nodeText {
+    font-size: 14px;
+}
