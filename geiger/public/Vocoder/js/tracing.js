@@ -9,24 +9,24 @@
   };
 
   const audioNodeNames = [
-    "BufferSource", 
-    "ConstantSource", 
-    "Gain", 
-    "Delay", 
-    "BiquadFilter", 
-    "IIRFilter", 
-    "WaveShaper", 
-    "Panner", 
-    "Convolver", 
-    "DynamicsCompressor", 
-    "Analyser", 
+    "BufferSource",
+    "ConstantSource",
+    "Gain",
+    "Delay",
+    "BiquadFilter",
+    "IIRFilter",
+    "WaveShaper",
+    "Panner",
+    "Convolver",
+    "DynamicsCompressor",
+    "Analyser",
     "ScriptProcessor",
     "StereoPanner",
-    "Oscillator", 
-    "ChannelSplitter", 
-    "ChannelMerger", 
-    "MediaElementSource", 
-    "MediaStreamSource", 
+    "Oscillator",
+    "ChannelSplitter",
+    "ChannelMerger",
+    "MediaElementSource",
+    "MediaStreamSource",
     "MediaStreamDestination"
   ];
 
@@ -116,8 +116,7 @@
       value: function(eventType, message) {
         var isInIframe = (window !== window.parent);
         if (isInIframe) {
-          window.parent.postMessage({
-              eventType, ...message}, 'http://localhost:3000')
+          window.parent.postMessage({eventType, ...message})
         }
       }
     },
