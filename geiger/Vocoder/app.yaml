@@ -1,0 +1,41 @@
+application: webaudiovocoder
+version: 1
+runtime: python
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /
+  static_files: index.html
+  upload: index.html
+
+- url: /vocoder.appcache
+  static_files: vocoder.appcache
+  upload: vocoder.appcache
+
+- url: /audio
+  static_dir: audio
+
+- url: /css
+  static_dir: css
+
+- url: /fonts
+  static_dir: fonts
+
+- url: /img
+  static_dir: img
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+
+- url: /js
+  static_dir: js
+
+- url: /lib
+  static_dir: lib
+
+- url: /shaders
+  static_dir: shaders
+
+

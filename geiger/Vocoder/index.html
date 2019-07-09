@@ -1,0 +1,150 @@
+<!doctype html>
+<html class="no-js" lang="en" >  <!--manifest="vocoder.appcache"-->
+<head>
+	<meta charset="utf-8" />
+	<title>Vocoder</title>
+
+	<link rel="shortcut icon" href="favicon.ico" />
+	<link rel="stylesheet" href="css/reset.css" />
+	<link rel="stylesheet" href="css/main.css" />
+
+	<script src="js/jquery-1.7.2.min.js"></script>
+	<script src="js/jquery-ui-1.8.21.custom.min.js"></script>
+
+	<!-- Visualizer stuff -->
+	<script src="js/visualizer/events.js"></script>
+
+	<!-- WebGL stuff -->
+	<script src="js/visualizer/base.js"></script>
+	<script src="js/visualizer/cameracontroller.js"></script>
+
+	<!-- TODO(kbr): remove this dependency -->
+	<script src="js/visualizer/matrix4x4.js"></script>
+
+	<!-- Visualizer GL library -->
+	<script src="js/visualizer/visualizer.js"></script>
+	<script src="js/visualizer/shader.js"></script>
+
+	<!-- Tracing -->
+	<script src="js/tracing.js"></script>
+
+	<script src="js/ui.js"></script>
+	<script src="js/main.js"></script>
+	<!-- <script src='//cwilso.github.io/WebMIDIAPIShim/lib/WebMIDIAPI.js'></script> -->
+	<script src="js/midi.js"></script>
+	<script src="js/vocoder.js"></script>
+	<script src="js/sliders.js"></script>
+
+	// For recording the audio
+	<script src="js/recorderjs/recorder.js"></script>
+
+</head>
+<body>
+	<div id="main" class="container">
+		<header id="header">
+			<img src="img/logo.png" alt="Web Audio Vocoder" />
+			<span id="mobile">{mobile}</span>
+		</header>
+		<section id="content">
+			<div id="modules">
+				<div id="modulator" class="module modulator has-footer">
+					<div class="content">
+						<h6>Modulator</h6>	
+						<div class="control-group last" id="modgaingroup">
+							<div class="slider-info">
+								<span class="label">gain</span>
+								<span class="value">1.0</span>
+							</div>
+						</div>
+					</div>
+					<footer>
+						<a href="#" id="modulatorfilename" class="active filename left">(not loaded)</a>
+						<a href="#" id="liveInput" class="load-file">live input</a>
+					</footer>
+					<a href="#" id="modpreview" class="preview"><img class="stopped" id="modulatorpreview" src="img/ico-play.png" alt="Preview icon" /></a>
+				</div>
+				<div id="carrier" class="module carrier has-footer">
+					<div class="content">
+						<h6>Carrier</h6>	
+						<div class="control-group" id="samplegroup">
+							<div class="slider-info">
+								<span class="label">Sample Level</span>
+								<span class="value">0.0</span>
+							</div>
+						</div>
+						<div class="control-group" id="synthgroup">
+							<div class="slider-info">
+								<span class="label">Synth Level</span>
+								<span class="value">1.0</span>
+							</div>
+						</div>
+						<div class="control-group" id="noisegroup">
+							<div class="slider-info">
+								<span class="label">Noise Level</span>
+								<span class="value">0.22</span>
+							</div>
+						</div>
+						<div class="control-group last" id="detunegroup">
+							<div class="slider-info">
+								<span class="label">Synth Detune</span>
+								<span class="value">0 cents</span>
+							</div>
+						</div>
+<!--
+						<a href="#" class="preview-link"><img src="img/ico-preview.gif" alt="Preview icon" /> Preview</a>
+-->
+					</div>
+					<footer>
+						<a href="#" id="carrierfilename" class="filename left top">(not loaded)</a>
+						<a href="#" id="loadcarrier" class="load-file top">Load File...</a>
+						<a href="#" id="sawtooth" class="sawtooth left">Sawtooth</a>
+						<a href="#" id="wavetable" class="wavetable active">Wavetable</a>
+					</footer>
+					<a href="#" id="previewcarrier" class="preview play"><img class="stopped" id="carrierpreview" src="img/ico-play.png" alt="Preview icon" /></a>
+				</div>
+			</div> <!-- /#modules -->
+			<div id="connection">
+				<a href="#" id="play">Play</a>
+				<img id="record" src="img/mic128.png">
+				<a href="#" id="recfile"></a>
+			</div> <!-- /#connection -->
+			<div id="results" class="container">
+				<h2 class="before">input</h2>
+				<div id="result-top">
+					<canvas id="view1" width="582" height="150"></canvas>
+				</div>
+				<div id="result-middle">
+					<canvas id="vcanvas" width="582" height="100"></canvas>
+				</div>
+				<h2 class="after">output</h2>
+				<div id="result-bottom">
+					<canvas id="view2" width="582" height="150"></canvas>
+				</div>
+			</div> <!-- /#results -->
+		</section>
+	</div> <!-- /#main -->
+<!--	<div class="link">Code available on <a href="https://github.com/cwilso/Vocoder">GitHub</a>.</div>  -->
+	<div style="display:none" ID="controls">
+		<!-- Analyser type -->
+		<input type="radio" name="radioSet" value="data" 
+			onmousedown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY); analyserView2.setAnalysisType(ANALYSISTYPE_FREQUENCY);">Frequency
+		<input type="radio" name="radioSet" value="data" 
+			onmousedown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM); analyserView2.setAnalysisType(ANALYSISTYPE_SONOGRAM);">Sonogram
+		<input type="radio" name="radioSet" value="data" checked="checked" 
+			onmousedown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM); analyserView2.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);">3D Sonogram
+		<input type="radio" name="radioSet" value="data" 
+			onmousedown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM); analyserView2.setAnalysisType(ANALYSISTYPE_WAVEFORM);">Waveform
+
+		<div id="midisettings">
+			MIDI Input:
+			<select id=midiIn onchange='changeMidi();'>
+				<option value="">Not connected</option>
+			</select>
+		</div>
+
+		<div id="sliders"></div>
+	</div>
+	<a href="https://github.com/cwilso/vocoder" target="_new" id="footer" style="position: absolute; z-index:2; top: 0; right: 0; border: 0;"><img src="img/forkme.png" alt="Fork me on GitHub"></a>
+	<div style="visibility:hidden; width: 1px; height: 1px" id="MIDIPlugin"></div>
+</body>
+</html>
