@@ -14,20 +14,12 @@
 
       let context;
 
-      audit.define('Initialize for test', (task, should) => {
-        context = new OfflineAudioContext(2, 1024, 48000);
-        should(context.audioWorklet.addModule(processorPath),
-               'Adding AudioWorklet module')
-            .beResolved()
-            .then(() => task.done());
-      });
-
       class RB_ConstantSourceNode extends AudioWorkletNode {
         constructor(context, options) {
           let procOptions = {
-            numberOfinputs : options.numberOfInputs,
-            numberOfOutputs : options.numberOfOutputs,
-            parameterData : {offset : options.offset || 1}
+            numberOfinputs: 0,
+            numberOfOutputs: 1,
+            parameterData: {offset: (options && options.offset) || 1}
           };
 
           console.log(`Node options`);
@@ -48,6 +40,14 @@
         get offset() { return this.parameters.get("offset"); }
       }
 
+      audit.define('Initialize for start/stop test', (task, should) => {
+        context = new OfflineAudioContext(2, 1024, 48000);
+        should(context.audioWorklet.addModule(processorPath),
+               'Adding AudioWorklet module for start/stop test')
+            .beResolved()
+            .then(() => task.done());
+      });
+
       audit.define('start/stop', (task, should) => {
         let m = new ChannelMergerNode(
             context, {numberOfInputs : context.destination.channelCount});
@@ -59,13 +59,6 @@
         s_rb = new RB_ConstantSourceNode(context, {offset : 0.25});
         s_rb.connect(m, 0, 1);
 
-        /*
-                s.offset.setValueAtTime(0, 0);
-                s_rb.offset.setValueAtTime(0, 0);
-
-                s.offset.linearRampToValueAtTime(1, 1);
-                s_rb.offset.linearRampToValueAtTime(1, 1);
-        */
         context.suspend(0)
             .then(() => {
               s.start(5 / context.sampleRate);
@@ -92,7 +85,95 @@
               });
             })
             .then(() => task.done());
-        ;
+      });
+
+      audit.define('Initialize for automation test', (task, should) => {
+        context = new OfflineAudioContext(2, 2048, 48000);
+        should(context.audioWorklet.addModule(processorPath),
+               'Adding AudioWorklet module for automation test')
+            .beResolved()
+            .then(() => task.done());
+      });
+
+      audit.define('Automation test', (task, should) => {
+        let m = new ChannelMergerNode(
+            context, {numberOfInputs : context.destination.channelCount});
+        m.connect(context.destination);
+
+        let s = new ConstantSourceNode(context);
+        s.connect(m, 0, 0);
+
+        s_rb = new RB_ConstantSourceNode(context);
+        s_rb.connect(m, 0, 1);
+
+        s.offset.setValueAtTime(.5, 0);
+        s_rb.offset.setValueAtTime(.5, 0);
+
+        s.offset.linearRampToValueAtTime(1, 190 / context.sampleRate);
+        s_rb.offset.linearRampToValueAtTime(1, 190 / context.sampleRate);
+
+        s.start();
+        s_rb.start();
+
+        context.startRendering()
+            .then(resultBuffer => {
+              console.log(resultBuffer.getChannelData(0));
+              console.log(resultBuffer.getChannelData(1));
+              let expected = resultBuffer.getChannelData(0);
+              let actual = resultBuffer.getChannelData(1);
+
+              should(actual, 'RB ConstantSourceNode').beCloseToArray(expected, {
+                absoluteThreshold : 0
+              });
+            })
+            .then(() => task.done());
+      });
+
+      audit.define('Initialize for automation source test', (task, should) => {
+        context = new OfflineAudioContext(2, 2048, 48000);
+        should(context.audioWorklet.addModule(processorPath),
+               'Adding AudioWorklet module for automation source test')
+            .beResolved()
+            .then(() => task.done());
+      });
+
+      audit.define('Automation Source test', (task, should) => {
+        let m = new ChannelMergerNode(
+            context, {numberOfInputs : context.destination.channelCount});
+        m.connect(context.destination);
+
+        let osc = new OscillatorNode(context);
+        let s = new ConstantSourceNode(context);
+        s.connect(m, 0, 0);
+
+        s_rb = new RB_ConstantSourceNode(context);
+        s_rb.connect(m, 0, 1);
+
+        s.offset.setValueAtTime(.5, 0);
+        s_rb.offset.setValueAtTime(.5, 0);
+
+        s.offset.linearRampToValueAtTime(1, 190 / context.sampleRate);
+        s_rb.offset.linearRampToValueAtTime(1, 190 / context.sampleRate);
+
+        osc.connect(s.offset);
+        osc.connect(s_rb.offset);
+
+        osc.start();
+        s.start();
+        s_rb.start();
+
+        context.startRendering()
+            .then(resultBuffer => {
+              console.log(resultBuffer.getChannelData(0));
+              console.log(resultBuffer.getChannelData(1));
+              let expected = resultBuffer.getChannelData(0);
+              let actual = resultBuffer.getChannelData(1);
+
+              should(actual, 'RB ConstantSourceNode').beCloseToArray(expected, {
+                absoluteThreshold : 0
+              });
+            })
+            .then(() => task.done());
       });
 
       audit.run();
