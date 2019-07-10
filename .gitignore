@@ -1,6 +1,7 @@
-.DS_Store
-package-lock.json
-twistd.pid
 
+.DS_Store
+/*~
 node_modules/
+package-lock.json
 pvt/
+twistd.pid
