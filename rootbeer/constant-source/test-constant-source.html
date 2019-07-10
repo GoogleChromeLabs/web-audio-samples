@@ -3,6 +3,7 @@
   <head>
     <title>Rootbeer Test: ConstantSource</title>
     <script src="../resources/testharness.js"></script>
+    <script src="../resources/testharnessreport.js"></script>
     <script src="../resources/audit.js"></script>
   </head>
 
@@ -17,9 +18,9 @@
       class RB_ConstantSourceNode extends AudioWorkletNode {
         constructor(context, options) {
           let procOptions = {
-            numberOfinputs: 0,
-            numberOfOutputs: 1,
-            parameterData: {offset: (options && options.offset) || 1}
+            numberOfinputs : 0,
+            numberOfOutputs : 1,
+            parameterData : {offset : (options && options.offset) || 1}
           };
 
           console.log(`Node options`);
@@ -72,7 +73,7 @@
               s_rb.stop(129 / context.sampleRate);
             })
             .then(() => context.resume());
-           
+
         context.startRendering()
             .then(resultBuffer => {
               console.log(resultBuffer.getChannelData(0));
