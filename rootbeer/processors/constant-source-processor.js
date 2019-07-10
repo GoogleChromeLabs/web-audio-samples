@@ -31,7 +31,7 @@ class RB_ConstantSourceProcessor extends AudioWorkletProcessor {
         this._stopFrame = this._stopTime * sampleRate;
         console.log(`processor stop ${this._startTime}`);
       }
-    } this.port.start();
+    };
   }
 
   process(inputs, outputs, parameters) {
