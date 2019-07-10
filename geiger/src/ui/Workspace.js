@@ -17,7 +17,12 @@ import {computeLayout} from '../layout/layout';
 import {renderGraph} from './renderGraph';
 import {enablePanZoom} from './panZoom';
 
-/** typedef Graph {import Graph from '../graph/Graph'} */
+/** @typedef {import('../graph/Graph').default} Graph */
+/**
+ * @typedef {Object} BoundingBox
+ * @property {number} width - The width
+ * @property {number} height - The height
+ */
 
 const getWindowSize = () => {
   return {
@@ -64,7 +69,7 @@ export default class Workspace {
 
   /**
    * Set canvas size based on window size.
-   * @param {!Object} size
+   * @param {!BoundingBox} size
    */
   _setCanvasSize(size) {
     this.canvas.setWidth(size.width);
@@ -109,12 +114,6 @@ export default class Workspace {
       callback: this._render.bind(this),
     });
   }
-
-  /**
-   * @typedef {Object} BoundingBox
-   * @property {number} width - The width
-   * @property {number} height - The height
-   */
 
   /**
    * Render graph if layout successfully.
