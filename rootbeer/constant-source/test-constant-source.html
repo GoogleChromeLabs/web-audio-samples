@@ -13,78 +13,86 @@
       let processorPath = "../processors/constant-source-processor.js";
 
       let context;
-      
+
       audit.define('Initialize for test', (task, should) => {
-      context  = new OfflineAudioContext(2, 1024, 48000);
-      should(context.audioWorklet.addModule(processorPath),
-      'Adding AudioWorklet module')
-      .beResolved()
-      .then(() => task.done());
+        context = new OfflineAudioContext(2, 1024, 48000);
+        should(context.audioWorklet.addModule(processorPath),
+               'Adding AudioWorklet module')
+            .beResolved()
+            .then(() => task.done());
       });
 
       class RB_ConstantSourceNode extends AudioWorkletNode {
         constructor(context, options) {
           let procOptions = {
-            numberOfinputs: options.numberOfInputs,
-            numberOfOutputs: options.numberOfOutputs,
-            parameterData: {offset: options.offset || 1}
-          }
+            numberOfinputs : options.numberOfInputs,
+            numberOfOutputs : options.numberOfOutputs,
+            parameterData : {offset : options.offset || 1}
+          };
 
-      console.log(`Node options`);
-      console.log(options);
+          console.log(`Node options`);
+          console.log(options);
           super(context, 'rb-constant-source-processor', procOptions)
         }
 
         start(when) {
           console.log(`Post: start(${when})`);
-          this.port.postMessage({startTime: when});
+          this.port.postMessage({startTime : when});
         }
 
         stop(when) {
           console.log(`Post: stop(${when})`);
-          this.port.postMessage({stopTime: when});
+          this.port.postMessage({stopTime : when});
         }
 
-        get offset() {
-          return this.parameters.get("offset");
-        }
+        get offset() { return this.parameters.get("offset"); }
       }
 
       audit.define('start/stop', (task, should) => {
-      let m = new ChannelMergerNode(context, {numberOfInputs: context.destination.channelCount});
-      m.connect(context.destination);
+        let m = new ChannelMergerNode(
+            context, {numberOfInputs : context.destination.channelCount});
+        m.connect(context.destination);
 
-        let s = new ConstantSourceNode(context, {offset: 0.25});
+        let s = new ConstantSourceNode(context, {offset : 0.25});
         s.connect(m, 0, 0);
 
-        s_rb = new RB_ConstantSourceNode(context, {offset: 0.25});
+        s_rb = new RB_ConstantSourceNode(context, {offset : 0.25});
         s_rb.connect(m, 0, 1);
 
-/*
-        s.offset.setValueAtTime(0, 0);
-        s_rb.offset.setValueAtTime(0, 0);
+        /*
+                s.offset.setValueAtTime(0, 0);
+                s_rb.offset.setValueAtTime(0, 0);
 
-        s.offset.linearRampToValueAtTime(1, 1);
-        s_rb.offset.linearRampToValueAtTime(1, 1);
-*/
-        context.suspend(0).then(() => {
-          s.start(5 / context.sampleRate);
-          s_rb.start(5 / context.sampleRate);
-          s.stop(129 / context.sampleRate);
-          s_rb.stop(129 / context.sampleRate);
-        })
-          .then(() => context.resume());;
+                s.offset.linearRampToValueAtTime(1, 1);
+                s_rb.offset.linearRampToValueAtTime(1, 1);
+        */
+        context.suspend(0)
+            .then(() => {
+              s.start(5 / context.sampleRate);
+              s_rb.start(5 / context.sampleRate);
+            })
+            .then(() => context.resume());
+
+        context.suspend(128 / context.sampleRate)
+            .then(() => {
+              s.stop(129 / context.sampleRate);
+              s_rb.stop(129 / context.sampleRate);
+            })
+            .then(() => context.resume());
+           
         context.startRendering()
-          .then(resultBuffer => {
-            console.log(resultBuffer.getChannelData(0));
-            console.log(resultBuffer.getChannelData(1));
-            let expected = resultBuffer.getChannelData(0);
-            let actual = resultBuffer.getChannelData(1);
+            .then(resultBuffer => {
+              console.log(resultBuffer.getChannelData(0));
+              console.log(resultBuffer.getChannelData(1));
+              let expected = resultBuffer.getChannelData(0);
+              let actual = resultBuffer.getChannelData(1);
 
-            should(actual, 'RB ConstantSourceNode')
-              .beCloseToArray(expected, {absoluteThreshold: 0});
-          })
-          .then(() => task.done());;
+              should(actual, 'RB ConstantSourceNode').beCloseToArray(expected, {
+                absoluteThreshold : 0
+              });
+            })
+            .then(() => task.done());
+        ;
       });
 
       audit.run();
