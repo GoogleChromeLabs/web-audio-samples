@@ -22,7 +22,7 @@ class RB_ConstantSourceProcessor extends AudioWorkletProcessor {
       console.log(event);
       if (event.data.hasOwnProperty('startTime')) {
         this._startTime = event.data.startTime || currentTime;
-        this._startFrame = this._startFrame * sampleRate;
+        this._startFrame = this._startTime * sampleRate;
         console.log(`processor start ${this._startTime}`);
       }
 
@@ -31,69 +31,52 @@ class RB_ConstantSourceProcessor extends AudioWorkletProcessor {
         this._stopFrame = this._stopTime * sampleRate;
         console.log(`processor stop ${this._startTime}`);
       }
+      console.log(`Node times: ${this._startTime} (${this._startFrame}) ${
+          this._stopTime} (${this._stopFrame})`);
     };
   }
 
   process(inputs, outputs, parameters) {
     let output = outputs[0][0];
+    const framesToProcess = output.length;
 
-    if (currentTime > this._stopTime) {
+    console.log(`Process currentFrame ${currentFrame} start = ${
+        this._startFrame}, end = ${this._stopFrame}`);
+
+    if (currentFrame > this._stopFrame) {
       // Stop time has passed so output silence
+      console.log('Ended');
       output.fill(0);
       return true;
     }
 
-    if (currentTime + 128 / sampleRate < this._startTime) {
+    if (currentFrame + framesToProcess < this._startFrame) {
       // Node won't start anytime in the current render quantum,
       // so output silence.
+      console.log('Not started');
       output.fill(0);
       return true;
     }
 
-    console.log(`startTime ${this._startTime}, end ${this._stopTime}, current ${
-        currentTime}`);
-    // We're playing.  Figure out where in the current quantum we
-    // should start and/or stop.
-    let startFrame =
-        Math.floor(Math.max(0, (this._startTime - currentTime) * sampleRate));
-    let endFrame =
-        Math.floor(Math.min(128, (this._stopTime - currentTime) * sampleRate));
+    console.log('Node processing');
 
-    let offset = parameters.offset;
+    const offset = parameters.offset;
+    let k = 0;
+    let frame = currentFrame;
 
-    console.log(`startFrame ${startFrame}, end ${endFrame}`);
-    if (startFrame == 0 && endFrame == 128) {
-      console.log(`Fast case, offset.len = ${offset.length}`)
-      // The fast case
-      if (offset.length == 1) {
-        console.log(`offset value = ${offset[0]}`);
-        // offset AudioParam is constant
-        output.fill(offset[0]);
-      }
-      else {
-        // Copy the offset values to the output.
-        output.set(offset);
-      }
-    } else {
-      console.log(`Slow case, start = ${startFrame}, end = ${endFrame}`);
-      // The slow case where the node starts (or ends) somewhere
-      // in the middle of the current render quantum.
-      let k;
+    // Node hasn't started yet
+    for (; frame < this._startFrame; ++frame, ++k) {
+      output[k] = 0;
+    }
 
-      // Output zero if we haven't started.
-      for (k = 0; k < startFrame; ++k) {
-        output[k] = 0;
-      }
+    // Node has started somewhere in this render
+    for (; frame < this._stopFrame && k < framesToProcess; ++frame, ++k) {
+      output[k] = offset.length == 1 ? offset[0] : offset[k];
+    }
 
-      // Copy the offset values(s) to the output
-      for (k = startFrame; k < endFrame; ++k) {
-        output[k] = offset.length == 1 ? offset[0] : offset[k];
-      }
-
-      // If we've ended before the end of the current quantum, output 0.
-      for (k = endFrame; k < 128; ++k) {
-        output[k] = 0;
-      }
+    // Node ended somewhere in this render
+    for (; this._stopFrame >= frame && k < framesToProcess; ++frame, ++k) {
+      output[k] = 0;
     }
 
     return true;
