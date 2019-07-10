@@ -14,26 +14,33 @@
  */
 
 import Edge from '../graph/Edge';
-import { EdgeTypes } from '../graph/EdgeTypes';
-import { computeNodeGraphId } from '../graph/label';
+import {EdgeTypes} from '../graph/EdgeTypes';
+import {computeNodeGraphId} from '../graph/label';
 import NodeWithPort from '../graph/NodeWithPort';
 
 /**
- * Listens to audio context change, and then updates the graph accordingly.
+ * @typedef {import('../graph/Graph').default} Graph
  */
-export const startListening = (graph) => {
 
+
+/**
+ * Listens to audio context change, and then updates the graph accordingly.
+ * @param {!Graph} graph
+ */
+export const addEventListener = (graph) => {
   // Listen to the message sent from the iframe of demo page
   window.addEventListener('message', (event) => {
     const message = event.data;
     let edge;
+    let node;
+    let nodeId;
     switch (message.eventType) {
       case 'KNodeCreated':
-        const node = new NodeWithPort(message);
+        node = new NodeWithPort(message);
         node.addTo(graph);
         break;
       case 'kNodeDestroyed':
-        const nodeId = computeNodeGraphId(message.contextId, message.nodeId);
+        nodeId = computeNodeGraphId(message.contextId, message.nodeId);
         graph.removeNodeAndEdges(nodeId);
         break;
       case 'KNodesConnected':
@@ -47,6 +54,5 @@ export const startListening = (graph) => {
       default:
         break;
     }
-  })
-
-}
+  });
+};

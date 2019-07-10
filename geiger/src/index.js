@@ -14,13 +14,13 @@
  */
 
 import './index.css';
-import { fabric } from 'fabric';
+import {fabric} from 'fabric';
 import Graph from './graph/Graph';
 import Workspace from './ui/Workspace';
-import { startListening } from './messaging/startListening';
-import { initIframeHandler } from './iframe/iframeHandler';
+import {initIframeHandler} from './iframe/iframeHandler';
+import {addEventListener} from './messaging/addEventListener';
 
-const canvas = new fabric.Canvas('root', { selection: false });
+const canvas = new fabric.Canvas('root', {selection: false});
 const graph = new Graph();
 const ws = new Workspace(canvas, graph);
 
@@ -31,5 +31,5 @@ window.addEventListener('resize', () => {
   ws.resize();
 });
 
-startListening(graph);
+addEventListener(graph);
 initIframeHandler();

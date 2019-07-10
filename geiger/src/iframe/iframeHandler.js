@@ -19,11 +19,11 @@ const iframe = document.getElementById('demo-iframe');
 export const initIframeHandler = () => {
   toggleBtn.addEventListener('click', () => {
     if (!iframe.classList.contains('show')) {
-      iframe.classList.remove('hide')
+      iframe.classList.remove('hide');
       iframe.classList.add('show');
     } else {
       iframe.classList.remove('show');
-      iframe.classList.add('hide')
+      iframe.classList.add('hide');
     }
-  })
-}
+  });
+};

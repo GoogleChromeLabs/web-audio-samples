@@ -13,22 +13,28 @@
  * limitations under the License.
  */
 
-import { computeLayout } from "../layout/layout";
-import { renderGraph } from "./renderGraph";
-import { enablePanZoom } from "./panZoom";
+import {computeLayout} from '../layout/layout';
+import {renderGraph} from './renderGraph';
+import {enablePanZoom} from './panZoom';
 
+/** typedef Graph {import Graph from '../graph/Graph'} */
 
 const getWindowSize = () => {
   return {
     width: window.innerWidth || document.documentElement.clientWidth,
     height: window.innerHeight || document.documentElement.clientHeight,
-  }
-}
+  };
+};
 
 /**
  * Listens to any update of graph, and requests redrawing the canvas.
+ * @class
  */
 export default class Workspace {
+  /**
+   * @param {!fabric.Canvas} canvas - The canvas to render objects on.
+   * @param {!Graph} graph - The model of graph.
+   */
   constructor(canvas, graph) {
     this.canvas = canvas;
     this.graph = graph;
@@ -36,32 +42,38 @@ export default class Workspace {
     this._isRedrawPending = false;
     this._isUsingWorker = false;
     this._shouldRedrawNext = false;
+
+    this._bind_relayout = this._relayout.bind(this);
   }
 
+  /** Initialize the event listener and enable pan-zoom */
   init() {
-    this.resize()
+    this.resize();
     this.graph.on('shouldRedraw', () => {
       this.requestRedraw();
-    })
+    });
     enablePanZoom(this.canvas);
   }
 
-  /** Set canvas size based on window size. */
+  /** Resize the canvas. */
   resize() {
     const size = getWindowSize();
     this._setCanvasSize(size);
-    this.requestRedraw()
+    this.requestRedraw();
   }
 
+  /**
+   * Set canvas size based on window size.
+   * @param {!Object} size
+   */
   _setCanvasSize(size) {
     this.canvas.setWidth(size.width);
     this.canvas.setHeight(size.height);
   }
 
   requestRedraw() {
-
     if (this._isRedrawPending) {
-      // an rAF is already pending, do not request again
+      // An rAF is already pending, do not request again.
       return;
     }
 
@@ -74,13 +86,11 @@ export default class Workspace {
 
     this._isRedrawPending = true;
 
-    requestAnimationFrame(this._relayout.bind(this));
+    requestAnimationFrame(this._bind_relayout);
   }
 
-  /**
-   * Layout graph.
-   * Subsequent relayout requests are skipped if the current one is not complete.
-   */
+  // Layout graph.
+  // Subsequent relayout requests are skipped if the current one is incomplete.
   _relayout() {
     this._isRedrawPending = false;
 
@@ -90,7 +100,7 @@ export default class Workspace {
     }
     this._isUsingWorker = true;
 
-    console.log('start layout...')
+    console.log('start layout...');
     this._startLayoutTime = performance.now();
     computeLayout(this.graph, {
       marginX: 20,
@@ -101,8 +111,15 @@ export default class Workspace {
   }
 
   /**
+   * @typedef {Object} BoundingBox
+   * @property {number} width - The width
+   * @property {number} height - The height
+   */
+
+  /**
    * Render graph if layout successfully.
    * If any updates are made during the layouting, request another redraw.
+   * @param {!BoundingBox} bbox The bounding box of the layouted graph.
    */
   _render(bbox) {
     this._isUsingWorker = false;
@@ -113,16 +130,15 @@ export default class Workspace {
     }
 
     console.log('finish layout, time spent: ',
-      (performance.now() - this._startLayoutTime) / 1000, 's');
+        (performance.now() - this._startLayoutTime) / 1000, 's');
 
     if (bbox) {
       // layout successfully
       console.log('graph dimension', bbox.width, bbox.height);
       requestAnimationFrame(() => {
-        renderGraph(this.canvas, this.graph)
+        renderGraph(this.canvas, this.graph);
       });
     }
-    console.log('redraw...')
+    console.log('redraw...');
   }
-
 }
