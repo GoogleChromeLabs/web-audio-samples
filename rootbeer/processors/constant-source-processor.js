@@ -72,6 +72,7 @@ class RB_ConstantSourceProcessor extends AudioWorkletProcessor {
 	      output.set(offset);
 	  }
       } else {
+	  console.log(`Slow case, start = ${startFrame}, end = ${endFrame}`);
 	  // The slow case where the node starts (or ends) somewhere
 	  // in the middle of the current render quantum.
 	  let k;
@@ -82,12 +83,12 @@ class RB_ConstantSourceProcessor extends AudioWorkletProcessor {
 	  }
 	  
 	  // Copy the offset values(s) to the output
-	  for (k <= startFrame; k < endFrame; ++k) {
+	  for (k = startFrame; k < endFrame; ++k) {
 	      output[k] = offset.length == 1 ? offset[0] : offset[k];
 	  }
 
 	  // If we've ended before the end of the current quantum, output 0.
-	  for (k <= endFrame; k < 128; ++k) {
+	  for (k = endFrame; k < 128; ++k) {
 	      output[k] = 0;
 	  }
       }	  
