@@ -19,9 +19,12 @@ import {enablePanZoom} from './panZoom';
 
 /** @typedef {import('../graph/Graph').default} Graph */
 /**
- * @typedef {Object} BoundingBox
+ * @typedef {Object} Size
  * @property {number} width - The width
  * @property {number} height - The height
+ */
+/**
+ * @typedef {Size} BoundingBox
  */
 
 const getWindowSize = () => {
@@ -37,6 +40,7 @@ const getWindowSize = () => {
  */
 export default class Workspace {
   /**
+   * @constructor
    * @param {!fabric.Canvas} canvas - The canvas to render objects on.
    * @param {!Graph} graph - The model of graph.
    */
@@ -49,10 +53,11 @@ export default class Workspace {
     this._shouldRedrawNext = false;
 
     this._bind_relayout = this._relayout.bind(this);
+    this._bind_render = this._render.bind(this);
   }
 
   /** Initialize the event listener and enable pan-zoom */
-  init() {
+  initialize() {
     this.resize();
     this.graph.on('shouldRedraw', () => {
       this.requestRedraw();
@@ -69,7 +74,7 @@ export default class Workspace {
 
   /**
    * Set canvas size based on window size.
-   * @param {!BoundingBox} size
+   * @param {!Size} size
    */
   _setCanvasSize(size) {
     this.canvas.setWidth(size.width);
@@ -111,16 +116,16 @@ export default class Workspace {
       marginX: 20,
       marginY: 20,
       useWorker: true,
-      callback: this._render.bind(this),
+      callback: this._bind_render,
     });
   }
 
   /**
    * Render graph if layout successfully.
    * If any updates are made during the layouting, request another redraw.
-   * @param {!BoundingBox} bbox The bounding box of the layouted graph.
+   * @param {!BoundingBox} boundingBox The bounding box of the layouted graph.
    */
-  _render(bbox) {
+  _render(boundingBox) {
     this._isUsingWorker = false;
 
     if (this._shouldRedrawNext) {
@@ -131,9 +136,9 @@ export default class Workspace {
     console.log('finish layout, time spent: ',
         (performance.now() - this._startLayoutTime) / 1000, 's');
 
-    if (bbox) {
+    if (boundingBox) {
       // layout successfully
-      console.log('graph dimension', bbox.width, bbox.height);
+      console.log('graph dimension', boundingBox.width, boundingBox.height);
       requestAnimationFrame(() => {
         renderGraph(this.canvas, this.graph);
       });

@@ -22,7 +22,6 @@ import NodeWithPort from '../graph/NodeWithPort';
  * @typedef {import('../graph/Graph').default} Graph
  */
 
-
 /**
  * Listens to audio context change, and then updates the graph accordingly.
  * @param {!Graph} graph

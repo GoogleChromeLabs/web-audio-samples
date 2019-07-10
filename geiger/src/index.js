@@ -22,13 +22,13 @@ import {addEventListener} from './messaging/addEventListener';
 
 const canvas = new fabric.Canvas('root', {selection: false});
 const graph = new Graph();
-const ws = new Workspace(canvas, graph);
+const workspace = new Workspace(canvas, graph);
 
 window.addEventListener('load', () => {
-  ws.init();
+  workspace.initialize();
 });
 window.addEventListener('resize', () => {
-  ws.resize();
+  workspace.resize();
 });
 
 addEventListener(graph);
