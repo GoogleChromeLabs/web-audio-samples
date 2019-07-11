@@ -182,7 +182,7 @@ export default class NodeWithPort extends Node {
   /**
    * Setup the properties of each input port based on the message.
    * @param {!NodeCreationMessage} message
-   * @param {NodeDimension} dimension
+   * @param {?NodeDimension} dimension
    * @return {Array<Port>}
    */
   _prepareInputPorts(message, dimension) {
@@ -203,7 +203,7 @@ export default class NodeWithPort extends Node {
   /**
    * Setup the properties of each output port based on the message.
    * @param {!NodeCreationMessage} message
-   * @param {NodeDimension} dimension
+   * @param {?NodeDimension} dimension
    * @return {Array<Port>}
    */
   _prepareOutputPorts(message, dimension) {
@@ -221,7 +221,7 @@ export default class NodeWithPort extends Node {
   /**
    * Setup the properties of each param port based on the message.
    * @param {!NodeCreationMessage} message
-   * @param {NodeDimension} dimension
+   * @param {!NodeDimension} dimension
    * @return {Array<Port>}
    */
   _prepareParamPorts(message, dimension) {
