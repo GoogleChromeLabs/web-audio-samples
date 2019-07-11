@@ -18,12 +18,11 @@ import {renderGraph} from './renderGraph';
 import {enablePanZoom} from './panZoom';
 
 /** @typedef {import('../graph/Graph').default} Graph */
+
 /**
  * @typedef {Object} Size
  * @property {number} width - The width
  * @property {number} height - The height
- */
-/**
  * @typedef {Size} BoundingBox
  */
 
@@ -110,6 +109,8 @@ export default class Workspace {
     }
     this._isUsingWorker = true;
 
+    this.graph.beforeRender();
+
     console.log('start layout...');
     this._startLayoutTime = performance.now();
     computeLayout(this.graph, {
@@ -141,6 +142,7 @@ export default class Workspace {
       console.log('graph dimension', boundingBox.width, boundingBox.height);
       requestAnimationFrame(() => {
         renderGraph(this.canvas, this.graph);
+        this.graph.afterRender();
       });
     }
     console.log('redraw...');
