@@ -17,7 +17,10 @@ import Collection from '../util/Collection';
 import Events from '../util/Events';
 import Node from './Node';
 
-/** @typedef {import('../graph/Edge').default} Edge */
+/**
+ * @typedef {import('../graph/Cell').default} Cell
+ * @typedef {import('../graph/Edge').default} Edge
+ */
 
 /**
  * A module that tracks all the nodes and edges.
@@ -51,6 +54,10 @@ export default class Graph extends Events {
     this._in = {};
   }
 
+  /**
+   * Add cell to the graph based on its type.
+   * @param {!Cell} cell
+   */
   addCell(cell) {
     if (!cell.graph) {
       cell.graph = this;
@@ -62,6 +69,10 @@ export default class Graph extends Events {
     }
   }
 
+  /**
+   * Add a node to the graph.
+   * @param {!Node} node
+   */
   addNode(node) {
     this._nodes.add(node.id, node);
     this._shouldRedraw();
@@ -107,6 +118,10 @@ export default class Graph extends Events {
     delete this._in[nodeId];
   }
 
+  /**
+   * Add an edge to the graph.
+   * @param {!Edge} edge
+   */
   addEdge(edge) {
     const sourceId = edge.source.id;
     if (this._out[sourceId] && this._out[sourceId][edge.id]) {
@@ -129,6 +144,10 @@ export default class Graph extends Events {
     this._shouldRedraw();
   }
 
+  /**
+   * Remove an edge to the graph by its id.
+   * @param {!string} edgeId
+   */
   removeEdge(edgeId) {
     const edge = this._edges.get(edgeId);
     if (!edge) return;

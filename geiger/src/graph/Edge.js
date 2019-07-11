@@ -81,10 +81,16 @@ export default class Edge extends Cell {
     this._initialize(message);
   }
 
+  /**
+   * @return {Array<Point>} points
+   */
   getPoints() {
     return this._points;
   }
 
+  /**
+   * @param {Array<Point>} points
+   */
   setPoints(points) {
     this._points = points;
   }

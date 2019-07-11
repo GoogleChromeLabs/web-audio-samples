@@ -242,6 +242,11 @@ export default class NodeWithPort extends Node {
     return ports;
   }
 
+  /**
+   * Validate ports created and then store.
+   * @param {!Array<Port>} ports
+   * @return {!Collection}
+   */
   _createPortData(ports) {
     const err = this._validatePorts(ports);
     if (err.length) {
