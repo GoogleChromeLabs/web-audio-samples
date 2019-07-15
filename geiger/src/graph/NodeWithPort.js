@@ -13,43 +13,20 @@
  * limitations under the License.
  */
 
-import {isObject} from 'util';
 import {
   AUDIO_PARAM_RADIUS, INPUT_PORT_RADIUS, LEFT_SIDE_TOP_PADDING,
   LEFT_TEXT_INDENT, TOTAL_INPUT_PORT_HEIGHT, TOTAL_PARAM_PORT_HEIGHT,
+  RIGHT_SIDE_PADDING, TOTAL_OUTPUT_PORT_HEIGHT,
+  BOTTOM_PADDING_WITHOUT_PARAM, BOTTOM_PADDING_WITH_PARAM,
 } from '../ui/graphStyle';
 import {textSandbox} from '../ui/textSandbox';
 import Collection from '../util/Collection';
-import {computeAudioParamPortId, computeInPortId,
-  computeOutPortId} from './label';
+import {generateParamPortId, generateInputPortId,
+  generateOutputPortId} from './label';
 import {PortTypes} from './PortTypes';
 import Node from './Node';
 
-/**
- * @typedef {Object} NodeCreationMessage
- * @property {string} contextId
- * @property {string} nodeId
- * @property {string} nodeType
- * @property {number} numberOfInputs
- * @property {number} numberOfOutputs
- * @property {Array<string>} audioParamNames
- */
-
-/**
- * @typedef {Object} NodeDimension
- * @property {number} inputPortSectionHeight
- * @property {number} paramPortSectionHeight
- * @property {number} maxTextLength
- * @property {number} totalHeight
- */
-
-/**
- * @typedef {Object} Port
- * @property {string} id
- * @property {PortTypes} type
- * @property {string} text - The text label
- * @property {number} y
- */
+// /<reference path="../jsdoc.types.js" />
 
 /**
  * A node with audio params as ports.
@@ -64,9 +41,49 @@ export default class NodeWithPort extends Node {
   constructor(message) {
     super(message);
 
-    this._ports = null;
+    /** @type {NodeLayout} */
+    this._layout = this._computeNodeLayout(message);
 
-    this._initialize(message);
+    this._ports = new Collection();
+    this._updatePortLayout();
+    this._updateNodeSize();
+  }
+
+  /**
+   * Add an AudioParam to this node.
+   * @param {!string} paramId
+   * @param {!string} paramType
+   */
+  addParamPort(paramId, paramType) {
+    const portId = generateParamPortId(this.id, paramId);
+    const paramY = this._layout.lastParamY + TOTAL_PARAM_PORT_HEIGHT;
+
+    this._addPort({
+      id: portId,
+      type: PortTypes.PARAM,
+      label: paramType,
+      y: paramY - AUDIO_PARAM_RADIUS,
+    });
+
+    this._updateNodeLayout(paramY, paramType);
+    this._updatePortLayout();
+    this._updateNodeSize();
+  }
+
+  /**
+   * Remove an AudioParam from this node.
+   * @param {!string} paramId
+   */
+  removeParamPort(paramId) {
+    // Do nothing, since the parent AudioNode is destroyed as well.
+  }
+
+  /**
+   * @param {!PortTypes} type
+   * @return {Array<Port>}
+   */
+  getPortsByType(type) {
+    return this._ports.values().filter((port) => port.type === type);
   }
 
   /**
@@ -78,14 +95,6 @@ export default class NodeWithPort extends Node {
   }
 
   /**
-   * @param {!PortTypes} type
-   * @return {Array<Port>}
-   */
-  getPortsByType(type) {
-    return this._ports.filter((port) => port.type === type);
-  }
-
-  /**
    * Get all ports of this node.
    * @return {Array<Port>}
    */
@@ -93,190 +102,148 @@ export default class NodeWithPort extends Node {
     return this._ports.values();
   }
 
-  /**
-   * @param {!NodeCreationMessage} message
-   */
-  _initialize(message) {
-    const dimension = this._computeNodeLayout(message);
-
-    const inputPorts = this._prepareInputPorts(message, dimension);
-    const outputPorts = this._prepareOutputPorts(message, dimension);
-    const paramPorts = this._prepareParamPorts(message, dimension);
-
-    const ports = inputPorts.concat(outputPorts, paramPorts);
-    this._ports = this._createPortData(ports);
-
-    this.setSize({
-      width: dimension.maxTextLength + LEFT_TEXT_INDENT + 30,
-      height: dimension.totalHeight,
-    });
+  /** @return {number} */
+  _getParamNumber() {
+    return this.getPortsByType(PortTypes.PARAM).length;
   }
 
   /**
-   * Use number of inputs, outputs, and AudioParams to compute the layout
+   * Use number of inputs and outputs to compute the layout
    * for text and ports.
    * @param {!NodeCreationMessage} message
    * @credit This function is mostly borrowed from Audion/
    *      `audion.entryPoints.handleNodeCreated_()`.
    *      https://github.com/google/audion/blob/master/js/entry-points/panel.js
-   * @return {NodeDimension}
+   * @return {NodeLayout}
    */
   _computeNodeLayout(message) {
     // Even if there are no input ports, leave room for the node label.
     const inputPortSectionHeight =
         TOTAL_INPUT_PORT_HEIGHT * Math.max(1, message.numberOfInputs);
-    const paramPortSectionHeight =
-        TOTAL_PARAM_PORT_HEIGHT * message.audioParamNames.length;
+    const outputPortSectionHeight =
+        TOTAL_OUTPUT_PORT_HEIGHT * (message.numberOfOutputs || 0);
+    // The y value of the next audio param port.
+    const lastParamY = inputPortSectionHeight + LEFT_SIDE_TOP_PADDING;
 
     // Use the max of the left and right side heights as the total height.
     // Include a little padding on the left.
-    const leftSideBottomPadding = message.audioParamNames.length ? 6 : 8;
-    const totalHeight = Math.max(
-        inputPortSectionHeight + paramPortSectionHeight +
-        LEFT_SIDE_TOP_PADDING + leftSideBottomPadding,
-        TOTAL_INPUT_PORT_HEIGHT * message.numberOfOutputs);
+    const totalHeight = Math.max(lastParamY + BOTTOM_PADDING_WITHOUT_PARAM,
+        outputPortSectionHeight);
 
-    const maxTextLength = this._computeMaxTextLength(message);
+    const maxTextLength = this._computeNodeLabelLength(message);
 
     return {
       inputPortSectionHeight,
-      paramPortSectionHeight,
+      outputPortSectionHeight,
+      lastParamY,
       maxTextLength,
       totalHeight,
     };
   }
 
   /**
-   * Compute the max length of all text labels to get the max width of node,
-   * including node label and param labels.
+   * After adding a param port, update the node layout based on the y value
+   * and label length.
+   * @param {!number} paramY - The y value of current audio param port.
+   * @param {!string} paramType
+   */
+  _updateNodeLayout(paramY, paramType) {
+    this._layout.lastParamY = paramY;
+
+    // Update total height by choosing the max of the left and right
+    // side heights. Include a little padding on the left.
+    this._layout.totalHeight = Math.max(
+        paramY + BOTTOM_PADDING_WITH_PARAM,
+        this._layout.outputPortSectionHeight);
+
+    // Update max length with param labels.
+    const paramLabelLength = this._computeParamLabelLength(paramType);
+    this._layout.maxTextLength = Math.max(this._layout.maxTextLength,
+        paramLabelLength);
+  }
+
+  _updatePortLayout() {
+    this._setupInputPorts();
+    this._setupOutputPorts();
+  }
+
+  _updateNodeSize() {
+    this.setSize({
+      width: this._layout.maxTextLength + LEFT_TEXT_INDENT +
+          RIGHT_SIDE_PADDING,
+      height: this._layout.totalHeight,
+    });
+  }
+
+  /**
+   * Compute the length of the text label to get the max width of node.
    * Style the invisible text sandbox so that it accurately sizes text.
    * Another way is to use `canvas.measureText()` method.
    *
-   * @param {!NodeCreationMessage} message
    * @return {number}
    */
-  _computeMaxTextLength(message) {
-    let maxTextLength = 0;
-    textSandbox.start('audioParamText');
-
-    for (let i = 0; i < message.audioParamNames.length; i++) {
-      // Determine the audio param label max length.
-      textSandbox.setText(message.audioParamNames[i]);
-      maxTextLength = Math.max(
-          maxTextLength, textSandbox.clientWidth());
-    }
-
-    // No longer size the text based on the smaller audio param text font.
-    textSandbox.stop('audioParamText');
-
+  _computeNodeLabelLength() {
     // Determine the would-be length of the node label text.
-    textSandbox.start('nodeText');
-    textSandbox.setText(this.nodeLabel);
-    maxTextLength = Math.max(
-        maxTextLength, textSandbox.clientWidth());
-    textSandbox.stop('nodeText');
+    return textSandbox.getTextLength('nodeText', this.label);
+  }
 
-    return maxTextLength;
+  _computeParamLabelLength(paramType) {
+    return textSandbox.getTextLength('audioParamText', paramType);
   }
 
   /**
    * Setup the properties of each input port based on the message.
    * @param {!NodeCreationMessage} message
-   * @param {?NodeDimension} dimension
-   * @return {Array<Port>}
+   * @param {?NodeLayout} layout
    */
-  _prepareInputPorts(message, dimension) {
-    const ports = [];
+  _setupInputPorts() {
     let inputPortY = INPUT_PORT_RADIUS + LEFT_SIDE_TOP_PADDING;
-    for (let i = 0; i < message.numberOfInputs; i++) {
-      ports.push({
-        'id': computeInPortId(message.contextId, message.nodeId, i),
-        'type': PortTypes.IN,
-        'text': '' + i,
-        'y': inputPortY,
+    for (let i = 0; i < this.numberOfInputs; i++) {
+      const portId = generateInputPortId(this.id, i);
+
+      // If an input port exists, no need to recompute.
+      if (this._ports.has(portId)) continue;
+
+      this._addPort({
+        id: portId,
+        type: PortTypes.IN,
+        label: '' + i,
+        y: inputPortY,
       });
       inputPortY += TOTAL_INPUT_PORT_HEIGHT;
     }
-    return ports;
   }
 
   /**
    * Setup the properties of each output port based on the message.
-   * @param {!NodeCreationMessage} message
-   * @param {?NodeDimension} dimension
-   * @return {Array<Port>}
+   * Try to place each output near the center of the right-side edge.
+   * There is a padding between two outputs.
    */
-  _prepareOutputPorts(message, dimension) {
-    const ports = [];
-    for (let i = 0; i < message.numberOfOutputs; i++) {
-      ports.push({
-        'id': computeOutPortId(message.contextId, message.nodeId, i),
-        'type': PortTypes.OUT,
-        'text': '' + i,
-      });
-    }
-    return ports;
-  }
-
-  /**
-   * Setup the properties of each param port based on the message.
-   * @param {!NodeCreationMessage} message
-   * @param {!NodeDimension} dimension
-   * @return {Array<Port>}
-   */
-  _prepareParamPorts(message, dimension) {
-    const ports = [];
-    let audioParamY = dimension.inputPortSectionHeight +
-        LEFT_SIDE_TOP_PADDING + AUDIO_PARAM_RADIUS;
-    for (let i = 0; i < message.audioParamNames.length; i++) {
-      ports.push({
-        'id': computeAudioParamPortId(
-            message.contextId, message.nodeId, message.audioParamNames[i]),
-        'type': PortTypes.PARAM,
-        'text': message.audioParamNames[i],
-        'y': audioParamY,
-      });
-      audioParamY += TOTAL_PARAM_PORT_HEIGHT;
-    }
-
-    return ports;
-  }
-
-  /**
-   * Validate ports created and then store.
-   * @param {!Array<Port>} ports
-   * @return {!Collection}
-   */
-  _createPortData(ports) {
-    const err = this._validatePorts(ports);
-    if (err.length) {
-      throw new Error(err);
-    }
-
-    return new Collection(ports);
-  }
-
-  /**
-   * Ensure each port is an object and has an id.
-   * @param {Array<Port>} ports
-   * @return {Array<string>} errors
-   */
-  _validatePorts(ports) {
-    const errorMessages = [];
-    ports.forEach((p) => {
-      if (typeof p !== 'object') {
-        errorMessages.push('Invalid port', p);
+  _setupOutputPorts() {
+    // Compute the y for output ports.
+    // Recompute if the total height is changed.
+    const totalHeight = this._layout.totalHeight;
+    let outputPortY = (totalHeight / 2) -
+        (this.numberOfOutputs - 1) * TOTAL_OUTPUT_PORT_HEIGHT / 2;
+    for (let i = 0; i < this.numberOfOutputs; i++) {
+      const portId = generateOutputPortId(this.id, i);
+      if (this._ports.has(portId)) {
+        // Reset y if the output port exists.
+        const port = this._ports.get(portId);
+        port.y = outputPortY;
+      } else {
+        this._addPort({
+          id: portId,
+          type: PortTypes.OUT,
+          label: '' + i,
+          y: outputPortY,
+        });
       }
-
-      if (!this._isValidPortId(p.id)) {
-        errorMessages.push('port id is required');
-      }
-    });
-
-    return errorMessages;
+      outputPortY += TOTAL_OUTPUT_PORT_HEIGHT;
+    }
   }
 
-  _isValidPortId(id) {
-    return id !== null && id !== undefined && !isObject(id);
+  _addPort(port) {
+    this._ports.add(port.id, port);
   }
 }

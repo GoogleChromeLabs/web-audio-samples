@@ -15,12 +15,11 @@
 
 import Collection from '../util/Collection';
 import Events from '../util/Events';
-import Node from './Node';
+import NodeWithPort from './NodeWithPort';
+import Edge, {generateEdgePortIdsByMessage} from './Edge';
+import {EdgeTypes} from './EdgeTypes';
 
-/**
- * @typedef {import('../graph/Cell').default} Cell
- * @typedef {import('../graph/Edge').default} Edge
- */
+// /<reference path="../jsdoc.types.js" />
 
 /**
  * A module that tracks all the nodes and edges.
@@ -29,8 +28,14 @@ import Node from './Node';
  * @extends Events
  */
 export default class Graph extends Events {
-  constructor() {
+  /**
+   * @constructor
+   * @param {!string} contextId
+   */
+  constructor(contextId) {
     super();
+
+    this.contextId = contextId;
 
     this._nodes = new Collection(null, {trackExit: true});
     this._edges = new Collection(null, {trackExit: true});
@@ -44,142 +49,129 @@ export default class Graph extends Events {
      * @type {!Object<string, !Object<string, true>>}
      * @private
      */
-    this._out = {};
+    this._outbound_edge_map = {};
 
     /**
      * For each node ID, keep track of all in-bound edge IDs.
      * @type {!Object<string, !Object<string, true>>}
      * @private
      */
-    this._in = {};
-  }
-
-  /**
-   * Add cell to the graph based on its type.
-   * @param {!Cell} cell
-   */
-  addCell(cell) {
-    if (!cell.graph) {
-      cell.graph = this;
-    }
-    if (cell instanceof Node) {
-      this.addNode(cell);
-    } else {
-      this.addEdge(cell);
-    }
+    this._inbound_edge_map = {};
   }
 
   /**
    * Add a node to the graph.
-   * @param {!Node} node
+   * @param {!NodeCreationMessage} message
    */
-  addNode(node) {
-    this._nodes.add(node.id, node);
+  addNode(message) {
+    const node = new NodeWithPort(message);
+    this._nodes.add(message.nodeId, node);
     this._shouldRedraw();
   }
 
   /**
-   * Remove a node and its related edges.
-   * @param {!string} nodeId
-   */
-  removeNodeAndEdges(nodeId) {
-    this.removeNode(nodeId);
-    this.removeEdgesOfNode(nodeId);
-  }
-
-  /**
-   * Remove a node by id.
+   * Remove a node by id and all related edges.
    * @param {!string} nodeId
    */
   removeNode(nodeId) {
     this._nodes.remove(nodeId);
+    this._removeEdgesOfNode(nodeId);
     this._shouldRedraw();
   }
 
   /**
-   * Remove all edges of a node.
+   * Add a param to the node.
+   * @param {!ParamCreationMessage} message
+   */
+  addParam(message) {
+    const node = this.getNodeById(message.nodeId);
+    node.addParamPort(message.paramId, message.paramType);
+    this._shouldRedraw();
+  }
+
+  /**
+   * Remove a param by paramId from Node.
+   * @param {!string} paramId
    * @param {!string} nodeId
    */
-  removeEdgesOfNode(nodeId) {
-    const outEdges = this._out[nodeId];
-    if (outEdges) {
-      Object.keys(outEdges).forEach((edgeId) => {
-        this.removeEdge(edgeId);
-      });
-    }
-
-    const inEdges = this._in[nodeId];
-    if (inEdges) {
-      Object.keys(inEdges).forEach((edgeId) => {
-        this.removeEdge(edgeId);
-      });
-    }
-    delete this._out[nodeId];
-    delete this._in[nodeId];
-  }
-
-  /**
-   * Add an edge to the graph.
-   * @param {!Edge} edge
-   */
-  addEdge(edge) {
-    const sourceId = edge.source.id;
-    if (this._out[sourceId] && this._out[sourceId][edge.id]) {
-      // This link exists.
-      return;
-    }
-    this._edges.add(edge.id, edge);
-
-    if (!this._out[sourceId]) {
-      this._out[sourceId] = {};
-    }
-    this._out[sourceId][edge.id] = true;
-
-    const targetId = edge.target.id;
-    if (!this._in[targetId]) {
-      this._in[targetId] = {};
-    }
-    this._in[targetId][edge.id] = true;
-
+  removeParam(paramId, nodeId) {
+    const node = this.getNodeById(nodeId);
+    node.removeParamPort(paramId);
     this._shouldRedraw();
   }
 
   /**
-   * Remove an edge to the graph by its id.
+   * Add a Node-to-Node connection to the graph.
+   * @param {!NodesConnectionMessage} message
+   */
+  addNodesConnection(message) {
+    const edge = new Edge(message, EdgeTypes.NODE_TO_NODE);
+    this._addEdge(edge);
+  }
+
+  /**
+   * Remove a Node-to-Node connection from the graph.
+   * @param {!NodesDisconnectionMessage} message
+   */
+  removeNodesConnection(message) {
+    if (message.destinationId) {
+      // Remove the given edge.
+      const {edgeId} = generateEdgePortIdsByMessage(message,
+          EdgeTypes.NODE_TO_NODE);
+      this._removeEdge(edgeId);
+    } else {
+      // Remove all edges from source node.
+      const outEdges = this._outbound_edge_map[message.sourceId];
+      if (outEdges) {
+        Object.keys(outEdges).forEach((edgeId) => {
+          this._removeEdge(edgeId);
+        });
+      }
+      delete this._outbound_edge_map[message.sourceId];
+    }
+  }
+
+  /**
+   * Add a Node-to-Param connection to the graph.
+   * @param {!NodeParamConnectionMessage} message
+   */
+  addNodeParamConnection(message) {
+    const edge = new Edge(message, EdgeTypes.NODE_TO_PARAM);
+    this._addEdge(edge);
+  }
+
+  /**
+   * Remove a Node-to-Param connection from the graph.
+   * @param {!NodeParamDisconnectionMessage} message
+   */
+  removeNodeParamConnection(message) {
+    const {edgeId} = generateEdgePortIdsByMessage(message,
+        EdgeTypes.NODE_TO_PARAM);
+    this._removeEdge(edgeId);
+  }
+
+  /**
+   * @param {!string} nodeId
+   * @return {NodeWithPort}
+   */
+  getNodeById(nodeId) {
+    return this._nodes.get(nodeId);
+  }
+
+  /**
    * @param {!string} edgeId
+   * @return {Edge}
    */
-  removeEdge(edgeId) {
-    const edge = this._edges.get(edgeId);
-    if (!edge) return;
-
-    const sourceId = edge.source.id;
-    if (this._out[sourceId] && this._out[sourceId][edgeId]) {
-      delete this._out[sourceId][edgeId];
-    }
-
-    const targetId = edge.target.id;
-    if (this._in[targetId] && this._in[targetId][edgeId]) {
-      delete this._in[targetId][edgeId];
-    }
-
-    this._edges.remove(edgeId);
-    this._shouldRedraw();
+  getEdgeById(edgeId) {
+    return this._edges.get(edgeId);
   }
 
-  /** @return {Array<Node>} */
+  /** @return {Array<NodeWithPort>} */
   getNodes() {
     return this._nodes.values();
   }
 
-  /**
-   * @param {!string} nodeId
-   * @return {Node}
-   */
-  getNode(nodeId) {
-    return this._nodes.get(nodeId);
-  }
-
-  /** @return {Array<Node>} */
+  /** @return {Array<NodeWithPort>} */
   getRemovedNodes() {
     return this._removed_nodes;
   }
@@ -187,14 +179,6 @@ export default class Graph extends Events {
   /** @return {Array<Edge>} */
   getEdges() {
     return this._edges.values();
-  }
-
-  /**
-   * @param {!string} edgeId
-   * @return {Edge}
-   */
-  getEdge(edgeId) {
-    return this._edges.get(edgeId);
   }
 
   /** @return {Array<Edge>} */
@@ -218,6 +202,79 @@ export default class Graph extends Events {
   afterRender() {
     this._removed_nodes = [];
     this._removed_edges = [];
+  }
+
+  /**
+   * Add an edge to the graph.
+   * @param {!Edge} edge
+   */
+  _addEdge(edge) {
+    const sourceId = edge.sourceId;
+    // This link exists.
+    if (this._outbound_edge_map[sourceId] &&
+      this._outbound_edge_map[sourceId][edge.id]) return;
+
+    this._edges.add(edge.id, edge);
+
+    if (!this._outbound_edge_map[sourceId]) {
+      this._outbound_edge_map[sourceId] = {};
+    }
+    this._outbound_edge_map[sourceId][edge.id] = true;
+
+    const destinationId = edge.destinationId;
+    if (!this._inbound_edge_map[destinationId]) {
+      this._inbound_edge_map[destinationId] = {};
+    }
+    this._inbound_edge_map[destinationId][edge.id] = true;
+
+    this._shouldRedraw();
+  }
+
+  /**
+   * Remove an edge from the graph by its id.
+   * Also remove the edge from inbound and outbound edge maps.
+   * @param {!string} edgeId
+   */
+  _removeEdge(edgeId) {
+    const edge = this._edges.get(edgeId);
+    if (!edge) return;
+
+    const sourceId = edge.sourceId;
+    if (this._outbound_edge_map[sourceId] &&
+      this._outbound_edge_map[sourceId][edgeId]) {
+      delete this._outbound_edge_map[sourceId][edgeId];
+    }
+
+    const destinationId = edge.destinationId;
+    if (this._inbound_edge_map[destinationId] &&
+      this._inbound_edge_map[destinationId][edgeId]) {
+      delete this._inbound_edge_map[destinationId][edgeId];
+    }
+
+    this._edges.remove(edgeId);
+    this._shouldRedraw();
+  }
+
+  /**
+   * Remove all edges of a node.
+   * @param {!string} nodeId
+   */
+  _removeEdgesOfNode(nodeId) {
+    const outEdges = this._outbound_edge_map[nodeId];
+    if (outEdges) {
+      Object.keys(outEdges).forEach((edgeId) => {
+        this._removeEdge(edgeId);
+      });
+    }
+
+    const inEdges = this._inbound_edge_map[nodeId];
+    if (inEdges) {
+      Object.keys(inEdges).forEach((edgeId) => {
+        this._removeEdge(edgeId);
+      });
+    }
+    delete this._outbound_edge_map[nodeId];
+    delete this._inbound_edge_map[nodeId];
   }
 
   _shouldRedraw() {

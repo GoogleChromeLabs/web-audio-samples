@@ -15,7 +15,7 @@
 
 /**
  * Supported port types.
- * @enum {string}
+ * @enum {Symbol}
  */
 export const PortTypes = {
   IN: Symbol('IN'),

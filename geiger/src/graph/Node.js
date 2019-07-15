@@ -13,49 +13,25 @@
  * limitations under the License.
  */
 
-import Cell from './Cell';
-import {computeNodeId, computeNodeLabel} from './label';
+import {generateNodeLabel} from './label';
 
-/**
- * @typedef {Object} NodeCreationMessage
- * @property {string} contextId
- * @property {string} nodeId
- * @property {string} nodeType
- */
-
-/**
- * @typedef {Object} Size
- * @property {number} width - The width
- * @property {number} height - The height
- */
-
-/**
- * @typedef {Object} Point
- * @property {number} x
- * @property {number} y
- */
+// /<reference path="../jsdoc.types.js" />
 
 /**
  * A general Node.
  * @class
- * @extends Cell
  */
-export default class Node extends Cell {
+export default class Node {
   /**
    * @constructor
    * @param {!NodeCreationMessage} message
    */
   constructor(message) {
-    super();
-
-    this.id = computeNodeId(message.contextId, message.nodeId);
-
-    let nodeType = message.nodeType;
-    if (nodeType.endsWith('Node')) {
-      nodeType = nodeType.slice(0, nodeType.length-4);
-    }
-    this.type = nodeType;
-    this.nodeLabel = computeNodeLabel(nodeType, message.nodeId);
+    this.id = message.nodeId;
+    this.type = message.nodeType;
+    this.numberOfInputs = message.numberOfInputs;
+    this.numberOfOutputs = message.numberOfOutputs;
+    this.label = generateNodeLabel(message.nodeType, message.nodeId);
 
     this._size = null;
     this._position = null; // position of the center
@@ -68,7 +44,8 @@ export default class Node extends Cell {
 
   /**
    * @param {!Size} size
-   * @return {!Cell} - To be chainable
+   * @return {this}
+   * @chainable
    */
   setSize(size) {
     this._size = size;
@@ -82,7 +59,8 @@ export default class Node extends Cell {
 
   /**
    * @param {!Point} position
-   * @return {!Cell} - To be chainable
+   * @return {this}
+   * @chainable
    */
   setPosition(position) {
     this._position = position;
@@ -90,6 +68,8 @@ export default class Node extends Cell {
   }
 
   shouldRender() {
-    return !!this._position;
+    // When a node has a valid position, it should and could be rendered.
+    return this._position && (typeof this._position.x !== 'undefined') &&
+        (typeof this._position.y !== 'undefined');
   }
 }

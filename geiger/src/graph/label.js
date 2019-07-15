@@ -14,64 +14,55 @@
  */
 
 /**
- * Computes the id for a node.
- * @param {string | number} contextId
+ * Generates the port id for the input of node.
  * @param {string} nodeId
+ * @param {string | number} inputIndex
  * @return {string}
  */
-export const computeNodeId = (contextId, nodeId) => {
-  return 'c' + contextId + 'n' + nodeId;
+export const generateInputPortId = (nodeId, inputIndex) => {
+  return `${nodeId}-input-${inputIndex || 0}`;
 };
 
 /**
- * Computes the id for the input of node.
- * @param {string | number} contextId
+ * Generates the port id for the output of node.
  * @param {string} nodeId
- * @param {string | number} portIndex
+ * @param {string | number} outputIndex
  * @return {string}
  */
-export const computeInPortId = (contextId, nodeId, portIndex) => {
-  return computeNodeId(contextId, nodeId) + 'input' + portIndex;
+export const generateOutputPortId = (nodeId, outputIndex) => {
+  return `${nodeId}-output-${outputIndex || 0}`;
 };
 
 /**
- * Computes the id for the output of node.
- * @param {string | number} contextId
+ * Generates the port id for the param of node.
  * @param {string} nodeId
- * @param {string | number} portIndex
+ * @param {string} paramId
  * @return {string}
  */
-export const computeOutPortId = (contextId, nodeId, portIndex) => {
-  return computeNodeId(contextId, nodeId) + 'output' + portIndex;
+export const generateParamPortId = (nodeId, paramId) => {
+  return `${nodeId}-param-${paramId}`;
 };
 
 /**
- * Computes the id for the param of node.
- * @param {string | number} contextId
- * @param {string} nodeId
- * @param {string} name
- * @return {string}
- */
-export const computeAudioParamPortId = (contextId, nodeId, name) => {
-  return computeNodeId(contextId, nodeId) + '$param$' + name;
-};
-
-/**
- * Computes the label of the node.
+ * Generates the label for the node.
  * @param {string} nodeType
  * @param {string} nodeId
  * @return {string}
  */
-export const computeNodeLabel = (nodeType, nodeId) => {
-  return nodeType + ' ' + nodeId;
+export const generateNodeLabel = (nodeType, nodeId) => {
+  // To make the label concise, remove the suffix "Node" from the nodeType.
+  if (nodeType.endsWith('Node')) {
+    nodeType = nodeType.slice(0, nodeType.length-4);
+  }
+  return `${nodeType} ${nodeId}`;
 };
 
 /**
- * Computes the id of the edge using port ids of source and destination.
+ * Generates the edge id using port ids of source and destination.
  * @param {string} sourcePortId
  * @param {string} destinationPortId
  * @return {string}
  */
-export const computeEdgeId = (sourcePortId, destinationPortId) => {
-  return sourcePortId + '|' + destinationPortId;
+export const generateEdgeId = (sourcePortId, destinationPortId) => {
+  return `${sourcePortId}->${destinationPortId}`;
 };

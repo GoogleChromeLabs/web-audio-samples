@@ -13,72 +13,39 @@
  * limitations under the License.
  */
 
-import Cell from './Cell';
 import {EdgeTypes} from './EdgeTypes';
-import {computeNodeId, computeEdgeId, computeOutPortId,
-  computeInPortId, computeAudioParamPortId} from './label';
+import {generateEdgeId, generateOutputPortId,
+  generateInputPortId, generateParamPortId} from './label';
 
-/**
- * @typedef {Object} NodesConnection
- * @property {string} sourceNodeId
- * @property {string} destinationNodeId
- * @property {string} fromChannel
- * @property {string} toChannel
- */
-
-/**
- * @typedef {Object} NodeParamConnection
- * @property {string} sourceNodeId
- * @property {string} destinationNodeId
- * @property {string} fromChannel
- * @property {string} destinationParamName
- */
-
-/**
- * @typedef {NodesConnection | NodeParamConnection} ConnectionMessage
- */
-
-/**
- * @typedef {Object} Source
- * @property {string} id - The node id.
- * @property {string} port - The port id.
- * @typedef {Source} Target
- */
-
-/**
- * @typedef {Object} Point
- * @property {number} x
- * @property {number} y
- */
+// /<reference path="../jsdoc.types.js" />
 
 /**
  * @class
- * @extends Cell
  */
-export default class Edge extends Cell {
+export default class Edge {
   /**
    * @constructor
-   * @param {!ConnectionMessage} message
+   * @param {!NodesConnectionMessage | NodeParamConnectionMessage} message
    * @param {!EdgeTypes} type
    */
   constructor(message, type) {
-    super();
+    const {edgeId, sourcePortId, destinationPortId} =
+        generateEdgePortIdsByMessage(message, type);
 
-    this.id = null;
+    this.id = edgeId;
     this.type = type;
-
-    /** @type {!Source} */
-    this.source = null;
-    /** @type {!Target} */
-    this.target = null;
+    // The source Node Id.
+    this.sourceId = message.sourceId;
+    // The destination Node Id.
+    this.destinationId = message.destinationId;
+    this.sourcePortId = sourcePortId;
+    this.destinationPortId = destinationPortId;
 
     /**
      * Control points to draw the curve of the edge.
      * @type {Array<Point>}
      */
     this._points = null;
-
-    this._initialize(message);
   }
 
   /**
@@ -97,45 +64,41 @@ export default class Edge extends Cell {
 
   toString() {
     return [this.id, JSON.stringify(this.source),
-      JSON.stringify(this.target)].join(',');
+      JSON.stringify(this.destination)].join(',');
   }
 
   shouldRender() {
-    return !!this._points;
-  }
-
-  /**
-   * @param {!ConnectionMessage} message
-   */
-  _initialize(message) {
-    const contextId = message.contextId;
-
-    if (!message.sourceNodeId || !message.destinationNodeId) {
-      throw new Error('Undefined node message: ' + JSON.stringify(message));
-    }
-
-    this.source = {
-      id: computeNodeId(contextId, message.sourceNodeId),
-      port: computeOutPortId(contextId, message.sourceNodeId,
-          message.fromChannel),
-    };
-
-    if (this.type === EdgeTypes.NODE_TO_NODE) {
-      this.target = {
-        id: computeNodeId(contextId, message.destinationNodeId),
-        port: computeInPortId(contextId, message.destinationNodeId,
-            message.toChannel),
-      };
-    } else if (this.type === EdgeTypes.NODE_TO_PARAM) {
-      this.target = {
-        id: computeNodeId(contextId, message.destinationNodeId),
-        port: computeAudioParamPortId(contextId, message.destinationNodeId,
-            message.destinationParamName),
-      };
-    } else {
-      throw new Error('Unknown edge type: ' + this.type);
-    }
-
-    this.id = computeEdgeId(this.source.port, this.target.port);
+    return this._points && this._points.length > 0;
   }
 }
+
+/**
+ * @param {!NodesConnectionMessage | NodeParamConnectionMessage} message
+ * @param {!EdgeTypes} type
+ * @return {Object<string,string>}
+ */
+export const generateEdgePortIdsByMessage = (message, type) => {
+  if (!message.sourceId || !message.destinationId) {
+    throw new Error('Undefined node message: ' + JSON.stringify(message));
+  }
+
+  const sourcePortId = generateOutputPortId(message.sourceId,
+      message.sourceOutputIndex);
+
+  let destinationPortId;
+  if (type === EdgeTypes.NODE_TO_NODE) {
+    destinationPortId = generateInputPortId(message.destinationId,
+        message.destinationInputIndex);
+  } else if (type === EdgeTypes.NODE_TO_PARAM) {
+    destinationPortId = generateParamPortId(message.destinationId,
+        message.destinationParamId);
+  } else {
+    throw new Error('Unknown edge type: ' + type);
+  }
+
+  return {
+    edgeId: generateEdgeId(sourcePortId, destinationPortId),
+    sourcePortId,
+    destinationPortId,
+  };
+};
