@@ -16,7 +16,7 @@
 import Collection from '../util/Collection';
 import Events from '../util/Events';
 import NodeWithPort from './NodeWithPort';
-import Edge, {generateEdgePortIdsByMessage} from './Edge';
+import Edge, {generateEdgePortIdsByData} from './Edge';
 import {EdgeTypes} from './EdgeTypes';
 
 // /<reference path="../jsdoc.types.js" />
@@ -37,11 +37,15 @@ export default class Graph extends Events {
 
     this.contextId = contextId;
 
+    /** @type {Collection<NodeWithPort>} */
     this._nodes = new Collection(null, {trackExit: true});
+    /** @type {Collection<Edge>} */
     this._edges = new Collection(null, {trackExit: true});
 
     // Cache the removed nodes/edges in current batch.
+    /** @type {Array<NodeWithPort>} */
     this._removed_nodes = [];
+    /** @type {Array<Edge>} */
     this._removed_edges = [];
 
     /**
@@ -61,11 +65,11 @@ export default class Graph extends Events {
 
   /**
    * Add a node to the graph.
-   * @param {!NodeCreationMessage} message
+   * @param {!NodeCreationData} data
    */
-  addNode(message) {
-    const node = new NodeWithPort(message);
-    this._nodes.add(message.nodeId, node);
+  addNode(data) {
+    const node = new NodeWithPort(data);
+    this._nodes.add(data.nodeId, node);
     this._shouldRedraw();
   }
 
@@ -81,11 +85,11 @@ export default class Graph extends Events {
 
   /**
    * Add a param to the node.
-   * @param {!ParamCreationMessage} message
+   * @param {!ParamCreationData} data
    */
-  addParam(message) {
-    const node = this.getNodeById(message.nodeId);
-    node.addParamPort(message.paramId, message.paramType);
+  addParam(data) {
+    const node = this.getNodeById(data.nodeId);
+    node.addParamPort(data.paramId, data.paramType);
     this._shouldRedraw();
   }
 
@@ -102,50 +106,50 @@ export default class Graph extends Events {
 
   /**
    * Add a Node-to-Node connection to the graph.
-   * @param {!NodesConnectionMessage} message
+   * @param {!NodesConnectionData} data
    */
-  addNodesConnection(message) {
-    const edge = new Edge(message, EdgeTypes.NODE_TO_NODE);
+  addNodesConnection(data) {
+    const edge = new Edge(data, EdgeTypes.NODE_TO_NODE);
     this._addEdge(edge);
   }
 
   /**
    * Remove a Node-to-Node connection from the graph.
-   * @param {!NodesDisconnectionMessage} message
+   * @param {!NodesDisconnectionData} data
    */
-  removeNodesConnection(message) {
-    if (message.destinationId) {
+  removeNodesConnection(data) {
+    if (data.destinationId) {
       // Remove the given edge.
-      const {edgeId} = generateEdgePortIdsByMessage(message,
+      const {edgeId} = generateEdgePortIdsByData(data,
           EdgeTypes.NODE_TO_NODE);
       this._removeEdge(edgeId);
     } else {
       // Remove all edges from source node.
-      const outEdges = this._outbound_edge_map[message.sourceId];
+      const outEdges = this._outbound_edge_map[data.sourceId];
       if (outEdges) {
         Object.keys(outEdges).forEach((edgeId) => {
           this._removeEdge(edgeId);
         });
       }
-      delete this._outbound_edge_map[message.sourceId];
+      delete this._outbound_edge_map[data.sourceId];
     }
   }
 
   /**
    * Add a Node-to-Param connection to the graph.
-   * @param {!NodeParamConnectionMessage} message
+   * @param {!NodeParamConnectionData} data
    */
-  addNodeParamConnection(message) {
-    const edge = new Edge(message, EdgeTypes.NODE_TO_PARAM);
+  addNodeParamConnection(data) {
+    const edge = new Edge(data, EdgeTypes.NODE_TO_PARAM);
     this._addEdge(edge);
   }
 
   /**
    * Remove a Node-to-Param connection from the graph.
-   * @param {!NodeParamDisconnectionMessage} message
+   * @param {!NodeParamDisconnectionData} data
    */
-  removeNodeParamConnection(message) {
-    const {edgeId} = generateEdgePortIdsByMessage(message,
+  removeNodeParamConnection(data) {
+    const {edgeId} = generateEdgePortIdsByData(data,
         EdgeTypes.NODE_TO_PARAM);
     this._removeEdge(edgeId);
   }
@@ -189,7 +193,7 @@ export default class Graph extends Events {
   // Cache the removed nodes/edges in the current batch, which will be used to
   // remove nodes/edges from canvas.
   // Start tracking changes for next batch.
-  beforeRender() {
+  performPreRenderTasks() {
     this._removed_nodes = this._nodes.exit();
     this._removed_edges = this._edges.exit();
 
@@ -199,7 +203,7 @@ export default class Graph extends Events {
   }
 
   // After rendering the current batch, release the memory.
-  afterRender() {
+  performPostRenderTasks() {
     this._removed_nodes = [];
     this._removed_edges = [];
   }

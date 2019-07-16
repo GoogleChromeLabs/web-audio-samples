@@ -39,10 +39,10 @@
  */
 
 
-// Messages
+// Message data
 
 /**
- * @typedef {Object} NodeCreationMessage
+ * @typedef {Object} NodeCreationData
  * @property {!string} nodeId
  * @property {!string} nodeType
  * @property {!number} numberOfInputs
@@ -50,14 +50,14 @@
  */
 
 /**
- * @typedef {Object} ParamCreationMessage
+ * @typedef {Object} ParamCreationData
  * @property {!string} paramId
  * @property {!string} paramType
  * @property {!string} nodeId
  */
 
 /**
- * @typedef {Object} NodesConnectionMessage
+ * @typedef {Object} NodesConnectionData
  * @property {!string} sourceId
  * @property {!string} destinationId
  * @property {number=} sourceOutputIndex
@@ -65,7 +65,7 @@
  */
 
 /**
- * @typedef {Object} NodesDisconnectionMessage
+ * @typedef {Object} NodesDisconnectionData
  * @property {!string} sourceId
  * @property {?string=} destinationId
  * @property {number=} sourceOutputIndex
@@ -73,7 +73,7 @@
  */
 
 /**
- * @typedef {Object} NodeParamConnectionMessage
+ * @typedef {Object} NodeParamConnectionData
  * @property {!string} sourceId
  * @property {!string} destinationId - The destination AudioNode id
  * @property {number=} sourceOutputIndex
@@ -81,5 +81,5 @@
  */
 
 /**
- * @typedef {NodeParamConnectionMessage} NodeParamDisconnectionMessage
+ * @typedef {NodeParamConnectionData} NodeParamDisconnectionData
  */

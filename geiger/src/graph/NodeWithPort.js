@@ -36,13 +36,13 @@ import Node from './Node';
 export default class NodeWithPort extends Node {
   /**
    * @constructor
-   * @param {!NodeCreationMessage} message
+   * @param {!NodeCreationData} data
    */
-  constructor(message) {
-    super(message);
+  constructor(data) {
+    super(data);
 
     /** @type {NodeLayout} */
-    this._layout = this._computeNodeLayout(message);
+    this._layout = this._computeNodeLayout(data);
 
     this._ports = new Collection();
     this._updatePortLayout();
@@ -110,18 +110,18 @@ export default class NodeWithPort extends Node {
   /**
    * Use number of inputs and outputs to compute the layout
    * for text and ports.
-   * @param {!NodeCreationMessage} message
-   * @credit This function is mostly borrowed from Audion/
+   * Credit: This function is mostly borrowed from Audion/
    *      `audion.entryPoints.handleNodeCreated_()`.
    *      https://github.com/google/audion/blob/master/js/entry-points/panel.js
+   * @param {!NodeCreationData} data
    * @return {NodeLayout}
    */
-  _computeNodeLayout(message) {
+  _computeNodeLayout(data) {
     // Even if there are no input ports, leave room for the node label.
     const inputPortSectionHeight =
-        TOTAL_INPUT_PORT_HEIGHT * Math.max(1, message.numberOfInputs);
+        TOTAL_INPUT_PORT_HEIGHT * Math.max(1, data.numberOfInputs);
     const outputPortSectionHeight =
-        TOTAL_OUTPUT_PORT_HEIGHT * (message.numberOfOutputs || 0);
+        TOTAL_OUTPUT_PORT_HEIGHT * (data.numberOfOutputs || 0);
     // The y value of the next audio param port.
     const lastParamY = inputPortSectionHeight + LEFT_SIDE_TOP_PADDING;
 
@@ -130,7 +130,7 @@ export default class NodeWithPort extends Node {
     const totalHeight = Math.max(lastParamY + BOTTOM_PADDING_WITHOUT_PARAM,
         outputPortSectionHeight);
 
-    const maxTextLength = this._computeNodeLabelLength(message);
+    const maxTextLength = this._computeNodeLabelLength(data);
 
     return {
       inputPortSectionHeight,
@@ -192,8 +192,7 @@ export default class NodeWithPort extends Node {
   }
 
   /**
-   * Setup the properties of each input port based on the message.
-   * @param {!NodeCreationMessage} message
+   * Setup the properties of each input port.
    * @param {?NodeLayout} layout
    */
   _setupInputPorts() {
@@ -215,7 +214,7 @@ export default class NodeWithPort extends Node {
   }
 
   /**
-   * Setup the properties of each output port based on the message.
+   * Setup the properties of each output port.
    * Try to place each output near the center of the right-side edge.
    * There is a padding between two outputs.
    */

@@ -25,19 +25,19 @@ import {generateEdgeId, generateOutputPortId,
 export default class Edge {
   /**
    * @constructor
-   * @param {!NodesConnectionMessage | NodeParamConnectionMessage} message
+   * @param {!NodesConnectionData | NodeParamConnectionData} data
    * @param {!EdgeTypes} type
    */
-  constructor(message, type) {
+  constructor(data, type) {
     const {edgeId, sourcePortId, destinationPortId} =
-        generateEdgePortIdsByMessage(message, type);
+        generateEdgePortIdsByData(data, type);
 
     this.id = edgeId;
     this.type = type;
     // The source Node Id.
-    this.sourceId = message.sourceId;
+    this.sourceId = data.sourceId;
     // The destination Node Id.
-    this.destinationId = message.destinationId;
+    this.destinationId = data.destinationId;
     this.sourcePortId = sourcePortId;
     this.destinationPortId = destinationPortId;
 
@@ -73,27 +73,29 @@ export default class Edge {
 }
 
 /**
- * @param {!NodesConnectionMessage | NodeParamConnectionMessage} message
+ * @param {!NodesConnectionData | NodeParamConnectionData} data
  * @param {!EdgeTypes} type
  * @return {Object<string,string>}
  */
-export const generateEdgePortIdsByMessage = (message, type) => {
-  if (!message.sourceId || !message.destinationId) {
-    throw new Error('Undefined node message: ' + JSON.stringify(message));
+export const generateEdgePortIdsByData = (data, type) => {
+  if (!data.sourceId || !data.destinationId) {
+    console.error(`Undefined node message: ${JSON.stringify(data)}`);
+    return;
   }
 
-  const sourcePortId = generateOutputPortId(message.sourceId,
-      message.sourceOutputIndex);
+  const sourcePortId = generateOutputPortId(data.sourceId,
+      data.sourceOutputIndex);
 
   let destinationPortId;
   if (type === EdgeTypes.NODE_TO_NODE) {
-    destinationPortId = generateInputPortId(message.destinationId,
-        message.destinationInputIndex);
+    destinationPortId = generateInputPortId(data.destinationId,
+        data.destinationInputIndex);
   } else if (type === EdgeTypes.NODE_TO_PARAM) {
-    destinationPortId = generateParamPortId(message.destinationId,
-        message.destinationParamId);
+    destinationPortId = generateParamPortId(data.destinationId,
+        data.destinationParamId);
   } else {
-    throw new Error('Unknown edge type: ' + type);
+    console.error(`Unknown edge type: ${type}`);
+    return;
   }
 
   return {

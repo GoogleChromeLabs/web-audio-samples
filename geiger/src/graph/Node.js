@@ -24,14 +24,14 @@ import {generateNodeLabel} from './label';
 export default class Node {
   /**
    * @constructor
-   * @param {!NodeCreationMessage} message
+   * @param {!NodeCreationData} data
    */
-  constructor(message) {
-    this.id = message.nodeId;
-    this.type = message.nodeType;
-    this.numberOfInputs = message.numberOfInputs;
-    this.numberOfOutputs = message.numberOfOutputs;
-    this.label = generateNodeLabel(message.nodeType, message.nodeId);
+  constructor(data) {
+    this.id = data.nodeId;
+    this.type = data.nodeType;
+    this.numberOfInputs = data.numberOfInputs;
+    this.numberOfOutputs = data.numberOfOutputs;
+    this.label = generateNodeLabel(data.nodeType, data.nodeId);
 
     this._size = null;
     this._position = null; // position of the center
