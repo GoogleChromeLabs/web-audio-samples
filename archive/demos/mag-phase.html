@@ -109,7 +109,7 @@
       }
       
       function drawCurve() {
-        var width = 500;
+        var width = 1000;
 
         var freq = new Float32Array(width);
         var magResponse = new Float32Array(width);
@@ -139,46 +139,70 @@
 
         var type = filter.type;
 
-        if (type == "lowpass") {
+        switch (type) {
+          case "lowpass":
             magmin = -80;
             magmax = 40;
             phasemin = -200;
             phasemax = 0;
-        } else if (type == "highpass") {
+            break;
+          case "highpass":
             magmin = -80;
             magmax = 20;
             phasemin = 0;
             phasemax = 180;
-        } else if (type == "bandpass") {
+            break;
+          case "bandpass":
             magmin = -80;
             magmax = 0;
             phasemin = -180;
             phasemax = 180;
-        } else if (type == "lowshelf") {
-            magmin = -15;
-            magmax = 15;
-            phasemin = -50;
-            phasemax = 50;
-        } else if (type == "highshelf") {
-            magmin = -15;
-            magmax = 15;
-            phasemin = -60;
-            phasemax = 60;
-        } else if (type == "peaking") {
-            magmin = -10;
-            magmax = 10;
-            phasemin = -45;
-            phasemax = 45;
-        } else if (type == "notch") {
+            break;
+          case "lowshelf":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -180;
+              phasemax = 180;
+            }
+            break;
+          case "highshelf":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -180;
+              phasemax = 180;
+            }
+            break;
+          case "peaking":
+            {
+              // Get the limits from the gain slider
+              let slider = document.getElementById("gainSlider");
+              magmin = slider.min;
+              magmax = slider.max;
+              phasemin = -90;
+              phasemax = 90;
+            }
+            break;
+          case "notch":
             magmin = -60;
             magmax = 0;
             phasemin = -100;
             phasemax = 100;
-        } else if (type == "allpass") {
+            break;
+          case "allpass":
             magmin = -1;
             magmax = 1;
             phasemin = -180;
             phasemax = 180;
+            break;
+          default:
+            console.log(`Unknown filter type: ${type}`)
+            break;
         }
 
         $.plot($("#graph"),
@@ -289,20 +313,38 @@
         // Need to adjust the Q slider range depending on the filter type.  This
         // is because the Q parameter for the lowpass and highpass filters is in
         // dB, but linear for the others.
-        if (filterType === 'lowpass' || filterType === 'highpass') {
-          let slider = document.getElementById('QSlider');
-          slider.min = -50;
-          slider.max = 50;
-          // Clamp the value to the slider range, just in case.
-          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
-          qHandler(null, {value: slider.value});
-        } else {
-          let slider = document.getElementById('QSlider');
-          slider.min = 0;
-          slider.max = 1000;
-          // Clamp the value to the slider range, just in case.
-          slider.value = Math.min(slider.max, Math.max(slider.min, slider.value));;
-          qHandler(null, {value: slider.value});
+
+        switch (filterType) {
+          case "lowpass":
+          case "highpass":
+            // Q is in dB for these filters.  And the gain is not used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, -50, 50, qHandler);
+            document.getElementById('gainSlider').disabled = true;
+            break;
+          case "bandpass":
+          case "notch":
+          case "allpass":
+            // Q is linear and gain is not used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, 0, 100, qHandler);
+            document.getElementById('gainSlider').disabled = true;
+            break;
+          case "peaking":
+            // Q is linear, and gain is used
+            document.getElementById('QSlider').disabled = false;
+            configureSlider("Q", q, 0, 100, qHandler);
+            document.getElementById('gainSlider').disabled = false;
+            break;
+          case "lowshelf":
+          case "highshelf":
+            // Q is not used, but gain is.
+            document.getElementById('QSlider').disabled = true;
+            document.getElementById('gainSlider').disabled = false;
+            break;
+          default:
+           console.log(`Unhandled filter type: ${filterType}`);
+           break;
         }
         drawCurve();
       }
@@ -337,17 +379,22 @@
 	addSlider("Q");
         addSlider("gain");
         addSlider("master-gain");
+        // Default values for the sliders.  These may get reconfigured when the
+        // selected filter type changes.
 	configureSlider("cutoff", cutoff, 0.0, 1.0, cutoffHandler);
-	configureSlider("Q", q, 0.0, 1000.0, qHandler);
+        configureSlider("Q", q, 0, 100, qHandler);
         configureSlider("gain", gain, -40.0, 40.0, gainHandler);
         configureSlider("master-gain", 0, -10, 10, masterGainHandler);
         
+        // The default (checked) button below is bandpass, so set up sliders for
+        // bandpass.
+        setFilterType("bandpass");
+
         // Give audio process some time initialize itself.
         drawCurve();
         //animateCurve();
       }
 
-      
     </script>
   </head>
 
@@ -399,7 +446,7 @@
 	<address><a href="mailto:rtoy@google.com">Raymond Toy</a></address>
 <!-- Created: Thu Oct 27 09:38:56 PDT 2011 -->
 <!-- hhmts start -->
-Last modified: Wed Feb  7 12:24:14 PST 2018
+Last modified: Wed Oct 23 10:13:55 PDT 2019
 <!-- hhmts end -->
       </div>
     </div>
