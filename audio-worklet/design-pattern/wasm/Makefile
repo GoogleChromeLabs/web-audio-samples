@@ -5,6 +5,7 @@ build: $(DEPS)
 	  -s WASM=1 \
 		-s BINARYEN_ASYNC_COMPILATION=0 \
 		-s SINGLE_FILE=1 \
+		-s NO_DYNAMIC_EXECUTION=1 \
 		SimpleKernel.cc \
 		-o simple-kernel.wasmmodule.js \
 		--post-js ../lib/em-es6-module.js
