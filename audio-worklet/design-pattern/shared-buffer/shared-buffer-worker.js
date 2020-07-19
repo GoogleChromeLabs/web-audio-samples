@@ -29,7 +29,7 @@
 
 // Indices for the State SAB.
 const STATE = {
-  // Flag for Atomics.wait() and wake().
+  // Flag for Atomics.wait() and notify().
   'REQUEST_RENDER': 0,
 
   // Available frames in Input SAB.
