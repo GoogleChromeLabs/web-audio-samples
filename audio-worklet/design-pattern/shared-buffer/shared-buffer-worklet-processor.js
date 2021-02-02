@@ -142,7 +142,7 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
 
     if (this._states[STATE.IB_FRAMES_AVAILABLE] >= this._kernelLength) {
       // Now we have enough frames to process. Wake up the worker.
-      Atomics.wake(this._states, STATE.REQUEST_RENDER, 1);
+      Atomics.notify(this._states, STATE.REQUEST_RENDER, 1);
     }
 
     return true;
