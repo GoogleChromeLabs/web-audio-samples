@@ -207,9 +207,9 @@ const WorkletIndicator = () => {
 
 // Check if AudioWorklet is available.
 function _detectAudioWorklet() {
-  let context = new OfflineAudioContext(1, 1, 44100);
+  let context = window.OfflineAudioContext && new OfflineAudioContext(1, 1, 44100);
   return Boolean(
-      context.audioWorklet &&
+      context && context.audioWorklet &&
       typeof context.audioWorklet.addModule === 'function');
 }
 
