@@ -46,9 +46,12 @@ async function startRecording() {
   mediaRecorder.start();
 
   recordButton.onclick = () => {
-    mediaRecorder.stop();
+    // Stop the audio track to remove the browser's recording indicator and stop the MediaRecorder.
+    stream.getTracks().forEach((track) => {
+      track.stop();
+    });
   };
-  visualizeRecording({ stream, clipContainer, mediaRecorder });
+  visualizeRecording({ stream, clipContainer });
 }
 
 /** Finalizes the audio recording.. */
@@ -62,7 +65,7 @@ function onRecordingStopped({ clipContainer, chunks }) {
 }
 
 /** Visualizes the audio with a waveform and a loudness indicator. */
-function visualizeRecording({ stream, clipContainer, mediaRecorder }) {
+function visualizeRecording({ stream, clipContainer }) {
   const canvas = clipContainer.querySelector("canvas");
   canvas.width = clipContainer.offsetWidth;
 
@@ -85,17 +88,17 @@ function visualizeRecording({ stream, clipContainer, mediaRecorder }) {
 
   /** Repeatedly draws the waveform and loudness indicator. */
   function draw() {
+    if (!stream.active) {
+      recordOutlineEl.style.boxShadow = "none";
+      return; // Stop drawing loop once the recording stopped.
+    }
+
     const width = canvas.width;
     const height = canvas.height;
 
     // Read the maximum power from the FFT ana
     analyser.getByteFrequencyData(dataArray);
     const volume = Math.max(...dataArray) / 255;
-
-    if (mediaRecorder.state !== "recording") {
-      recordOutlineEl.style.boxShadow = "none";
-      return; // Stop drawing loop once MediaRecorder stopped.
-    }
 
     // Visualize current loudness through a ring around the record button.
     const radius = volume * 20;
