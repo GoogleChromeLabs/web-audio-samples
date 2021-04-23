@@ -195,6 +195,24 @@ function _getColumn(entry) {
 }
 
 
+// Check if AudioWorklet is available.
+let isAudioWorkletAvailable_ = false;
+let hasAudioWorkletDetected_ = false;
+function _detectAudioWorklet() {
+  if (hasAudioWorkletDetected_)
+    return isAudioWorkletAvailable_;
+
+  const OfflineAudioContextConstructor =
+      window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  let context = new OfflineAudioContextConstructor(1, 1, 10000);
+  isAudioWorkletAvailable_ = Boolean(
+      context && context.audioWorklet &&
+      typeof context.audioWorklet.addModule === 'function');
+  hasAudioWorkletDetected_ = true;
+  return isAudioWorkletAvailable_;
+}
+
+
 /**
  * WorkletIndicator component
  */
@@ -204,14 +222,6 @@ const WorkletIndicator = () => {
       ? html`<div class="was-indicator-found">AudioWorklet Ready</div>`
       : html`<div class="was-indicator-missing">No AudioWorklet</div>`;
 };
-
-// Check if AudioWorklet is available.
-function _detectAudioWorklet() {
-  let context = new OfflineAudioContext(1, 1, 44100);
-  return Boolean(
-      context.audioWorklet &&
-      typeof context.audioWorklet.addModule === 'function');
-}
 
 
 /**
@@ -249,14 +259,17 @@ class Logger {
 const DemoRunner = (demoFunction) => {
   const sourceUrl =
       GitHubSourceUrl + window.location.pathname.slice(RepoPrefix.length);
-  const audioContext = new AudioContext();
+  const AudioContextConstructor =
+      window.AudioContext || window.webkitAudioContext;
+  const audioContext = new AudioContextConstructor();
+  const isAudioWorkletAvailable = _detectAudioWorklet();
   const logger = new Logger();
 
   // Creates a button and its logic.
   let isFirstClick = true;
   const eButton = document.createElement('button');
   eButton.textContent = 'START';
-  eButton.disabled = _detectAudioWorklet() ? false : true;
+  eButton.disabled = !isAudioWorkletAvailable;
   eButton.onclick = (event) => {
     if (eButton.textContent === 'START') {
       if (isFirstClick) {
@@ -283,6 +296,9 @@ const DemoRunner = (demoFunction) => {
           <div class="was-demo-area-source">
             <a href="${sourceUrl}">See sources on GitHub</a>
           </div>
+          ${isAudioWorkletAvailable ? '' :
+              'This browser does not support Audio Worklet yet.'
+          }
         </div>
       </div>
     </div>

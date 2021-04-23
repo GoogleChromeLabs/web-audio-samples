@@ -20,7 +20,7 @@ import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 const LogPrefix = '[Component] ';
 const GitHubSourceUrl =
-    'https://github.com/GoogleChromeLabs/web-audio-samples/tree/master/';
+    'https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/';
 const RepoPrefix = '/web-audio-samples/';
 
 /**
@@ -207,12 +207,14 @@ const WorkletIndicator = () => {
 
 // Check if AudioWorklet is available.
 function _detectAudioWorklet() {
-  let context = window.OfflineAudioContext && new OfflineAudioContext(1, 1, 44100);
+  const OfflineAudioContextConstructor =
+      window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  let context = new OfflineAudioContextConstructor(1, 1, 10000);
+  console.log(context);
   return Boolean(
       context && context.audioWorklet &&
       typeof context.audioWorklet.addModule === 'function');
 }
-
 
 /**
  * Logger class
