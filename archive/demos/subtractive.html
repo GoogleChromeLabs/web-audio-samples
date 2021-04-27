@@ -49,7 +49,6 @@ Title
 
 <!-- Visualizer GL library -->
 <script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
-
 <!-- Slider stuff -->
 <script type="text/javascript" src="lib/events.js"></script>
 <script type="text/javascript" src="lib/adsr.js"></script>
@@ -63,7 +62,6 @@ Title
 <!-- Our javascript code -->
 <script type="text/javascript">
 
-o3djs.require('o3djs.shader');
 
 window.onload = init;
 
@@ -433,19 +431,10 @@ var midiAccess = 0;
 function onMIDISuccess(access) {
     midiAccess = access;
 
-    var inputs = midiAccess.inputs();
-    console.log("Number of inputs: " + inputs.length);
-    for (var i = 0; i < inputs.length; ++i) {
-        var input = inputs[i];
-        console.log(input.id);
-        console.log(input.manufacturer);
-        console.log(input.name);
-        console.log(input.version);
-
-        input.onmidimessage = handleMIDIData;
+    for (const input of midiAccess.inputs.values()){
+            input.onmidimessage=handleMIDIData
     }
-    
-    var outputs = midiAccess.outputs();
+    var outputs = Array.from(midiAccess.outputs);
     console.log("Number of outputs: " + outputs.length);
     for (var i = 0; i < outputs.length; ++i) {
         var output = outputs[i];
@@ -473,14 +462,13 @@ function initAudio() {
     lfoDepth.gain.value = LFODEPTH;
     
     lfo.connect(lfoDepth);
-    lfo.start(0);
+
     
     masterGain = context.createGain();
     masterGain.gain.value = 1;
     
     resonanceGainNode = context.createGain();
     
-    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
 
     // Let's create some master control signals which can be changed via the UI
     // and connected to all active voices.
@@ -517,6 +505,12 @@ function initAudio() {
 
     // As one of our waveform types, use a nice organ.
     loadWaveTable("wave-tables/Twelve_OpTines");    
+}
+async function resumeCtx(){
+    if(context.state!='running') await context.resume();
+    
+    lfo.start(0);
+        navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
 }
 
 function initUI() {
@@ -565,7 +559,6 @@ function initUI() {
 }
 
 function init() {
-    analyserView1 = new AnalyserView("view1");
 
     initAudio();
     initUI();
@@ -746,6 +739,6 @@ SAWTOOTH
 TRIANGLE
 <input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('custom1');"/>
 CUSTOM1
-
+<input type="button" name="start" value="start" onMouseDown="resumeCtx()"/>
 </body>
 </html>
