@@ -1,6 +1,6 @@
 "use strict";
 
-import {IndexedDBStorage} from './indexeddb-storage.mjs'
+import { IndexedDBStorage } from "./indexeddb-storage.mjs";
 
 const DELETE_BUTTON_SELECTOR = ".delete-button";
 
@@ -9,18 +9,18 @@ const recordOutlineEl = document.querySelector("#record-outline");
 const soundClips = document.querySelector(".sound-clips");
 const clipTemplate = document.querySelector("#clip-template");
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
   new mdc.iconButton.MDCIconButtonToggle(recordButton);
-  recordButton.onclick = () => startRecording({storage});
+  recordButton.onclick = () => startRecording({ storage });
 
   const storage = new IndexedDBStorage();
   await storage.open();
 
   for await (const [id, blob] of storage.readAll()) {
     const clipContainer = insertClip();
-    finalizeClip({clipContainer, id, blob, storage});
+    finalizeClip({ clipContainer, id, blob, storage });
   }
 }
 
@@ -32,7 +32,7 @@ function insertClip() {
 }
 
 /** Finalizes the audio clip card by replacing the visualization with the audio element. */
-function finalizeClip({clipContainer, blob, id, storage}) {
+function finalizeClip({ clipContainer, blob, id, storage }) {
   clipContainer.querySelector(DELETE_BUTTON_SELECTOR).onclick = () => {
     clipContainer.parentNode.removeChild(clipContainer);
     storage.delete(parseInt(id));
@@ -52,25 +52,25 @@ async function getAudioStream() {
 }
 
 /** Starts recording an audio snippet in-memory and visualizes the recording waveform.  */
-async function startRecording({storage}) {
+async function startRecording({ storage }) {
   const chunks = [];
   const stream = await getAudioStream();
   if (!stream) {
     return; // Permissions have not been granted or an error occurred.
   }
-  
+
   const clipContainer = insertClip();
 
   // Start recording the microphone's audio stream in-memory.
-  const mediaRecorder = new MediaRecorder(stream );
+  const mediaRecorder = new MediaRecorder(stream);
   mediaRecorder.ondataavailable = ({ data }) => {
     chunks.push(data);
   };
   mediaRecorder.onstop = async () => {
-    recordButton.onclick = () => startRecording({storage});
+    recordButton.onclick = () => startRecording({ storage });
     const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
     const id = await storage.save(blob);
-    finalizeClip({clipContainer, id, blob, storage})
+    finalizeClip({ clipContainer, id, blob, storage });
   };
   mediaRecorder.start();
 
