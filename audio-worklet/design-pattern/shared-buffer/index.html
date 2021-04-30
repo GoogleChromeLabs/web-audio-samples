@@ -28,10 +28,12 @@
       import WorkletDemoBuilder from '../../assets/WorkletDemoBuilder.js'
       import PageData from './PageData.js';
 
-      // Import the pre-defined AudioWorkletNode subclass.
-      import SharedBufferWorkletNode from './shared-buffer-worklet-node.js';
-
       const demoCode = async (context, logger) => {
+        // Import the pre-defined AudioWorkletNode subclass dynamically. This
+        // is invoked only when Audio Worklet is detected.
+        const {default: SharedBufferWorkletNode} =
+            await import('./shared-buffer-worklet-node.js');
+
         await context.audioWorklet.addModule(
             'shared-buffer-worklet-processor.js');
         const oscillator = new OscillatorNode(context);
