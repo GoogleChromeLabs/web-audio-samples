@@ -14,9 +14,6 @@
  * the License.
  */
 
-// Basic byte unit of WASM heap. (16 bit = 2 bytes)
-const BYTES_PER_UNIT = Uint16Array.BYTES_PER_ELEMENT;
-
 // Byte per audio sample. (32 bit float)
 const BYTES_PER_SAMPLE = Float32Array.BYTES_PER_ELEMENT;
 
@@ -63,17 +60,15 @@ class HeapAudioBuffer {
    * @private
    */
   _allocateHeap() {
-    const channelByteSize = this._length * BYTES_PER_SAMPLE;
-    const dataByteSize = this._channelCount * channelByteSize;
+    const dataByteSize = this._channelCount * this._length * BYTES_PER_SAMPLE;
     this._dataPtr = this._module._malloc(dataByteSize);
     this._channelData = [];
     for (let i = 0; i < this._channelCount; ++i) {
-      let startByteOffset = this._dataPtr + i * channelByteSize;
-      let endByteOffset = startByteOffset + channelByteSize;
-      // Get the actual array index by dividing the byte offset by 2 bytes.
+      // convert pointer to HEAPF32 index
+      let startOffset = this._dataPtr / BYTES_PER_SAMPLE + i * this._length;
+      let endOffset = startOffset + this._length;
       this._channelData[i] =
-          this._module.HEAPF32.subarray(startByteOffset >> BYTES_PER_UNIT,
-                                        endByteOffset >> BYTES_PER_UNIT);
+          this._module.HEAPF32.subarray(startOffset, endOffset);
     }
   }
 
