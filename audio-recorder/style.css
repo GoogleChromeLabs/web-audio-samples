@@ -20,6 +20,14 @@ body {
   flex-grow: 1;
 }
 
+.clip canvas {
+  display: none;
+}
+
+.clip.clip-recording canvas {
+  display: block;
+}
+
 .clip-recording .recording-invisible {
   display: none;
 }
@@ -56,4 +64,8 @@ body {
 
 .logo {
   padding: 0 5px 0 20px;
+}
+
+audio::-webkit-media-controls-enclosure {
+  background: none;
 }
