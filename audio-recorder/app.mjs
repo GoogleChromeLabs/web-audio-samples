@@ -1,5 +1,7 @@
 "use strict";
 
+import { IndexedDBStorage } from "./indexeddb-storage.mjs";
+
 const DELETE_BUTTON_SELECTOR = ".delete-button";
 
 const recordButton = document.querySelector("#record");
@@ -7,8 +9,37 @@ const recordOutlineEl = document.querySelector("#record-outline");
 const soundClips = document.querySelector(".sound-clips");
 const clipTemplate = document.querySelector("#clip-template");
 
-new mdc.iconButton.MDCIconButtonToggle(recordButton);
-recordButton.onclick = startRecording;
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
+  new mdc.iconButton.MDCIconButtonToggle(recordButton);
+  recordButton.onclick = () => startRecording({ storage });
+
+  const storage = new IndexedDBStorage();
+  await storage.open();
+
+  for await (const [id, blob] of storage.readAll()) {
+    const clipContainer = insertClip();
+    finalizeClip({ clipContainer, id, blob, storage });
+  }
+}
+
+/** Inserts a new audio clip at the top of the list. */
+function insertClip() {
+  const clipContainer = clipTemplate.content.firstElementChild.cloneNode(true);
+  soundClips.prepend(clipContainer);
+  return clipContainer;
+}
+
+/** Finalizes the audio clip card by replacing the visualization with the audio element. */
+function finalizeClip({ clipContainer, blob, id, storage }) {
+  clipContainer.querySelector(DELETE_BUTTON_SELECTOR).onclick = () => {
+    clipContainer.parentNode.removeChild(clipContainer);
+    storage.delete(parseInt(id));
+  };
+  clipContainer.querySelector("audio").src = URL.createObjectURL(blob);
+  clipContainer.classList.remove("clip-recording");
+}
 
 /** Accesses the device's microphone and returns an audio stream (or null on error). */
 async function getAudioStream() {
@@ -21,27 +52,25 @@ async function getAudioStream() {
 }
 
 /** Starts recording an audio snippet in-memory and visualizes the recording waveform.  */
-async function startRecording() {
+async function startRecording({ storage }) {
   const chunks = [];
   const stream = await getAudioStream();
   if (!stream) {
     return; // Permissions have not been granted or an error occurred.
   }
 
-  // Insert a new audio clip at the top of the list.
-  const clipContainer = clipTemplate.content.firstElementChild.cloneNode(true);
-  clipContainer.querySelector(DELETE_BUTTON_SELECTOR).onclick = () => {
-    clipContainer.parentNode.removeChild(clipContainer);
-  };
-  soundClips.prepend(clipContainer);
+  const clipContainer = insertClip();
 
   // Start recording the microphone's audio stream in-memory.
   const mediaRecorder = new MediaRecorder(stream);
   mediaRecorder.ondataavailable = ({ data }) => {
     chunks.push(data);
   };
-  mediaRecorder.onstop = () => {
-    onRecordingStopped({ clipContainer, chunks });
+  mediaRecorder.onstop = async () => {
+    recordButton.onclick = () => startRecording({ storage });
+    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+    const id = await storage.save(blob);
+    finalizeClip({ clipContainer, id, blob, storage });
   };
   mediaRecorder.start();
 
@@ -52,16 +81,6 @@ async function startRecording() {
     });
   };
   visualizeRecording({ stream, clipContainer });
-}
-
-/** Finalizes the audio recording.. */
-function onRecordingStopped({ clipContainer, chunks }) {
-  const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-  chunks = [];
-
-  clipContainer.querySelector("audio").src = URL.createObjectURL(blob);
-  clipContainer.classList.remove("clip-recording");
-  recordButton.onclick = startRecording;
 }
 
 /** Visualizes the audio with a waveform and a loudness indicator. */
