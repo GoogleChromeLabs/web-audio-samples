@@ -51,6 +51,7 @@ body {
   position: fixed;
   bottom: 2em;
   left: 50%;
+  transform: translateX(-50%);
   border-radius: 50%;
 }
 
