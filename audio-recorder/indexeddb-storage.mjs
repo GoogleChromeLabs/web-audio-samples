@@ -67,7 +67,7 @@ class IndexedDBStorage {
 
         /**
          * Loads the next entry.
-         * @return {Promise<[number, Blob]>}
+         * @return {Promise<{done: boolean, value: [number, Blob]|undefined}>}
          */
         function next() {
           return new Promise((resolve, reject) => {
