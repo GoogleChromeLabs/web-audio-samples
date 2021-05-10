@@ -10,4 +10,4 @@ and visualized with an [AnalyserNode](https://developer.mozilla.org/en-US/docs/W
 ## Contributing
 
 This web application is intentionally simple and does not rely on a build step
-of any sort. All code is formatted with [Prettier](https://prettier.io/).
+of any sort.
