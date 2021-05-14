@@ -15,8 +15,8 @@
 
 import DrumCell from './DrumCell.js';
 
-const getAudioBufferByFileName =
-    async (audioContext, fileName, directoryHandle) => {
+const getAudioBufferByFileName = async (
+    audioContext, fileName, directoryHandle) => {
   const fileHandle = await directoryHandle.getFileHandle(fileName);
   const file = await fileHandle.getFile();
   const arrayBuffer = await file.arrayBuffer();
