@@ -6,7 +6,6 @@
   },
   "author": "Chromium authors",
   "license": "Apache-2.0",
-  "dependencies": {},
   "devDependencies": {
     "del": "^3.0.0",
     "eslint": "^7.25.0",

@@ -12,12 +12,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
+
+<!DOCTYPE html>
 <html lang="kr">
   <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link href="../../../assets/was-styles.css" rel="stylesheet">
+    <title>Web Audio API 드럼머신 만들기 | WebAudio Samples</title>
   </head>
   <body>
-    <button id="start-audio" disabled>시작</button>
+    <div class="container was-page-wrap">
+      <div id="TopBar"></div>
+      <div class="row">
+        <div class="column">
+          <h1>Web Audio API 드럼머신</h1>
+          <p>Web Audio API로 만들어 보는 간단한 드럼머신 예제. "2021 모국어의 날"
+            특집으로 제작된 한글 튜토리얼 입니다. "시작" 버튼을 누르고 연주할 오디오 파일을
+            선택해주세요.</p>
+        </div>
+      </div>
+      <div id="row was-demo-runner">
+        <div class="column"></div>
+          <div class="was-demo-area">
+            <div class="was-demo-area-label">DEMO</div>
+
+              <!-- 시작 버튼 -->
+              <button id="start-audio" disabled>시작</button>
+
+            <div class="was-demo-area-source">
+              <a href="#">See sources on GitHub</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="Footer"></div>
+    </div>
     <script src="main.js" type="module"></script>
+    <script type="module">
+      import {Component, TopBar, Footer} from '../assets/Components.js';
+      Component.build('TopBar', TopBar, {
+        pathData: [['Home', '../'], ['Web Audio API 드럼머신']]
+      });
+      Component.build('Footer', Footer);
+      Component.present();
+    </script>
   </body>
 </html>
