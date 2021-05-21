@@ -16,7 +16,6 @@
 const GitHubRepo = '//googlechromelabs.github.io/web-audio-samples/';
 
 export default {
-
   Resources: {
     listTitle: 'Tools and Resources',
     listData: [
@@ -26,19 +25,9 @@ export default {
         url: 'audio-worklet/',
       },
       {
-        title: 'Tone.js',
-        description: 'Framework for creating interactive music in browser',
-        url: '//tonejs.github.io/',
-      },
-      {
         title: 'Omnitone',
         description: '360° audio renderer for WebXR applications',
         url: '//googlechrome.github.io/omnitone/',
-      },
-      {
-        title: 'Resonance Audio for Web',
-        description: 'SDK for interactive ambisonic soundfield',
-        url: '//developers.google.com/resonance-audio/develop/web/getting-started',
       },
       {
         title: 'Web Audio Inspector DevTools Extension',
@@ -51,21 +40,35 @@ export default {
         url: '//hoch.github.io/canopy/',
       },
       {
+        title: 'Web Audio API 드럼머신 만들기',
+        description: 'Mother Language Day Special: Drum Sampler Tutorial',
+        url: 'drum-machine/',
+      },
+      {
+        title: 'Audio Recorder',
+        description: 'A simple PWA that records audio clips',
+        url: 'audio-recorder/',
+      },
+      {
         title: 'Web Audio API Specification',
         description: 'Latest version of API specification',
         url: '//webaudio.github.io/web-audio-api/',
       },
-      {
-        title: 'Web Audio API 드럼머신 만들기',
-        description: 'Mother Language Day Special: Drum Sampler Tutorial',
-        url: 'drum-machine/',
-      }
     ],
   },
-
   Projects: {
     listTitle: 'Selected Projects',
     listData: [
+      {
+        title: 'Tone.js',
+        description: 'Framework for creating interactive music in browser',
+        url: '//tonejs.github.io/',
+      },
+      {
+        title: 'Resonance Audio for Web',
+        description: 'SDK for interactive ambisonic soundfield',
+        url: '//developers.google.com/resonance-audio/develop/web/getting-started',
+      },
       {
         title: 'Chrome Music Lab',
         description: 'Learning music through web technology',
@@ -103,7 +106,6 @@ export default {
       },
     ]
   },
-
   Demos: {
     listTitle: 'Demos',
     listData: [
@@ -133,5 +135,4 @@ export default {
       }
     ]
   },
-
 };
