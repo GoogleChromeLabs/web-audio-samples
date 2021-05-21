@@ -20,7 +20,7 @@ import { html, render } from '../assets/lit-html/lib/lit-extended.js';
 
 const LogPrefix = '[Component] ';
 const GitHubSourceUrl =
-    'https://github.com/GoogleChromeLabs/web-audio-samples/tree/master/';
+    'https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/';
 const RepoPrefix = '/web-audio-samples/';
 
 /**
@@ -185,7 +185,7 @@ function _getColumn(entry) {
                 <a href="${entry.url}">
                   <h3 class="was-list-entry-title">${entry.title}</h3>
                 </a>
-                <p class="was-list-endtry-description">${entry.description}</p>
+                <p class="was-list-entry-description">${entry.description}</p>
               </div>
             `
           : html``

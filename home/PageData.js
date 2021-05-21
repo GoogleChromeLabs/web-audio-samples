@@ -16,7 +16,6 @@
  const GitHubRepo = '//googlechromelabs.github.io/web-audio-samples/';
 
  export default {
- 
    Resources: {
      listTitle: 'Tools and Resources',
      listData: [
@@ -41,11 +40,6 @@
          url: '//hoch.github.io/canopy/',
        },
        {
-         title: 'Web Audio API Specification',
-         description: 'Latest version of API specification',
-         url: '//webaudio.github.io/web-audio-api/',
-       },
-       {
          title: 'Web Audio API 드럼머신 만들기',
          description: 'Mother Language Day Special: Drum Sampler Tutorial',
          url: 'drum-machine/',
@@ -55,9 +49,13 @@
          description: 'A simple PWA that records audio clips',
          url: 'audio-recorder/',
        },
+       {
+        title: 'Web Audio API Specification',
+        description: 'Latest version of API specification',
+        url: '//webaudio.github.io/web-audio-api/',
+      },
      ],
    },
- 
    Projects: {
      listTitle: 'Selected Projects',
      listData: [
@@ -108,7 +106,6 @@
        },
      ]
    },
- 
    Demos: {
      listTitle: 'Demos',
      listData: [
@@ -138,6 +135,4 @@
        }
      ]
    },
- 
  };
- 
