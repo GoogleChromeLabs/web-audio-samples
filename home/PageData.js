@@ -53,8 +53,13 @@ export default {
       {
         title: 'Web Audio API Specification',
         description: 'Latest version of API specification',
-        url: '//webaudio.github.io/web-audio-api/'
+        url: '//webaudio.github.io/web-audio-api/',
       },
+      {
+        title: 'Web Audio API 드럼머신 만들기',
+        description: 'Mother Language Day Special: Drum Sampler Tutorial',
+        url: 'drum-machine/',
+      }
     ],
   },
 
