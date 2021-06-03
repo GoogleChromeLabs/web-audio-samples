@@ -2,7 +2,7 @@
   "name": "web-audio-samples",
   "version": "2.1.0",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint"
   },
   "author": "Chromium authors",
   "license": "Apache-2.0",
