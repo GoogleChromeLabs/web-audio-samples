@@ -12,6 +12,21 @@ const clipTemplate = document.querySelector('#clip-template');
 
 document.addEventListener('DOMContentLoaded', init);
 
+// Enable offline support through a ServiceWorker. We register the message
+// listener during import time (before DOMContentLoaded), in order to not
+// miss messages that are sent during resource loading.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'reload') {
+      // The ServiceWorker refreshes cached resources in the background. In
+      // case of a cache invalidation, the worker sends a message that
+      // instructs the website to reload.
+      window.location.reload();
+    }
+  });
+  navigator.serviceWorker.register('./service-worker.js');
+}
+
 /** Initializes the web application. */
 async function init() {
   /* global mdc */ // Material Components Web scripts are loaded in index.html.
