@@ -56,7 +56,9 @@ class IndexedDBStorage {
 
   /**
    * Returns an AsyncIterable that yields Promises of [id, blob] tuples.
-   * @return {AsyncIterable<[number, Blob]>}
+   * @typedef {[number, Blob]} IdBlob
+   * @typedef {IdBlob|undefined} OptionalIdBlob
+   * @return {AsyncIterable<IdBlob>}
    */
   readAll() {
     // Store db in local context - `this` is reassigned in next().
@@ -67,7 +69,7 @@ class IndexedDBStorage {
 
         /**
          * Loads the next entry.
-         * @return {Promise<{done: boolean, value: [number, Blob]|undefined}>}
+         * @return {Promise<{done: boolean, value: OptionalIdBlob}>}
          */
         function next() {
           return new Promise((resolve, reject) => {

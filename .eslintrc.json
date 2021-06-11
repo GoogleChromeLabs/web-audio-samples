@@ -9,7 +9,6 @@
     ],
     "ignorePatterns": [
         "archive/", 
-        "audio-recorder/",
         "audio-worklet/"
     ],
     "parserOptions": {
