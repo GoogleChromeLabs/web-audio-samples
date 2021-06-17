@@ -181,6 +181,7 @@ body {
 	margin-bottom: 10px;
 	width: 100%;
 	display: flex;
+	align-items: center;
 }
 
 .slider_groove {
@@ -201,13 +202,14 @@ body {
 }
 
 .slider_label {
+	display: block;
 	text-align: center;
 	margin-top: 13px;
 }
 
-#tempo_container {
+#paramsleft_container #tempo_container {
 	height: 40px;
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 }
 
 #tempodisplay {
@@ -319,4 +321,60 @@ body {
 
 .buttons_container input {
 	cursor: pointer;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent url(../images/sliderh_track.png) no-repeat center;
+	cursor: pointer;
+	width: 171px;
+	height: 30px;
+	margin: 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 100%;
+  width: 40px;
+	background: transparent url(../images/sliderh_thumb.png) no-repeat center;
+	margin-top: 1px;
+}
+
+input[type=range]::-moz-slider-thumb {
+  -moz-appearance: none;
+  height: 100%;
+  width: 40px;
+	background: transparent url(../images/sliderh_thumb.png) no-repeat center;
+	margin-top: 1px;
+}
+
+input[type=range]:focus {
+  outline: none; 
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+	height: 100%;	
+}
+
+input[type=range]::-moz-range-track {
+	height: 100%;	
+}
+
+input[type=range].vertical {
+	width: 90px;
+	height: 50px;
+	transform: rotate(270deg);
+	margin: 20px 0 25px -20px;
+	background-image: url(../images/slider_track.png);
+}
+
+input[type=range].vertical::-webkit-slider-thumb {
+	background-image: url(../images/slider_thumb.png);
+	margin-top: -1px;
+}
+
+input[type=range].vertical::-moz-slider-thumb {
+	background-image: url(../images/slider_thumb.png);
+	margin-top: -1px;
 }
