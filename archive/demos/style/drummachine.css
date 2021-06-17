@@ -111,60 +111,33 @@ body {
 	border: 0;
 }
 
-.combo {
+select {
+	appearance: none;
 	cursor: pointer;
-	width: 158px;
-	height: 15px;
-	background: -webkit-gradient(linear, left top, left bottom, from(rgb(255, 255, 255)), 
-		color-stop(2%, rgb(255, 255, 255)), color-stop(5%, rgb(244, 244, 244)), 
-		color-stop(90%, rgb(255, 255, 255)), to(rgb(232, 232, 232)));
+	display: block;
+	width: 172px;
+	line-height: 29px;
+	height: 29px;
+	background: url(../images/drop_arrow.png) no-repeat 94% center, -webkit-gradient(linear, left top, left bottom, from(rgb(255, 255, 255)), 
+	color-stop(2%, rgb(255, 255, 255)), color-stop(5%, rgb(244, 244, 244)), 
+	color-stop(90%, rgb(255, 255, 255)), to(rgb(232, 232, 232)));
 	border-radius: 3px;
 	border: 1px solid rgb(220, 220, 220);
 	color: rgb(76, 76, 76);
-	display: inline-block;
-	vertical-align: top;
-	position: relative;
-	padding: 6px;
+	text-indent: 6px;
+	font-family: inherit;
+	font-size: inherit;
 }
 
-.combo img {
-	position: absolute;
-	left: 150px;
-	top: 11px;
+select:focus {
+	outline: none;
 }
 
-.combolist {
-	list-style-type: none;
-	position: absolute;
-	top: 27px;
-	left: -1px;
-	margin: 0;
-	background-color: rgb(249, 249, 249);
-	border-radius: 2px;
-	border: 1px solid rgb(200, 200, 200);
-	width: 160px;
-	padding: 5px;
-	display: none;
-	z-index: 1;
-}
-
-#effectlist {
-	height: 200px;
-	overflow: auto;
-}
-
-.combo.active .combolist {
-	display: block;
-}
-
-.combolist li {
-	padding: 2px;
-	border-radius: 2px;
-}
-
-.combolist li:hover {
-	color: rgb(255, 255, 255);
-	background-color: rgb(38, 47, 104);
+select::after {
+	content: "";
+	background: transparent url(../images/drop_arrow.png) no-repeat center;
+	width: 10px;
+	height: 6px;
 }
 
 .slider_container {
