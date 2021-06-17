@@ -69,9 +69,6 @@ var theBeat = cloneBeat(beatReset);
 
 kickPitch = snarePitch = hihatPitch = tom1Pitch = tom2Pitch = tom3Pitch = 0;
 
-var mouseCapture = null;
-var mouseCaptureOffset = 0;
-
 var loopLength = 16;
 var rhythmIndex = 0;
 var kMinTempo = 50;
@@ -447,14 +444,14 @@ function initControls() {
     makeEffectList();
 
     // sliders
-    document.getElementById('effect_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('tom1_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('tom2_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('tom3_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('hihat_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('snare_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('kick_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
-    document.getElementById('swing_thumb').addEventListener('mousedown', handleSliderMouseDown, true);
+    document.getElementById('effect_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('tom1_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('tom2_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('tom3_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('hihat_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('snare_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('kick_thumb').addEventListener('input', handleSliderChange, true);
+    document.getElementById('swing_thumb').addEventListener('input', handleSliderChange, true);
 
     document.getElementById('effect_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
     document.getElementById('tom1_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
@@ -479,10 +476,6 @@ function initControls() {
     document.getElementById('demo3').addEventListener('click', handleDemoMouseDown, true);
     document.getElementById('demo4').addEventListener('click', handleDemoMouseDown, true);
     document.getElementById('demo5').addEventListener('click', handleDemoMouseDown, true);
-
-    var elBody = document.getElementById('body');
-    elBody.addEventListener('mousemove', handleMouseMove, true);
-    elBody.addEventListener('mouseup', handleMouseUp, true);
 
     document.getElementById('tempoinc').addEventListener('click', tempoIncrease, true);
     document.getElementById('tempodec').addEventListener('click', tempoDecrease, true);
@@ -639,78 +632,17 @@ function tempoDecrease() {
     document.getElementById('tempo').innerHTML = theBeat.tempo;
 }
 
-function handleSliderMouseDown(event) {
-    mouseCapture = event.target.id;
-
-    // calculate offset of mousedown on slider
-    var el = event.target;
-    if (mouseCapture == 'swing_thumb') {
-        var thumbX = 0;    
-        do {
-            thumbX += el.offsetLeft;
-        } while (el = el.offsetParent);
-
-        mouseCaptureOffset = event.pageX - thumbX;
-    } else {
-        var thumbY = 0;    
-        do {
-            thumbY += el.offsetTop;
-        } while (el = el.offsetParent);
-
-        mouseCaptureOffset = event.pageY - thumbY;
-    }
+function handleSliderChange(event) {
+    sliderSetValue(event.target.id, new Number(event.target.value) / 100);
 }
 
 function handleSliderDoubleClick(event) {
     var id = event.target.id;
     if (id != 'swing_thumb' && id != 'effect_thumb') {
-        mouseCapture = null;
         sliderSetValue(event.target.id, 0.5);
+        event.target.value = 50;
         updateControls();
     }
-}
-
-function handleMouseMove(event) {
-    if (!mouseCapture) return;
-    
-    var elThumb = document.getElementById(mouseCapture);
-    var elTrack = elThumb.parentNode;
-
-    if (mouseCapture != 'swing_thumb') {
-        var thumbH = elThumb.clientHeight;
-        var trackH = elTrack.clientHeight;
-        var travelH = trackH - thumbH;
-
-        var trackY = 0;
-        var el = elTrack;
-        do {
-            trackY += el.offsetTop;
-        } while (el = el.offsetParent);
-
-        var offsetY = Math.max(0, Math.min(travelH, event.pageY - mouseCaptureOffset - trackY));
-        var value = 1.0 - offsetY / travelH;
-        elThumb.style.top = travelH * (1.0 - value) + 'px';
-    } else {
-        var thumbW = elThumb.clientWidth;
-        var trackW = elTrack.clientWidth;
-        var travelW = trackW - thumbW;
-
-        var trackX = 0;
-        var el = elTrack;
-        do {
-            trackX += el.offsetLeft;
-        } while (el = el.offsetParent);
-
-        var offsetX = Math.max(0, Math.min(travelW, event.pageX - mouseCaptureOffset - trackX));
-        var value = offsetX / travelW;
-        elThumb.style.left = travelW * value + 'px';
-    }
-
-    sliderSetValue(mouseCapture, value);
-}
-
-function handleMouseUp() {
-    mouseCapture = null;
 }
 
 function sliderSetValue(slider, value) {
@@ -753,22 +685,7 @@ function sliderSetValue(slider, value) {
 }
 
 function sliderSetPosition(slider, value) {
-    var elThumb = document.getElementById(slider);
-    var elTrack = elThumb.parentNode;
-
-    if (slider == 'swing_thumb') {
-        var thumbW = elThumb.clientWidth;
-        var trackW = elTrack.clientWidth;
-        var travelW = trackW - thumbW;
-
-        elThumb.style.left = travelW * value + 'px';
-    } else {
-        var thumbH = elThumb.clientHeight;
-        var trackH = elTrack.clientHeight;
-        var travelH = trackH - thumbH;
-
-        elThumb.style.top = travelH * (1.0 - value) + 'px';
-    }
+    document.getElementById(slider).value = 100 * value;
 }
 
 function handleButtonMouseDown(event) {
