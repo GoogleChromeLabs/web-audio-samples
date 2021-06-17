@@ -40,20 +40,37 @@ body {
 	display: block;
 }
 
+.row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.button_group {
+	display: flex;
+	justify-content: center;
+}
+
 .buttons_row {
+	display: flex;
+	height: 42px;
+	align-items: center;
+	line-height: 42px;
+}
+
+.buttons_row .label {
+	margin-right: 18px;
 }
 
 #LED_row {
+	height: 18px;
 	margin-top: 8px;
 	margin-bottom: 12px;
 }
 
 .label {
 	display: inline-block;
-	vertical-align: top;
 	width: 60px;
-	position: relative;
-	top: 12px;
 	text-align: right;
 	margin-right: 15px;
 }
@@ -66,14 +83,25 @@ body {
 	height: 155px;
 }
 
+#params > .row {
+	align-items: flex-start;
+	margin-right: 6px;
+}
+
 #tools {
 	height: 36px;
 }
 
 #paramsleft_container {
-	display: inline-block;
-	vertical-align: top;
 	margin-right: 13px;
+	width: 251px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#paramsleft_container .row {
+	margin-bottom: 11px;
 }
 
 .btn {
@@ -81,14 +109,6 @@ body {
 	padding: 0;
 	margin: 0;
 	border: 0;
-}
-
-#kitlabel, #effectlabel, #swinglabel {
-	top: 6px;
-}
-
-#beatlabel {
-	top: 8px;
 }
 
 .combo {
@@ -105,7 +125,6 @@ body {
 	vertical-align: top;
 	position: relative;
 	padding: 6px;
-	margin-bottom: 10px;
 }
 
 .combo img {
@@ -158,16 +177,20 @@ body {
 }
 
 #swing_container {
-	width: 250px;
 	height: 30px;
 	margin-bottom: 10px;
+	width: 100%;
+	display: flex;
 }
 
 .slider_groove {
 	margin: 0 auto;
-	display: inline-block;
 	vertical-align: top;
 	position: relative;
+}
+
+.adjust_for_transparency {
+	margin-top: -3px;
 }
 
 .slider_thumb {
@@ -189,11 +212,13 @@ body {
 
 #tempodisplay {
 	background-image: url('../images/tempo_bg.png');
-	width: 57px;
-	height: 20px;
+	width: 87px;
+	height: 40px;
+	line-height: 40px;
+	padding-right: 10px;
+	margin-right: 5px;
 	display: inline-block;
 	vertical-align: top;
-	padding: 10px 20px;
 	text-align: right;
 	color: rgb(76, 76 ,76);
 }
@@ -205,13 +230,6 @@ body {
 
 #bpm {
 	font-size: 14px;
-}
-
-#tempoinc, #tempodec {
-	cursor: pointer;
-	position: relative;
-	top: 3px;
-	left: 1px;
 }
 
 .vrule {
