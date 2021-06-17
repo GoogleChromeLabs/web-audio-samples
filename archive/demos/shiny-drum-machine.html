@@ -28,35 +28,23 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-  "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<meta name="description" content="Create custom drum beats with a few clicks.  Choose from 15 drum kits and 26 effects, and adjust the pitch of each drum.  Save and share your beats… rock on!">
-<title>WebAudio Drum Machine</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Create custom drum beats with a few clicks. Choose from 15 drum kits and 26 effects, and adjust the pitch of each drum. Save and share your beats… rock on!">
+    <title>WebAudio Drum Machine</title>
 
-<link href="https://fonts.googleapis.com/css?family=Michroma|Open+Sans" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href = "style/drummachine.css">
-<script src="shiny-drum-machine.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href = "style/drummachine.css">
+    <script src="shiny-drum-machine.js"></script>
+
+    <!-- Preload images of dynamic UI elements -->
+    <link rel="preload" as="image" href="images/button_off.png">
+    <link rel="preload" as="image" href="images/button_half.png">
+    <link rel="preload" as="image" href="images/button_on.png">
+    <link rel="preload" as="image" href="images/LED_on.png">
 </head>
-
-
-<!-- Preload some important UI elements -->
-<img class="preload" src='images/btn_play.png'>
-<img class="preload" src='images/btn_load.png'>
-<img class="preload" src='images/btn_reset.png'>
-<img class="preload" src='images/btn_save.png'>
-<img class="preload" src='images/btn_demo1.png'>
-<img class="preload" src='images/btn_demo2.png'>
-<img class="preload" src='images/btn_demo3.png'>
-<img class="preload" src='images/btn_demo4.png'>
-<img class="preload" src='images/btn_demo5.png'>
-<img class="preload" src='images/button_off.png'>
-<img class="preload" src='images/button_half.png'>
-<img class="preload" src='images/button_on.png'>
-<img class="preload" src='images/LED_on.png'>
 
 <!--  The markup below keeps all images in a row on a single long line to avoid 
             a bizarre bug where otherwise the browser inserts an extra pixel between 
