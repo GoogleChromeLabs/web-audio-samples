@@ -425,13 +425,11 @@ function init() {
     convolver.connect(effectLevelNode);
 
 
-    var elKitCombo = document.getElementById('kitcombo');
-    elKitCombo.addEventListener("mousedown", handleKitComboMouseDown, true);
+    var elKitCombo = document.getElementById('kitlist');
+    elKitCombo.addEventListener("change", handleKitChange, true);
 
-    var elEffectCombo = document.getElementById('effectcombo');
-    elEffectCombo.addEventListener("mousedown", handleEffectComboMouseDown, true);
-
-    document.body.addEventListener("mousedown", handleBodyMouseDown, true);
+    var elEffectCombo = document.getElementById('effectlist');
+    elEffectCombo.addEventListener("change", handleEffectChange, true);
 
     initControls();
     updateControls();
@@ -495,17 +493,9 @@ function initButtons() {
 function makeEffectList() {
     var elList = document.getElementById('effectlist');
     var numEffects = impulseResponseInfoList.length;
-
-    
-    var elItem = document.createElement('li');
-    elItem.innerHTML = 'None';
-    elItem.addEventListener("mousedown", handleEffectMouseDown, true);
     
     for (var i = 0; i < numEffects; i++) {
-        var elItem = document.createElement('li');
-        elItem.innerHTML = impulseResponseInfoList[i].name;
-        elList.appendChild(elItem);
-        elItem.addEventListener("mousedown", handleEffectMouseDown, true);
+        elList.add(new Option(impulseResponseInfoList[i].name));
     }
 }
 
@@ -514,10 +504,7 @@ function makeKitList() {
     var numKits = kitName.length;
     
     for (var i = 0; i < numKits; i++) {
-        var elItem = document.createElement('li');
-        elItem.innerHTML = kitNamePretty[i];
-        elList.appendChild(elItem);
-        elItem.addEventListener("mousedown", handleKitMouseDown, true);
+        elList.add(new Option(kitNamePretty[i]))
     }
 }
 
@@ -743,67 +730,18 @@ function handleButtonMouseDown(event) {
     }
 }
 
-function handleKitComboMouseDown(event) {
-    document.getElementById('kitcombo').classList.toggle('active');
+function handleKitChange(event) {
+    theBeat.kitIndex = event.target.selectedIndex;
+    currentKit = kits[event.target.selectedIndex];
 }
 
-function handleKitMouseDown(event) {
-    var index = kitNamePretty.indexOf(event.target.innerHTML);
-    theBeat.kitIndex = index;
-    currentKit = kits[index];
-    document.getElementById('kitname').innerHTML = kitNamePretty[index];
-}
+function handleEffectChange(event) {
+    // Hack - if effect is turned all the way down - turn up effect slider.
+    // ... since they just explicitly chose an effect from the list.
+    if (theBeat.effectMix == 0)
+        theBeat.effectMix = 0.5;
 
-function handleBodyMouseDown(event) {
-    var elKitcombo = document.getElementById('kitcombo');
-    var elEffectcombo = document.getElementById('effectcombo');
-
-    if (elKitcombo.classList.contains('active') && !isDescendantOfId(event.target, 'kitcombo_container')) {
-        elKitcombo.classList.remove('active');
-        if (!isDescendantOfId(event.target, 'effectcombo_container')) {
-            event.stopPropagation();
-        }
-    }
-    
-    if (elEffectcombo.classList.contains('active') && !isDescendantOfId(event.target, 'effectcombo')) {
-        elEffectcombo.classList.remove('active');
-        if (!isDescendantOfId(event.target, 'kitcombo_container')) {
-            event.stopPropagation();
-        }
-    }    
-}
-
-function isDescendantOfId(el, id) {
-    if (el.parentElement) {
-        if (el.parentElement.id == id) {
-            return true;
-        } else {
-            return isDescendantOfId(el.parentElement, id);
-        }
-    } else {
-        return false;
-    }
-}
-
-function handleEffectComboMouseDown(event) {
-    if (event.target.id != 'effectlist') {
-        document.getElementById('effectcombo').classList.toggle('active');
-    }
-}
-
-function handleEffectMouseDown(event) {
-    for (var i = 0; i < impulseResponseInfoList.length; ++i) {
-        if (impulseResponseInfoList[i].name == event.target.innerHTML) {
-
-            // Hack - if effect is turned all the way down - turn up effect slider.
-            // ... since they just explicitly chose an effect from the list.
-            if (theBeat.effectMix == 0)
-                theBeat.effectMix = 0.5;
-
-            setEffect(i);
-            break;
-        }
-    }
+    setEffect(event.target.selectedIndex);
 }
 
 function setEffect(index) {
@@ -826,7 +764,7 @@ function setEffect(index) {
     sliderSetValue('effect_thumb', theBeat.effectMix);
     updateControls();
 
-    document.getElementById('effectname').innerHTML = impulseResponseInfoList[index].name;
+    document.getElementById('effectlist').selectedIndex = index;
 }
 
 function setEffectLevel() {        
@@ -991,8 +929,8 @@ function updateControls() {
         }
     }
 
-    document.getElementById('kitname').innerHTML = kitNamePretty[theBeat.kitIndex];
-    document.getElementById('effectname').innerHTML = impulseResponseInfoList[theBeat.effectIndex].name;
+    document.getElementById('kitlist').selectedIndex = theBeat.kitIndex;
+    document.getElementById('effectlist').selectedIndex = theBeat.effectIndex;
     document.getElementById('tempo').innerHTML = theBeat.tempo;
     sliderSetPosition('swing_thumb', theBeat.swingFactor);
     sliderSetPosition('effect_thumb', theBeat.effectMix);
