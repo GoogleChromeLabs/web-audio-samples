@@ -466,26 +466,26 @@ function initControls() {
     document.getElementById('swing_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
 
     // tool buttons
-    document.getElementById('play').addEventListener('mousedown', handlePlay, true);
-    document.getElementById('stop').addEventListener('mousedown', handleStop, true);
-    document.getElementById('save').addEventListener('mousedown', handleSave, true);
-    document.getElementById('save_ok').addEventListener('mousedown', handleSaveOk, true);
-    document.getElementById('load').addEventListener('mousedown', handleLoad, true);
-    document.getElementById('load_ok').addEventListener('mousedown', handleLoadOk, true);
-    document.getElementById('load_cancel').addEventListener('mousedown', handleLoadCancel, true);
-    document.getElementById('reset').addEventListener('mousedown', handleReset, true);
-    document.getElementById('demo1').addEventListener('mousedown', handleDemoMouseDown, true);
-    document.getElementById('demo2').addEventListener('mousedown', handleDemoMouseDown, true);
-    document.getElementById('demo3').addEventListener('mousedown', handleDemoMouseDown, true);
-    document.getElementById('demo4').addEventListener('mousedown', handleDemoMouseDown, true);
-    document.getElementById('demo5').addEventListener('mousedown', handleDemoMouseDown, true);
+    document.getElementById('play').addEventListener('click', handlePlay, true);
+    document.getElementById('stop').addEventListener('click', handleStop, true);
+    document.getElementById('save').addEventListener('click', handleSave, true);
+    document.getElementById('save_ok').addEventListener('click', handleSaveOk, true);
+    document.getElementById('load').addEventListener('click', handleLoad, true);
+    document.getElementById('load_ok').addEventListener('click', handleLoadOk, true);
+    document.getElementById('load_cancel').addEventListener('click', handleLoadCancel, true);
+    document.getElementById('reset').addEventListener('click', handleReset, true);
+    document.getElementById('demo1').addEventListener('click', handleDemoMouseDown, true);
+    document.getElementById('demo2').addEventListener('click', handleDemoMouseDown, true);
+    document.getElementById('demo3').addEventListener('click', handleDemoMouseDown, true);
+    document.getElementById('demo4').addEventListener('click', handleDemoMouseDown, true);
+    document.getElementById('demo5').addEventListener('click', handleDemoMouseDown, true);
 
     var elBody = document.getElementById('body');
     elBody.addEventListener('mousemove', handleMouseMove, true);
     elBody.addEventListener('mouseup', handleMouseUp, true);
 
-    document.getElementById('tempoinc').addEventListener('mousedown', tempoIncrease, true);
-    document.getElementById('tempodec').addEventListener('mousedown', tempoDecrease, true);
+    document.getElementById('tempoinc').addEventListener('click', tempoIncrease, true);
+    document.getElementById('tempodec').addEventListener('click', tempoDecrease, true);
 }
 
 function initButtons() {        
@@ -494,7 +494,7 @@ function initButtons() {
     for (i = 0; i < loopLength; ++i) {
         for (j = 0; j < kNumInstruments; j++) {
                 elButton = document.getElementById(instruments[j] + '_' + i);
-                elButton.addEventListener("mousedown", handleButtonMouseDown, true);
+                elButton.addEventListener("click", handleButtonMouseDown, true);
         }
     }
 }
