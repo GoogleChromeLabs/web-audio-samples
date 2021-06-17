@@ -317,6 +317,6 @@ body {
 	display: block;
 }
 
-.buttons_container img {
+.buttons_container input {
 	cursor: pointer;
 }
