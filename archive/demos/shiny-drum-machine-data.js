@@ -1,9 +1,9 @@
 function freeze(obj) {
-    for(const property of Object.getOwnPropertyNames(obj)) {
+    for (const property of Object.getOwnPropertyNames(obj)) {
         const value = obj[property];
         if (value && typeof value === "object") {
             freeze(value);
-          }
+        }
     }
     return Object.freeze(obj);
 }
@@ -130,7 +130,14 @@ const DEMO_BEATS = freeze([
     },
 ]);
 
-const INSTRUMENTS = freeze(['Kick', 'Snare', 'HiHat', 'Tom1', 'Tom2', 'Tom3']);
+const INSTRUMENTS = freeze([
+    { name: 'Kick', pan: false, sendGain: 0.5, mainGain: 1.0 },
+    { name: 'Snare', pan: false, sendGain: 1, mainGain: 0.6 },
+    { name: 'HiHat', pan: true, sendGain: 1, mainGain: 0.7 },
+    { name: 'Tom1', pan: false, sendGain: 1, mainGain: 0.6 },
+    { name: 'Tom2', pan: false, sendGain: 1, mainGain: 0.6 },
+    { name: 'Tom3', pan: false, sendGain: 1, mainGain: 0.6 },
+]);
 
 const KIT_DATA = freeze([
     { id: "R8", name: "Roland R-8" },

@@ -1,5 +1,5 @@
 import { RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA, IMPULSE_RESPONSE_DATA, freeze, clone } from "./shiny-drum-machine-data.js";
-import {DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider, PitchSliders, TempoInput, Playheads, Notes, SaveModal, LoadModal, ResetButton, PlayButton} from './shiny-drum-machine-ui.js';
+import { DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider, PitchSliders, TempoInput, Playheads, Notes, SaveModal, LoadModal, ResetButton, PlayButton } from './shiny-drum-machine-ui.js';
 
 
 // Events
@@ -64,27 +64,27 @@ class Kit {
         this.buffer = {};
     }
 
-    getSampleUrl(instrument) {
-        return `sounds/drum-samples/${this.id}/${instrument.toLowerCase()}.wav`;
+    getSampleUrl(instrumentName) {
+        return `sounds/drum-samples/${this.id}/${instrumentName.toLowerCase()}.wav`;
     }
 
     load() {
-        const instrumentPromises = INSTRUMENTS.map(instrument => this.loadSample(instrument));
+        const instrumentPromises = INSTRUMENTS.map(instrument => this.loadSample(instrument.name));
         const promise = Promise.all(instrumentPromises).then(() => null);
         // Return original Promise on subsequent load calls to avoid duplicate loads.
         this.load = () => promise;
         return promise;
     }
 
-    async loadSample(instrument) {
-        const request = new Request(this.getSampleUrl(instrument));
+    async loadSample(instrumentName) {
+        const request = new Request(this.getSampleUrl(instrumentName));
         const response = await fetch(request);
         const responseBuffer = await response.arrayBuffer();
 
         // TODO: Migrate to Promise-syntax once Safari supports it.
         return new Promise((resolve) => {
             context.decodeAudioData(responseBuffer, (buffer) => {
-                this.buffer[instrument] = buffer;
+                this.buffer[instrumentName] = buffer;
                 resolve();
             });
         });
@@ -101,7 +101,7 @@ class ImpulseResponse {
     }
 
     async load() {
-        if(!this.url) {
+        if (!this.url) {
             return; // "No effect" instance has empty URL.
         }
 
@@ -128,7 +128,7 @@ function loadDemos(onDemoLoaded) {
         const demo = DEMO_BEATS[demoIndex];
         const effect = impulseResponses[demo.effectIndex];
         const kit = KITS[demo.kitIndex];
-        
+
         Promise.all([
             effect.load(),
             kit.load(),
@@ -136,11 +136,11 @@ function loadDemos(onDemoLoaded) {
     }
 }
 
-function loadAssets() {       
+function loadAssets() {
     // Note that any assets which have previously started loading will be skipped over.
-    for(const kit of KITS) {
+    for (const kit of KITS) {
         kit.load();
-    }  
+    }
 
     for (const impulseResponse of impulseResponses) {
         impulseResponse.load();
@@ -154,7 +154,7 @@ function getCurrentKit() {
 // This gets rid of the loading spinner in each of the demo buttons.
 function onDemoLoaded(demoIndex) {
     ui.demoButtons.markDemoAvailable(demoIndex)
-    
+
     // Enable play button and assign it to demo 2.
     if (demoIndex == 1) {
         // This gets rid of the loading spinner on the play button.
@@ -163,16 +163,16 @@ function onDemoLoaded(demoIndex) {
     }
 }
 
-function init() {    
+function init() {
     impulseResponses = IMPULSE_RESPONSE_DATA.map((data, i) => new ImpulseResponse(data, i));
-    KITS = KIT_DATA.map(({id, name}) => new Kit(id, name));
-    
+    KITS = KIT_DATA.map(({ id, name }) => new Kit(id, name));
+
     initControls();
 
     // Start loading the assets used by the presets first, in order of the presets.
     // The callback gets rid of the loading spinner in each of the demo buttons.
     loadDemos(onDemoLoaded);
-    
+
     // Then load the remaining assets.
     loadAssets();
 
@@ -202,14 +202,14 @@ function init() {
     // Create convolver for effect
     convolver = context.createConvolver();
     convolver.connect(effectLevelNode);
-    
+
     updateControls();
 }
 
 function initControls() {
     // Initialize note buttons
     ui.notes = new Notes();
-    ui.notes.onClick = (instrument, rhythm) => handleNoteClick(instrument, rhythm);
+    ui.notes.onClick = (instrumentName, rhythm) => handleNoteClick(instrumentName, rhythm);
 
     ui.kitPicker = new KitPicker();
     ui.kitPicker.addOptions(KITS.map(kit => kit.prettyName));
@@ -223,25 +223,23 @@ function initControls() {
     ui.effectSlider.onchange = (value) => {
         // Change the volume of the convolution effect.
         theBeat.effectMix = value;
-        setEffectLevel(theBeat);            
+        setEffectLevel(theBeat);
     };
 
     ui.swingSlider = new SwingSlider();
     ui.swingSlider.onchange = (value) => {
-        theBeat.swingFactor = value;        
+        theBeat.swingFactor = value;
     };
 
     ui.pitchSliders = new PitchSliders();
-    ui.pitchSliders.onPitchChange = (instrument, pitch) => {
-        theBeat[`${instrument.toLowerCase()}PitchVal`] = pitch;
-    };
+    ui.pitchSliders.onPitchChange = (instrumentName, pitch) => setPitch(instrumentName, pitch);
 
     // tool buttons
     ui.playButton = new PlayButton();
     ui.playButton.onclick = () => {
-        if(ui.playButton.state === "playing") {
+        if (ui.playButton.state === "playing") {
             handleStop();
-        } else if(ui.playButton.state === "stopped") {
+        } else if (ui.playButton.state === "stopped") {
             handlePlay();
         }
     };
@@ -261,12 +259,25 @@ function initControls() {
         handlePlay();
     };
 
-    ui.tempoInput = new TempoInput({min: MIN_TEMPO, max: MAX_TEMPO, step: 4});
+    ui.tempoInput = new TempoInput({ min: MIN_TEMPO, max: MAX_TEMPO, step: 4 });
     ui.tempoInput.onTempoChange = (tempo) => {
         theBeat.tempo = tempo;
     };
 
     ui.playheads = new Playheads();
+}
+
+function setPitch(instrumentName, pitch) {
+    theBeat[`${instrumentName.toLowerCase()}PitchVal`] = pitch;
+}
+
+function getPitch(instrumentName) {
+    return theBeat[`${instrumentName.toLowerCase()}PitchVal`];
+}
+
+function getRhythm(instrumentName) {
+    const index = 1 + INSTRUMENTS.findIndex(i => i.name === instrumentName);
+    return theBeat[`rhythm${index}`];
 }
 
 function advanceNote() {
@@ -278,7 +289,7 @@ function advanceNote() {
         rhythmIndex = 0;
     }
 
-        // apply swing    
+    // apply swing    
     if (rhythmIndex % 2) {
         noteTime += (0.25 + MAX_SWING * theBeat.swingFactor) * secondsPerBeat;
     } else {
@@ -286,17 +297,24 @@ function advanceNote() {
     }
 }
 
-function playNote(buffer, pan, x, y, z, sendGain, mainGain, playbackRate, noteTime) {
+function playNote(instrument, rhythmIndex, noteTime) {
+    const note = getRhythm(instrument.name)[rhythmIndex];
+
+    if (!note) {
+        return;
+    }
+
     // Create the note
     var voice = context.createBufferSource();
-    voice.buffer = buffer;
-    voice.playbackRate.value = playbackRate;
+    voice.buffer = getCurrentKit().buffer[instrument.name];
+    voice.playbackRate.value = computePlaybackRate(instrument.name);
 
     // Optionally, connect to a panner
     var finalNode;
-    if (pan) {
+    if (instrument.pan) {
         var panner = context.createPanner();
-        panner.setPosition(x, y, z);
+        // Pan according to sequence position.
+        panner.setPosition(0.5 * rhythmIndex - 4, 0, -1);
         voice.connect(panner);
         finalNode = panner;
     } else {
@@ -305,13 +323,13 @@ function playNote(buffer, pan, x, y, z, sendGain, mainGain, playbackRate, noteTi
 
     // Connect to dry mix
     var dryGainNode = context.createGain();
-    dryGainNode.gain.value = mainGain * effectDryMix;
+    dryGainNode.gain.value = VOLUMES[note] * instrument.mainGain * effectDryMix;
     finalNode.connect(dryGainNode);
     dryGainNode.connect(masterGainNode);
 
     // Connect to wet mix
     var wetGainNode = context.createGain();
-    wetGainNode.gain.value = sendGain;
+    wetGainNode.gain.value = instrument.sendGain;
     finalNode.connect(wetGainNode);
     wetGainNode.connect(convolver);
 
@@ -326,44 +344,12 @@ function schedule() {
 
     while (noteTime < currentTime + 0.200) {
         // Convert noteTime to context time.
-        var contextPlayTime = noteTime + startTime;
-        
-        // Kick
-        if (theBeat.rhythm1[rhythmIndex]) {
-            let instrument = 'Kick';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5, VOLUMES[theBeat.rhythm1[rhythmIndex]] * 1.0, computePlaybackRate(instrument), contextPlayTime);
+        const contextPlayTime = noteTime + startTime;
+
+        for (const instrument of INSTRUMENTS) {
+            playNote(instrument, rhythmIndex, contextPlayTime);
         }
 
-        // Snare
-        if (theBeat.rhythm2[rhythmIndex]) {
-            let instrument = 'Snare';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm2[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
-        }
-
-        // Hihat
-        if (theBeat.rhythm3[rhythmIndex]) {
-            // Pan the hihat according to sequence position.
-            let instrument = 'HiHat';
-            playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, 1, VOLUMES[theBeat.rhythm3[rhythmIndex]] * 0.7, computePlaybackRate(instrument), contextPlayTime);
-        }
-
-        // Toms    
-        if (theBeat.rhythm4[rhythmIndex]) {
-            let instrument = 'Tom1';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm4[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
-        }
-
-        if (theBeat.rhythm5[rhythmIndex]) {
-            let instrument = 'Tom2';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm5[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
-        }
-
-        if (theBeat.rhythm6[rhythmIndex]) {
-            let instrument = 'Tom3';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm6[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
-        }
-
-        
         // Attempt to synchronize drawing time with sound
         if (noteTime != lastDrawTime) {
             lastDrawTime = noteTime;
@@ -376,47 +362,20 @@ function schedule() {
     timeoutId = setTimeout(schedule, 0);
 }
 
-function computePlaybackRate(instrument) {
-    const pitch = theBeat[`${instrument.toLowerCase()}PitchVal`];
+function computePlaybackRate(instrumentName) {
+    const pitch = getPitch(instrumentName);
     return Math.pow(2.0, 2.0 * (pitch - 0.5));
 }
 
-function handleNoteClick(instrument, rhythmIndex) {
-    const instrumentIndex = INSTRUMENTS.indexOf(instrument);
-    const notes = theBeat[`rhythm${instrumentIndex + 1}`];    
+function handleNoteClick(instrumentName, rhythmIndex) {
+    const instrument = INSTRUMENTS.find(i => i.name === instrumentName);
+    const notes = getRhythm(instrumentName);
     const note = (notes[rhythmIndex] + 1) % 3
     notes[rhythmIndex] = note;
 
-    ui.notes.setNote(instrument, rhythmIndex, notes[rhythmIndex],);
-    
-    if (note) {
-        switch(instrumentIndex) {
-        case 0:  // Kick
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5 * theBeat.effectMix, VOLUMES[note] * 1.0, computePlaybackRate(instrument), 0);
-          break;
+    ui.notes.setNote(instrument.name, rhythmIndex, notes[rhythmIndex]);
 
-        case 1:  // Snare
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
-          break;
-
-        case 2:  // Hihat
-          // Pan the hihat according to sequence position.
-          playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, VOLUMES[note] * 0.7, computePlaybackRate(instrument), 0);
-          break;
-
-        case 3:  // Tom 1   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
-          break;
-
-        case 4:  // Tom 2   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
-          break;
-
-        case 5:  // Tom 3   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
-          break;
-        }
-    }
+    playNote(instrument, rhythmIndex, 0);
 }
 
 function handleKitChange(index) {
@@ -437,21 +396,21 @@ async function setEffect(index) {
 
     theBeat.effectIndex = index;
     effectDryMix = IMPULSE_RESPONSE_DATA[index].dryMix;
-    effectWetMix = IMPULSE_RESPONSE_DATA[index].wetMix;            
+    effectWetMix = IMPULSE_RESPONSE_DATA[index].wetMix;
     convolver.buffer = impulseResponses[index].buffer;
 
-  // Hack - if the effect is meant to be entirely wet (not unprocessed signal)
-  // then put the effect level all the way up.
+    // Hack - if the effect is meant to be entirely wet (not unprocessed signal)
+    // then put the effect level all the way up.
     if (effectDryMix == 0)
         theBeat.effectMix = 1;
 
     setEffectLevel(theBeat);
     updateControls();
 
-   ui.effectPicker.select(index);
+    ui.effectPicker.select(index);
 }
 
-function setEffectLevel() {        
+function setEffectLevel() {
     // Factor in both the preset's effect level and the blending level (effectWetMix) stored in the effect itself.
     effectLevelNode.gain.value = theBeat.effectMix * effectWetMix;
 }
@@ -468,7 +427,7 @@ function handleStop() {
     clearTimeout(timeoutId);
 
     rhythmIndex = 0;
-    
+
     ui.playheads.off();
     ui.playButton.state = "stopped";
 }
@@ -499,18 +458,10 @@ function loadBeat(beat) {
 function updateControls() {
     let notes;
 
-    for (let i = 0; i < LOOP_LENGTH; ++i) {
-        for (let j = 0; j < INSTRUMENTS.length; j++) {
-            switch (j) {
-                case 0: notes = theBeat.rhythm1; break;
-                case 1: notes = theBeat.rhythm2; break;
-                case 2: notes = theBeat.rhythm3; break;
-                case 3: notes = theBeat.rhythm4; break;
-                case 4: notes = theBeat.rhythm5; break;
-                case 5: notes = theBeat.rhythm6; break;
-            }
-
-            ui.notes.setNote(INSTRUMENTS[j], i, notes[i]);
+    for (const instrument of INSTRUMENTS) {
+        const notes = getRhythm(instrument.name);
+        for (let i = 0; i < LOOP_LENGTH; ++i) {
+            ui.notes.setNote(instrument.name, i, notes[i]);
         }
     }
 
@@ -519,10 +470,8 @@ function updateControls() {
     ui.tempoInput.value = theBeat.tempo;
     ui.effectSlider.value = theBeat.effectMix;
     ui.swingSlider.value = theBeat.swingFactor;
-    ui.pitchSliders.setPitch('Kick', theBeat.kickPitchVal);
-    ui.pitchSliders.setPitch('Snare', theBeat.snarePitchVal);
-    ui.pitchSliders.setPitch('HiHat', theBeat.hihatPitchVal);
-    ui.pitchSliders.setPitch('Tom1', theBeat.tom1PitchVal); 
-    ui.pitchSliders.setPitch('Tom2', theBeat.tom2PitchVal);
-    ui.pitchSliders.setPitch('Tom3', theBeat.tom3PitchVal);
+
+    for (const instrument of INSTRUMENTS) {
+        ui.pitchSliders.setPitch(instrument.name, getPitch(instrument.name));
+    }
 }
