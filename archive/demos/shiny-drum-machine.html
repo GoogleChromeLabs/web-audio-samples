@@ -260,8 +260,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <section class='container active' id='tools'>
         <div class="row buttons_container">
             <span class='label' id='beatlabel'>Beat</span>
-            <input type='image' id='play' src='images/btn_play_loading.gif' alt='Play'>
-            <input type='image' id='stop' src='images/btn_stop.png' alt='Stop'>
+            <button id='play' class="btn play" alt='Toggle play'></button>
 
             <div class="button_group">    
                 <input type='image' id='save' src='images/btn_save.png' alt='Save'>
@@ -271,11 +270,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
             <span class='label' id='demolabel'>Demo</span>
             <div class="button_group">
-                <input type='image' id='demo1' src='images/btn_demo1_loading.gif' width='44' height='33' alt='Load demo 1'>
-                <input type='image' id='demo2' src='images/btn_demo2_loading.gif' width='44' height='33' alt='Load demo 2'>
-                <input type='image' id='demo3' src='images/btn_demo3_loading.gif' width='44' height='33' alt='Load demo 3'>
-                <input type='image' id='demo4' src='images/btn_demo4_loading.gif' width='44' height='33' alt='Load demo 4'>
-                <input type='image' id='demo5' src='images/btn_demo5_loading.gif' width='45' height='33' alt='Load demo 5'>
+                <button class='btn demo' data-demo='0' alt='Load demo 1'></button>
+                <button class='btn demo' data-demo='1' alt='Load demo 2'></button>
+                <button class='btn demo' data-demo='2' alt='Load demo 3'></button>
+                <button class='btn demo' data-demo='3' alt='Load demo 4'></button>
+                <button class='btn demo' data-demo='4' alt='Load demo 5'></button>
             </div>
         </div>
     </section>
