@@ -1,3 +1,5 @@
+import { RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA, IMPULSE_RESPONSE_DATA, freeze, clone } from "./shiny-drum-machine-data.js";
+
 // Events
 // init() once the page has finished loading.
 
@@ -6,91 +8,41 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 window.onload = init;
 
-var context;
-var convolver;
-var compressor;
-var masterGainNode;
-var effectLevelNode;
+let context;
+let convolver;
+let compressor;
+let masterGainNode;
+let effectLevelNode;
 
 // Each effect impulse response has a specific overall desired dry and wet volume.
 // For example in the telephone filter, it's necessary to make the dry volume 0 to correctly hear the effect.
-var effectDryMix = 1.0;
-var effectWetMix = 1.0;
+let effectDryMix = 1.0;
+let effectWetMix = 1.0;
 
-var timeoutId;
+let timeoutId;
+let startTime;
+let lastDrawTime = -1;
+let rhythmIndex = 0;
+let noteTime = 0.0;
 
-var startTime;
-var lastDrawTime = -1;
-
-let KITS;
-
-var kNumInstruments = 6;
-var kMaxSwing = .08;
-
-var beatReset = {"kitIndex":0,"effectIndex":0,"tempo":100,"swingFactor":0,"effectMix":0.25,"kickPitchVal":0.5,"snarePitchVal":0.5,"hihatPitchVal":0.5,"tom1PitchVal":0.5,"tom2PitchVal":0.5,"tom3PitchVal":0.5,"rhythm1":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm2":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm3":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm4":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm5":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm6":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]};
-var beatDemo = [
-    {"kitIndex":13,"effectIndex":18,"tempo":120,"swingFactor":0,"effectMix":0.19718309859154926,"kickPitchVal":0.5,"snarePitchVal":0.5,"hihatPitchVal":0.5,"tom1PitchVal":0.5,"tom2PitchVal":0.5,"tom3PitchVal":0.5,"rhythm1":[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm2":[0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0],"rhythm3":[0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0],"rhythm4":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0],"rhythm5":[0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm6":[0,0,0,0,0,0,0,2,0,2,2,0,0,0,0,0]},
-    {"kitIndex":4,"effectIndex":3,"tempo":100,"swingFactor":0,"effectMix":0.2,"kickPitchVal":0.46478873239436624,"snarePitchVal":0.45070422535211263,"hihatPitchVal":0.15492957746478875,"tom1PitchVal":0.7183098591549295,"tom2PitchVal":0.704225352112676,"tom3PitchVal":0.8028169014084507,"rhythm1":[2,1,0,0,0,0,0,0,2,1,2,1,0,0,0,0],"rhythm2":[0,0,0,0,2,0,0,0,0,1,1,0,2,0,0,0],"rhythm3":[0,1,2,1,0,1,2,1,0,1,2,1,0,1,2,1],"rhythm4":[0,0,0,0,0,0,2,1,0,0,0,0,0,0,0,0],"rhythm5":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0],"rhythm6":[0,0,0,0,0,0,0,2,1,2,1,0,0,0,0,0]},
-    {"kitIndex":2,"effectIndex":5,"tempo":100,"swingFactor":0,"effectMix":0.25,"kickPitchVal":0.5,"snarePitchVal":0.5,"hihatPitchVal":0.5211267605633803,"tom1PitchVal":0.23943661971830987,"tom2PitchVal":0.21126760563380287,"tom3PitchVal":0.2535211267605634,"rhythm1":[2,0,0,0,2,0,0,0,2,0,0,0,2,0,0,0],"rhythm2":[0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0],"rhythm3":[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],"rhythm4":[1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1],"rhythm5":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0],"rhythm6":[0,0,1,0,1,0,0,2,0,2,0,0,1,0,0,0]},
-    {"kitIndex":1,"effectIndex":4,"tempo":120,"swingFactor":0,"effectMix":0.25,"kickPitchVal":0.7887323943661972,"snarePitchVal":0.49295774647887325,"hihatPitchVal":0.5,"tom1PitchVal":0.323943661971831,"tom2PitchVal":0.3943661971830986,"tom3PitchVal":0.323943661971831,"rhythm1":[2,0,0,0,0,0,0,2,2,0,0,0,0,0,0,1],"rhythm2":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm3":[0,0,1,0,2,0,1,0,1,0,1,0,2,0,2,0],"rhythm4":[2,0,2,0,0,0,0,0,2,0,0,0,0,2,0,0],"rhythm5":[0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm6":[0,2,0,0,0,2,0,0,0,2,0,0,0,0,0,0]},
-    {"kitIndex":0,"effectIndex":1,"tempo":60,"swingFactor":0.5419847328244275,"effectMix":0.25,"kickPitchVal":0.5,"snarePitchVal":0.5,"hihatPitchVal":0.5,"tom1PitchVal":0.5,"tom2PitchVal":0.5,"tom3PitchVal":0.5,"rhythm1":[2,2,0,1,2,2,0,1,2,2,0,1,2,2,0,1],"rhythm2":[0,0,2,0,0,0,2,0,0,0,2,0,0,0,2,0],"rhythm3":[2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1],"rhythm4":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"rhythm5":[0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,0],"rhythm6":[1,0,0,1,0,1,0,1,1,0,0,1,1,1,1,0]},
-];
-
-function cloneBeat(source) {
-    var beat = new Object();
-    
-    beat.kitIndex = source.kitIndex;
-    beat.effectIndex = source.effectIndex;
-    beat.tempo = source.tempo;
-    beat.swingFactor = source.swingFactor;
-    beat.effectMix = source.effectMix;
-    beat.kickPitchVal = source.kickPitchVal;
-    beat.snarePitchVal = source.snarePitchVal;
-    beat.hihatPitchVal = source.hihatPitchVal;
-    beat.tom1PitchVal = source.tom1PitchVal;
-    beat.tom2PitchVal = source.tom2PitchVal;
-    beat.tom3PitchVal = source.tom3PitchVal;
-    beat.rhythm1 = source.rhythm1.slice(0);        // slice(0) is an easy way to copy the full array
-    beat.rhythm2 = source.rhythm2.slice(0);
-    beat.rhythm3 = source.rhythm3.slice(0);
-    beat.rhythm4 = source.rhythm4.slice(0);
-    beat.rhythm5 = source.rhythm5.slice(0);
-    beat.rhythm6 = source.rhythm6.slice(0);
-    
-    return beat;
-}
+const MAX_SWING = 0.08;
+const LOOP_LENGTH = 16;
+const MIN_TEMPO = 50;
+const MAX_TEMPO = 180;
+const VOLUMES = freeze([0, 0.3, 1]);
 
 // theBeat is the object representing the current beat/groove
 // ... it is saved/loaded via JSON
-var theBeat = cloneBeat(beatReset);
+let theBeat = clone(RESET_BEAT);
+let KITS;
+let impulseResponses;
 
-var loopLength = 16;
-var rhythmIndex = 0;
-var kMinTempo = 50;
-var kMaxTempo = 180;
-var noteTime = 0.0;
-
-var instruments = ['Kick', 'Snare', 'HiHat', 'Tom1', 'Tom2', 'Tom3'];
-
-var volumes = [0, 0.3, 1];
-
-const KIT_DATA = [
-    {id: "R8", name: "Roland R-8"},
-    {id: "CR78", name: "Roland CR-78"},
-    {id: "KPR77", name: "Korg KPR-77"},
-    {id: "LINN", name: "LinnDrum"},
-    {id: "Kit3", name: "Kit 3"},
-    {id: "Kit8", name: "Kit 8"},
-    {id: "Techno", name: "Techno"},
-    {id: "Stark", name: "Stark"},
-    {id: "breakbeat8", name: "Breakbeat 8"},
-    {id: "breakbeat9", name: "Breakbeat 9"},
-    {id: "breakbeat13", name: "Breakbeat 13"},
-    {id: "acoustic-kit", name: "Acoustic Kit"},
-    {id: "4OP-FM", name: "4OP-FM"},
-    {id: "TheCheebacabra1", name: "The Cheebacabra 1"},
-    {id: "TheCheebacabra2", name: "The Cheebacabra 2"},
-];
+const pitchSliders = {};
+let effectSlider;
+let swingSlider;
+const noteButtons = {};
+let playButton;
+const demoButtons = [];
 
 class Kit {
     constructor(id, prettyName) {
@@ -104,7 +56,7 @@ class Kit {
     }
 
     load() {
-        const instrumentPromises = instruments.map(instrument => this.loadSample(instrument));
+        const instrumentPromises = INSTRUMENTS.map(instrument => this.loadSample(instrument));
         const promise = Promise.all(instrumentPromises).then(() => null);
         // Return original Promise on subsequent load calls to avoid duplicate loads.
         this.load = () => promise;
@@ -126,114 +78,48 @@ class Kit {
     }
 }
 
-var impulseResponseInfoList = [
-    // Impulse responses - each one represents a unique linear effect.
-    {"name":"No Effect", "url":"undefined", "dryMix":1, "wetMix":0},
-    {"name":"Spreader 1", "url":"impulse-responses/spreader50-65ms.wav",        "dryMix":0.8, "wetMix":1.4},
-    {"name":"Spreader 2", "url":"impulse-responses/noise-spreader1.wav",        "dryMix":1, "wetMix":1},
-    {"name":"Spring Reverb", "url":"impulse-responses/feedback-spring.wav",     "dryMix":1, "wetMix":1},
-    {"name":"Space Oddity", "url":"impulse-responses/filter-rhythm3.wav",       "dryMix":1, "wetMix":0.7},
-    {"name":"Reverse", "url":"impulse-responses/spatialized5.wav",              "dryMix":1, "wetMix":1},
-    {"name":"Huge Reverse", "url":"impulse-responses/matrix6-backwards.wav",    "dryMix":0, "wetMix":0.7},
-    {"name":"Telephone Filter", "url":"impulse-responses/filter-telephone.wav", "dryMix":0, "wetMix":1.2},
-    {"name":"Lopass Filter", "url":"impulse-responses/filter-lopass160.wav",    "dryMix":0, "wetMix":0.5},
-    {"name":"Hipass Filter", "url":"impulse-responses/filter-hipass5000.wav",   "dryMix":0, "wetMix":4.0},
-    {"name":"Comb 1", "url":"impulse-responses/comb-saw1.wav",                  "dryMix":0, "wetMix":0.7},
-    {"name":"Comb 2", "url":"impulse-responses/comb-saw2.wav",                  "dryMix":0, "wetMix":1.0},
-    {"name":"Cosmic Ping", "url":"impulse-responses/cosmic-ping-long.wav",      "dryMix":0, "wetMix":0.9},
-    {"name":"Kitchen", "url":"impulse-responses/house-impulses/kitchen-true-stereo.wav", "dryMix":1, "wetMix":1},
-    {"name":"Living Room", "url":"impulse-responses/house-impulses/dining-living-true-stereo.wav", "dryMix":1, "wetMix":1},
-    {"name":"Living-Bedroom", "url":"impulse-responses/house-impulses/living-bedroom-leveled.wav", "dryMix":1, "wetMix":1},
-    {"name":"Dining-Far-Kitchen", "url":"impulse-responses/house-impulses/dining-far-kitchen.wav", "dryMix":1, "wetMix":1},
-    {"name":"Medium Hall 1", "url":"impulse-responses/matrix-reverb2.wav",      "dryMix":1, "wetMix":1},
-    {"name":"Medium Hall 2", "url":"impulse-responses/matrix-reverb3.wav",      "dryMix":1, "wetMix":1},
-    {"name":"Large Hall", "url":"impulse-responses/spatialized4.wav",           "dryMix":1, "wetMix":0.5},
-    {"name":"Peculiar", "url":"impulse-responses/peculiar-backwards.wav",       "dryMix":1, "wetMix":1},
-    {"name":"Backslap", "url":"impulse-responses/backslap1.wav",                "dryMix":1, "wetMix":1},
-    {"name":"Warehouse", "url":"impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-levelled.wav", "dryMix":1, "wetMix":1},
-    {"name":"Diffusor", "url":"impulse-responses/diffusor3.wav",                "dryMix":1, "wetMix":1},
-    {"name":"Binaural Hall", "url":"impulse-responses/bin_dfeq/s2_r4_bd.wav",   "dryMix":1, "wetMix":0.5},
-    {"name":"Huge", "url":"impulse-responses/matrix-reverb6.wav",               "dryMix":1, "wetMix":0.7},
-]
 
-var impulseResponseList = 0;
-
-function ImpulseResponse(url, index) {
-    this.url = url;
-    this.index = index;
-    this.startedLoading = false;
-    this.isLoaded_ = false;
-    this.buffer = 0;
-    
-    this.demoIndex = -1; // no demo
-}
-
-ImpulseResponse.prototype.setDemoIndex = function(index) {
-    this.demoIndex = index;
-}
-
-ImpulseResponse.prototype.isLoaded = function() {
-    return this.isLoaded_;
-}
-
-ImpulseResponse.prototype.load = function() {
-    if (this.startedLoading) {
-        return;
-    }
-    
-    this.startedLoading = true;
-
-    // Load asynchronously
-    var request = new XMLHttpRequest();
-    request.open("GET", this.url, true);
-    request.responseType = "arraybuffer";
-    this.request = request;
-    
-    var asset = this;
-
-    request.onload = function() {
-        context.decodeAudioData(
-            request.response,
-            function(buffer) {
-                asset.buffer = buffer;
-                asset.isLoaded_ = true;
-
-                if (asset.demoIndex != -1) {
-                    beatDemo[asset.demoIndex].setEffectLoaded();
-                }                
-            },
-            
-            function(buffer) {
-                console.log("Error decoding impulse response!");
-            }
-        );
+class ImpulseResponse {
+    constructor(url, index) {
+        this.url = url;
+        this.index = index;
+        this.buffer = undefined;
     }
 
-    request.send();
+    async load() {
+        if(!this.url) {
+            return; // "No effect" instance has empty URL.
+        }
+
+        const request = new Request(this.url);
+        const response = await fetch(request);
+        const responseBuffer = await response.arrayBuffer();
+
+        // TODO: Migrate to Promise-syntax once Safari supports it.
+        const result = new Promise((resolve) => {
+            context.decodeAudioData(responseBuffer, (buffer) => {
+                this.buffer = buffer;
+                resolve();
+            });
+        });
+
+        // Return original Promise on subsequent load calls to avoid duplicate loads.
+        this.load = () => result;
+        return result;
+    }
 }
 
-function startLoadingAssets() {
-    impulseResponseList = new Array();
-
-    for (i = 0; i < impulseResponseInfoList.length; i++) {
-        impulseResponseList[i] = new ImpulseResponse(impulseResponseInfoList[i].url, i);
-    }
-    
-    // Initialize drum kits
-    KITS = KIT_DATA.map(({id, name}) => new Kit(id, name));
-    
+function startLoadingAssets() {   
     // Start loading the assets used by the presets first, in order of the presets.
-    for (var demoIndex = 0; demoIndex < 5; ++demoIndex) {
-        const demo = beatDemo[demoIndex];
-        var effect = impulseResponseList[demo.effectIndex];
+    for (let demoIndex = 0; demoIndex < 5; demoIndex++) {
+        const demo = DEMO_BEATS[demoIndex];
+        const effect = impulseResponses[demo.effectIndex];
         const kit = KITS[demo.kitIndex];
         
-        // These effects and kits will keep track of a particular demo, so we can change
-        // the loading status in the UI.
-        effect.setDemoIndex(demoIndex);
-        
-        effect.load();
-        kit.load().then(() => demo.setKitLoaded());
+        Promise.all([
+            effect.load(),
+            kit.load(),
+        ]).then(() => showDemoAvailable(demoIndex));
     }
     
     // Then load the remaining assets.
@@ -243,8 +129,8 @@ function startLoadingAssets() {
     }  
 
     // Start at 1 to skip "No Effect"
-    for (i = 1; i < impulseResponseInfoList.length; i++) {
-        impulseResponseList[i].load();
+    for (let i = 1; i < IMPULSE_RESPONSE_DATA.length; i++) {
+        impulseResponses[i].load();
     }
 }
 
@@ -259,7 +145,7 @@ function showDemoAvailable(demoIndex) {
     // Enable play button and assign it to demo 2.
     if (demoIndex == 1) {
         showPlayAvailable();
-        loadBeat(beatDemo[1]);
+        loadBeat(DEMO_BEATS[1]);
     }
 }
 
@@ -268,35 +154,12 @@ function showPlayAvailable() {
     playButton.state = "stopped";
 }
 
-function init() {
-    // Let the beat demos know when all of their assets have been loaded.
-    // Add some new methods to support this.
-    for (var i = 0; i < beatDemo.length; ++i) {
-        beatDemo[i].index = i;
-        beatDemo[i].isKitLoaded = false;
-        beatDemo[i].isEffectLoaded = false;
+function init() {    
+    impulseResponses = IMPULSE_RESPONSE_DATA.map((data, i) => new ImpulseResponse(data.url, i));
+    KITS = KIT_DATA.map(({id, name}) => new Kit(id, name));
+    
+    initControls();
 
-        beatDemo[i].setKitLoaded = function() {
-            this.isKitLoaded = true;
-            this.checkIsLoaded();
-        };
-
-        beatDemo[i].setEffectLoaded = function() {
-            this.isEffectLoaded = true;
-            this.checkIsLoaded();
-        };
-
-        beatDemo[i].checkIsLoaded = function() {
-            if (this.isLoaded()) {
-                showDemoAvailable(this.index); 
-            }
-        };
-
-        beatDemo[i].isLoaded = function() {
-            return this.isKitLoaded && this.isEffectLoaded;
-        };
-    }
-        
     startLoadingAssets();
 
     context = new AudioContext();
@@ -333,7 +196,7 @@ function init() {
     var elEffectCombo = document.getElementById('effectlist');
     elEffectCombo.addEventListener("change", handleEffectChange, true);
 
-    initControls();
+    
     updateControls();
 }
 
@@ -380,13 +243,6 @@ class Button {
     }
 }
 
-const pitchSliders = {};
-let effectSlider;
-let swingSlider;
-const noteButtons = {};
-let playButton;
-const demoButtons = [];
-
 function initControls() {
     // Initialize note buttons
     initButtons();
@@ -430,7 +286,7 @@ function initControls() {
     document.getElementById('load_cancel').addEventListener('click', handleLoadCancel, true);
     document.getElementById('reset').addEventListener('click', handleReset, true);
 
-    for (let i = 0; i < beatDemo.length; i++) {
+    for (let i = 0; i < DEMO_BEATS.length; i++) {
         const button = new Button(document.querySelector(`[data-demo="${i}"]`));
         button.onclick = handleDemoMouseDown;
         demoButtons.push(button);
@@ -441,10 +297,10 @@ function initControls() {
 }
 
 function initButtons() {        
-    for(const instrument of instruments) {
+    for(const instrument of INSTRUMENTS) {
         noteButtons[instrument] = [];
 
-        for (let rhythm = 0; rhythm < loopLength; rhythm++) {
+        for (let rhythm = 0; rhythm < LOOP_LENGTH; rhythm++) {
             const el = document.querySelector(`[data-instrument="${instrument}"][data-rhythm="${rhythm}"]`);
             noteButtons[instrument][rhythm] = new Button(el);
             noteButtons[instrument][rhythm].onclick = handleButtonMouseDown;
@@ -455,10 +311,10 @@ function initButtons() {
 
 function makeEffectList() {
     var elList = document.getElementById('effectlist');
-    var numEffects = impulseResponseInfoList.length;
+    var numEffects = IMPULSE_RESPONSE_DATA.length;
     
     for (var i = 0; i < numEffects; i++) {
-        elList.add(new Option(impulseResponseInfoList[i].name));
+        elList.add(new Option(IMPULSE_RESPONSE_DATA[i].name));
     }
 }
 
@@ -475,15 +331,15 @@ function advanceNote() {
     var secondsPerBeat = 60.0 / theBeat.tempo;
 
     rhythmIndex++;
-    if (rhythmIndex == loopLength) {
+    if (rhythmIndex == LOOP_LENGTH) {
         rhythmIndex = 0;
     }
 
         // apply swing    
     if (rhythmIndex % 2) {
-        noteTime += (0.25 + kMaxSwing * theBeat.swingFactor) * secondsPerBeat;
+        noteTime += (0.25 + MAX_SWING * theBeat.swingFactor) * secondsPerBeat;
     } else {
-        noteTime += (0.25 - kMaxSwing * theBeat.swingFactor) * secondsPerBeat;
+        noteTime += (0.25 - MAX_SWING * theBeat.swingFactor) * secondsPerBeat;
     }
 }
 
@@ -532,36 +388,36 @@ function schedule() {
         // Kick
         if (theBeat.rhythm1[rhythmIndex]) {
             let instrument = 'Kick';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5, VOLUMES[theBeat.rhythm1[rhythmIndex]] * 1.0, computePlaybackRate(instrument), contextPlayTime);
         }
 
         // Snare
         if (theBeat.rhythm2[rhythmIndex]) {
             let instrument = 'Snare';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm2[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
         }
 
         // Hihat
         if (theBeat.rhythm3[rhythmIndex]) {
             // Pan the hihat according to sequence position.
             let instrument = 'HiHat';
-            playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, 1, VOLUMES[theBeat.rhythm3[rhythmIndex]] * 0.7, computePlaybackRate(instrument), contextPlayTime);
         }
 
         // Toms    
         if (theBeat.rhythm4[rhythmIndex]) {
             let instrument = 'Tom1';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm4[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
         }
 
         if (theBeat.rhythm5[rhythmIndex]) {
             let instrument = 'Tom2';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm5[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
         }
 
         if (theBeat.rhythm6[rhythmIndex]) {
             let instrument = 'Tom3';
-            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
+            playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 1, VOLUMES[theBeat.rhythm6[rhythmIndex]] * 0.6, computePlaybackRate(instrument), contextPlayTime);
         }
 
         
@@ -574,16 +430,16 @@ function schedule() {
         advanceNote();
     }
 
-    timeoutId = setTimeout("schedule()", 0);
+    timeoutId = setTimeout(schedule, 0);
 }
 
 function tempoIncrease() {
-    theBeat.tempo = Math.min(kMaxTempo, theBeat.tempo+4);
+    theBeat.tempo = Math.min(MAX_TEMPO, theBeat.tempo+4);
     document.getElementById('tempo').innerHTML = theBeat.tempo;
 }
 
 function tempoDecrease() {
-    theBeat.tempo = Math.max(kMinTempo, theBeat.tempo-4);
+    theBeat.tempo = Math.max(MIN_TEMPO, theBeat.tempo-4);
     document.getElementById('tempo').innerHTML = theBeat.tempo;
 }
 
@@ -599,7 +455,7 @@ function computePlaybackRate(instrument) {
 function handleButtonMouseDown(event) {
     const rhythmIndex = new Number(event.target.dataset.rhythm);
     const instrument = event.target.dataset.instrument;
-    const instrumentIndex = instruments.indexOf(instrument);
+    const instrumentIndex = INSTRUMENTS.indexOf(instrument);
     const notes = theBeat[`rhythm${instrumentIndex + 1}`];    
     const note = (notes[rhythmIndex] + 1) % 3
     notes[rhythmIndex] = note;
@@ -609,28 +465,28 @@ function handleButtonMouseDown(event) {
     if (note) {
         switch(instrumentIndex) {
         case 0:  // Kick
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, 0.5 * theBeat.effectMix, VOLUMES[note] * 1.0, computePlaybackRate(instrument), 0);
           break;
 
         case 1:  // Snare
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
           break;
 
         case 2:  // Hihat
           // Pan the hihat according to sequence position.
-          playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, VOLUMES[note] * 0.7, computePlaybackRate(instrument), 0);
           break;
 
         case 3:  // Tom 1   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
           break;
 
         case 4:  // Tom 2   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
           break;
 
         case 5:  // Tom 3   
-          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate(instrument), 0);
+          playNote(getCurrentKit().buffer[instrument], false, 0,0,-2, theBeat.effectMix, VOLUMES[note] * 0.6, computePlaybackRate(instrument), 0);
           break;
         }
     }
@@ -649,16 +505,13 @@ function handleEffectChange(event) {
     setEffect(event.target.selectedIndex);
 }
 
-function setEffect(index) {
-    if (index > 0 && !impulseResponseList[index].isLoaded()) {
-        alert('Sorry, this effect is still loading.  Try again in a few seconds :)');
-        return;
-    }
+async function setEffect(index) {
+    await impulseResponses[index].load();
 
     theBeat.effectIndex = index;
-    effectDryMix = impulseResponseInfoList[index].dryMix;
-    effectWetMix = impulseResponseInfoList[index].wetMix;            
-    convolver.buffer = impulseResponseList[index].buffer;
+    effectDryMix = IMPULSE_RESPONSE_DATA[index].dryMix;
+    effectWetMix = IMPULSE_RESPONSE_DATA[index].wetMix;            
+    convolver.buffer = impulseResponses[index].buffer;
 
   // Hack - if the effect is meant to be entirely wet (not unprocessed signal)
   // then put the effect level all the way up.
@@ -679,13 +532,11 @@ function setEffectLevel() {
 
 function handleDemoMouseDown(event) {
     const i = new Number(event.target.dataset.demo);
-    const loaded = loadBeat(beatDemo[i]);
-    
-    if (loaded)
-        handlePlay();
+    loadBeat(DEMO_BEATS[i]);
+    handlePlay();
 }
 
-function handlePlay(event) {
+function handlePlay() {
     noteTime = 0.0;
     startTime = context.currentTime + 0.005;
     schedule();
@@ -753,19 +604,14 @@ function toggleLoadContainer() {
     document.getElementById('load_container').classList.toggle('active');
 }
 
-function handleReset(event) {
-    handleStop();
-    loadBeat(beatReset);    
+function handleReset() {
+    loadBeat(RESET_BEAT);    
 }
 
 function loadBeat(beat) {
-    // Check that assets are loaded.
-    if (beat != beatReset && !beat.isLoaded())
-        return false;
-
     handleStop();
 
-    theBeat = cloneBeat(beat);
+    theBeat = clone(beat);
     setEffect(theBeat.effectIndex);
 
     updateControls();
@@ -774,8 +620,10 @@ function loadBeat(beat) {
 }
 
 function updateControls() {
-    for (i = 0; i < loopLength; ++i) {
-        for (j = 0; j < kNumInstruments; j++) {
+    let notes;
+
+    for (let i = 0; i < LOOP_LENGTH; ++i) {
+        for (let j = 0; j < INSTRUMENTS.length; j++) {
             switch (j) {
                 case 0: notes = theBeat.rhythm1; break;
                 case 1: notes = theBeat.rhythm2; break;
@@ -785,7 +633,7 @@ function updateControls() {
                 case 5: notes = theBeat.rhythm6; break;
             }
 
-            drawNote(notes[i], i, instruments[j]);
+            drawNote(notes[i], i, INSTRUMENTS[j]);
         }
     }
 
