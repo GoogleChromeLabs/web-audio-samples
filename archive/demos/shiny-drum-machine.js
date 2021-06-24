@@ -67,8 +67,6 @@ function cloneBeat(source) {
 // ... it is saved/loaded via JSON
 var theBeat = cloneBeat(beatReset);
 
-kickPitch = snarePitch = hihatPitch = tom1Pitch = tom2Pitch = tom3Pitch = 0;
-
 var loopLength = 16;
 var rhythmIndex = 0;
 var kMinTempo = 50;
@@ -76,6 +74,11 @@ var kMaxTempo = 180;
 var noteTime = 0.0;
 
 var instruments = ['Kick', 'Snare', 'HiHat', 'Tom1', 'Tom2', 'Tom3'];
+
+const pitch = {};
+for(const instrument of instruments) {
+    pitch[instrument] = 0;
+}
 
 var volumes = [0, 0.3, 1];
 
@@ -435,6 +438,36 @@ function init() {
     updateControls();
 }
 
+class Slider {
+    constructor(element, opts = {}) {
+        this.element = element;
+        this.onchange = () => {};
+
+        element.addEventListener('input', () => {
+            this.onchange(this.value);
+        });
+
+        if(opts && opts.doubleClickValue) {
+            element.addEventListener('dblclick', () => {
+                this.value = opts.doubleClickValue;
+                this.onchange(this.value);
+            });
+        }
+    }
+
+    get value() {
+        return new Number(this.element.value) / 100;
+    }
+
+    set value(value) {
+        this.element.value = value * 100;
+    }
+}
+
+const pitchSliders = {};
+let effectSlider;
+let swingSlider;
+
 function initControls() {
     // Initialize note buttons
     initButtons();
@@ -442,23 +475,24 @@ function initControls() {
     makeEffectList();
 
     // sliders
-    document.getElementById('effect_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('tom1_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('tom2_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('tom3_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('hihat_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('snare_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('kick_thumb').addEventListener('input', handleSliderChange, true);
-    document.getElementById('swing_thumb').addEventListener('input', handleSliderChange, true);
+    effectSlider = new Slider(document.getElementById('effect_thumb'));
+    effectSlider.onchange = (value) => {
+        // Change the volume of the convolution effect.
+        theBeat.effectMix = value;
+        setEffectLevel(theBeat);            
+    };
 
-    document.getElementById('effect_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('tom1_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('tom2_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('tom3_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('hihat_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('snare_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('kick_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
-    document.getElementById('swing_thumb').addEventListener('dblclick', handleSliderDoubleClick, true);
+    swingSlider = new Slider(document.getElementById('swing_thumb'));
+    swingSlider.onchange = (value) => {
+        theBeat.swingFactor = value;        
+    };
+
+    for(const el of document.querySelectorAll('[data-instrument][data-pitch]')) {
+        pitchSliders[el.dataset.instrument] = new Slider(el, {doubleClickValue: 0.5});
+        pitchSliders[el.dataset.instrument].onchange = (value) => {
+            setPitch(el.dataset.instrument, value);
+        };
+    }
 
     // tool buttons
     document.getElementById('play').addEventListener('click', handlePlay, true);
@@ -564,31 +598,31 @@ function schedule() {
         
         // Kick
         if (theBeat.rhythm1[rhythmIndex]) {
-            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, kickPitch, contextPlayTime);
+            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, pitch['Kick'], contextPlayTime);
         }
 
         // Snare
         if (theBeat.rhythm2[rhythmIndex]) {
-            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, snarePitch, contextPlayTime);
+            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, pitch['Snare'], contextPlayTime);
         }
 
         // Hihat
         if (theBeat.rhythm3[rhythmIndex]) {
             // Pan the hihat according to sequence position.
-            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, hihatPitch, contextPlayTime);
+            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, pitch['HiHat'], contextPlayTime);
         }
 
         // Toms    
         if (theBeat.rhythm4[rhythmIndex]) {
-            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, tom1Pitch, contextPlayTime);
+            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, pitch['Tom1'], contextPlayTime);
         }
 
         if (theBeat.rhythm5[rhythmIndex]) {
-            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, tom2Pitch, contextPlayTime);
+            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, pitch['Tom2'], contextPlayTime);
         }
 
         if (theBeat.rhythm6[rhythmIndex]) {
-            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, tom3Pitch, contextPlayTime);
+            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, pitch['Tom3'], contextPlayTime);
         }
 
         
@@ -614,60 +648,9 @@ function tempoDecrease() {
     document.getElementById('tempo').innerHTML = theBeat.tempo;
 }
 
-function handleSliderChange(event) {
-    sliderSetValue(event.target.id, new Number(event.target.value) / 100);
-}
-
-function handleSliderDoubleClick(event) {
-    var id = event.target.id;
-    if (id != 'swing_thumb' && id != 'effect_thumb') {
-        sliderSetValue(event.target.id, 0.5);
-        event.target.value = 50;
-        updateControls();
-    }
-}
-
-function sliderSetValue(slider, value) {
-    var pitchRate = Math.pow(2.0, 2.0 * (value - 0.5));
-    
-    switch(slider) {
-    case 'effect_thumb':
-        // Change the volume of the convolution effect.
-        theBeat.effectMix = value;
-        setEffectLevel(theBeat);            
-        break;
-    case 'kick_thumb':
-        theBeat.kickPitchVal = value;
-        kickPitch = pitchRate;
-        break;
-    case 'snare_thumb':
-        theBeat.snarePitchVal = value;
-        snarePitch = pitchRate;
-        break;
-    case 'hihat_thumb':
-        theBeat.hihatPitchVal = value;
-        hihatPitch = pitchRate;
-        break;
-    case 'tom1_thumb':
-        theBeat.tom1PitchVal = value;
-        tom1Pitch = pitchRate;
-        break;
-    case 'tom2_thumb':
-        theBeat.tom2PitchVal = value;
-        tom2Pitch = pitchRate;
-        break;
-    case 'tom3_thumb':
-        theBeat.tom3PitchVal = value;
-        tom3Pitch = pitchRate;
-        break;
-    case 'swing_thumb':
-        theBeat.swingFactor = value;
-        break; 
-    }
-}
-
-function sliderSetPosition(slider, value) {
-    document.getElementById(slider).value = 100 * value;
+function setPitch(instrument, value) {
+    theBeat[`${instrument.toLowerCase()}PitchVal`] = value;
+    pitch[instrument] =  Math.pow(2.0, 2.0 * (value - 0.5));
 }
 
 function handleButtonMouseDown(event) {
@@ -683,28 +666,28 @@ function handleButtonMouseDown(event) {
     if (note) {
         switch(instrumentIndex) {
         case 0:  // Kick
-          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, kickPitch, 0);
+          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, pitch['Kick'], 0);
           break;
 
         case 1:  // Snare
-          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, snarePitch, 0);
+          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Snare'], 0);
           break;
 
         case 2:  // Hihat
           // Pan the hihat according to sequence position.
-          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, hihatPitch, 0);
+          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, pitch['HiHat'], 0);
           break;
 
         case 3:  // Tom 1   
-          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom1Pitch, 0);
+          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom1'], 0);
           break;
 
         case 4:  // Tom 2   
-          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom2Pitch, 0);
+          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom2'], 0);
           break;
 
         case 5:  // Tom 3   
-          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, tom3Pitch, 0);
+          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom3'], 0);
           break;
         }
     }
@@ -741,7 +724,6 @@ function setEffect(index) {
         theBeat.effectMix = 1;
 
     setEffectLevel(theBeat);
-    sliderSetValue('effect_thumb', theBeat.effectMix);
     updateControls();
 
     document.getElementById('effectlist').selectedIndex = index;
@@ -828,14 +810,12 @@ function handleLoadOk(event) {
     setEffectLevel(theBeat);
 
     // Apply values from sliders
-    sliderSetValue('effect_thumb', theBeat.effectMix);
-    sliderSetValue('kick_thumb', theBeat.kickPitchVal);
-    sliderSetValue('snare_thumb', theBeat.snarePitchVal);
-    sliderSetValue('hihat_thumb', theBeat.hihatPitchVal);
-    sliderSetValue('tom1_thumb', theBeat.tom1PitchVal);
-    sliderSetValue('tom2_thumb', theBeat.tom2PitchVal);
-    sliderSetValue('tom3_thumb', theBeat.tom3PitchVal);
-    sliderSetValue('swing_thumb', theBeat.swingFactor);
+    setPitch('Kick', theBeat.kickPitchVal);
+    setPitch('Snare', theBeat.snarePitchVal);
+    setPitch('HiHat', theBeat.hihatPitchVal);
+    setPitch('Tom1', theBeat.tom1PitchVal);
+    setPitch('Tom2', theBeat.tom2PitchVal);
+    setPitch('Tom3', theBeat.tom3PitchVal);
 
     // Clear out the text area post-processing
     elTextarea.value = '';
@@ -878,15 +858,12 @@ function loadBeat(beat) {
     currentKit = kits[theBeat.kitIndex];
     setEffect(theBeat.effectIndex);
 
-    // apply values from sliders
-    sliderSetValue('effect_thumb', theBeat.effectMix);
-    sliderSetValue('kick_thumb', theBeat.kickPitchVal);
-    sliderSetValue('snare_thumb', theBeat.snarePitchVal);
-    sliderSetValue('hihat_thumb', theBeat.hihatPitchVal);
-    sliderSetValue('tom1_thumb', theBeat.tom1PitchVal);
-    sliderSetValue('tom2_thumb', theBeat.tom2PitchVal);
-    sliderSetValue('tom3_thumb', theBeat.tom3PitchVal);
-    sliderSetValue('swing_thumb', theBeat.swingFactor);
+    setPitch('Kick', theBeat.kickPitchVal);
+    setPitch('Snare', theBeat.snarePitchVal);
+    setPitch('HiHat', theBeat.hihatPitchVal);
+    setPitch('Tom1', theBeat.tom1PitchVal);
+    setPitch('Tom2', theBeat.tom2PitchVal);
+    setPitch('Tom3', theBeat.tom3PitchVal);
 
     updateControls();
 
@@ -912,14 +889,15 @@ function updateControls() {
     document.getElementById('kitlist').selectedIndex = theBeat.kitIndex;
     document.getElementById('effectlist').selectedIndex = theBeat.effectIndex;
     document.getElementById('tempo').innerHTML = theBeat.tempo;
-    sliderSetPosition('swing_thumb', theBeat.swingFactor);
-    sliderSetPosition('effect_thumb', theBeat.effectMix);
-    sliderSetPosition('kick_thumb', theBeat.kickPitchVal);
-    sliderSetPosition('snare_thumb', theBeat.snarePitchVal);
-    sliderSetPosition('hihat_thumb', theBeat.hihatPitchVal);
-    sliderSetPosition('tom1_thumb', theBeat.tom1PitchVal);        
-    sliderSetPosition('tom2_thumb', theBeat.tom2PitchVal);
-    sliderSetPosition('tom3_thumb', theBeat.tom3PitchVal);
+    effectSlider.value = theBeat.effectMix;
+    swingSlider.value = theBeat.swingFactor;
+
+    pitchSliders['Kick'].value = theBeat.kickPitchVal;
+    pitchSliders['Snare'].value = theBeat.snarePitchVal;
+    pitchSliders['HiHat'].value = theBeat.hihatPitchVal;
+    pitchSliders['Tom1'].value = theBeat.tom1PitchVal;       
+    pitchSliders['Tom2'].value = theBeat.tom2PitchVal;
+    pitchSliders['Tom3'].value = theBeat.tom3PitchVal;
 }
 
 
