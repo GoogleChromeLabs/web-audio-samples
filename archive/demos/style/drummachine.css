@@ -111,6 +111,20 @@ body {
 	border: 0;
 }
 
+.note {
+	background: url(../images/button_off.png) no-repeat center;
+	width: 38px;
+	height: 38px;
+}
+
+.note[data-note="1"] {
+	background-image: url(../images/button_half.png);
+}
+
+.note[data-note="2"] {
+	background-image: url(../images/button_on.png);
+}
+
 select {
 	appearance: none;
 	cursor: pointer;

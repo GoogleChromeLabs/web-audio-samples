@@ -480,13 +480,8 @@ function initControls() {
 }
 
 function initButtons() {        
-    var elButton;
-
-    for (i = 0; i < loopLength; ++i) {
-        for (j = 0; j < kNumInstruments; j++) {
-                elButton = document.getElementById(instruments[j] + '_' + i);
-                elButton.addEventListener("click", handleButtonMouseDown, true);
-        }
+    for(const elButton of document.querySelectorAll("[data-instrument][data-rhythm]")) {
+        elButton.addEventListener("click", handleButtonMouseDown, true);
     }
 }
 
@@ -676,29 +671,14 @@ function sliderSetPosition(slider, value) {
 }
 
 function handleButtonMouseDown(event) {
-    var notes = theBeat.rhythm1;
-    
-    var instrumentIndex;
-    var rhythmIndex;
+    const rhythmIndex = new Number(event.target.dataset.rhythm);
+    const instrument = event.target.dataset.instrument;
+    const instrumentIndex = instruments.indexOf(instrument);
+    const notes = theBeat[`rhythm${instrumentIndex + 1}`];    
+    const note = (notes[rhythmIndex] + 1) % 3
+    notes[rhythmIndex] = note;
 
-    var elId = event.target.id;
-    rhythmIndex = elId.substr(elId.indexOf('_') + 1, 2);
-    instrumentIndex = instruments.indexOf(elId.substr(0, elId.indexOf('_')));
-        
-    switch (instrumentIndex) {
-        case 0: notes = theBeat.rhythm1; break;
-        case 1: notes = theBeat.rhythm2; break;
-        case 2: notes = theBeat.rhythm3; break;
-        case 3: notes = theBeat.rhythm4; break;
-        case 4: notes = theBeat.rhythm5; break;
-        case 5: notes = theBeat.rhythm6; break;
-    }
-
-    notes[rhythmIndex] = (notes[rhythmIndex] + 1) % 3;
-
-    drawNote(notes[rhythmIndex], rhythmIndex, instrumentIndex);
-
-    var note = notes[rhythmIndex];
+    drawNote(notes[rhythmIndex], rhythmIndex, instrument);
     
     if (note) {
         switch(instrumentIndex) {
@@ -925,7 +905,7 @@ function updateControls() {
                 case 5: notes = theBeat.rhythm6; break;
             }
 
-            drawNote(notes[i], i, j);
+            drawNote(notes[i], i, instruments[j]);
         }
     }
 
@@ -943,13 +923,9 @@ function updateControls() {
 }
 
 
-function drawNote(draw, xindex, yindex) {    
-    var elButton = document.getElementById(instruments[yindex] + '_' + xindex);
-    switch (draw) {
-        case 0: elButton.src = 'images/button_off.png'; break;
-        case 1: elButton.src = 'images/button_half.png'; break;
-        case 2: elButton.src = 'images/button_on.png'; break;
-    }
+function drawNote(note, rhythmIndex, instrument) {    
+    const elButton = document.querySelector(`[data-rhythm="${rhythmIndex}"][data-instrument="${instrument}"]`);
+    elButton.dataset.note = note;
 }
 
 function drawPlayhead(xindex) {
