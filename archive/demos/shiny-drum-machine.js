@@ -1,4 +1,6 @@
 import { RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA, IMPULSE_RESPONSE_DATA, freeze, clone } from "./shiny-drum-machine-data.js";
+import {DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider, PitchSliders, TempoInput, Playheads, Notes, SaveModal, LoadModal, ResetButton, PlayButton} from './shiny-drum-machine-ui.js';
+
 
 // Events
 // init() once the page has finished loading.
@@ -37,12 +39,23 @@ let theBeat = clone(RESET_BEAT);
 let KITS;
 let impulseResponses;
 
-const pitchSliders = {};
-let effectSlider;
-let swingSlider;
-const noteButtons = {};
-let playButton;
-const demoButtons = [];
+const ui = Object.seal({
+    effectPicker: null,
+    kitPicker: null,
+    demoButtons: null,
+    swingSlider: null,
+    effectSlider: null,
+    pitchSliders: null,
+    tempoInput: null,
+    notes: null,
+    playButton: null,
+    resetButton: null,
+    playheads: null,
+    modal: {
+        save: null,
+        load: null,
+    },
+});
 
 class Kit {
     constructor(id, prettyName) {
@@ -80,8 +93,9 @@ class Kit {
 
 
 class ImpulseResponse {
-    constructor(url, index) {
-        this.url = url;
+    constructor(data, index) {
+        this.name = data.name;
+        this.url = data.url;
         this.index = index;
         this.buffer = undefined;
     }
@@ -109,8 +123,7 @@ class ImpulseResponse {
     }
 }
 
-function startLoadingAssets() {   
-    // Start loading the assets used by the presets first, in order of the presets.
+function loadDemos(onDemoLoaded) {
     for (let demoIndex = 0; demoIndex < 5; demoIndex++) {
         const demo = DEMO_BEATS[demoIndex];
         const effect = impulseResponses[demo.effectIndex];
@@ -119,18 +132,18 @@ function startLoadingAssets() {
         Promise.all([
             effect.load(),
             kit.load(),
-        ]).then(() => showDemoAvailable(demoIndex));
+        ]).then(() => onDemoLoaded(demoIndex));
     }
-    
-    // Then load the remaining assets.
+}
+
+function loadAssets() {       
     // Note that any assets which have previously started loading will be skipped over.
     for(const kit of KITS) {
         kit.load();
     }  
 
-    // Start at 1 to skip "No Effect"
-    for (let i = 1; i < IMPULSE_RESPONSE_DATA.length; i++) {
-        impulseResponses[i].load();
+    for (const impulseResponse of impulseResponses) {
+        impulseResponse.load();
     }
 }
 
@@ -139,28 +152,29 @@ function getCurrentKit() {
 }
 
 // This gets rid of the loading spinner in each of the demo buttons.
-function showDemoAvailable(demoIndex) {
-    demoButtons[demoIndex].state = "loaded";
+function onDemoLoaded(demoIndex) {
+    ui.demoButtons.markDemoAvailable(demoIndex)
     
     // Enable play button and assign it to demo 2.
     if (demoIndex == 1) {
-        showPlayAvailable();
+        // This gets rid of the loading spinner on the play button.
+        ui.playButton.state = "stopped";
         loadBeat(DEMO_BEATS[1]);
     }
 }
 
-// This gets rid of the loading spinner on the play button.
-function showPlayAvailable() {
-    playButton.state = "stopped";
-}
-
 function init() {    
-    impulseResponses = IMPULSE_RESPONSE_DATA.map((data, i) => new ImpulseResponse(data.url, i));
+    impulseResponses = IMPULSE_RESPONSE_DATA.map((data, i) => new ImpulseResponse(data, i));
     KITS = KIT_DATA.map(({id, name}) => new Kit(id, name));
     
     initControls();
 
-    startLoadingAssets();
+    // Start loading the assets used by the presets first, in order of the presets.
+    // The callback gets rid of the loading spinner in each of the demo buttons.
+    loadDemos(onDemoLoaded);
+    
+    // Then load the remaining assets.
+    loadAssets();
 
     context = new AudioContext();
 
@@ -188,142 +202,71 @@ function init() {
     // Create convolver for effect
     convolver = context.createConvolver();
     convolver.connect(effectLevelNode);
-
-
-    var elKitCombo = document.getElementById('kitlist');
-    elKitCombo.addEventListener("change", handleKitChange, true);
-
-    var elEffectCombo = document.getElementById('effectlist');
-    elEffectCombo.addEventListener("change", handleEffectChange, true);
-
     
     updateControls();
 }
 
-class Slider {
-    constructor(element, opts = {}) {
-        this.element = element;
-        this.onchange = () => {};
-
-        element.addEventListener('input', () => {
-            this.onchange(this.value);
-        });
-
-        if(opts && opts.doubleClickValue) {
-            element.addEventListener('dblclick', () => {
-                this.value = opts.doubleClickValue;
-                this.onchange(this.value);
-            });
-        }
-    }
-
-    get value() {
-        return new Number(this.element.value) / 100;
-    }
-
-    set value(value) {
-        this.element.value = value * 100;
-    }
-}
-
-class Button {
-    constructor(element) {
-        this.element = element;
-        this.onclick = () => {};
-
-        element.addEventListener('click', (event) => this.onclick(event));
-    }
-
-    get state() {
-        return this.element.dataset.state;
-    }
-
-    set state(value) {
-        this.element.dataset.state = value;
-    }
-}
-
 function initControls() {
     // Initialize note buttons
-    initButtons();
-    makeKitList();
-    makeEffectList();
+    ui.notes = new Notes();
+    ui.notes.onClick = (instrument, rhythm) => handleNoteClick(instrument, rhythm);
 
-    // sliders
-    effectSlider = new Slider(document.getElementById('effect_thumb'));
-    effectSlider.onchange = (value) => {
+    ui.kitPicker = new KitPicker();
+    ui.kitPicker.addOptions(KITS.map(kit => kit.prettyName));
+    ui.kitPicker.onSelect = (i) => handleKitChange(i);
+
+    ui.effectPicker = new EffectPicker();
+    ui.effectPicker.addOptions(impulseResponses.map(e => e.name));
+    ui.effectPicker.onSelect = (i) => handleEffectChange(i);
+
+    ui.effectSlider = new EffectSlider();
+    ui.effectSlider.onchange = (value) => {
         // Change the volume of the convolution effect.
         theBeat.effectMix = value;
         setEffectLevel(theBeat);            
     };
 
-    swingSlider = new Slider(document.getElementById('swing_thumb'));
-    swingSlider.onchange = (value) => {
+    ui.swingSlider = new SwingSlider();
+    ui.swingSlider.onchange = (value) => {
         theBeat.swingFactor = value;        
     };
 
-    for(const el of document.querySelectorAll('[data-instrument][data-pitch]')) {
-        pitchSliders[el.dataset.instrument] = new Slider(el, {doubleClickValue: 0.5});
-        pitchSliders[el.dataset.instrument].onchange = (value) => {
-            setPitch(el.dataset.instrument, value);
-        };
-    }
+    ui.pitchSliders = new PitchSliders();
+    ui.pitchSliders.onPitchChange = (instrument, pitch) => {
+        theBeat[`${instrument.toLowerCase()}PitchVal`] = pitch;
+    };
 
     // tool buttons
-    playButton = new Button(document.getElementById('play'));
-    playButton.onclick = () => {
-        if(playButton.state === "playing") {
+    ui.playButton = new PlayButton();
+    ui.playButton.onclick = () => {
+        if(ui.playButton.state === "playing") {
             handleStop();
-        } else if(playButton.state === "stopped") {
+        } else if(ui.playButton.state === "stopped") {
             handlePlay();
         }
     };
 
-    document.getElementById('save').addEventListener('click', handleSave, true);
-    document.getElementById('save_ok').addEventListener('click', handleSaveOk, true);
-    document.getElementById('load').addEventListener('click', handleLoad, true);
-    document.getElementById('load_ok').addEventListener('click', handleLoadOk, true);
-    document.getElementById('load_cancel').addEventListener('click', handleLoadCancel, true);
-    document.getElementById('reset').addEventListener('click', handleReset, true);
+    ui.modal.save = new SaveModal(() => JSON.stringify(theBeat));
+    ui.modal.load = new LoadModal();
+    ui.modal.load.onLoad = (data) => handleLoad(data);
 
-    for (let i = 0; i < DEMO_BEATS.length; i++) {
-        const button = new Button(document.querySelector(`[data-demo="${i}"]`));
-        button.onclick = handleDemoMouseDown;
-        demoButtons.push(button);
-    }
+    ui.resetButton = new ResetButton();
+    ui.resetButton.onclick = () => {
+        loadBeat(RESET_BEAT);
+    };
 
-    document.getElementById('tempoinc').addEventListener('click', tempoIncrease, true);
-    document.getElementById('tempodec').addEventListener('click', tempoDecrease, true);
-}
+    ui.demoButtons = new DemoButtons();
+    ui.demoButtons.onDemoClick = (demoIndex) => {
+        loadBeat(DEMO_BEATS[demoIndex]);
+        handlePlay();
+    };
 
-function initButtons() {        
-    for(const instrument of INSTRUMENTS) {
-        noteButtons[instrument] = [];
+    ui.tempoInput = new TempoInput({min: MIN_TEMPO, max: MAX_TEMPO, step: 4});
+    ui.tempoInput.onTempoChange = (tempo) => {
+        theBeat.tempo = tempo;
+    };
 
-        for (let rhythm = 0; rhythm < LOOP_LENGTH; rhythm++) {
-            const el = document.querySelector(`[data-instrument="${instrument}"][data-rhythm="${rhythm}"]`);
-            noteButtons[instrument][rhythm] = new Button(el);
-            noteButtons[instrument][rhythm].onclick = handleButtonMouseDown;
-
-        }
-    }
-}
-
-function makeEffectList() {
-    var elList = document.getElementById('effectlist');
-    var numEffects = IMPULSE_RESPONSE_DATA.length;
-    
-    for (var i = 0; i < numEffects; i++) {
-        elList.add(new Option(IMPULSE_RESPONSE_DATA[i].name));
-    }
-}
-
-function makeKitList() {
-    var elList = document.getElementById('kitlist');
-    
-    for(const kit of KITS) {
-        elList.add(new Option(kit.prettyName, kit.id));
-    }
+    ui.playheads = new Playheads();
 }
 
 function advanceNote() {
@@ -424,7 +367,7 @@ function schedule() {
         // Attempt to synchronize drawing time with sound
         if (noteTime != lastDrawTime) {
             lastDrawTime = noteTime;
-            drawPlayhead((rhythmIndex + 15) % 16);
+            ui.playheads.drawPlayhead((rhythmIndex + 15) % 16);
         }
 
         advanceNote();
@@ -433,34 +376,18 @@ function schedule() {
     timeoutId = setTimeout(schedule, 0);
 }
 
-function tempoIncrease() {
-    theBeat.tempo = Math.min(MAX_TEMPO, theBeat.tempo+4);
-    document.getElementById('tempo').innerHTML = theBeat.tempo;
-}
-
-function tempoDecrease() {
-    theBeat.tempo = Math.max(MIN_TEMPO, theBeat.tempo-4);
-    document.getElementById('tempo').innerHTML = theBeat.tempo;
-}
-
-function setPitch(instrument, value) {
-    theBeat[`${instrument.toLowerCase()}PitchVal`] = value;
-}
-
 function computePlaybackRate(instrument) {
     const pitch = theBeat[`${instrument.toLowerCase()}PitchVal`];
     return Math.pow(2.0, 2.0 * (pitch - 0.5));
 }
 
-function handleButtonMouseDown(event) {
-    const rhythmIndex = new Number(event.target.dataset.rhythm);
-    const instrument = event.target.dataset.instrument;
+function handleNoteClick(instrument, rhythmIndex) {
     const instrumentIndex = INSTRUMENTS.indexOf(instrument);
     const notes = theBeat[`rhythm${instrumentIndex + 1}`];    
     const note = (notes[rhythmIndex] + 1) % 3
     notes[rhythmIndex] = note;
 
-    drawNote(notes[rhythmIndex], rhythmIndex, instrument);
+    ui.notes.setNote(instrument, rhythmIndex, notes[rhythmIndex],);
     
     if (note) {
         switch(instrumentIndex) {
@@ -492,17 +419,17 @@ function handleButtonMouseDown(event) {
     }
 }
 
-function handleKitChange(event) {
-    theBeat.kitIndex = event.target.selectedIndex;
+function handleKitChange(index) {
+    theBeat.kitIndex = index;
 }
 
-function handleEffectChange(event) {
+function handleEffectChange(index) {
     // Hack - if effect is turned all the way down - turn up effect slider.
     // ... since they just explicitly chose an effect from the list.
     if (theBeat.effectMix == 0)
         theBeat.effectMix = 0.5;
 
-    setEffect(event.target.selectedIndex);
+    setEffect(index);
 }
 
 async function setEffect(index) {
@@ -521,7 +448,7 @@ async function setEffect(index) {
     setEffectLevel(theBeat);
     updateControls();
 
-    document.getElementById('effectlist').selectedIndex = index;
+   ui.effectPicker.select(index);
 }
 
 function setEffectLevel() {        
@@ -529,49 +456,25 @@ function setEffectLevel() {
     effectLevelNode.gain.value = theBeat.effectMix * effectWetMix;
 }
 
-
-function handleDemoMouseDown(event) {
-    const i = new Number(event.target.dataset.demo);
-    loadBeat(DEMO_BEATS[i]);
-    handlePlay();
-}
-
 function handlePlay() {
     noteTime = 0.0;
     startTime = context.currentTime + 0.005;
     schedule();
 
-    playButton.state = "playing";
+    ui.playButton.state = "playing";
 }
 
-function handleStop(event) {
+function handleStop() {
     clearTimeout(timeoutId);
 
-    var elOld = document.getElementById('LED_' + (rhythmIndex + 14) % 16);
-    elOld.src = 'images/LED_off.png';
-
     rhythmIndex = 0;
-
-    playButton.state = "stopped";
+    
+    ui.playheads.off();
+    ui.playButton.state = "stopped";
 }
 
-function handleSave(event) {
-    toggleSaveContainer();
-    var elTextarea = document.getElementById('save_textarea');
-    elTextarea.value = JSON.stringify(theBeat);
-}
-
-function handleSaveOk(event) {
-    toggleSaveContainer();
-}
-
-function handleLoad(event) {
-    toggleLoadContainer();
-}
-
-function handleLoadOk(event) {
-    var elTextarea = document.getElementById('load_textarea');
-    theBeat = JSON.parse(elTextarea.value);
+function handleLoad(data) {
+    theBeat = JSON.parse(data);
 
     // Set effect
     setEffect(theBeat.effectIndex);
@@ -579,33 +482,7 @@ function handleLoadOk(event) {
     // Change the volume of the convolution effect.
     setEffectLevel(theBeat);
 
-    // Clear out the text area post-processing
-    elTextarea.value = '';
-
-    toggleLoadContainer();
     updateControls();
-}
-
-function handleLoadCancel(event) {
-    toggleLoadContainer();
-}
-
-function toggleSaveContainer() {
-    document.getElementById('pad').classList.toggle('active');
-    document.getElementById('params').classList.toggle('active');
-    document.getElementById('tools').classList.toggle('active');
-    document.getElementById('save_container').classList.toggle('active');
-}
-
-function toggleLoadContainer() {
-    document.getElementById('pad').classList.toggle('active');
-    document.getElementById('params').classList.toggle('active');
-    document.getElementById('tools').classList.toggle('active');
-    document.getElementById('load_container').classList.toggle('active');
-}
-
-function handleReset() {
-    loadBeat(RESET_BEAT);    
 }
 
 function loadBeat(beat) {
@@ -633,35 +510,19 @@ function updateControls() {
                 case 5: notes = theBeat.rhythm6; break;
             }
 
-            drawNote(notes[i], i, INSTRUMENTS[j]);
+            ui.notes.setNote(INSTRUMENTS[j], i, notes[i]);
         }
     }
 
-    document.getElementById('kitlist').selectedIndex = theBeat.kitIndex;
-    document.getElementById('effectlist').selectedIndex = theBeat.effectIndex;
-    document.getElementById('tempo').innerHTML = theBeat.tempo;
-    effectSlider.value = theBeat.effectMix;
-    swingSlider.value = theBeat.swingFactor;
-
-    pitchSliders['Kick'].value = theBeat.kickPitchVal;
-    pitchSliders['Snare'].value = theBeat.snarePitchVal;
-    pitchSliders['HiHat'].value = theBeat.hihatPitchVal;
-    pitchSliders['Tom1'].value = theBeat.tom1PitchVal;       
-    pitchSliders['Tom2'].value = theBeat.tom2PitchVal;
-    pitchSliders['Tom3'].value = theBeat.tom3PitchVal;
-}
-
-
-function drawNote(note, rhythmIndex, instrument) {
-    noteButtons[instrument][rhythmIndex].state = note;
-}
-
-function drawPlayhead(xindex) {
-    var lastIndex = (xindex + 15) % 16;
-
-    var elNew = document.getElementById('LED_' + xindex);
-    var elOld = document.getElementById('LED_' + lastIndex);
-    
-    elNew.src = 'images/LED_on.png';
-    elOld.src = 'images/LED_off.png';
+    ui.kitPicker.select(theBeat.kitIndex);
+    ui.effectPicker.select(theBeat.effectIndex);
+    ui.tempoInput.value = theBeat.tempo;
+    ui.effectSlider.value = theBeat.effectMix;
+    ui.swingSlider.value = theBeat.swingFactor;
+    ui.pitchSliders.setPitch('Kick', theBeat.kickPitchVal);
+    ui.pitchSliders.setPitch('Snare', theBeat.snarePitchVal);
+    ui.pitchSliders.setPitch('HiHat', theBeat.hihatPitchVal);
+    ui.pitchSliders.setPitch('Tom1', theBeat.tom1PitchVal); 
+    ui.pitchSliders.setPitch('Tom2', theBeat.tom2PitchVal);
+    ui.pitchSliders.setPitch('Tom3', theBeat.tom3PitchVal);
 }
