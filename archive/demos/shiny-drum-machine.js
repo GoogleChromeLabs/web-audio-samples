@@ -333,35 +333,20 @@ function startLoadingAssets() {
     currentKit = kits[kInitialKitIndex];
 }
 
-function demoButtonURL(demoIndex) {
-    var n = demoIndex + 1;
-    var demoName = "demo" + n;
-    var url = "images/btn_" + demoName + ".png";
-    return url;
-}
-
 // This gets rid of the loading spinner in each of the demo buttons.
-function showDemoAvailable(demoIndex /* zero-based */) {
-    var url = demoButtonURL(demoIndex);
-    var n = demoIndex + 1;
-    var demoName = "demo" + n;
-    var demo = document.getElementById(demoName);
-    demo.src = url;
+function showDemoAvailable(demoIndex) {
+    demoButtons[demoIndex].state = "loaded";
     
     // Enable play button and assign it to demo 2.
     if (demoIndex == 1) {
         showPlayAvailable();
         loadBeat(beatDemo[1]);
-
-    // Uncomment to allow autoplay
-    //     handlePlay();
     }
 }
 
 // This gets rid of the loading spinner on the play button.
 function showPlayAvailable() {
-    var play = document.getElementById("play");
-    play.src = "images/btn_play.png";
+    playButton.state = "stopped";
 }
 
 function init() {
@@ -459,9 +444,29 @@ class Slider {
     }
 }
 
+class Button {
+    constructor(element) {
+        this.element = element;
+        this.onclick = () => {};
+
+        element.addEventListener('click', (event) => this.onclick(event));
+    }
+
+    get state() {
+        return this.element.dataset.state;
+    }
+
+    set state(value) {
+        this.element.dataset.state = value;
+    }
+}
+
 const pitchSliders = {};
 let effectSlider;
 let swingSlider;
+const noteButtons = {};
+let playButton;
+const demoButtons = [];
 
 function initControls() {
     // Initialize note buttons
@@ -490,27 +495,42 @@ function initControls() {
     }
 
     // tool buttons
-    document.getElementById('play').addEventListener('click', handlePlay, true);
-    document.getElementById('stop').addEventListener('click', handleStop, true);
+    playButton = new Button(document.getElementById('play'));
+    playButton.onclick = () => {
+        if(playButton.state === "playing") {
+            handleStop();
+        } else if(playButton.state === "stopped") {
+            handlePlay();
+        }
+    };
+
     document.getElementById('save').addEventListener('click', handleSave, true);
     document.getElementById('save_ok').addEventListener('click', handleSaveOk, true);
     document.getElementById('load').addEventListener('click', handleLoad, true);
     document.getElementById('load_ok').addEventListener('click', handleLoadOk, true);
     document.getElementById('load_cancel').addEventListener('click', handleLoadCancel, true);
     document.getElementById('reset').addEventListener('click', handleReset, true);
-    document.getElementById('demo1').addEventListener('click', handleDemoMouseDown, true);
-    document.getElementById('demo2').addEventListener('click', handleDemoMouseDown, true);
-    document.getElementById('demo3').addEventListener('click', handleDemoMouseDown, true);
-    document.getElementById('demo4').addEventListener('click', handleDemoMouseDown, true);
-    document.getElementById('demo5').addEventListener('click', handleDemoMouseDown, true);
+
+    for (let i = 0; i < beatDemo.length; i++) {
+        const button = new Button(document.querySelector(`[data-demo="${i}"]`));
+        button.onclick = handleDemoMouseDown;
+        demoButtons.push(button);
+    }
 
     document.getElementById('tempoinc').addEventListener('click', tempoIncrease, true);
     document.getElementById('tempodec').addEventListener('click', tempoDecrease, true);
 }
 
 function initButtons() {        
-    for(const elButton of document.querySelectorAll("[data-instrument][data-rhythm]")) {
-        elButton.addEventListener("click", handleButtonMouseDown, true);
+    for(const instrument of instruments) {
+        noteButtons[instrument] = [];
+
+        for (let rhythm = 0; rhythm < loopLength; rhythm++) {
+            const el = document.querySelector(`[data-instrument="${instrument}"][data-rhythm="${rhythm}"]`);
+            noteButtons[instrument][rhythm] = new Button(el);
+            noteButtons[instrument][rhythm].onclick = handleButtonMouseDown;
+
+        }
     }
 }
 
@@ -735,25 +755,8 @@ function setEffectLevel() {
 
 
 function handleDemoMouseDown(event) {
-    var loaded = false;
-    
-    switch(event.target.id) {
-        case 'demo1':
-            loaded = loadBeat(beatDemo[0]);    
-            break;
-        case 'demo2':
-            loaded = loadBeat(beatDemo[1]);    
-            break;
-        case 'demo3':
-            loaded = loadBeat(beatDemo[2]);    
-            break;
-        case 'demo4':
-            loaded = loadBeat(beatDemo[3]);    
-            break;
-        case 'demo5':
-            loaded = loadBeat(beatDemo[4]);    
-            break;
-    }
+    const i = new Number(event.target.dataset.demo);
+    const loaded = loadBeat(beatDemo[i]);
     
     if (loaded)
         handlePlay();
@@ -764,8 +767,7 @@ function handlePlay(event) {
     startTime = context.currentTime + 0.005;
     schedule();
 
-    document.getElementById('play').classList.add('playing');
-    document.getElementById('stop').classList.add('playing');
+    playButton.state = "playing";
 }
 
 function handleStop(event) {
@@ -776,8 +778,7 @@ function handleStop(event) {
 
     rhythmIndex = 0;
 
-    document.getElementById('play').classList.remove('playing');
-    document.getElementById('stop').classList.remove('playing');
+    playButton.state = "stopped";
 }
 
 function handleSave(event) {
@@ -885,9 +886,8 @@ function updateControls() {
 }
 
 
-function drawNote(note, rhythmIndex, instrument) {    
-    const elButton = document.querySelector(`[data-rhythm="${rhythmIndex}"][data-instrument="${instrument}"]`);
-    elButton.dataset.note = note;
+function drawNote(note, rhythmIndex, instrument) {
+    noteButtons[instrument][rhythmIndex].state = note;
 }
 
 function drawPlayhead(xindex) {

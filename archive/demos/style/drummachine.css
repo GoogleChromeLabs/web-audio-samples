@@ -117,12 +117,71 @@ body {
 	height: 38px;
 }
 
-.note[data-note="1"] {
+.note[data-state="1"] {
 	background-image: url(../images/button_half.png);
 }
 
-.note[data-note="2"] {
+.note[data-state="2"] {
 	background-image: url(../images/button_on.png);
+}
+
+.play {
+	background-image: url(../images/btn_play_loading.gif);
+	width: 80px;
+	height: 33px;
+}
+
+.play[data-state="stopped"] {
+	background-image: url(../images/btn_play.png);
+}
+
+.play[data-state="playing"] {
+	background-image: url(../images/btn_stop.png);
+}
+
+.demo {
+	width: 44px;
+	height: 33px;
+}
+
+.demo[data-demo="0"] {
+	background-image: url(../images/btn_demo1_loading.gif);
+}
+
+.demo[data-demo="1"] {
+	background-image: url(../images/btn_demo2_loading.gif);
+}
+
+.demo[data-demo="2"] {
+	background-image: url(../images/btn_demo3_loading.gif);
+}
+
+.demo[data-demo="3"] {
+	background-image: url(../images/btn_demo4_loading.gif);
+}
+
+.demo[data-demo="4"] {
+	background-image: url(../images/btn_demo5_loading.gif);
+}
+
+.demo[data-demo="0"][data-state="loaded"] {
+	background-image: url(../images/btn_demo1.png);
+}
+
+.demo[data-demo="1"][data-state="loaded"] {
+	background-image: url(../images/btn_demo2.png);
+}
+
+.demo[data-demo="2"][data-state="loaded"] {
+	background-image: url(../images/btn_demo3.png);
+}
+
+.demo[data-demo="3"][data-state="loaded"] {
+	background-image: url(../images/btn_demo4.png);
+}
+
+.demo[data-demo="4"][data-state="loaded"] {
+	background-image: url(../images/btn_demo5.png);
 }
 
 select {
