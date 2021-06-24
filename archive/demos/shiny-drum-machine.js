@@ -75,11 +75,6 @@ var noteTime = 0.0;
 
 var instruments = ['Kick', 'Snare', 'HiHat', 'Tom1', 'Tom2', 'Tom3'];
 
-const pitch = {};
-for(const instrument of instruments) {
-    pitch[instrument] = 0;
-}
-
 var volumes = [0, 0.3, 1];
 
 var kitCount = 0;
@@ -598,31 +593,31 @@ function schedule() {
         
         // Kick
         if (theBeat.rhythm1[rhythmIndex]) {
-            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, pitch['Kick'], contextPlayTime);
+            playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5, volumes[theBeat.rhythm1[rhythmIndex]] * 1.0, computePlaybackRate('Kick'), contextPlayTime);
         }
 
         // Snare
         if (theBeat.rhythm2[rhythmIndex]) {
-            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, pitch['Snare'], contextPlayTime);
+            playNote(currentKit.snareBuffer, false, 0,0,-2, 1, volumes[theBeat.rhythm2[rhythmIndex]] * 0.6, computePlaybackRate('Snare'), contextPlayTime);
         }
 
         // Hihat
         if (theBeat.rhythm3[rhythmIndex]) {
             // Pan the hihat according to sequence position.
-            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, pitch['HiHat'], contextPlayTime);
+            playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, 1, volumes[theBeat.rhythm3[rhythmIndex]] * 0.7, computePlaybackRate('HiHat'), contextPlayTime);
         }
 
         // Toms    
         if (theBeat.rhythm4[rhythmIndex]) {
-            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, pitch['Tom1'], contextPlayTime);
+            playNote(currentKit.tom1, false, 0,0,-2, 1, volumes[theBeat.rhythm4[rhythmIndex]] * 0.6, computePlaybackRate('Tom1'), contextPlayTime);
         }
 
         if (theBeat.rhythm5[rhythmIndex]) {
-            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, pitch['Tom2'], contextPlayTime);
+            playNote(currentKit.tom2, false, 0,0,-2, 1, volumes[theBeat.rhythm5[rhythmIndex]] * 0.6, computePlaybackRate('Tom2'), contextPlayTime);
         }
 
         if (theBeat.rhythm6[rhythmIndex]) {
-            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, pitch['Tom3'], contextPlayTime);
+            playNote(currentKit.tom3, false, 0,0,-2, 1, volumes[theBeat.rhythm6[rhythmIndex]] * 0.6, computePlaybackRate('Tom3'), contextPlayTime);
         }
 
         
@@ -650,7 +645,11 @@ function tempoDecrease() {
 
 function setPitch(instrument, value) {
     theBeat[`${instrument.toLowerCase()}PitchVal`] = value;
-    pitch[instrument] =  Math.pow(2.0, 2.0 * (value - 0.5));
+}
+
+function computePlaybackRate(instrument) {
+    const pitch = theBeat[`${instrument.toLowerCase()}PitchVal`];
+    return Math.pow(2.0, 2.0 * (pitch - 0.5));
 }
 
 function handleButtonMouseDown(event) {
@@ -666,28 +665,28 @@ function handleButtonMouseDown(event) {
     if (note) {
         switch(instrumentIndex) {
         case 0:  // Kick
-          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, pitch['Kick'], 0);
+          playNote(currentKit.kickBuffer, false, 0,0,-2, 0.5 * theBeat.effectMix, volumes[note] * 1.0, computePlaybackRate('Kick'), 0);
           break;
 
         case 1:  // Snare
-          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Snare'], 0);
+          playNote(currentKit.snareBuffer, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate('Snare'), 0);
           break;
 
         case 2:  // Hihat
           // Pan the hihat according to sequence position.
-          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, pitch['HiHat'], 0);
+          playNote(currentKit.hihatBuffer, true, 0.5*rhythmIndex - 4, 0, -1.0, theBeat.effectMix, volumes[note] * 0.7, computePlaybackRate('HiHat'), 0);
           break;
 
         case 3:  // Tom 1   
-          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom1'], 0);
+          playNote(currentKit.tom1, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate('Tom1'), 0);
           break;
 
         case 4:  // Tom 2   
-          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom2'], 0);
+          playNote(currentKit.tom2, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate('Tom2'), 0);
           break;
 
         case 5:  // Tom 3   
-          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, pitch['Tom3'], 0);
+          playNote(currentKit.tom3, false, 0,0,-2, theBeat.effectMix, volumes[note] * 0.6, computePlaybackRate('Tom3'), 0);
           break;
         }
     }
@@ -809,14 +808,6 @@ function handleLoadOk(event) {
     // Change the volume of the convolution effect.
     setEffectLevel(theBeat);
 
-    // Apply values from sliders
-    setPitch('Kick', theBeat.kickPitchVal);
-    setPitch('Snare', theBeat.snarePitchVal);
-    setPitch('HiHat', theBeat.hihatPitchVal);
-    setPitch('Tom1', theBeat.tom1PitchVal);
-    setPitch('Tom2', theBeat.tom2PitchVal);
-    setPitch('Tom3', theBeat.tom3PitchVal);
-
     // Clear out the text area post-processing
     elTextarea.value = '';
 
@@ -857,13 +848,6 @@ function loadBeat(beat) {
     theBeat = cloneBeat(beat);
     currentKit = kits[theBeat.kitIndex];
     setEffect(theBeat.effectIndex);
-
-    setPitch('Kick', theBeat.kickPitchVal);
-    setPitch('Snare', theBeat.snarePitchVal);
-    setPitch('HiHat', theBeat.hihatPitchVal);
-    setPitch('Tom1', theBeat.tom1PitchVal);
-    setPitch('Tom2', theBeat.tom2PitchVal);
-    setPitch('Tom3', theBeat.tom3PitchVal);
 
     updateControls();
 
