@@ -88,23 +88,23 @@ class ResetButton extends Button {
 class Playheads {
   constructor() {
     this.current = 0;
+    this.leds = {};
+
+    const selector = '[data-led][data-rhythm]';
+    for (const el of document.querySelectorAll(selector)) {
+      const i = Number(el.dataset.rhythm);
+      this.leds[i] = el;
+    }
   }
 
   drawPlayhead(index) {
-    // TODO: Refactor, replace with data attributes.
-    this.current = (index + 15) % 16;
-    const lastIndex = (this.current + 15) % 16;
-
-    const elNew = document.getElementById('LED_' + this.current);
-    const elOld = document.getElementById('LED_' + lastIndex);
-
-    elNew.src = 'images/LED_on.png';
-    elOld.src = 'images/LED_off.png';
+    this.off();
+    this.current = index;
+    this.leds[this.current].dataset.led = 'on';
   }
 
   off() {
-    const el = document.getElementById(`LED_${this.current}`);
-    el.src = 'images/LED_off.png';
+    this.leds[this.current].dataset.led = 'off';
   }
 }
 
