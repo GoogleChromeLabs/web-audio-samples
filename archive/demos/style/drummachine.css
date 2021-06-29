@@ -68,6 +68,16 @@ body {
 	margin-bottom: 12px;
 }
 
+.led {
+	width: 38px;
+	height: 9px;
+	background: url(../images/LED_off.png);
+}
+
+.led[data-led='on'] {
+	background-image: url(../images/LED_on.png);
+}
+
 .label {
 	display: inline-block;
 	width: 60px;

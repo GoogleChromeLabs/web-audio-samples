@@ -308,6 +308,7 @@ class Player {
     this.noteTime = 0.0;
     this.startTime = context.currentTime + 0.005;
     this.rhythmIndex = 0;
+    this.onNextBeat(this.rhythmIndex);
     this.schedule();
   }
 
