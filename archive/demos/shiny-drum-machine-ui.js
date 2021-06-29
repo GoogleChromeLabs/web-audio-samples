@@ -92,10 +92,10 @@ class Playheads {
 
   drawPlayhead(index) {
     // TODO: Refactor, replace with data attributes.
-    this.current = index;
-    const lastIndex = (index + 15) % 16;
+    this.current = (index + 15) % 16;
+    const lastIndex = (this.current + 15) % 16;
 
-    const elNew = document.getElementById('LED_' + index);
+    const elNew = document.getElementById('LED_' + this.current);
     const elOld = document.getElementById('LED_' + lastIndex);
 
     elNew.src = 'images/LED_on.png';
