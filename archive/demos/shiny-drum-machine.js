@@ -7,7 +7,7 @@ import {DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider,
   PitchSliders, TempoInput, Playheads, Notes, SaveModal, LoadModal,
   ResetButton, PlayButton} from './shiny-drum-machine-ui.js';
 
-import {Beat, Player, Kit, Effect, LOOP_LENGTH} from './shiny-drum-machine-audio.js';
+import {Beat, Player, Kit, Effect} from './shiny-drum-machine-audio.js';
 
 
 // Events
@@ -210,9 +210,9 @@ function onNextBeat(rhythmIndex) {
 
 function updateControls() {
   for (const instrument of INSTRUMENTS) {
-    for (let i = 0; i < LOOP_LENGTH; ++i) {
-      ui.notes.setNote(instrument.name, i, theBeat.getNote(instrument.name, i));
-    }
+    theBeat.getNotes(instrument.name).forEach((note, i) => {
+      ui.notes.setNote(instrument.name, i, note);
+    });
   }
 
   ui.kitPicker.select(theBeat.kit.index);
