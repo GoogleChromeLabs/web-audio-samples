@@ -8,8 +8,14 @@
         "google"
     ],
     "ignorePatterns": [
-        "archive/", 
-        "audio-worklet/"
+        "/archive/demos/**", 
+        "!/archive/demos/shiny-drum-machine*", 
+        "/archive/stress-box", 
+        "/assets",
+        "/audio-worklet",
+        "/gulpfile.js",
+        "/home",
+        "/src"
     ],
     "parserOptions": {
         "ecmaVersion": 12,
