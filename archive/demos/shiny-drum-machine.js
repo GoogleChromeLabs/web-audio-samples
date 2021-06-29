@@ -1,7 +1,7 @@
 /* eslint require-jsdoc: "off" */
 
-import {RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA, IMPULSE_RESPONSE_DATA
-} from './shiny-drum-machine-data.js';
+import {RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA,
+  IMPULSE_RESPONSE_DATA} from './shiny-drum-machine-data.js';
 
 import {DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider,
   PitchSliders, TempoInput, Playheads, Notes, SaveModal, LoadModal,
