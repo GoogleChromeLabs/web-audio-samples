@@ -6,8 +6,8 @@ const AudioContext = window.AudioContext ?? window.webkitAudioContext;
 
 const context = new AudioContext();
 
-const MAX_SWING = 0.08;
 const LOOP_LENGTH = 16;
+const BEATS_PER_FULL_NOTE = 4;
 const VOLUMES = freeze([0, 0.3, 1]);
 
 
@@ -156,19 +156,19 @@ class Beat {
     return this._data.tempo;
   }
 
-  getRhythm(instrumentName) {
+  getNotes(instrumentName) {
     const index = 1 + INSTRUMENTS.findIndex((i) => i.name === instrumentName);
     return this._data[`rhythm${index}`];
   }
 
   toggleNote(instrumentName, rhythmIndex) {
-    const notes = this.getRhythm(instrumentName);
+    const notes = this.getNotes(instrumentName);
     const note = (notes[rhythmIndex] + 1) % 3;
     notes[rhythmIndex] = note;
   }
 
   getNote(instrumentName, rhythmIndex) {
-    const notes = this.getRhythm(instrumentName);
+    const notes = this.getNotes(instrumentName);
     return notes[rhythmIndex];
   }
 }
@@ -178,15 +178,13 @@ class Player {
     this.beat = beat;
     this.onNextBeat = onNextBeat;
 
-    let finalMixNode;
+    let finalMixNode = context.destination;
+
     if (context.createDynamicsCompressor) {
       // Create a dynamics compressor to sweeten the overall mix.
       const compressor = context.createDynamicsCompressor();
-      compressor.connect(context.destination);
+      compressor.connect(finalMixNode);
       finalMixNode = compressor;
-    } else {
-      // No compressor available in this implementation.
-      finalMixNode = context.destination;
     }
 
     // Create master volume.
@@ -205,25 +203,6 @@ class Player {
     this.convolver.connect(this.effectLevelNode);
   }
 
-  advanceNote() {
-    // Advance time by a 16th note...
-    const secondsPerBeat = 60.0 / this.beat.tempo;
-
-    this.rhythmIndex = (this.rhythmIndex + 1) % LOOP_LENGTH;
-
-    let increment = 0.25;
-    const swing = MAX_SWING * this.beat.swingFactor;
-
-    // apply swing
-    if (this.rhythmIndex % 2) {
-      increment += swing;
-    } else {
-      increment -= swing;
-    }
-
-    this.noteTime += increment * secondsPerBeat;
-  }
-
   playNote(instrument, rhythmIndex) {
     this.playNoteAtTime(instrument, rhythmIndex, 0);
   }
@@ -240,16 +219,15 @@ class Player {
     voice.buffer = this.beat.kit.buffer[instrument.name];
     voice.playbackRate.value = this.beat.getPlaybackRate(instrument.name);
 
-    // Optionally, connect to a panner
-    let finalNode;
+    let finalNode = voice;
+
+    // Optionally, connect to a panner.
     if (instrument.pan) {
       const panner = context.createPanner();
       // Pan according to sequence position.
       panner.setPosition(0.5 * rhythmIndex - 4, 0, -1);
-      voice.connect(panner);
+      finalNode.connect(panner);
       finalNode = panner;
-    } else {
-      finalNode = voice;
     }
 
     // Connect to dry mix
@@ -268,31 +246,35 @@ class Player {
     voice.start(noteTime);
   }
 
-  schedule() {
-    let currentTime = context.currentTime;
+  /** Call when beat `n` is played to schedule beat `n+1` */
+  tick() {
+    // tick() is called when beat `n` is played. At this time, call the
+    // onNextBeat callback to highlight the currently audible beat in the UI.
+    this.onNextBeat(this.rhythmIndex);
 
-    // The sequence starts at startTime, so normalize currentTime so that it's 0
-    // at the start of the sequence.
-    currentTime -= this.startTime;
+    // Then, increase rhythmIndex and nextBeatAt for beat `n+1`.
+    this.advanceBeat();
 
-    while (this.noteTime < currentTime + 0.200) {
-      // Convert this.noteTime to context time.
-      const contextPlayTime = this.noteTime + this.startTime;
-
-      for (const instrument of INSTRUMENTS) {
-        this.playNoteAtTime(instrument, this.rhythmIndex, contextPlayTime);
-      }
-
-      // Attempt to synchronize drawing time with sound
-      if (this.noteTime != this.lastDrawTime) {
-        this.lastDrawTime = this.noteTime;
-        this.onNextBeat(this.rhythmIndex);
-      }
-
-      this.advanceNote();
+    // Schedule notes to be played at beat `n+1`.
+    for (const instrument of INSTRUMENTS) {
+      this.playNoteAtTime(instrument, this.rhythmIndex, this.nextBeatAt);
     }
 
-    this.timeoutId = setTimeout(() => this.schedule(), 0);
+    // Finally, call tick() again at the time when beat `n+1` is played.
+    this.timeoutId = setTimeout(
+        () => this.tick(),
+        (this.nextBeatAt - context.currentTime) * 1000,
+    );
+  }
+
+  advanceBeat() {
+    // Convert configured beats per minute to delay per tick.
+    const secondsPerBeat = 60.0 / this.beat.tempo / BEATS_PER_FULL_NOTE;
+    const swingDirection = (this.rhythmIndex % 2) ? -1 : 1;
+    const swing = (this.beat.swingFactor / 3) * swingDirection;
+
+    this.nextBeatAt += (1 + swing) * secondsPerBeat;
+    this.rhythmIndex = (this.rhythmIndex + 1) % LOOP_LENGTH;
   }
 
   updateEffect() {
@@ -305,17 +287,21 @@ class Player {
   }
 
   play() {
-    this.noteTime = 0.0;
-    this.startTime = context.currentTime + 0.005;
+    // Ensure that initial notes are played at once by scheduling the playback
+    // slightly in the future.
+    this.nextBeatAt = context.currentTime + 0.05;
     this.rhythmIndex = 0;
-    this.onNextBeat(this.rhythmIndex);
-    this.schedule();
+
+    for (const instrument of INSTRUMENTS) {
+      this.playNote(instrument, this.rhythmIndex, this.nextBeatAt);
+    }
+
+    this.tick();
   }
 
   stop() {
     clearTimeout(this.timeoutId);
-    this.rhythmIndex = 0;
   }
 }
 
-export {Beat, Player, Effect, Kit, LOOP_LENGTH};
+export {Beat, Player, Effect, Kit};
