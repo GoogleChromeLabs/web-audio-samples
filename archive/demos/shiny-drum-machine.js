@@ -1,3 +1,5 @@
+/* eslint require-jsdoc: "off" */
+
 import {RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA, IMPULSE_RESPONSE_DATA,
   freeze, clone} from './shiny-drum-machine-data.js';
 
@@ -20,8 +22,9 @@ let compressor;
 let masterGainNode;
 let effectLevelNode;
 
-// Each effect impulse response has a specific overall desired dry and wet volume.
-// For example in the telephone filter, it's necessary to make the dry volume 0 to correctly hear the effect.
+// Each effect impulse response has a specific overall desired dry and wet
+// volume. For example in the telephone filter, it's necessary to make the dry
+// volume 0 to correctly hear the effect.
 let effectDryMix = 1.0;
 let effectWetMix = 1.0;
 
@@ -61,6 +64,16 @@ const ui = Object.seal({
   },
 });
 
+async function fetchAudio(url) {
+  const response = await fetch(new Request(url));
+  const responseBuffer = await response.arrayBuffer();
+
+  // TODO(#226): Migrate to Promise-syntax once Safari supports it.
+  return new Promise((resolve, reject) => {
+    context.decodeAudioData(responseBuffer, resolve, reject);
+  });
+}
+
 class Kit {
   constructor(id, prettyName) {
     this.id = id;
@@ -73,25 +86,18 @@ class Kit {
   }
 
   load() {
-    const instrumentPromises = INSTRUMENTS.map((instrument) => this.loadSample(instrument.name));
+    const instrumentPromises = INSTRUMENTS.map(
+        (instrument) => this.loadSample(instrument.name));
     const promise = Promise.all(instrumentPromises).then(() => null);
-    // Return original Promise on subsequent load calls to avoid duplicate loads.
+    // Return original Promise on subsequent load calls to avoid duplicate
+    // loads.
     this.load = () => promise;
     return promise;
   }
 
   async loadSample(instrumentName) {
-    const request = new Request(this.getSampleUrl(instrumentName));
-    const response = await fetch(request);
-    const responseBuffer = await response.arrayBuffer();
-
-    // TODO(#226): Migrate to Promise-syntax once Safari supports it.
-    return new Promise((resolve) => {
-      context.decodeAudioData(responseBuffer, (buffer) => {
-        this.buffer[instrumentName] = buffer;
-        resolve();
-      });
-    });
+    this.buffer[instrumentName] = await fetchAudio(
+        this.getSampleUrl(instrumentName));
   }
 }
 
@@ -105,25 +111,13 @@ class ImpulseResponse {
   }
 
   async load() {
-    if (!this.url) {
-      return; // "No effect" instance has empty URL.
+    // Return if buffer has been loaded already or there is nothing to load
+    // ("No effect" instance).
+    if (!this.url || this.buffer) {
+      return;
     }
 
-    const request = new Request(this.url);
-    const response = await fetch(request);
-    const responseBuffer = await response.arrayBuffer();
-
-    // TODO(#226): Migrate to Promise-syntax once Safari supports it.
-    const result = new Promise((resolve) => {
-      context.decodeAudioData(responseBuffer, (buffer) => {
-        this.buffer = buffer;
-        resolve();
-      });
-    });
-
-    // Return original Promise on subsequent load calls to avoid duplicate loads.
-    this.load = () => result;
-    return result;
+    this.buffer = await fetchAudio(this.url);
   }
 }
 
@@ -141,7 +135,7 @@ function loadDemos(onDemoLoaded) {
 }
 
 function loadAssets() {
-  // Note that any assets which have previously started loading will be skipped over.
+  // Any assets which have previously started loading will be skipped over.
   for (const kit of KITS) {
     kit.load();
   }
@@ -168,13 +162,15 @@ function onDemoLoaded(demoIndex) {
 }
 
 function init() {
-  impulseResponses = IMPULSE_RESPONSE_DATA.map((data, i) => new ImpulseResponse(data, i));
+  impulseResponses = IMPULSE_RESPONSE_DATA.map(
+      (data, i) => new ImpulseResponse(data, i));
   KITS = KIT_DATA.map(({id, name}) => new Kit(id, name));
 
   initControls();
 
-  // Start loading the assets used by the presets first, in order of the presets.
-  // The callback gets rid of the loading spinner in each of the demo buttons.
+  // Start loading the assets used by the presets first, in order of the
+  // presets. The callback gets rid of the loading spinner in each of the demo
+  // buttons.
   loadDemos(onDemoLoaded);
 
   // Then load the remaining assets.
@@ -213,7 +209,8 @@ function init() {
 function initControls() {
   // Initialize note buttons
   ui.notes = new Notes();
-  ui.notes.onClick = (instrumentName, rhythm) => handleNoteClick(instrumentName, rhythm);
+  ui.notes.onClick = (instrumentName, rhythm) => handleNoteClick(
+      instrumentName, rhythm);
 
   ui.kitPicker = new KitPicker();
   ui.kitPicker.addOptions(KITS.map((kit) => kit.prettyName));
@@ -236,7 +233,8 @@ function initControls() {
   };
 
   ui.pitchSliders = new PitchSliders();
-  ui.pitchSliders.onPitchChange = (instrumentName, pitch) => setPitch(instrumentName, pitch);
+  ui.pitchSliders.onPitchChange = (instrumentName, pitch) => setPitch(
+      instrumentName, pitch);
 
   ui.playButton = new PlayButton();
   ui.playButton.onclick = () => {
@@ -342,7 +340,8 @@ function playNote(instrument, rhythmIndex, noteTime) {
 function schedule() {
   let currentTime = context.currentTime;
 
-  // The sequence starts at startTime, so normalize currentTime so that it's 0 at the start of the sequence.
+  // The sequence starts at startTime, so normalize currentTime so that it's 0
+  // at the start of the sequence.
   currentTime -= startTime;
 
   while (noteTime < currentTime + 0.200) {
@@ -416,7 +415,8 @@ async function setEffect(index) {
 }
 
 function setEffectLevel() {
-  // Factor in both the preset's effect level and the blending level (effectWetMix) stored in the effect itself.
+  // Factor in both the preset's effect level and the blending level
+  // (effectWetMix) stored in the effect itself.
   effectLevelNode.gain.value = theBeat.effectMix * effectWetMix;
 }
 
@@ -461,8 +461,6 @@ function loadBeat(beat) {
 }
 
 function updateControls() {
-  let notes;
-
   for (const instrument of INSTRUMENTS) {
     const notes = getRhythm(instrument.name);
     for (let i = 0; i < LOOP_LENGTH; ++i) {

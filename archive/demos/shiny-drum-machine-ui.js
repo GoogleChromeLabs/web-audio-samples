@@ -1,3 +1,5 @@
+/* eslint require-jsdoc: "off" */
+
 class Slider {
   constructor(element, opts = {}) {
     this.element = element;
@@ -16,7 +18,7 @@ class Slider {
   }
 
   get value() {
-    return new Number(this.element.value) / 100;
+    return Number(this.element.value) / 100;
   }
 
   set value(value) {
@@ -40,8 +42,10 @@ class PitchSliders {
   constructor(container=document) {
     this.sliders = {};
     this.onPitchChange = (instrument, pitch) => {};
-    for (const el of container.querySelectorAll('[data-instrument][data-pitch]')) {
-      this.sliders[el.dataset.instrument] = new Slider(el, {doubleClickValue: 0.5});
+    const selector = '[data-instrument][data-pitch]';
+    for (const el of container.querySelectorAll(selector)) {
+      this.sliders[el.dataset.instrument] = new Slider(el,
+          {doubleClickValue: 0.5});
       this.sliders[el.dataset.instrument].onchange = (value) => {
         this.onPitchChange(el.dataset.instrument, value);
       };
@@ -110,11 +114,11 @@ class DemoButtons {
     this.onDemoClick = onDemoClick;
 
     const onButtonClick = (event) => {
-      this.onDemoClick(new Number(event.target.dataset.demo));
+      this.onDemoClick(Number(event.target.dataset.demo));
     };
 
     for (const element of container.querySelectorAll(`[data-demo]`)) {
-      const demoIndex = new Number(element.dataset.demo);
+      const demoIndex = Number(element.dataset.demo);
       this.buttons[demoIndex] = new Button(element, onButtonClick);
     }
   }
@@ -128,7 +132,8 @@ class Picker {
   constructor(element) {
     this.onSelect = (index) => {};
     this.element = element;
-    this.element.addEventListener('change', () => this.onSelect(this.element.selectedIndex));
+    this.element.addEventListener('change',
+        () => this.onSelect(this.element.selectedIndex));
   }
 
   addOptions(names) {
@@ -179,7 +184,7 @@ class TempoInput {
   }
 
   get value() {
-    return new Number(this.labelElement.innerText);
+    return Number(this.labelElement.innerText);
   }
 }
 
@@ -188,16 +193,18 @@ class Notes {
     this.onClick = (instrument, rhythm) => {};
 
     this.buttons = {};
-    for (const el of document.querySelectorAll(`[data-instrument][data-rhythm]`)) {
+    const selector = '[data-instrument][data-rhythm]';
+    for (const el of document.querySelectorAll(selector)) {
       const instrument = el.dataset.instrument;
-      const rhythm = new Number(el.dataset.rhythm);
+      const rhythm = Number(el.dataset.rhythm);
 
       if (!this.buttons[instrument]) {
         this.buttons[instrument] = {};
       }
 
       this.buttons[instrument][rhythm] = new Button(el);
-      this.buttons[instrument][rhythm].onclick = () => this.onClick(instrument, rhythm);
+      this.buttons[instrument][rhythm].onclick = () => this.onClick(
+          instrument, rhythm);
     }
   }
 
