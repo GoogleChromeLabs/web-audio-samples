@@ -22,7 +22,7 @@
   margin: 2em 0;
 }
 
-canvas, .placeholder {
+.placeholder {
   width: 75px;
   height: 75px;
 }
@@ -35,4 +35,8 @@ form {
 label {
   display: flex;
   padding: .2em;
+}
+
+.disabled {
+  pointer-events: none;
 }

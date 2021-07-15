@@ -13,6 +13,8 @@ let wetGainNode1;
 let wetGainNode2;
 let lowFilter1;
 let lowFilter2;
+let timeIndicator;
+let timeIndicatorText;
 
 const tempo = 120.0; // hardcoded for now
 let anchorTime = 0;
@@ -93,31 +95,15 @@ window.loadBufferForSource = async (sourceName, url) => {
 };
 
 function draw() {
-  const canvas = document.getElementById('loop');
-  const ctx = canvas.getContext('2d');
-
-  const width = canvas.width;
-  const height = canvas.height;
-
-  const loopColor = 'rgb(200,150,150)';
-
-  ctx.clearRect(0, 0, width, height);
-
-  // Draw body of knob.
-  ctx.fillStyle = loopColor;
-  const knobRadius = 0.95 * height / 2;
-
   // Calculate 4/4 beat position.
   const time = context.currentTime - anchorTime;
   const beat = (tempo / 60.0) * time;
   const roundedBeat = 4.0 * Math.floor(beat / 4.0);
   const wrappedBeat = beat - roundedBeat;
-  const angle = (wrappedBeat/4) * Math.PI * 2;
+  timeIndicator.value = wrappedBeat / 4;
 
-  ctx.beginPath();
-  ctx.moveTo(width / 2, height / 2);
-  ctx.arc(width / 2, height / 2, knobRadius, 0, angle, false);
-  ctx.fill();
+  const fullBeat = 1 + Math.trunc(beat / 4);
+  timeIndicatorText.textContent = `${fullBeat}.${1 + Math.trunc(wrappedBeat)}`;
 
   requestAnimationFrame(draw);
 }
@@ -204,6 +190,10 @@ async function init() {
     fetchAndDecodeAudio('sounds/drum-samples/loops/break29.wav'),
     fetchAndDecodeAudio('impulse-responses/filter-rhythm2.wav'),
   ]);
+
+  timeIndicator = new Nexus.Dial('#time');
+  timeIndicator.colorize('accent', '#555');
+  timeIndicatorText = document.querySelector('#time-value');
 
   const crossfader = new Nexus.Slider('#crossfader', {size: [400, 25]});
   crossfader.on('change', handleCrossfade);
