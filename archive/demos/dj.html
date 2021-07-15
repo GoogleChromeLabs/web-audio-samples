@@ -29,158 +29,145 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-  "http://www.w3.org/TR/html4/loose.dtd">
-<html class="paused">
-<head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>
-Digital DJ
-</title>
+<!DOCTYPE html>
+<html class="paused" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Digital DJ</title>
 
-<link rel="stylesheet" type="text/css" href = "style/dj.css" />
+    <link rel="stylesheet" type="text/css" href = "style/dj.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎛️</text></svg>">
 
-<script src="https://cdn.jsdelivr.net/npm/nexusui@2.1.6/dist/NexusUI.js"></script>
-<script type="module" src="dj.js"></script>
-</head>
-
-<body>
-
-<div class="decks">
-  <div class="deck">
-    <div class="dials">
-      <div class="dial">
-        Filter
-        <div id="filter-left"></div>
-        <div id="filter-left-value"></div>
+    <script src="https://cdn.jsdelivr.net/npm/nexusui@2.1.6/dist/NexusUI.js"></script>
+    <script type="module" src="dj.js"></script>
+  </head>
+  <body>
+    <div class="decks">
+      <div class="deck">
+        <div class="dials">
+          <div class="dial">
+            Filter
+            <div id="filter-left"></div>
+            <div id="filter-left-value"></div>
+          </div>
+          <div class="dial">
+            Effect
+            <div id="effect-left"></div>
+            <div id="effect-left-value"></div>
+          </div>
+        </div>
+        <div class="viz">
+          <div id="viz-left"></div>
+        </div>
       </div>
-      <div class="dial">
-        Effect
-        <div id="effect-left"></div>
-        <div id="effect-left-value"></div>
+
+      <div class="center">
+        <div class="dial play hide-playing">
+          Play
+          <div class="button">
+            <div class="overlay">▶</div>
+            <div id="play"></div>
+          </div>
+          <div>&nbsp;</div>
+        </div>
+        <div class="dial disabled hide-paused">
+          Beat
+          <div id="time"></div>
+          <div id="time-value"></div>
+        </div>
+        <div class="viz">
+          <div id="meter"></div>
+        </div>
+      </div>
+
+      <div class="deck">
+        <div class="dials">
+          <div class="dial">
+            Filter
+            <div id="filter-right"></div>
+            <div id="filter-right-value"></div>
+          </div>
+          <div class="dial">
+            Effect
+            <div id="effect-right"></div>
+            <div id="effect-right-value"></div>
+          </div>
+        </div>
+        <div class="viz">
+          <div id="viz-right"></div>
+        </div>
       </div>
     </div>
-    <div class="viz">
-      <div id="viz-left"></div>
-    </div>
-  </div>
 
-  <div class="center">
-    <div class="dial play hide-playing">
-      Play
-      <div class="button">
-        <div class="overlay">▶</div>
-        <div id="play"></div>
+    <div class="crossfader">
+      <div id="crossfader"></div>
+    </div>
+
+    <div class="decks">
+      <div>
+        <label>
+          <input type="radio" name="leftsource" checked="checked" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
+          blueyellow
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break12.wav'); "></input>
+          break12
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break28.wav'); "></input>
+          break28
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break29.wav'); "></input>
+          break29
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
+          Cool Loop 7
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/ominous.wav'); "></input>
+          Ominous
+        </label>
+        <label>
+          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
+          Organ Echo Chords
+        </label>
       </div>
-      <div>&nbsp;</div>
-    </div>
-    <div class="dial disabled hide-paused">
-      Beat
-      <div id="time"></div>
-      <div id="time-value"></div>
-    </div>
-    <div class="viz">
-      <div id="meter"></div>
-    </div>
-  </div>
 
-  <div class="deck">
-    <div class="dials">
-      <div class="dial">
-        Filter
-        <div id="filter-right"></div>
-        <div id="filter-right-value"></div>
+      <div class="placeholder"></div>
+
+      <div>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
+          blueyellow
+        </label>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break12.wav'); "></input>
+          break12
+        </label>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break28.wav'); "></input>
+          break28
+        </label>
+        <label>
+          <input type="radio" name="rightsource" checked="checked" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break29.wav'); "></input>
+          break29
+        </label>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
+          Cool Loop 7
+        </label>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/ominous.wav'); "></input>
+          Ominous
+        </label>
+        <label>
+          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
+          Organ Echo Chords
+        </label>
       </div>
-      <div class="dial">
-        Effect
-        <div id="effect-right"></div>
-        <div id="effect-right-value"></div>
-      </div>
     </div>
-    <div class="viz">
-      <div id="viz-right"></div>
-    </div>
-  </div>
-</div>
-
-<div class="crossfader">
-  <div id="crossfader"></div>
-</div>
-
-<div class="decks">
-
-<!-- Left "turntable" -->
-<div class="deck">
-<form>
-  <label>
-    <input type="radio" name="leftsource" checked="checked" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
-    blueyellow
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break12.wav'); "></input>
-    break12
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break28.wav'); "></input>
-    break28
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break29.wav'); "></input>
-    break29
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
-    Cool Loop 7
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/ominous.wav'); "></input>
-    Ominous
-  </label>
-  <label>
-    <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
-    Organ Echo Chords
-  </label>
-</form>
-</div>
-
-<div class="placeholder"></div>
-
-<div class="deck">
-<!-- Right "turntable" -->
-
-<form>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
-    blueyellow
-  </label>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break12.wav'); "></input>
-    break12
-  </label>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break28.wav'); "></input>
-    break28
-  </label>
-  <label>
-    <input type="radio" name="rightsource" checked="checked" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break29.wav'); "></input>
-    break29
-  </label>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
-    Cool Loop 7
-  </label>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/ominous.wav'); "></input>
-    Ominous
-  </label>
-  <label>
-    <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
-    Organ Echo Chords
-  </label>
-</form>
-
-</div>
-
-
-</body>
+  </body>
 </html>
