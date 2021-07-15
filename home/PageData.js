@@ -104,6 +104,11 @@ export default {
         description: 'Multitrack recorder/editor by Chi Zeng',
         url: '//beautifulaudioeditor.appspot.com/',
       },
+      {
+        title: 'Shiny Drum Machine',
+        description: 'Drum sequencer with a variety of drum kits and special effects.',
+        url: '/shiny-drum-machine/',
+      },
     ]
   },
   Demos: {
