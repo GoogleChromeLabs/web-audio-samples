@@ -1,1 +1,38 @@
-#slider { margin: 10px; }
+.decks {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center
+}
+
+.deck {
+  display: flex;
+  column-gap: 1em;
+}
+
+.dial {
+  display: flex;
+  flex-direction: column;
+  row-gap: .5em;
+  align-items: center;
+}
+
+.crossfader {
+  display: flex;
+  justify-content: center;
+  margin: 2em 0;
+}
+
+canvas, .placeholder {
+  width: 75px;
+  height: 75px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  display: flex;
+  padding: .2em;
+}

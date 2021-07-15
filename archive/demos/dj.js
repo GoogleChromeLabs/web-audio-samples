@@ -1,5 +1,5 @@
 /* eslint require-jsdoc: "off" */
-/* global addSlider configureSlider */ // loaded from lib/events.js.
+/* global Nexus */ // loaded from nexusui in main HTML page.
 
 // init() once the page has finished loading.
 window.onload = init;
@@ -28,62 +28,29 @@ async function fetchAndDecodeAudio(url) {
   });
 }
 
-function crossfadeHandler(event, ui) {
-  const x = ui.value;
+function handleCrossfade(x) {
   // equal-power cross-fade
   const gain1 = Math.cos(x * 0.5*Math.PI);
   const gain2 = Math.cos((1.0-x) * 0.5*Math.PI);
 
   source1Gain.gain.value = gain1;
   source2Gain.gain.value = gain2;
-
-  const info = document.getElementById('crossfade-value');
-  info.innerHTML = 'crossfade = ' + x;
 }
 
-function leftFilterHandler(event, ui) {
-  const value = ui.value;
+function handleFilterChange(value, filterNode, textElement) {
   const sampleRate = 44100.0; // !!@@ don't hardcode
   const nyquist = sampleRate * 0.5;
   const noctaves = Math.log(nyquist / 40.0) / Math.LN2;
   const v2 = Math.pow(2.0, noctaves * (value - 1.0));
   const cutoff = v2*nyquist;
 
-  const info = document.getElementById('leftFilter-value');
-  info.innerHTML = 'leftFilter = ' + cutoff + ' Hz';
-
-  lowFilter1.frequency.value = cutoff;
+  textElement.textContent = `${Math.round(cutoff)} Hz`;
+  filterNode.frequency.value = cutoff;
 }
 
-function rightFilterHandler(event, ui) {
-  const value = ui.value;
-  const sampleRate = 44100.0; // !!@@ don't hardcode
-  const nyquist = sampleRate * 0.5;
-  const noctaves = Math.log(nyquist / 40.0) / Math.LN2;
-  const v2 = Math.pow(2.0, noctaves * (value - 1.0));
-  const cutoff = v2*nyquist;
-
-  const info = document.getElementById('rightFilter-value');
-  info.innerHTML = 'rightFilter = ' + cutoff + ' Hz';
-
-  lowFilter2.frequency.value = cutoff;
-}
-
-function leftRhythmEffectHandler(event, ui) {
-  const value = ui.value;
-
-  const info = document.getElementById('leftRhythmEffect-value');
-  info.innerHTML = 'leftRhythmEffect = ' + 100.0*value + '%';
-
-  wetGainNode1.gain.value = value;
-}
-
-function rightRhythmEffectHandler(event, ui) {
-  const value = ui.value;
-  const info = document.getElementById('rightRhythmEffect-value');
-  info.innerHTML = 'rightRhythmEffect = ' + 100.0*value + '%';
-
-  wetGainNode2.gain.value = value;
+function handleEffectChange(value, gainNode, textElement) {
+  gainNode.gain.value = value;
+  textElement.textContent = `${Math.round(value * 100)} %`;
 }
 
 window.loadBufferForSource = async (sourceName, url) => {
@@ -238,20 +205,35 @@ async function init() {
     fetchAndDecodeAudio('impulse-responses/filter-rhythm2.wav'),
   ]);
 
-  // Get rid of loading animation.
-  const loading = document.getElementById('loading');
-  loading.innerHTML = '';
+  const crossfader = new Nexus.Slider('#crossfader', {size: [400, 25]});
+  crossfader.on('change', handleCrossfade);
+  crossfader.value = 0.5;
 
-  addSlider('crossfade');
-  addSlider('leftFilter');
-  addSlider('rightFilter');
-  addSlider('leftRhythmEffect');
-  addSlider('rightRhythmEffect');
-  configureSlider('crossfade', 0.5, 0.0, 1.0, crossfadeHandler);
-  configureSlider('leftFilter', 0.99, 0.0, 1.0, leftFilterHandler);
-  configureSlider('rightFilter', 0.99, 0.0, 1.0, rightFilterHandler);
-  configureSlider('leftRhythmEffect', 0.0, 0.0, 1.0, leftRhythmEffectHandler);
-  configureSlider('rightRhythmEffect', 0.0, 0.0, 1.0, rightRhythmEffectHandler);
+  const filters = [
+    ['#filter-left', '#filter-left-value', lowFilter1],
+    ['#filter-right', '#filter-right-value', lowFilter2],
+  ];
+  for (const [controlSel, textSel, node] of filters) {
+    const textElement = document.querySelector(textSel);
+    const dial = new Nexus.Dial(controlSel);
+    dial.on('change', (value) => {
+      handleFilterChange(value, node, textElement);
+    });
+    dial.value = 0.99;
+  }
+
+  const effects = [
+    ['#effect-left', '#effect-left-value', wetGainNode1],
+    ['#effect-right', '#effect-right-value', wetGainNode2],
+  ];
+  for (const [controlSel, textSel, node] of effects) {
+    const textElement = document.querySelector(textSel);
+    const dial = new Nexus.Dial(controlSel);
+    dial.on('change', (value) => {
+      handleEffectChange(value, node, textElement);
+    });
+    dial.value = 0.0;
+  }
 
   const now = context.currentTime;
   anchorTime = now + 0.040;
