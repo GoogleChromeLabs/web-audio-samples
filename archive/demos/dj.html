@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
   "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<html class="paused">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>
@@ -66,12 +66,22 @@ Digital DJ
   </div>
 
   <div class="center">
-    <div class="dial disabled">
+    <div class="dial play hide-playing">
+      Play
+      <div class="button">
+        <div class="overlay">▶</div>
+        <div id="play"></div>
+      </div>
+      <div>&nbsp;</div>
+    </div>
+    <div class="dial disabled hide-paused">
       Beat
       <div id="time"></div>
       <div id="time-value"></div>
     </div>
-    <div id="meter"></div>
+    <div class="viz">
+      <div id="meter"></div>
+    </div>
   </div>
 
   <div class="deck">
