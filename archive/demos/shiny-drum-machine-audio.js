@@ -2,8 +2,6 @@
 
 import {INSTRUMENTS, freeze, clone} from './shiny-drum-machine-data.js';
 
-const AudioContext = window.AudioContext ?? window.webkitAudioContext;
-
 const context = new AudioContext();
 
 const LOOP_LENGTH = 16;
@@ -11,8 +9,8 @@ const BEATS_PER_FULL_NOTE = 4;
 const VOLUMES = freeze([0, 0.3, 1]);
 
 
-async function fetchAudio(url) {
-  const response = await fetch(new Request(url));
+async function fetchAndDecodeAudio(url) {
+  const response = await fetch(url);
   const responseBuffer = await response.arrayBuffer();
 
   // TODO(#226): Migrate to Promise-syntax once Safari supports it.
@@ -44,7 +42,7 @@ class Kit {
   }
 
   async loadSample(instrumentName) {
-    this.buffer[instrumentName] = await fetchAudio(
+    this.buffer[instrumentName] = await fetchAndDecodeAudio(
         this.getSampleUrl(instrumentName));
   }
 }
@@ -67,7 +65,7 @@ class Effect {
       return;
     }
 
-    this.buffer = await fetchAudio(this.url);
+    this.buffer = await fetchAndDecodeAudio(this.url);
   }
 }
 
@@ -102,14 +100,15 @@ class Beat {
     this._effect = effect;
     this._data.effectIndex = effect.index;
 
-    // Hack - if effect is turned all the way down - turn up effect slider.
-    // ... since they just explicitly chose an effect from the list.
+    // If the user chooses a new effect from the dropdown after having turned
+    // the dry/wet effect slider to 0, reset the effect wetness to 0.5 to make
+    // sure that the user hears the new effect.
     if (this._data.effectMix == 0) {
       this._data.effectMix = 0.5;
     }
 
-    // Hack - if the effect is meant to be entirely wet (not unprocessed signal)
-    // then put the effect level all the way up.
+    // If the effect is meant to be entirely wet (no unprocessed signal) then
+    // put the effect level all the way up.
     if (effect.dryMix == 0) {
       this._data.effectMix = 1;
     }
@@ -246,7 +245,7 @@ class Player {
     voice.start(noteTime);
   }
 
-  /** Call when beat `n` is played to schedule beat `n+1` */
+  // Call when beat `n` is played to schedule beat `n+1`.
   tick() {
     // tick() is called when beat `n` is played. At this time, call the
     // onNextBeat callback to highlight the currently audible beat in the UI.
