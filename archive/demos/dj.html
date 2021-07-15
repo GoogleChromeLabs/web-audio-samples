@@ -38,14 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Digital DJ
 </title>
 
-<!-- Slider stuff -->
-<script type="text/javascript" src="lib/events.js"></script>
-
 <link rel="stylesheet" type="text/css" href = "style/simple.css" />
 <link rel="stylesheet" type="text/css" href = "style/dj.css" />
 
-<!-- Our javascript code -->
-<script type="text/javascript" src="dj.js"></script>
+<script src="lib/events.js"></script>
+<script type="module" src="dj.js"></script>
 </head>
 
 <body>
@@ -70,31 +67,31 @@ Digital DJ
 
 <h2>Left</h2>
 <form>
-  <input type="radio" name="leftsource" checked="checked" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/blueyellow.wav'); ">
+  <input type="radio" name="leftsource" checked="checked" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/blueyellow.wav'); ">
     <b><font color="blue">blueyellow</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/break12.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break12.wav'); ">
     <b><font color="blue">break12</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/break28.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break28.wav'); ">
     <b><font color="blue">break28</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/break29.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break29.wav'); ">
     <b><font color="blue">break29</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/coolloop7.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/coolloop7.wav'); ">
     <b><font color="blue">Cool Loop 7</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/ominous.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/ominous.wav'); ">
     <b><font color="blue">Ominous</font></b></br>
   </input>
 
-  <input type="radio" name="leftsource" onClick="loadBufferForSource(source1, 'sounds/drum-samples/loops/organ-echo-chords.wav'); ">
+  <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/organ-echo-chords.wav'); ">
     <b><font color="blue">Organ Echo Chords</font></b></br>
   </input>
 </form>
@@ -107,31 +104,31 @@ Digital DJ
 
 <h2>Right</h2>
 <form>
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/blueyellow.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/blueyellow.wav'); ">
     <b><font color="blue">blueyellow</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/break12.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break12.wav'); ">
     <b><font color="blue">break12</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/break28.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break28.wav'); ">
     <b><font color="blue">break28</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" checked="checked" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/break29.wav'); ">
+  <input type="radio" name="rightsource" checked="checked" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break29.wav'); ">
     <b><font color="blue">break29</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/coolloop7.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/coolloop7.wav'); ">
     <b><font color="blue">Cool Loop 7</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/ominous.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/ominous.wav'); ">
     <b><font color="blue">Ominous</font></b></br>
   </input>
 
-  <input type="radio" name="rightsource" onClick="loadBufferForSource(source2, 'sounds/drum-samples/loops/organ-echo-chords.wav'); ">
+  <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/organ-echo-chords.wav'); ">
     <b><font color="blue">Organ Echo Chords</font></b></br>
   </input>
 </form>
