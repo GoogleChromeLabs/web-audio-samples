@@ -197,7 +197,8 @@ async function init() {
   timeIndicator.colorize('accent', '#555');
   timeIndicatorText = document.querySelector('#time-value');
 
-  const crossfader = new Nexus.Pan('#crossfader', {size: [400, 25]});
+  const crossfader = new Nexus.Pan('#crossfader',
+      {size: [400, 25], mode: 'absolute'});
   crossfader.on('change', (event) => handleCrossfade(event.value));
   crossfader.value = 0;
 
@@ -207,7 +208,7 @@ async function init() {
   ];
   for (const [controlSel, textSel, node] of filters) {
     const textElement = document.querySelector(textSel);
-    const dial = new Nexus.Dial(controlSel);
+    const dial = new Nexus.Dial(controlSel, {mode: 'absolute'});
     dial.on('change', (value) => {
       handleFilterChange(value, node, textElement);
     });
@@ -220,7 +221,7 @@ async function init() {
   ];
   for (const [controlSel, textSel, node] of effects) {
     const textElement = document.querySelector(textSel);
-    const dial = new Nexus.Dial(controlSel);
+    const dial = new Nexus.Dial(controlSel, {mode: 'absolute'});
     dial.on('change', (value) => {
       handleEffectChange(value, node, textElement);
     });
