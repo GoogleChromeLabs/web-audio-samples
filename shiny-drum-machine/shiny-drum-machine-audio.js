@@ -28,7 +28,8 @@ class Kit {
   }
 
   getSampleUrl(instrumentName) {
-    return `sounds/drum-samples/${this.id}/${instrumentName.toLowerCase()}.wav`;
+    return `../archive/demos/sounds/drum-samples/${this.id}/${
+      instrumentName.toLowerCase()}.wav`;
   }
 
   load() {
@@ -65,7 +66,7 @@ class Effect {
       return;
     }
 
-    this.buffer = await fetchAndDecodeAudio(this.url);
+    this.buffer = await fetchAndDecodeAudio(`../archive/demos/${this.url}`);
   }
 }
 
