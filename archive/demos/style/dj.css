@@ -4,7 +4,13 @@
   align-items: center
 }
 
-.deck {
+.deck, .center {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1em;
+}
+
+.dials {
   display: flex;
   column-gap: 1em;
 }

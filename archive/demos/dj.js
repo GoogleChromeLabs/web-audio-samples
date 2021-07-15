@@ -30,7 +30,9 @@ async function fetchAndDecodeAudio(url) {
   });
 }
 
-function handleCrossfade(x) {
+function handleCrossfade(value) {
+  const x = (value + 1) / 2;
+
   // equal-power cross-fade
   const gain1 = Math.cos(x * 0.5*Math.PI);
   const gain2 = Math.cos((1.0-x) * 0.5*Math.PI);
@@ -195,9 +197,9 @@ async function init() {
   timeIndicator.colorize('accent', '#555');
   timeIndicatorText = document.querySelector('#time-value');
 
-  const crossfader = new Nexus.Slider('#crossfader', {size: [400, 25]});
-  crossfader.on('change', handleCrossfade);
-  crossfader.value = 0.5;
+  const crossfader = new Nexus.Pan('#crossfader', {size: [400, 25]});
+  crossfader.on('change', (event) => handleCrossfade(event.value));
+  crossfader.value = 0;
 
   const filters = [
     ['#filter-left', '#filter-left-value', lowFilter1],
@@ -224,6 +226,19 @@ async function init() {
     });
     dial.value = 0.0;
   }
+
+  const spectrograms = [
+    ['#viz-left', lowFilter1],
+    ['#viz-right', lowFilter2],
+  ];
+
+  for (const [controlSel, node] of spectrograms) {
+    const spectrogram = new Nexus.Spectrogram(controlSel);
+    spectrogram.connect(node);
+  }
+
+  const meter = new Nexus.Meter('#meter', {size: [75, 150]});
+  meter.connect(postCompressorGain);
 
   const now = context.currentTime;
   anchorTime = now + 0.040;
