@@ -43,6 +43,28 @@ label {
   padding: .2em;
 }
 
-.disabled {
+.disabled, .viz {
+  pointer-events: none;
+}
+
+.paused .hide-paused,
+.playing .hide-playing {
+  display: none;
+}
+
+.button {
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
   pointer-events: none;
 }

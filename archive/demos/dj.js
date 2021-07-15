@@ -240,11 +240,18 @@ async function init() {
   const meter = new Nexus.Meter('#meter', {size: [75, 150]});
   meter.connect(postCompressorGain);
 
-  const now = context.currentTime;
-  anchorTime = now + 0.040;
+  const playButton = new Nexus.Button('#play', {size: [75, 75]});
+  playButton.on('change', (event) => {
+    const html = document.documentElement;
+    if (event.state || html.classList.contains('playing')) {
+      return;
+    }
+    html.classList.replace('paused', 'playing');
+    const now = context.currentTime;
+    anchorTime = now + 0.040;
 
-  source1.start(anchorTime);
-  source2.start(anchorTime);
-
-  draw();
+    source1.start(anchorTime);
+    source2.start(anchorTime);
+    draw();
+  });
 }
