@@ -107,7 +107,7 @@ export default {
       {
         title: 'Shiny Drum Machine',
         description: 'Drum sequencer with a variety of drum kits and special effects.',
-        url: '/shiny-drum-machine/',
+        url: 'shiny-drum-machine/',
       },
     ]
   },
