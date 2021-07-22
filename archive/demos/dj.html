@@ -55,7 +55,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <div id="effect-left-value"></div>
           </div>
         </div>
-        <div class="viz mdc-card">
+        <div class="viz mdc-card drop-target" data-deck='source1'>
+          <div class="track"></div>
           <div id="viz-left"></div>
         </div>
       </div>
@@ -92,7 +93,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <div id="effect-right-value"></div>
           </div>
         </div>
-        <div class="viz mdc-card">
+        <div class="viz mdc-card drop-target" data-deck='source2'>
+          <div class="track"></div>
           <div id="viz-right"></div>
         </div>
       </div>
@@ -102,70 +104,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <div id="crossfader"></div>
     </div>
 
-    <div class="decks">
-      <div>
-        <label>
-          <input type="radio" name="leftsource" checked="checked" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
-          blueyellow
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break12.wav'); "></input>
-          break12
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break28.wav'); "></input>
-          break28
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/break29.wav'); "></input>
-          break29
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
-          Cool Loop 7
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/ominous.wav'); "></input>
-          Ominous
-        </label>
-        <label>
-          <input type="radio" name="leftsource" onClick="loadBufferForSource('source1', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
-          Organ Echo Chords
-        </label>
-      </div>
-
-      <div class="placeholder"></div>
-
-      <div>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/blueyellow.wav'); "></input>
-          blueyellow
-        </label>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break12.wav'); "></input>
-          break12
-        </label>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break28.wav'); "></input>
-          break28
-        </label>
-        <label>
-          <input type="radio" name="rightsource" checked="checked" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/break29.wav'); "></input>
-          break29
-        </label>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/coolloop7.wav'); "></input>
-          Cool Loop 7
-        </label>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/ominous.wav'); "></input>
-          Ominous
-        </label>
-        <label>
-          <input type="radio" name="rightsource" onClick="loadBufferForSource('source2', 'sounds/drum-samples/loops/organ-echo-chords.wav'); "></input>
-          Organ Echo Chords
-        </label>
-      </div>
+    <div class="tracks" id="tracks">
+      <template id="track-template">
+        <div class="mdc-card track" draggable="true"></div>
+      </template>
     </div>
 
     <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>

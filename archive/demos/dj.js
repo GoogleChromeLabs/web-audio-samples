@@ -19,6 +19,17 @@ let timeIndicatorText;
 const tempo = 120.0; // hardcoded for now
 let anchorTime = 0;
 
+const BASE_URL = 'sounds/drum-samples/loops/';
+
+const TRACKS = [
+  'blueyellow',
+  'break12',
+  'break28',
+  'break29',
+  'coolloop7',
+  'ominous',
+  'organ-echo-chords',
+];
 
 async function fetchAndDecodeAudio(url) {
   const response = await fetch(url);
@@ -57,7 +68,7 @@ function handleEffectChange(value, gainNode, textElement) {
   textElement.textContent = `${Math.round(value * 100)} %`;
 }
 
-window.loadBufferForSource = async (sourceName, url) => {
+const loadBufferForSource = async (sourceName, url) => {
   const buffer = await fetchAndDecodeAudio(url);
 
   // Start playing the new buffer at exactly the next 4-beat boundary
@@ -75,15 +86,16 @@ window.loadBufferForSource = async (sourceName, url) => {
   const time = anchorTime + roundedUpDeltaTime;
 
   const newSource = context.createBufferSource();
+  const playing = document.documentElement.classList.contains('playing');
 
   if (sourceName === 'source1') {
     // Stop the current loop (when it gets to the next 4-beat boundary).
-    source1.stop(time);
+    if (playing) source1.stop(time);
     // This new source will replace the existing source.
     newSource.connect(source1Gain);
     source1 = newSource;
   } else {
-    source2.stop(time);
+    if (playing) source2.stop(time);
     newSource.connect(source2Gain);
     source2 = newSource;
   }
@@ -93,8 +105,19 @@ window.loadBufferForSource = async (sourceName, url) => {
 
   // Start playing exactly on the next 4-beat boundary with looping.
   newSource.loop = true;
-  newSource.start(time);
+  if (playing) newSource.start(time);
 };
+
+function getTrackURL(trackId) {
+  return `${BASE_URL}${trackId}.wav`;
+}
+
+async function loadTrackIntoDeck(deckEl, trackId) {
+  const sourceName = deckEl.dataset.deck;
+  const targetTrack = deckEl.querySelector('.track');
+  targetTrack.dataset.track = trackId;
+  await loadBufferForSource(sourceName, getTrackURL(trackId));
+}
 
 function draw() {
   // Calculate 4/4 beat position.
@@ -186,13 +209,6 @@ async function init() {
   source1.loop = true;
   source2.loop = true;
 
-  // Load initial loop samples and reverb.
-  [source1.buffer, source2.buffer, convolver.buffer] = await Promise.all([
-    fetchAndDecodeAudio('sounds/drum-samples/loops/blueyellow.wav'),
-    fetchAndDecodeAudio('sounds/drum-samples/loops/break29.wav'),
-    fetchAndDecodeAudio('impulse-responses/filter-rhythm2.wav'),
-  ]);
-
   timeIndicator = new Nexus.Dial('#time');
   timeIndicator.colorize('accent', '#555');
   timeIndicatorText = document.querySelector('#time-value');
@@ -240,6 +256,52 @@ async function init() {
 
   const meter = new Nexus.Meter('#meter', {size: [75, 150]});
   meter.connect(postCompressorGain);
+
+  const trackContainer = document.getElementById('tracks');
+
+  const template = document.getElementById('track-template');
+  for (const track of TRACKS) {
+    const trackElement = template.content.firstElementChild.cloneNode(true);
+    trackElement.dataset.track = track;
+
+    trackElement.addEventListener('dragstart', (event) => {
+      event.dataTransfer.setData('track', event.target.dataset.track);
+      document.documentElement.classList.add('dragging');
+    });
+
+    trackElement.addEventListener('dragend', (event) => {
+      document.documentElement.classList.remove('dragging');
+    });
+
+    trackContainer.appendChild(trackElement);
+  }
+
+  for (const deck of document.querySelectorAll('.deck .viz')) {
+    deck.ondragenter = (event) => {
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
+    };
+
+    deck.ondragover = (event) => {
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
+    };
+
+    deck.ondrop = (event) => {
+      event.preventDefault();
+      loadTrackIntoDeck(
+          deck.closest('[data-deck]'), event.dataTransfer.getData('track'));
+    };
+  }
+
+  // Load initial loop samples and reverb.
+  [convolver.buffer] = await Promise.all([
+    fetchAndDecodeAudio('impulse-responses/filter-rhythm2.wav'),
+    loadTrackIntoDeck(
+        document.querySelector('[data-deck="source1"]'), 'blueyellow'),
+    loadTrackIntoDeck(
+        document.querySelector('[data-deck="source2"]'), 'break29'),
+  ]);
 
   const playButton = new Nexus.Button('#play', {size: [75, 75]});
   playButton.on('change', (event) => {
