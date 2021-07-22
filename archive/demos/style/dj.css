@@ -1,7 +1,11 @@
 .decks {
   display: flex;
-  justify-content: space-evenly;
-  align-items: center
+  align-items: center;
+  justify-content: center;
+  column-gap: 1em;
+}
+
+.deck {
 }
 
 .deck, .center {
@@ -13,6 +17,7 @@
 .dials {
   display: flex;
   column-gap: 1em;
+  justify-content: center;
 }
 
 .dial {
