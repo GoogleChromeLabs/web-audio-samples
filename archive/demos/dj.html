@@ -36,13 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Digital DJ</title>
 
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
     <link rel="stylesheet" type="text/css" href = "style/dj.css" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎛️</text></svg>">
-
-    <script src="https://cdn.jsdelivr.net/npm/nexusui@2.1.6/dist/NexusUI.js"></script>
-    <script type="module" src="dj.js"></script>
   </head>
-  <body>
+  <body class="mdc-typography">
     <div class="decks">
       <div class="deck">
         <div class="dials">
@@ -57,7 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <div id="effect-left-value"></div>
           </div>
         </div>
-        <div class="viz">
+        <div class="viz mdc-card">
           <div id="viz-left"></div>
         </div>
       </div>
@@ -76,7 +74,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           <div id="time"></div>
           <div id="time-value"></div>
         </div>
-        <div class="viz">
+        <div class="viz mdc-card">
           <div id="meter"></div>
         </div>
       </div>
@@ -94,7 +92,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <div id="effect-right-value"></div>
           </div>
         </div>
-        <div class="viz">
+        <div class="viz mdc-card">
           <div id="viz-right"></div>
         </div>
       </div>
@@ -169,5 +167,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         </label>
       </div>
     </div>
+
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nexusui@2.1.6/dist/NexusUI.js"></script>
+    <script type="module" src="dj.js"></script>
   </body>
 </html>
