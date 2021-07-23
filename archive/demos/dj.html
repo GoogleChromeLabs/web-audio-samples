@@ -44,20 +44,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <div class="decks">
       <div class="deck">
         <div class="dials">
-          <div class="dial">
+          <div class="dial filter">
             Filter
-            <div id="filter-left"></div>
-            <div id="filter-left-value"></div>
+            <div class="control"></div>
+            <div class="value"></div>
           </div>
-          <div class="dial">
+          <div class="dial effect">
             Effect
-            <div id="effect-left"></div>
-            <div id="effect-left-value"></div>
+            <div class="control"></div>
+            <div class="value"></div>
           </div>
         </div>
         <div class="viz mdc-card drop-target" data-deck='source1'>
           <div class="track"></div>
-          <div id="viz-left"></div>
+          <div class="viz-content"></div>
         </div>
       </div>
 
@@ -82,20 +82,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
       <div class="deck">
         <div class="dials">
-          <div class="dial">
+          <div class="dial filter">
             Filter
-            <div id="filter-right"></div>
-            <div id="filter-right-value"></div>
+            <div class="control"></div>
+            <div class="value"></div>
           </div>
-          <div class="dial">
+          <div class="dial effect">
             Effect
-            <div id="effect-right"></div>
-            <div id="effect-right-value"></div>
+            <div class="control"></div>
+            <div class="value"></div>
           </div>
         </div>
         <div class="viz mdc-card drop-target" data-deck='source2'>
           <div class="track"></div>
-          <div id="viz-right"></div>
+          <div class="viz-content"></div>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </div>
 
     <div class="tracks" id="tracks">
-      <template id="track-template">
+      <template>
         <div class="mdc-card track" draggable="true"></div>
       </template>
     </div>
