@@ -44,8 +44,7 @@ function handleCrossfade(decks, value) {
 }
 
 function handleFilterChange(value, filterNode) {
-  const sampleRate = 44100.0; // !!@@ don't hardcode
-  const nyquist = sampleRate * 0.5;
+  const nyquist = filterNode.context.sampleRate * 0.5;
   const noctaves = Math.log(nyquist / 40.0) / Math.LN2;
   const v2 = Math.pow(2.0, noctaves * (value - 1.0));
   const cutoff = v2*nyquist;
