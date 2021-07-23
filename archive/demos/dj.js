@@ -4,10 +4,6 @@
 // init() once the page has finished loading.
 window.onload = init;
 
-let context;
-let timeIndicator;
-let timeIndicatorText;
-
 const tempo = 120.0; // hardcoded for now
 let anchorTime = 0;
 
@@ -25,7 +21,7 @@ const TRACKS = [
 
 const html = document.documentElement;
 
-async function fetchAndDecodeAudio(url) {
+async function fetchAndDecodeAudio(context, url) {
   const response = await fetch(url);
   const responseBuffer = await response.arrayBuffer();
 
@@ -68,18 +64,20 @@ async function loadTrackIntoDeck(deck, deckEl, trackId) {
   deck.loadTrack(getTrackURL(trackId));
 }
 
-function draw() {
+function draw(context, indicator, textEl) {
   // Calculate 4/4 beat position.
   const time = context.currentTime - anchorTime;
   const beat = (tempo / 60.0) * time;
   const roundedBeat = 4.0 * Math.floor(beat / 4.0);
   const wrappedBeat = beat - roundedBeat;
-  timeIndicator.value = wrappedBeat / 4;
+  indicator.value = wrappedBeat / 4;
 
   const fullBeat = 1 + Math.trunc(beat / 4);
-  timeIndicatorText.textContent = `${fullBeat}.${1 + Math.trunc(wrappedBeat)}`;
+  textEl.textContent = `${fullBeat}.${1 + Math.trunc(wrappedBeat)}`;
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(() => {
+    draw(context, indicator, textEl);
+  });
 }
 
 class DeckPlayer {
@@ -107,7 +105,7 @@ class DeckPlayer {
   }
 
   async loadTrack(url) {
-    const buffer = await fetchAndDecodeAudio(url);
+    const buffer = await fetchAndDecodeAudio(this.context, url);
 
     // Start playing the new buffer at exactly the next 4-beat boundary
     let currentTime = this.context.currentTime;
@@ -196,7 +194,7 @@ function makeDial(containerEl, onchange) {
 
 async function init() {
   // Initialize audio
-  context = new AudioContext();
+  const context = new AudioContext();
 
   // Create post-compressor gain node.
   const postCompressorGain = context.createGain();
@@ -204,17 +202,9 @@ async function init() {
 
   postCompressorGain.connect(context.destination);
 
-  let compressor;
-
-  if (context.createDynamicsCompressor) {
-    // Create dynamics compressor to sweeten the overall mix.
-    compressor = context.createDynamicsCompressor();
-    compressor.connect(postCompressorGain);
-  } else {
-    // Compressor is not available on this implementation - bypass and simply
-    // point to destination.
-    compressor = postCompressorGain;
-  }
+  // Create dynamics compressor to sweeten the overall mix.
+  const compressor = context.createDynamicsCompressor();
+  compressor.connect(postCompressorGain);
 
   // Create pre-compressor gain node.
   const preCompressorGain = context.createGain();
@@ -223,7 +213,6 @@ async function init() {
 
   // Create a convolver for a rhythm effect
   const convolver = context.createConvolver();
-
   convolver.connect(preCompressorGain);
 
   const decks = [new DeckPlayer(context), new DeckPlayer(context)];
@@ -232,9 +221,9 @@ async function init() {
     deck.connect(preCompressorGain, convolver);
   }
 
-  timeIndicator = new Nexus.Dial('#time');
+  const timeIndicator = new Nexus.Dial('#time');
   timeIndicator.colorize('accent', '#555');
-  timeIndicatorText = document.querySelector('#time-value');
+  const timeIndicatorText = document.querySelector('#time-value');
 
   const crossfader = new Nexus.Pan('#crossfader',
       {size: [400, 25], mode: 'absolute'});
@@ -279,7 +268,7 @@ async function init() {
 
   // Load initial loop samples and reverb.
   const loadEffect = async () => {
-    convolver.buffer = await fetchAndDecodeAudio(
+    convolver.buffer = await fetchAndDecodeAudio(context,
         'impulse-responses/filter-rhythm2.wav');
   };
   const loaded = Promise.all([
@@ -297,7 +286,7 @@ async function init() {
     // Wait for tracks to load in case user immediately clicks on play.
     await loaded;
     play(context, decks);
-    draw();
+    draw(context, timeIndicator, timeIndicatorText);
   });
 
   await loaded;
