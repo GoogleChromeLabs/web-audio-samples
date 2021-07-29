@@ -246,18 +246,46 @@ class SaveButton extends Button {
   }
 }
 
+function loadFile(file, onload) {
+  const reader = new FileReader();
+  reader.onload = () => onload(reader.result);
+  reader.readAsText(file);
+}
+
 class LoadButton extends Button {
   constructor(onLoadCallback) {
     super(document.getElementById('load'), () => {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onchange = () => {
-        const reader = new FileReader();
-        reader.onload = () => onLoadCallback(reader.result);
-        reader.readAsText(input.files[0]);
-      };
+      input.onchange = () => loadFile(input.files[0], onLoadCallback);
       input.click();
+    });
+  }
+}
+
+class FileDropZone {
+  constructor(onLoadCallback) {
+    document.body.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      document.body.classList.add('dragging');
+
+      const item = e.dataTransfer.items[0];
+      if (item && item.type === 'application/json') {
+        e.dataTransfer.dropEffect = 'copy';
+      } else {
+        e.dataTransfer.dropEffect = 'none';
+      }
+    });
+
+    document.body.addEventListener('dragleave', () => {
+      document.body.classList.remove('dragging');
+    });
+
+    document.body.addEventListener('drop', (e) => {
+      e.preventDefault();
+      document.body.classList.remove('dragging');
+      loadFile(e.dataTransfer.items[0].getAsFile(), onLoadCallback);
     });
   }
 }
@@ -266,6 +294,7 @@ export {
   DemoButtons,
   EffectPicker,
   EffectSlider,
+  FileDropZone,
   KitPicker,
   LoadButton,
   Notes,
