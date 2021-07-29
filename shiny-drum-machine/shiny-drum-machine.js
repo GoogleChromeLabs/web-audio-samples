@@ -4,7 +4,7 @@ import {RESET_BEAT, DEMO_BEATS, INSTRUMENTS, KIT_DATA,
   IMPULSE_RESPONSE_DATA} from './shiny-drum-machine-data.js';
 
 import {DemoButtons, EffectPicker, KitPicker, EffectSlider, SwingSlider,
-  PitchSliders, TempoInput, Playheads, Notes, SaveButton, LoadModal,
+  PitchSliders, TempoInput, Playheads, Notes, SaveButton, LoadButton,
   ResetButton, PlayButton} from './shiny-drum-machine-ui.js';
 
 import {Beat, Player, Kit, Effect} from './shiny-drum-machine-audio.js';
@@ -35,9 +35,7 @@ const ui = Object.seal({
   resetButton: null,
   playheads: null,
   saveButton: null,
-  modal: {
-    load: null,
-  },
+  loadButton: null,
 });
 
 function loadAssets() {
@@ -143,10 +141,9 @@ function initControls() {
   };
 
   ui.saveButton = new SaveButton(() => JSON.stringify(theBeat.toObject()));
-  ui.modal.load = new LoadModal();
-  ui.modal.load.onLoad = (data) => {
+  ui.loadButton = new LoadButton((data) => {
     loadBeat(JSON.parse(data));
-  };
+  });
 
   ui.resetButton = new ResetButton();
   ui.resetButton.onclick = () => {

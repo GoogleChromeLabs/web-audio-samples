@@ -246,27 +246,19 @@ class SaveButton extends Button {
   }
 }
 
-class LoadModal extends Modal {
-  constructor() {
-    super(document.getElementById('load_container'));
-    this.textarea = document.getElementById('load_textarea');
-    this.onLoad = (data) => {};
-    document.getElementById('load_ok').addEventListener('click', () => {
-      this.onLoad(this.textarea.value);
-      this.toggleVisibility();
-      this.textarea.value = '';
+class LoadButton extends Button {
+  constructor(onLoadCallback) {
+    super(document.getElementById('load'), () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = () => {
+        const reader = new FileReader();
+        reader.onload = () => onLoadCallback(reader.result);
+        reader.readAsText(input.files[0]);
+      };
+      input.click();
     });
-    document.getElementById('load_cancel').addEventListener('click', () => {
-      this.toggleVisibility();
-    });
-    document.getElementById('load').addEventListener('click', () => {
-      this.toggleVisibility();
-    });
-  }
-
-  show(data) {
-    this.textarea.value = data;
-    this.toggleVisibility();
   }
 }
 
@@ -275,7 +267,7 @@ export {
   EffectPicker,
   EffectSlider,
   KitPicker,
-  LoadModal,
+  LoadButton,
   Notes,
   PitchSliders,
   PlayButton,
