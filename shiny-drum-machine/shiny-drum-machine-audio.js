@@ -12,11 +12,7 @@ const VOLUMES = freeze([0, 0.3, 1]);
 async function fetchAndDecodeAudio(url) {
   const response = await fetch(url);
   const responseBuffer = await response.arrayBuffer();
-
-  // TODO(#226): Migrate to Promise-syntax once Safari supports it.
-  return new Promise((resolve, reject) => {
-    context.decodeAudioData(responseBuffer, resolve, reject);
-  });
+  return await context.decodeAudioData(responseBuffer);
 }
 
 class Kit {
@@ -178,28 +174,20 @@ class Player {
     this.beat = beat;
     this.onNextBeat = onNextBeat;
 
-    let finalMixNode = context.destination;
+    // Create a dynamics compressor to sweeten the overall mix.
+    const compressor = new DynamicsCompressorNode(context);
+    compressor.connect(context.destination);
 
-    if (context.createDynamicsCompressor) {
-      // Create a dynamics compressor to sweeten the overall mix.
-      const compressor = context.createDynamicsCompressor();
-      compressor.connect(finalMixNode);
-      finalMixNode = compressor;
-    }
+    // Create master volume and reduce overall volume to avoid clipping.
+    this.masterGainNode = new GainNode(context, {gain: 0.7});
+    this.masterGainNode.connect(compressor);
 
-    // Create master volume.
-    this.masterGainNode = context.createGain();
-    // Reduce overall volume to avoid clipping.
-    this.masterGainNode.gain.value = 0.7;
-    this.masterGainNode.connect(finalMixNode);
-
-    // Create effect volume.
-    this.effectLevelNode = context.createGain();
-    this.effectLevelNode.gain.value = 1.0; // effect level slider controls this
+    // Create effect volume controlled by effect sliders.
+    this.effectLevelNode = new GainNode(context, {gain: 1.0});
     this.effectLevelNode.connect(this.masterGainNode);
 
     // Create convolver for effect
-    this.convolver = context.createConvolver();
+    this.convolver = new ConvolverNode(context);
     this.convolver.connect(this.effectLevelNode);
   }
 
@@ -215,31 +203,30 @@ class Player {
     }
 
     // Create the note
-    const voice = context.createBufferSource();
-    voice.buffer = this.beat.kit.buffer[instrument.name];
-    voice.playbackRate.value = this.beat.getPlaybackRate(instrument.name);
+    const voice = new AudioBufferSourceNode(context, {
+      buffer: this.beat.kit.buffer[instrument.name],
+      playbackRate: this.beat.getPlaybackRate(instrument.name),
+    });
 
     let finalNode = voice;
 
     // Optionally, connect to a panner.
     if (instrument.pan) {
-      const panner = context.createPanner();
       // Pan according to sequence position.
-      panner.setPosition(0.5 * rhythmIndex - 4, 0, -1);
+      const panner = new PannerNode(context,
+          {positionX: 0.5 * rhythmIndex - 4, positionY: 0, positionZ: -1});
       finalNode.connect(panner);
       finalNode = panner;
     }
 
     // Connect to dry mix
-    const dryGainNode = context.createGain();
-    dryGainNode.gain.value =
-        VOLUMES[note] * instrument.mainGain * this.beat.effect.dryMix;
+    const dryGainNode = new GainNode(context,
+        {gain: VOLUMES[note] * instrument.mainGain * this.beat.effect.dryMix});
     finalNode.connect(dryGainNode);
     dryGainNode.connect(this.masterGainNode);
 
     // Connect to wet mix
-    const wetGainNode = context.createGain();
-    wetGainNode.gain.value = instrument.sendGain;
+    const wetGainNode = new GainNode(context, {gain: instrument.sendGain});
     finalNode.connect(wetGainNode);
     wetGainNode.connect(this.convolver);
 
