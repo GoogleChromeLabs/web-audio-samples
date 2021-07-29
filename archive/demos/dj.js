@@ -83,14 +83,11 @@ function draw(context, indicator, textEl) {
 class DeckPlayer {
   constructor(context) {
     this.context = context;
-    this.source = context.createBufferSource();
-    this.sourceGain = context.createGain();
+    this.source = new AudioBufferSourceNode(context);
+    this.sourceGain = new GainNode(context);
 
-    this.wetGain = context.createGain();
-    this.wetGain.gain.value = 0.0;
-
-    this.lowFilter = context.createBiquadFilter();
-    this.lowFilter.Q.value = 5.0; // in decibels
+    this.wetGain = new GainNode(context, {gain: 0});
+    this.lowFilter = new BiquadFilterNode(context, {Q: 5.0}); // In decibels.
 
     this.source.connect(this.sourceGain);
     this.sourceGain.connect(this.lowFilter);
@@ -124,16 +121,10 @@ class DeckPlayer {
     // Stop the current loop (when it gets to the next 4-beat boundary).
     if (this.playing) this.source.stop(time);
 
-    this.source = this.context.createBufferSource();
+    this.source = new AudioBufferSourceNode(this.context, {buffer, loop: true});
 
     // This new source will replace the existing source.
     this.source.connect(this.sourceGain);
-
-    // Assign the buffer to the new source.
-    this.source.buffer = buffer;
-
-    // Start playing exactly on the next 4-beat boundary with looping.
-    this.source.loop = true;
 
     if (this.playing) {
       this.source.start(time);
@@ -197,22 +188,19 @@ async function init() {
   const context = new AudioContext();
 
   // Create post-compressor gain node.
-  const postCompressorGain = context.createGain();
-  postCompressorGain.gain.value = 1.4;
-
+  const postCompressorGain = new GainNode(context, {gain: 1.4});
   postCompressorGain.connect(context.destination);
 
   // Create dynamics compressor to sweeten the overall mix.
-  const compressor = context.createDynamicsCompressor();
+  const compressor = new DynamicsCompressorNode(context);
   compressor.connect(postCompressorGain);
 
   // Create pre-compressor gain node.
-  const preCompressorGain = context.createGain();
-  preCompressorGain.gain.value = 0.4;
+  const preCompressorGain = new GainNode(context, {gain: 0.4});
   preCompressorGain.connect(compressor);
 
   // Create a convolver for a rhythm effect
-  const convolver = context.createConvolver();
+  const convolver = new ConvolverNode(context);
   convolver.connect(preCompressorGain);
 
   const decks = [new DeckPlayer(context), new DeckPlayer(context)];
