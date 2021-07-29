@@ -9,7 +9,6 @@
     ],
     "ignorePatterns": [
         "/archive/demos/**", 
-        "!/archive/demos/dj*", 
         "/archive/stress-box", 
         "/assets",
         "/audio-worklet",
