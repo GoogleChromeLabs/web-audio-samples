@@ -226,22 +226,23 @@ class Modal {
   }
 }
 
-class SaveModal extends Modal {
+class SaveButton extends Button {
   constructor(getDataCallback) {
-    super(document.getElementById('save_container'));
-    this.textarea = document.getElementById('save_textarea');
-    document.getElementById('save_ok').addEventListener('click', () => {
-      this.toggleVisibility();
-    });
-    document.getElementById('save').addEventListener('click', () => {
-      this.textarea.value = getDataCallback();
-      this.toggleVisibility();
-    });
-  }
+    super(document.getElementById('save'), () => {
+      const data = getDataCallback();
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `drums-${date}.json`;
 
-  show(data) {
-    this.textarea.value = data;
-    this.toggleVisibility();
+      const blob = new Blob([data], {type: 'application/json'});
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
   }
 }
 
@@ -280,7 +281,7 @@ export {
   PlayButton,
   Playheads,
   ResetButton,
-  SaveModal,
+  SaveButton,
   SwingSlider,
   TempoInput,
 };
