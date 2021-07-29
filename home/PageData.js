@@ -109,6 +109,11 @@ export default {
         description: 'Drum sequencer with a variety of drum kits and special effects.',
         url: 'shiny-drum-machine/',
       },
+      {
+        title: 'DJ',
+        description: 'Dual deck DJ app playing beatmatched instrumental loops.',
+        url: 'dj/',
+      },
     ]
   },
   Demos: {
