@@ -213,19 +213,6 @@ class Notes {
   }
 }
 
-class Modal {
-  constructor(element) {
-    this.element = element;
-  }
-
-  toggleVisibility() {
-    document.getElementById('pad').classList.toggle('active');
-    document.getElementById('params').classList.toggle('active');
-    document.getElementById('tools').classList.toggle('active');
-    this.element.classList.toggle('active');
-  }
-}
-
 class SaveButton extends Button {
   constructor(getDataCallback) {
     super(document.getElementById('save'), () => {
