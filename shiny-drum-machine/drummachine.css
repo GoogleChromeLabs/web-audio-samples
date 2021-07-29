@@ -1,9 +1,22 @@
 /* Styles for Drum Machine Demo */
+html {
+	height: 100%;
+}
+
 body {
 	background-color: rgb(245, 245, 245);
 	color: rgb(121, 121, 121);
 	font-family: 'Open Sans', Arial, sans-serif;
 	font-size: 13px;
+	margin: 0;
+	padding: 8px;
+	min-height: 100%;
+	box-sizing: border-box;
+}
+
+.dragging {
+	outline: 3px dashed rgba(0, 0, 0, 0.5);
+	outline-offset: -10px;
 }
 
 * {
