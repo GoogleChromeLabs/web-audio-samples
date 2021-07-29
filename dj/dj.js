@@ -24,11 +24,7 @@ const html = document.documentElement;
 async function fetchAndDecodeAudio(context, url) {
   const response = await fetch(url);
   const responseBuffer = await response.arrayBuffer();
-
-  // TODO: Migrate to Promise-syntax once Safari supports it.
-  return new Promise((resolve, reject) => {
-    context.decodeAudioData(responseBuffer, resolve, reject);
-  });
+  return await context.decodeAudioData(responseBuffer);
 }
 
 function handleCrossfade(decks, value) {
