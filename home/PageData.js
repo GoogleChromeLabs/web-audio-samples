@@ -110,7 +110,7 @@ export default {
         url: 'shiny-drum-machine/',
       },
       {
-        title: 'DJ',
+        title: 'Web Audio DJ',
         description: 'Dual deck DJ app playing beatmatched instrumental loops.',
         url: 'dj/',
       },
