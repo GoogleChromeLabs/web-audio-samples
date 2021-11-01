@@ -14,34 +14,41 @@
  * limitations under the License.
  */
 
-import DemoHelper from './lib/DemoHelper.js';
+ import DemoHelper from './lib/DemoHelper.js';
 
-const context = new AudioContext();
-let synthNode, volumeNode;
-
-async function setupAudio() {
-  // Load the processor file and create a node. Then connect it to a volume
-  // control and the audio output of the browser.
-  
-}
-
-function onButtonChange(isDown) {
-  
-}
-
-async function setupMIDI() {
-  // Set up Web MIDI API so we can pass all incoming MIDI data an event handling
-  // function.
-  
-}
-
-DemoHelper.build({
-  onButtonChange: onButtonChange,
-  onDemoStart: () => context.resume(),
-  onDemoStop: () => context.suspend(),
-  onUserGesture: async () => {
-    setupAudio();
-    setupMIDI();
-    context.suspend();
-  },
-});
+ const context = new AudioContext();
+ let synthNode, volumeNode;
+ 
+ async function setupAudio() {
+   // Load the processor file and create a node. Then connect it to a volume
+   // control and the audio output of the browser.
+   await context.audioWorklet.addModule('SynthProcessor.js');
+   synthNode = new AudioWorkletNode(context, 'my-synth');
+   volumeNode = new GainNode(context, {gain: 0.25});
+   synthNode.connect(volumeNode).connect(context.destination);
+ }
+ 
+ function onButtonChange(isDown) {
+   synthNode.port.postMessage(isDown);
+ }
+ 
+ async function setupMIDI() {
+   // Set up Web MIDI API so we can pass all incoming MIDI data an event handling
+   // function.
+   const midiAccess = await navigator.requestMIDIAccess();
+   midiAccess.inputs.forEach(midiInput => {
+     midiInput.onmidimessage = event => synthNode.port.postMessage(event.data);
+   });
+ }
+ 
+ DemoHelper.build({
+   onButtonChange: onButtonChange,
+   onDemoStart: () => context.resume(),
+   onDemoStop: () => context.suspend(),
+   onUserGesture: async () => {
+     setupAudio();
+     setupMIDI();
+     context.suspend();
+   },
+ });
+ 
