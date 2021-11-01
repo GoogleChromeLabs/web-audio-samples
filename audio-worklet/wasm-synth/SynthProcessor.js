@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- import Module from './synthesizer.wasm.js';
+ import Module from './synth.wasm.js';
  import WASMAudioBuffer from './lib/WASMAudioBuffer.js';
  import MIDIEvent from './lib/MIDIEvent.js';
  
@@ -28,7 +28,8 @@
      // event handler for MIDI data from the main thread.
      this._synth = new Module.Synthesizer(sampleRate);
      this._wasmBuffer = new WASMAudioBuffer(Module, NUM_FRAMES, 1, 1);
-     this.port.onmessage = this._handleMidiEvent.bind(this);
+     // this.port.onmessage = this._handleMidiEvent.bind(this);
+     this.port.onmessage = this._playTestTone.bind(this);
    }
  
    process(inputs, outputs) {

@@ -49,7 +49,7 @@ class DemoHelper {
 
   _initialize() {
     document.head.innerHTML =
-        `<link href="/chrome/lib/demo-helper.css" rel="stylesheet">`;
+        `<link href="./lib/demo-helper.css" rel="stylesheet">`;
     this._container = document.getElementById('demo');
     this._container.innerHTML = `
         <div>
