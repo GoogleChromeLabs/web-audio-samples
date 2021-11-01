@@ -21,7 +21,7 @@ build: $(DEPS)
 		--bind \
 		--post-js ./export-es6.js \
 		-s BINARYEN_ASYNC_COMPILATION=0 \
-		-o ../synth.wasm.js \
+		-o ./synth.wasm.js \
 		./synth_src/synth_bind.cc $(DEPS)
 
-	@echo "Build complete: ../synth.wasm.js"
+	@echo "Build complete: ./synth.wasm.js"
