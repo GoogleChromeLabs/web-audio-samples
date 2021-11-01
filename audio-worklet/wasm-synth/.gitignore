@@ -1,2 +1,2 @@
-.pvt/
-synthesizer.wasm.js
+./synth.wasm.js
+./synth.wasm.wasm

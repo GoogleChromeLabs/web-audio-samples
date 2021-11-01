@@ -14,7 +14,7 @@
 
 #!/bin/bash
 
-DEPS = $(wildcard ./synth-src/*.cpp)
+DEPS = $(wildcard ./synth_src/*.cpp)
 
 build: $(DEPS)
 	@emcc \

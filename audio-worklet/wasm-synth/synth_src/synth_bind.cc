@@ -15,7 +15,7 @@
  */
 
 #include <emscripten/bind.h>
-#include "../../synth/Synthesizer.h"
+#include "Synthesizer.h"
 
 using namespace emscripten;
 
