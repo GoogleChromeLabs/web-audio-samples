@@ -14,14 +14,14 @@
 
 #!/bin/bash
 
-DEPS = $(wildcard ../../src/synth/*.cpp)
+DEPS = $(wildcard ./synth-src/*.cpp)
 
 build: $(DEPS)
 	@emcc \
 		--bind \
-		--post-js ./lib/export-es6.js \
+		--post-js ./export-es6.js \
 		-s BINARYEN_ASYNC_COMPILATION=0 \
-		-o ../synthesizer.wasm.js \
-		synth_bind.cc $(DEPS)
+		-o ../synth.wasm.js \
+		./synth_src/synth_bind.cc $(DEPS)
 
-	@echo "Build complete: ../synthesizer.wasm.js"
+	@echo "Build complete: ../synth.wasm.js"

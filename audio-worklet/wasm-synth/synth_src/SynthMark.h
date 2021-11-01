@@ -73,11 +73,4 @@ typedef float synth_float_t;
 /** A fraction that is approximately -90.3 dB. Defined as 1 bit of an S16. */
 #define SYNTHMARK_DB90    (1.0 / (1 << 15))
 
-// TODO(donturner@): remove platform-specific code.
-#ifdef __ANDROID__
-#include <android/log.h>
-#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "SonicBoomApp", __VA_ARGS__)
-#endif
-
-
 #endif // SYNTHMARK_SYNTHMARK_H
