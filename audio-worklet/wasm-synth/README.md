@@ -1,4 +1,4 @@
-# How to compile C++ synth code to WebAssmebly
+# How to compile C++ synth codes to a WebAssmebly Module
 
 1. [Download and install Emscripten](https://emscripten.org/docs/getting_started/downloads.html)). Also it's
   better to check
