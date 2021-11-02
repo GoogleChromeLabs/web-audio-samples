@@ -16,7 +16,7 @@
 
 html,
 body,
-#demo {
+#demo-app {
   height: 100%;
 }
 
@@ -30,7 +30,7 @@ body {
   background-color: #FFFFFF;
 }
 
-#demo {
+#demo-app {
   font-family: "Roboto";
   display: flex;
   flex-direction: column;
@@ -39,7 +39,7 @@ body {
   pointer-events: none;
 }
 
-#demo-toggle {
+#audio-toggle {
   z-index: 1;
 }
 

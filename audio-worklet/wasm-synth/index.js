@@ -14,41 +14,69 @@
  * limitations under the License.
  */
 
- import DemoHelper from './lib/DemoHelper.js';
+class DemoApp {
 
- const context = new AudioContext();
- let synthNode, volumeNode;
- 
- async function setupAudio() {
-   // Load the processor file and create a node. Then connect it to a volume
-   // control and the audio output of the browser.
-   await context.audioWorklet.addModule('SynthProcessor.js');
-   synthNode = new AudioWorkletNode(context, 'my-synth');
-   volumeNode = new GainNode(context, {gain: 0.25});
-   synthNode.connect(volumeNode).connect(context.destination);
- }
- 
- function onButtonChange(isDown) {
-   synthNode.port.postMessage(isDown);
- }
- 
- async function setupMIDI() {
-   // Set up Web MIDI API so we can pass all incoming MIDI data an event handling
-   // function.
-   const midiAccess = await navigator.requestMIDIAccess();
-   midiAccess.inputs.forEach(midiInput => {
-     midiInput.onmidimessage = event => synthNode.port.postMessage(event.data);
-   });
- }
- 
- DemoHelper.build({
-   onButtonChange: onButtonChange,
-   onDemoStart: () => context.resume(),
-   onDemoStop: () => context.suspend(),
-   onUserGesture: async () => {
-     setupAudio();
-     setupMIDI();
-     context.suspend();
-   },
- });
- 
+  constructor() {
+    this._container = null;
+    this._toggleButton = null;
+    this._toneButton = null;
+    this._context = null;
+    this._synthNode = null;
+    this._volumeNode = null;
+    this._toggleState = false;
+  }
+
+  _initializeView() {
+    this._container = document.getElementById('demo-app');
+    this._toggleButton = document.getElementById('audio-toggle');
+    this._toggleButton.addEventListener(
+        'mouseup', () => this._handleToggle());
+    this._toneButton = document.getElementById('play-tone');
+    this._toneButton.addEventListener(
+        'mousedown', () => this._handleToneButton(true));
+    this._toneButton.addEventListener(
+        'mouseup', () => this._handleToneButton(false));
+    
+    this._toggleButton.disabled = false;
+    this._toneButton.disabled = false;
+    this._container.style.pointerEvents = 'auto';
+    this._container.style.backgroundColor = '#D2E3FC';
+  }
+
+  async _initializeAudio() {
+    this._context = new AudioContext();
+    await this._context.audioWorklet.addModule('./SynthProcessor.js');
+    this._synthNode = new AudioWorkletNode(this._context, 'wasm-synth');
+    this._volumeNode = new GainNode(this._context, {gain: 0.25});
+    this._synthNode.connect(this._volumeNode)
+                   .connect(this._context.destination);
+
+    if (!this._toggleState) this._context.suspend();
+  }
+
+  _handleToggle() {
+    console.log(this._toggleState);
+    this._toggleState = !this._toggleState;
+    if (this._toggleState) {
+      this._context.resume();
+      this._toggleButton.classList.replace('inactive', 'active');
+    } else {
+      this._context.suspend();
+      this._toggleButton.classList.replace('active', 'inactive');
+    }
+  }
+
+  _handleToneButton(isDown) {
+    this._synthNode.port.postMessage(isDown);
+  }
+
+  onWindowLoad() {
+    document.body.addEventListener('click', () => {
+      this._initializeAudio();
+      this._initializeView();
+    }, {once: true});
+  }
+}
+
+const demoApp = new DemoApp();
+window.addEventListener('load', () => demoApp.onWindowLoad());

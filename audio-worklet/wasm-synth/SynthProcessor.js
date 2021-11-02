@@ -15,8 +15,7 @@
  */
 
  import Module from './synth.wasm.js';
- import WASMAudioBuffer from './lib/WASMAudioBuffer.js';
- import MIDIEvent from './lib/MIDIEvent.js';
+ import WASMAudioBuffer from './util/WASMAudioBuffer.js';
  
  // Web Audio API's render block size
  const NUM_FRAMES = 128;
@@ -28,15 +27,14 @@
      // event handler for MIDI data from the main thread.
      this._synth = new Module.Synthesizer(sampleRate);
      this._wasmBuffer = new WASMAudioBuffer(Module, NUM_FRAMES, 1, 1);
-     // this.port.onmessage = this._handleMidiEvent.bind(this);
-     this.port.onmessage = this._playTestTone.bind(this);
+     this.port.onmessage = this._playTone.bind(this);
    }
  
    process(inputs, outputs) {
      // The output buffer (mono) provided by Web Audio API.
      const outputBuffer = outputs[0][0];
  
-     // Call synth render function to fill the WASM buffer. Then clone the
+     // Call the render function to fill the WASM buffer. Then clone the
      // rendered data to process() callback's output buffer.
      this._synth.render(this._wasmBuffer.getPointer(), NUM_FRAMES);
      outputBuffer.set(this._wasmBuffer.getF32Array());
@@ -44,28 +42,11 @@
      return true;
    }
  
-   _playTestTone(event) {
+   _playTone(event) {
      const isDown = event.data;
-     if (isDown)
-       this._synth.noteOn(60);
-     else
-       this._synth.noteOff(60);
-   }
- 
-   _handleMidiEvent(event) {
-     const messageType = event.data[0];
-     const noteNumber = event.data[1];
-     switch (messageType) {
-       // Route MIDI NoteOff and NoteOn to the synth's methods accordingly.
-       case MIDIEvent.NoteOn:
-         this._synth.noteOn(noteNumber);
-         break;
-       case MIDIEvent.NoteOff:
-         this._synth.noteOff(noteNumber);
-         break;
-     }
+     isDown ? this._synth.noteOn(60) : this._synth.noteOff(60);
    }
  }
  
- registerProcessor('my-synth', SynthProcessor);
+ registerProcessor('wasm-synth', SynthProcessor);
  
