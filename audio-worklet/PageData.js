@@ -69,6 +69,11 @@ export default {
         url: 'design-pattern/wasm/',
       },
       {
+        title: 'WebAssembly Supersaw',
+        description: `A C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio Developer Conference 2021)`,
+        url: 'design-pattern/wasm-supersaw/',
+      },
+      {
         title: 'Ring Buffer in AudioWorkletProcessor',
         description: `Using Ring Buffer to work around buffer size mismatch`,
         url: 'design-pattern/wasm-ring-buffer/',

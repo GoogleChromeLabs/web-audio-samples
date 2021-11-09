@@ -8,3 +8,4 @@
   [this section](https://emscripten.org/docs/getting_started/downloads.html#updating-the-sdk) for the details. After
   this point, you should be able to run `emcc` in the shell.
 1. In this directory, type `make` to start the compilation. You should see `synth.wasm.js` as a result.
+
