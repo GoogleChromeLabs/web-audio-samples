@@ -293,9 +293,6 @@ const DemoRunner = (demoFunction) => {
           <div class="was-demo-area-label">DEMO</div>
           ${eButton}
           ${logger.getElement()}
-          <div class="was-demo-area-source">
-            <a href="${sourceUrl}">See sources on GitHub</a>
-          </div>
           ${isAudioWorkletAvailable ? '' :
               'This browser does not support Audio Worklet yet.'
           }
