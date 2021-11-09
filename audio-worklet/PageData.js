@@ -70,7 +70,7 @@ export default {
       },
       {
         title: 'WebAssembly Supersaw',
-        description: `A C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio Developer Conference 2021)`,
+        description: `C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio Developer Conference 2021)`,
         url: 'design-pattern/wasm-supersaw/',
       },
       {
