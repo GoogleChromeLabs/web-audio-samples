@@ -1,5 +1,5 @@
 <!--
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2022 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,7 +36,6 @@
     }
       from '../../../assets/Components.js';
 
-
     render(html`
       <div id="TopBar"></div>
       <div id="WorkletIndicator"></div>
@@ -51,7 +50,8 @@
           <option value="sawtooth">Sawtooth</option>
         </select>
         <label for="frequency">Frequency (1 - 20000):</label>
-        <input type="number" name="frequency" id="demo-input-frequency" min="1" max="20000" value=440>
+        <input type="number" name="frequency" id="demo-input-frequency" min="1" 
+          max="20000" value=440>
       </div>
       <br>
       <div id="Runner">
@@ -93,13 +93,12 @@
         }
       }
     }
-
+    
     document.querySelector('#toogle').addEventListener('click', demoFunction);
-    document.querySelector('#demo-input-type').addEventListener('change', demoFunction);
-    document.querySelector('#demo-input-frequency').addEventListener('change', demoFunction);
-
-
-
+    document.querySelector('#demo-input-type').addEventListener('change', 
+      demoFunction);
+    document.querySelector('#demo-input-frequency').addEventListener('change', 
+      demoFunction);
   </script>
 </body>
 

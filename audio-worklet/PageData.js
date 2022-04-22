@@ -53,7 +53,7 @@ export default {
         url: 'basic/message-port/',
       },
       {
-        title: 'AudioWorkletNode Options!',
+        title: 'AudioWorkletNode Options',
         description: `
             A simple AudioWorkletNode constructor example which passes options to processor`,
         url: 'basic/audio-worklet-node-options/',

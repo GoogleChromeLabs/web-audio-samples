@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2022 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,12 @@ export default {
     pathData: [
       ['Home', '../../../'],
       ['AudioWorklet', '../../'],
-      ['AudioWorkletNode Options!'],
+      ['AudioWorkletNode Options'],
     ],
   },
 
   Description: {
-    title: 'AudioWorkletNode Options!!',
+    title: 'AudioWorkletNode Options',
     detail: `A simple AudioWorkletNode constructor example that passes type and freqency options to processor during creation.`
   },
 };
