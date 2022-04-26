@@ -14,12 +14,14 @@ const sine = (frequency, time) => {
 
 // https://en.wikipedia.org/wiki/Square_wave
 const square = (frequency, time) => {
-  return 2 * (2 * Math.floor(frequency * time) - Math.floor(2 * frequency * time)) + 1
+  return 2 * 
+    (2 * Math.floor(frequency * time) - Math.floor(2 * frequency * time)) + 1
 }
 
 // https://en.wikipedia.org/wiki/Triangle_wave
 const triangle = (frequency, time) => {
-  return 2 * Math.abs(2 * (frequency * time - Math.floor(frequency * time + 0.5))) - 1
+  return 2 * 
+    Math.abs(2 * (frequency * time - Math.floor(frequency * time + 0.5))) - 1
 }
 
 const noise = () => {
