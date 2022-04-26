@@ -63,8 +63,8 @@ class BasicProcessor extends AudioWorkletProcessor {
     for (let channel = 0; channel < output.length; ++channel) {
       const outputChannel = output[channel];
       for (let i = 0; i < outputChannel.length; ++i) {
-        outputChannel[i] = this.outputFunction(this.frequency, 
-          this.sample/sampleRate);
+        outputChannel[i] = 
+          this.outputFunction(this.frequency, this.sample/sampleRate);
         this.sample++;
         if (this.sample > sampleRate) this.sample = 0;
       }

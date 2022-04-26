@@ -33,8 +33,7 @@
       html, render,
       Component, WorkletIndicator, TopBar, Footer,
       OneColumnView
-    }
-      from '../../../assets/Components.js';
+    } from '../../../assets/Components.js';
 
     render(html`
       <div id="TopBar"></div>
@@ -88,7 +87,7 @@
       } else {
         element.innerText = 'START';
         if (context) {
-          context.suspend()
+          context.suspend();
           context.close();
         }
       }
