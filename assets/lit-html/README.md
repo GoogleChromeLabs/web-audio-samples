@@ -11,7 +11,7 @@ HTML templates, via JavaScript template literals
 
 `lit-html` lets you write [HTML templates](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) with JavaScript [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals), and efficiently render and _re-render_ those templates to DOM.
 
-Visit the [lit-html documentation](https://polymer.github.io/lit-html).
+Visit the [lit-html documentation](https://lit.dev/docs/).
 
 ```javascript
 import {html, render} from 'lit-html';
