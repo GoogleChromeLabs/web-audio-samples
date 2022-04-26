@@ -1,5 +1,5 @@
 > ## 🛠 Status: stable
-> At the time of writing this document, lit-html was in development and not even a 1.0 release. As of 2022 there is a version 2 and maybe, at the time of reading this, ther are even other ones. Therefore please provide feedback, if you find a spot, where things changed compared to out document.
+> At the time of writing this document, lit-html was in development and not even a 1.0 release. As of 2022 there is a version 2 and maybe, at the time of reading this, there are even more recent ones. Therefore please provide feedback, if you find a spot, where things changed compared to out document.
 
 # lit-html
 HTML templates, via JavaScript template literals
