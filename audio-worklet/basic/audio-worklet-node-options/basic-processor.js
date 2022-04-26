@@ -39,19 +39,19 @@ class BasicProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     this.sample = 0;
-    this.output_function = noise;
+    this.outputFunction = noise;
     this.frequency = 440;
     if (options.processorOptions) {
       if (options.processorOptions.type == 'sine') {
-          this.output_function = sine;
+          this.outputFunction = sine;
       } else if (options.processorOptions.type == 'sawtooth') {
-          this.output_function = sawtooth;
+          this.outputFunction = sawtooth;
       } else if (options.processorOptions.type == 'square') {
-          this.output_function = square;
+          this.outputFunction = square;
       } else if (options.processorOptions.type == 'triangle') {
-          this.output_function = triangle;
+          this.outputFunction = triangle;
       } else if (options.processorOptions.type == 'noise') {
-          this.output_function = noise;
+          this.outputFunction = noise;
       }
       this.frequency = options.processorOptions.frequency || 440;
     }
@@ -63,7 +63,7 @@ class BasicProcessor extends AudioWorkletProcessor {
     for (let channel = 0; channel < output.length; ++channel) {
       const outputChannel = output[channel];
       for (let i = 0; i < outputChannel.length; ++i) {
-        outputChannel[i] = this.output_function(this.frequency, 
+        outputChannel[i] = this.outputFunction(this.frequency, 
           this.sample/sampleRate);
         this.sample++;
         if (this.sample > sampleRate) this.sample = 0;
