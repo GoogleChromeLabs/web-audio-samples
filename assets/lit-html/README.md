@@ -1,5 +1,5 @@
-> ## 🛠 Status: In Development
-> lit-html is currently in development. It's on the fast track to a 1.0 release, so we encourage you to use it and give us your feedback, but there are things that haven't been finalized yet and you can expect some changes.
+> ## 🛠 Status: stable
+> At the time of writing this document, lit-html was in development and not even a 1.0 release. As of 2022 there is a version 2 and maybe, at the time of reading this, there are even more recent ones. Therefore please provide feedback, if you find a spot, where things changed compared to out document.
 
 # lit-html
 HTML templates, via JavaScript template literals
@@ -11,7 +11,7 @@ HTML templates, via JavaScript template literals
 
 `lit-html` lets you write [HTML templates](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) with JavaScript [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals), and efficiently render and _re-render_ those templates to DOM.
 
-Visit the [lit-html documentation](https://polymer.github.io/lit-html).
+Visit the [lit-html documentation](https://lit.dev/docs/).
 
 ```javascript
 import {html, render} from 'lit-html';
