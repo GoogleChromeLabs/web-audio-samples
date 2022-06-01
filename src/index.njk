@@ -1,8 +1,37 @@
+---
+eleventyNavigation:
+  key: landing
+  title: Home
+to_root_dir: ./
+hide_header: true
+---
+
 {% extends "./_includes/base.njk" %}
 
 {% block content %}
-<h1>Web Audio Samples</h1>
 
-<p>A collection of projects, examples and resources for Web Audio API. Curated 
-  by Chrome Web Audio team.</p>
+<div class="mb-12">
+  <h1>Web Audio/MIDI Samples</h1>
+  <p>A collection of resources and examples for Web Audio/MIDI API. Curated by
+    <strong>Chrome Web Audio Team</strong>.</p>
+</div>
+
+{% for section in landing_data %}
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    {{ section.title }}
+  </h2>
+  <div class="flex flex-wrap">
+    {% for entry in section.entries %}
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="{{ entry.href }}" target="_blank" class="text-xl">
+          {{ entry.title }}
+        </a>
+        <p>{{ entry.description }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}

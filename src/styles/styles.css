@@ -1,1 +1,35 @@
 @tailwind base;
+
+h1 {
+  @apply text-5xl pb-6;
+}
+
+a, a:active, a:visited {
+  @apply text-blue-600;
+}
+
+a:hover {
+  @apply text-blue-400 underline;
+}
+
+p {
+  @apply mb-3;
+}
+
+button {
+  @apply text-lg text-white bg-blue-400 rounded-md px-3 py-1;
+}
+
+button[disabled] {
+  @apply cursor-not-allowed opacity-50;
+}
+
+@tailwind utilities;
+
+.footer {
+  @apply text-sm;
+}
+
+.demo-box {
+  @apply border border-gray-400 rounded-md p-3 my-6;
+}

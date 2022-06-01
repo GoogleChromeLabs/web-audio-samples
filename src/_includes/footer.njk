@@ -1,1 +1,18 @@
-Footer
+<div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    {% for link in footer_data.links %}
+      <div class="mr-1">
+        <a href="{{ link.href }}" target="_blank">{{ link.title }}</a>
+      </div>
+      {% if loop.index != loop.length %}
+      <span class="mr-1">
+        &#9585;
+      </span>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="pb-3">
+    2010-{{ build_info.copyrightYear }} Chromium authors
+    ({{ build_info.revision }})
+  </div>
+</div>

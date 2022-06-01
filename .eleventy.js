@@ -1,4 +1,7 @@
 const htmlmin = require('html-minifier');
+const yaml = require('js-yaml');
+const navigationPlugin = require('@11ty/eleventy-navigation');
+const path = require('path');
 
 // Generate the shortened commit hash and create (overwrite) `build_info.json`
 // file. This file will eventually be added to the footer of the page.
@@ -33,6 +36,12 @@ const htmlMinifierCallback = (content, outputPath) => {
 
 module.exports = function(eleventyConfig) {
   eleventyConfig.setUseGitIgnore(false);
+  eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
+  eleventyConfig.addPlugin(navigationPlugin);
+
+  eleventyConfig.addFilter('relativePath', (page, targetUrl) => {
+    return path.relative(page.filePathStem, targetUrl);
+  });
 
   writeBuildInfoToFile();
 
@@ -47,10 +56,12 @@ module.exports = function(eleventyConfig) {
   
   // eleventyConfig.addPassthroughCopy('src/scripts');
   eleventyConfig.addPassthroughCopy('src/style.css');
-  // eleventyConfig.addPassthroughCopy('src/media');
+  eleventyConfig.addPassthroughCopy('src/demos');
+  eleventyConfig.addPassthroughCopy('src/archive');
+  eleventyConfig.addPassthroughCopy('src/sounds');
   // eleventyConfig.addPassthroughCopy('src/favicon');
-  // eleventyConfig.addPassthroughCopy('src/robots.txt');
-  // eleventyConfig.addPassthroughCopy('src/sitemap.xml');
+  eleventyConfig.addPassthroughCopy('src/robots.txt');
+  eleventyConfig.addPassthroughCopy('src/sitemap.xml');
 
   return {
     dir: {input: 'src'}

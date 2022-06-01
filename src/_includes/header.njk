@@ -1,1 +1,11 @@
-Header
+{% set navPages = collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key) %}
+
+{{ navPages | dump | safe }}
+
+{% for navPage in navPages %}
+  <a href="{{ page | relativePath(navPage.url) }}">{{ navPage.title }}</a>
+{% endfor %}
+
+<br>
+
+{#{{ page | relativePath }}#}
