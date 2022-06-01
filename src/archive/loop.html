@@ -1,0 +1,562 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+<script type="text/javascript" src="lib/granular.js"></script>
+<script type="text/javascript" src="lib/global-effects.js"></script>
+<script type="text/javascript" src="lib/bpm-delay.js"></script>
+<script type="text/javascript" src="lib/waveshaper.js"></script>
+<script type="text/javascript" src="lib/buffer-loader.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+window.onload = init;
+
+var useLiveInput = false;
+var useTestInput = false;
+
+var backgroundColor = "rgb(0, 0, 0)";
+var curveColor1 = "rgb(192,192,192)";
+var curveColor2 = "rgb(255,100,255)";
+var gridColor = "rgb(200,200,200)";
+
+var context;
+var globalEffects;
+var source;
+var delay;
+var gain;
+var muted = false;
+var sourceBuffer;
+
+var recording = false;
+var startRecordTime = 0;
+var duration = 0;
+var loopSource = 0;
+var liveInput;
+
+var loopIndex = 0;
+var loops = new Array();
+
+var bufferLoader;
+var bufferList;
+
+function schedule() {
+    for (var i = 0; i < 4; ++i) {
+        loops[i].schedule();
+    }
+    setTimeout("schedule()", 20);
+}
+
+function setSpeed(value) {
+    for (var i = 0; i < 4; ++i) {
+        loops[i].granular.setSpeed(value);
+    }
+    
+    setTempo(bufferList[0].duration * Math.abs(value));
+}
+
+function selectedLoop() {
+    return loops[loopIndex];
+}
+
+function setTempo(duration) {
+    // Simplistically assume loop is 4 beats.
+    var tempo = 60 / (0.25 * duration);
+    if (Math.abs(tempo) < 5 || Math.abs(tempo) > 1000 || tempo < 0)
+        tempo = 120;
+    
+    while (tempo < 80)
+        tempo *= 2;
+    while (tempo > 180)
+        tempo /= 2;
+    
+    // var info = document.getElementById('info');
+    // info.innerHTML = "duration: " + duration + "   bpm: " + tempo;
+    // globalEffects.bpmDelay.setTempo(tempo);
+}
+
+function handleKeyDown(event) {
+    console.log(event.keyCode);
+    var code = event.keyCode;
+    
+    if (code == 77) {
+        // m
+        selectedLoop().mute();
+    } else if (code == 13) {
+        // Return
+        if (!recording) {
+            startRecordTime = context.currentTime;
+            recording = true;
+        } else {
+            var startTime = startRecordTime;
+            var endTime = context.currentTime;
+            
+            // Use retro-record after loop time is established
+            if (duration == 0) {
+                duration = endTime - startTime;
+                setTempo(duration);
+            }
+            else
+                startTime = endTime - duration;
+            
+            var captureBuffer = delay.createBuffer(startTime, duration);
+            
+            var p = captureBuffer.getChannelData(0);
+            console.log(p[0]);
+            console.log(p[1]);
+            console.log(p[2]);
+            console.log(p[3]);
+            
+            muteSource();
+            selectedLoop().clear();
+            selectedLoop().setBuffer(captureBuffer);
+            selectedLoop().loop();
+
+            // recording = false;
+        }
+    } else if (code == 80) {
+        // p
+        selectedLoop().audition();
+    } else if (code == 67) {
+        // c
+        selectedLoop().clear();
+    } else if (code == 90) {
+        // z
+        clearAll();
+    } else if (code == 32) {
+        // Space
+        toggleMuteSource();
+    } else if (code >= 49 && code <=57) {
+        // 1,2,3,4,5,6,7,8
+        var i = code - 49;
+        selectedLoop().setBuffer(bufferList[i]);
+    }
+}
+
+function Loop(context, globalEffects) {
+    this.context = context;
+    this.source = 0;
+    this.buffer = 0;
+    this.muted = false;
+    this.gain = context.createGain();
+
+    this.filter = context.createBiquadFilter();
+    this.filter.type = "lowpass";
+    this.filter.frequency.value = 24000;
+    this.filter.Q.value = 6; // dB
+
+    this.filter2 = context.createBiquadFilter();
+    this.filter2.type = "lowpass";
+    this.filter2.frequency.value = 24000;
+    this.filter2.Q.value = 0; // dB
+
+
+    this.filterGain = context.createGain();
+
+    this.filter.connect(this.filter2);
+    this.filter2.connect(this.filterGain);
+    this.filterGain.connect(this.gain);
+    
+    this.delayDry = context.createGain();
+    this.delayWet = context.createGain();
+    this.convolverDry = context.createGain();
+    this.convolverWet = context.createGain();
+    
+    this.delayDry.connect(globalEffects.compressor);
+    this.convolverDry.connect(globalEffects.compressor);
+
+    this.delayWet.connect(globalEffects.bpmDelay.delay);
+    this.convolverWet.connect(globalEffects.convolver);
+
+    this.gain.connect(this.delayDry);
+    this.gain.connect(this.delayWet);
+    this.gain.connect(this.convolverDry);
+    this.gain.connect(this.convolverWet);
+    
+    this.setDelayDryWet(0.3);
+    this.setReverbDryWet(0.0);
+    this.setResonance(3);
+
+    this.granular = new Granular(context, this.filter /*globalEffects.compressor*/, globalEffects.convolver);
+}
+
+Loop.prototype.schedule = function() {
+    if (this.buffer)
+        this.granular.schedule();
+}
+
+Loop.prototype.setBuffer = function(buffer) {
+    this.buffer = buffer;
+    this.granular.setBuffer(buffer);
+}
+
+Loop.prototype.setVolume = function(value) {
+    this.gain.gain.value = value;
+}
+
+Loop.prototype.setCutoff = function(value) {
+    this.filter.frequency.value = value;
+    this.filter2.frequency.value = value;
+}
+
+Loop.prototype.setResonance = function(value) {
+    // this.filter.Q.value = value;
+    // var gainCompDb = -0.25 * value; // gain compensation for resonance (empirical)
+    // var gainComp = Math.pow(10, gainCompDb/20); 
+    // this.filterGain.gain.value = gainComp;
+
+
+    this.filter.Q.value = value;
+    this.filter2.Q.value = value - 6;
+    
+    // Resonance gain compensation.
+    var gain = Math.pow(10, -0.25*value * 0.05);
+    this.filterGain.gain.value = gain;
+}
+
+Loop.prototype.loop = function() {
+    if (this.source)
+        this.source.stop(0);
+
+    var source = context.createBufferSource();
+    this.source = source;
+    
+    source.buffer = this.buffer;
+    source.connect(this.filter);
+    source.loop = true;
+    source.start(0);
+}
+
+Loop.prototype.clear = function() {
+    if (this.source) {
+        this.source.stop(0);
+        this.source = 0;
+    }
+}
+
+Loop.prototype.audition = function() {
+    var playSource = context.createBufferSource();
+    playSource.buffer = this.buffer;
+    playSource.connect(context.destination);
+    playSource.start(0);
+}
+
+Loop.prototype.mute = function() {
+    var target = this.muted ? 1 : 0;
+    this.muted = !this.muted;
+    this.gain.gain.setTargetAtTime(target, 0, 0.010);
+}
+
+Loop.prototype.setDelayDryWet = function(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    this.delayDry.gain.value = gain1;
+    this.delayWet.gain.value = gain2;
+}
+
+Loop.prototype.setReverbDryWet = function(x) {
+    // Equal-power cross-fade dry -> wet
+    var gain1 = 0.5 * (1.0 + Math.cos(x * Math.PI));
+    var gain2 = 0.5 * (1.0 + Math.cos((1.0-x) * Math.PI));
+    this.convolverDry.gain.value = gain1;
+    this.convolverWet.gain.value = gain2;
+}
+
+
+function muteSource() {
+    muted = true;
+    gain.gain.setTargetAtTime(0, 0, 0.010);
+}
+
+function toggleMuteSource() {
+    var target = muted ? 1 : 0;
+    muted = !muted;
+    gain.gain.setTargetAtTime(target, 0, 0.010);
+}
+
+function clearAll() {
+    recording = false;
+    startRecordTime = 0;
+    duration = 0;
+    
+    for (var i = 0; i < 4; ++i) {
+        loops[i].clear();
+    }
+}
+
+function error() {
+    alert('Stream generation failed.');
+}
+
+function getUserMedia(dictionary, callback) {
+    try {
+        navigator.webkitGetUserMedia(dictionary, callback, error);
+    } catch (e) {
+        alert('webkitGetUserMedia threw exception :' + e);
+    }
+}
+
+function gotStream(stream) {
+    liveInput = context.createMediaStreamSource(stream);
+    liveInput.connect(delay);
+    liveInput.connect(context.destination);
+}
+
+function finishLoad() {
+    document.addEventListener("keydown", handleKeyDown, true);  
+}
+
+function loadSourceBuffer(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        if (!useLiveInput && useTestInput) {
+            var source = context.createBufferSource();
+
+            context.decodeAudioData(request.response, function(audioBuffer) {
+                sourceBuffer = audioBuffer;
+                source.buffer = sourceBuffer;
+                source.connect(delay);
+                source.start(0);
+            }, function(error) {
+                console.error(error);
+            });
+        }
+
+        finishLoad();
+    };
+
+    request.send();
+}
+
+function bufferLoaderFinished(buffers) {
+    bufferList = buffers;
+    globalEffects.setConvolverBuffer(buffers[8]);  // FIXME: fragile
+    
+    loops[0].setBuffer(buffers[3]); // granular
+    loops[1].setBuffer(buffers[1]); // granular
+}
+
+function init() {
+    context = new AudioContext();
+    delay = context.createDelay(10);
+    gain = context.createGain();
+    delay.connect(gain);
+    gain.connect(context.destination);
+
+    globalEffects = new GlobalEffects(context);
+    
+    globalEffects.setDelayFeedback(0.65);
+    globalEffects.setDelayGrunge(-3);
+    
+    
+    for (var i = 0; i < 4; ++i) {
+        loops[i] = new Loop(context, globalEffects);
+    }
+
+    // loadSourceBuffer("sounds/drum-samples/hihat-short.wav");
+    loadSourceBuffer("sounds/hyper-reality/human-voice.mp4");
+    //loadSourceBuffer("sounds/DriftingDrums.mp3");
+    
+    bufferLoader = new BufferLoader(
+        context,
+        [
+        'sounds/drum-samples/loops/blueyellow.wav',
+        'sounds/drum-samples/loops/break12.wav',
+        'sounds/drum-samples/loops/break28.wav',
+        'sounds/drum-samples/loops/break29.wav',
+        'sounds/hyper-reality/refreshing-drink.wav',
+        'sounds/hyper-reality/human-voice.mp4',
+        'sounds/hyper-reality/guitar-chords.wav',
+        'sounds/drum-samples/loops/organ-echo-chords.wav',
+        'impulse-responses/matrix-reverb5.wav',
+        ],
+        bufferLoaderFinished
+    );
+    bufferLoader.load();
+    
+    if (useLiveInput) {
+      getUserMedia({audio:true}, gotStream);
+    }    
+
+    drawAllLoops();
+    
+    installGlobalControls();
+    
+    installControls(0);
+    installControls(1);
+    installControls(2);
+    installControls(3);
+    
+    globalEffects.bpmDelay.setDelayValue("quarter note");
+    
+    // BPM delay time.
+    var bpmDelayMenu = document.getElementById("bpmDelayMenu");
+    var menuText = 'Delay: <select onchange="globalEffects.bpmDelay.setDelayValue(this.value);">'
+        menuText += '<option>32nd note</option>'
+        menuText += '<option>16th note triplet</option>'
+        menuText += '<option>dotted 32nd note</option>'
+        menuText += '<option>16th note</option>'
+        menuText += '<option>8th note triplet</option>'
+        menuText += '<option>dotted 16th note</option>'
+        menuText += '<option>8th note</option>'
+        menuText += '<option>quarter note triplet</option>'
+        menuText += '<option>dotted eighth note</option>'
+        menuText += '<option selected>quarter note</option>'
+        menuText += '</select>';
+    bpmDelayMenu.innerHTML = menuText;
+    
+    schedule();
+}
+
+
+function drawLoop(index) {
+    var j = index + 1;
+    var id = "loop" + j;
+ 
+    var canvas = document.getElementById(id);
+    var width = canvas.width;
+    var height = canvas.height;
+
+    var cc = canvas.getContext('2d');
+    
+    cc.fillStyle = backgroundColor;
+    cc.fillRect(0, 0, width, height);
+    
+    if (index == loopIndex) {
+        cc.strokeStyle = curveColor2;
+        cc.lineWidth = 7;
+    } else {
+        cc.strokeStyle = backgroundColor;
+        cc.lineWidth = 1;
+    }
+    
+    cc.strokeRect(0, 0, width, height);
+}
+
+function drawAllLoops() {
+    drawLoop(0);
+    drawLoop(1);
+    drawLoop(2);
+    drawLoop(3);
+}
+
+function installControls(index) {
+    var views = new Array();
+    
+    var idx_plus = index + 1;
+
+    var j = 0;
+    views[j++] = new KnobView("cutoff " + idx_plus, 22000, 30, 24000, UNITS.hertz, 1, true, function(value) { loops[index].setCutoff(value); } );
+    views[j++] = new KnobView("resonance " + idx_plus, 5, 0, 20, UNITS.decibels, 0, false, function(value) { loops[index].setResonance(value); } );
+    views[j++] = new KnobView("reverb dry/wet " + idx_plus, 20, 0, 100, UNITS.percent, 1, false, function(value) { loops[index].setReverbDryWet(0.01 * value); } );
+    views[j++] = new KnobView("delay " + idx_plus, 25, 0, 100, UNITS.percent, 1, false, function(value) { loops[index].setDelayDryWet(0.01 * value); } );
+
+    // views[j++] = new KnobView("speed " + idx_plus, 0.3, -2, 2, UNITS.generic, 1, false, function(value) { loops[index].granular.setSpeed(value); } );
+    views[j++] = new KnobView("pitch " + idx_plus, 0, -1200, 1200, UNITS.cents, 1, false, function(value) { loops[index].granular.setPitch(value); } );
+    views[j++] = new KnobView("panning randomization " + idx_plus, 0.5, 0, 1, UNITS.generic, 1, false, function(value) { loops[index].granular.setPanningRandomization(value); } );
+    views[j++] = new KnobView("diffusion randomization " + idx_plus, 0.0, 0, 1, UNITS.generic, 1, false, function(value) { loops[index].granular.setDiffusionRandomization(value); } );
+    views[j++] = new KnobView("grain size " + idx_plus, 0.080, 0.020, 0.5, UNITS.seconds, 3, false, function(value) { loops[index].granular.setGrainSize(value); } );
+
+    views[j++] = new KnobView("volume " + idx_plus, 1, 0.0, 1.0, UNITS.generic, 1, false, function(value) { loops[index].setVolume(value); } );
+    
+    var id = "loop-controls" + idx_plus;
+
+    var controls = document.getElementById(id);
+    installViews(views, controls);    
+}
+
+function installGlobalControls() {
+    var views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("speed", 1, -1, 1, UNITS.generic, 1, false, function(value) { setSpeed(value); } );
+    views[j++] = new KnobView("delay feedback", 50, 0, 100, UNITS.percent, 1, false, function(value) { globalEffects.setDelayFeedback(0.01 * value); } );
+    views[j++] = new KnobView("delay grunge", 0, -10, 30, UNITS.decibels, 1, false, function(value) { globalEffects.setDelayGrunge(value); } );
+    
+    var controls = document.getElementById("global-controls");
+    installViews(views, controls);    
+}
+
+function select(index) {
+    loopIndex = index;
+    drawAllLoops();
+}
+
+</script>
+</head>
+
+<body>
+
+<canvas id="loop1" width="600px" height="50px" onmousedown="select(0);"></canvas>
+<br>
+<canvas id="loop2" width="600px" height="50px" onmousedown="select(1);"></canvas>
+<br>
+<canvas id="loop3" width="600px" height="50px" onmousedown="select(2);"></canvas>
+<br>
+<canvas id="loop4" width="600px" height="50px" onmousedown="select(3);"></canvas>
+<br>
+
+<div id="info"> </div>
+<div id="bpmDelayMenu"> </div>
+
+<br>
+
+<div id="global-controls" style="position:relative; width:300px; height:90px;"> </div>
+
+<div id="loop-controls1" style="position:relative; width:300px; height:260px;"> controls1</div>
+<div id="loop-controls2" style="position:relative; width:300px; height:260px;"> controls2</div>
+<div id="loop-controls3" style="position:relative; width:300px; height:260px;"> controls3</div>
+<div id="loop-controls4" style="position:relative; width:300px; height:260px;"> controls4</div>
+
+</body>
+</html>

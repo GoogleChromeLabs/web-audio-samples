@@ -1,0 +1,1040 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!--
+Visualizer
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Visualizer
+</title>
+<style>
+  html, body {
+      border: 0;
+      margin: 0;
+      height: 100%;
+      height: 100%;
+      text-align: center;
+    }
+</style>
+<script type="text/javascript" src="o3djs/base.js"></script>
+<script type="text/javascript" id="o3dscript">
+o3djs.require('o3djs.util');
+o3djs.require('o3djs.math');
+o3djs.require('o3djs.rendergraph');
+o3djs.require('o3djs.primitives');
+o3djs.require('o3djs.material');
+o3djs.require('o3djs.io');
+
+// Events
+// Run the init() once the page has finished loading.
+// Run the uninit() function when the page has is unloaded.
+window.onload = init;
+window.onunload = uninit;
+
+// global variables
+var g_o3dElement;
+var g_o3d;
+var g_math;
+var g_client;
+var g_pack;
+var g_viewInfo;
+var g_finished = false;  // for selenium testing
+var g_targetSize = 512;
+var g_depthSurface;
+var g_count = 0;
+var g_clock = 0;
+var g_timeMult = 0.3; // 1;
+var g_backPass = [];
+var g_keyDown = [];  // which keys are down by key code.
+var g_keyCurrentlyDown = 0;  // If any key is currently down this is true.
+var g_keyDownKeyCodeFunctions = {};
+var g_keyUpKeyCodeFunctions = {};
+var g_showRenderTargets = true;
+var g_mainTransform;
+var g_rtTransforms = [];
+var g_visualizerViewInfo;
+var g_numBins = 9;
+var g_samples = [];
+var g_visualizerIndex = -1;
+var g_visualizers = [];
+var g_currentVisualizer = null;
+
+var g_audioSource = null;
+var g_freqData = 0;
+
+
+/**
+ * Tracks key down events.
+ * @param {Event} e keyboard event.
+ */
+function onKeyDown(e) {
+  if (!g_keyDown[e.keyCode]) {
+    ++g_keyCurrentlyDown;
+    g_keyDown[e.keyCode] = true;
+    var keyFunction = g_keyDownKeyCodeFunctions[e.keyCode];
+    if (keyFunction) {
+      keyFunction(e);
+    }
+  }
+}
+
+/**
+ * Tracks key up events.
+ * @param {Event} e keyboard event.
+ */
+function onKeyUp(e) {
+  if (g_keyDown[e.keyCode]) {
+    --g_keyCurrentlyDown;
+    g_keyDown[e.keyCode] = false;
+
+    var keyFunction = g_keyUpKeyCodeFunctions[e.keyCode];
+    if (keyFunction) {
+      keyFunction(e);
+    }
+  }
+}
+
+/**
+ * Converts a keyCode or charCode to a keyCode.
+ * @param {number|string} code The key code or char code.
+ * @return {number} the key code.
+ */
+function convertToKeyCode(code) {
+  if (typeof(code) == 'string') {
+    code = code.charCodeAt(0);
+    if (code >= 'a'.charCodeAt(0)) {
+      code += 65 - 'a'.charCodeAt(0);
+    }
+  }
+  return code;
+}
+
+/**
+ * Registers a key code with a key up function.
+ * @param {number|string} keyCode The key code to register a function with.
+ * @param {!function(!event): void} keyFunction A function that will be passed
+ *     the event for the key.
+ */
+function registerKeyDownFunction(keyCode, keyFunction) {
+  g_keyDownKeyCodeFunctions[convertToKeyCode(keyCode)] = keyFunction;
+}
+
+/**
+ * Registers a key code with a key down function.
+ * @param {number|string} keyCode The key code to register a function with.
+ * @param {!function(!event): void} keyFunction A function that will be passed
+ *     the event for the key.
+ */
+function registerKeyUpFunction(keyCode, keyFunction) {
+  g_keyUpKeyCodeFunctions[convertToKeyCode(keyCode)] = keyFunction;
+}
+
+/**
+ * Registers a key code with a both a key down and key up function.
+ * @param {number|string} keyCode The key code to register a function with.
+ * @param {!function(!event): void} keyUpFunction A function that will be passed
+ *     the event for the key being released.
+ * @param {!function(!event): void} keyDownFunction A function that will be
+ *     passed the event for the key being down..
+ */
+function registerKeyUpDownFunction(keyCode, keyUpFunction, keyDownFunction) {
+  registerKeyUpFunction(keyCode, keyUpFunction);
+  registerKeyUpFunction(keyCode, keyDownFunction);
+}
+
+/**
+ * Registers key handlers.
+ */
+function registerKeyHandlers() {
+  registerKeyDownFunction('r', toggleRenderTargets);
+}
+
+function createFadeMaterial(pack,
+                            viewInfo,
+                            texture) {
+  var material = o3djs.material.createMaterialFromFile(
+      pack,
+      'shaders/texture-colormult.shader',
+      viewInfo.zOrderedDrawList);
+      material.getParam('colorMult').value = [1, 1, 1, 0.5];
+  material.getParam('texSampler0').value.texture = texture;
+  return material;
+};
+
+function RenderTargetPass(pack, renderNodeParent, priority, format) {
+  var texture = pack.createTexture2D(
+      g_targetSize, g_targetSize, format, 1, true);
+  var surface = texture.getRenderSurface(0);
+  var renderSurfaceSet = pack.createObject("RenderSurfaceSet");
+  renderSurfaceSet.renderSurface = surface;
+  renderSurfaceSet.renderDepthStencilSurface = g_depthSurface;
+  renderSurfaceSet.priority = priority;
+  var root = pack.createObject("Transform");
+
+  var viewInfo = o3djs.rendergraph.createBasicView(
+      pack, root, renderSurfaceSet, [0, 0, 0, 0]);
+
+  // Setup an orthographic projection
+  viewInfo.drawContext.projection = g_math.matrix4.orthographic(
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.1,
+    1000);
+
+  viewInfo.drawContext.view = g_math.matrix4.lookAt(
+      [0, 500, 0], // eye
+      [0, 0, 0],   // target
+      [0, 0, -1]); // up
+
+  viewInfo.zOrderedState.getStateParam('CullMode').value =
+      g_o3d.State.CULL_NONE;
+
+  renderSurfaceSet.parent = renderNodeParent;
+
+
+  this.texture = texture;
+  this.surface = surface;
+  this.renderSurfaceSet = renderSurfaceSet;
+  this.renderGraphRoot = renderSurfaceSet;
+  this.root = root;
+  this.viewInfo = viewInfo;
+  this.priority = priority;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.translateZ = 0;
+  this.rotateY = 0;
+  this.scaleX = 1;
+  this.scaleZ = 1;
+  this.fadeColor = [1, 1, 1, 0.5];
+}
+
+RenderTargetPass.prototype.update = function(elaspedTime) {
+  var t = this.root;
+  t.identity();
+  t.translate(this.translateX, this.translateY, this.translateZ);
+  t.rotateY(this.rotateY);
+  t.scale(this.scaleX, 1, this.scaleZ);
+  if (this.fadeParam) {
+    this.fadeParam.value = this.fadeColor;
+  }
+};
+
+/**
+ * Toggles the render target display.
+ * @param {Event} e Event for key that was pressed.
+ */
+function toggleRenderTargets(e) {
+  g_showRenderTargets = !g_showRenderTargets;
+  g_mainTransform.identity();
+  if (g_showRenderTargets) {
+    g_mainTransform.translate(0, 0, 0.2);
+    g_mainTransform.scale(0.5, 1, 0.5);
+  }
+  for (var ii = 0; ii < g_rtTransforms.length; ++ii) {
+    g_rtTransforms[ii].visible = g_showRenderTargets;
+  }
+}
+
+/**
+ * Creates the client area.
+ */
+function init() {
+  initAudio();
+  
+  o3djs.util.makeClients(initStep2);
+}
+
+/**
+ * Initializes O3D, loads the effect, and draws the quad.
+ * @param {Array} clientElements Array of o3d object elements.
+ */
+function initStep2(clientElements) {
+  // Initialize global variables and libraries.
+  g_o3dElement = clientElements[0];
+  g_o3d = g_o3dElement.o3d;
+  g_math = o3djs.math;
+  g_client = g_o3dElement.client;
+
+  // Create a pack to manage our resources/assets
+  g_pack = g_client.createPack();
+
+  g_depthSurface = g_pack.createDepthStencilSurface(g_targetSize, g_targetSize);
+
+  var mainRoot = g_pack.createObject("Transform");
+
+  // Create the render graph for a view.
+  g_viewInfo = o3djs.rendergraph.createBasicView(
+      g_pack,
+      mainRoot,
+      g_client.renderGraphRoot,
+      [1, 1, 0, 1]);
+
+  // Setup an orthographic projection
+  g_viewInfo.drawContext.projection = g_math.matrix4.orthographic(
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.1,
+    1000);
+
+  // move the camera above the origin looking down.
+  g_viewInfo.drawContext.view = g_math.matrix4.lookAt(
+      [0, 500, 0], // eye
+      [0, 0, 0],   // target
+      [0, 0, -1]); // up
+
+  // Create Passes.
+  for (var ii = 0; ii < 3; ++ii) {
+    var mode = g_o3d.Texture.ARGB8;
+    if (ii > 0) {
+      mode = g_o3d.Texture.XRGB8;
+    }
+    g_backPass[ii] = new RenderTargetPass(
+        g_pack, g_client.renderGraphRoot, -5 + ii, mode);
+  }
+  g_backPass[1].viewInfo.clearBuffer.clearColorFlag = false;
+  g_backPass[2].viewInfo.clearBuffer.clearColorFlag = false;
+//  g_backPass[0].viewInfo.clearBuffer.clearColor = [1, 0, 0, 1];
+//  g_backPass[1].viewInfo.clearBuffer.clearColor = [0, 1, 0, 1];
+//  g_backPass[2].viewInfo.clearBuffer.clearColor = [0, 0, 1, 1];
+
+
+  // Draw something into pass[0]
+  // ...
+
+  // Draw result alphaed into pass1
+  var material = createFadeMaterial(
+      g_pack,
+      g_backPass[1].viewInfo,
+      g_backPass[0].texture);
+  g_backPass[0].fadeParam = material.getParam('colorMult');
+  var plane = o3djs.primitives.createPlane(g_pack,
+                                           material,
+                                           1,  // width
+                                           1,  // height
+                                           1,  // quads across
+                                           1); // quads down
+  var transform = g_pack.createObject("Transform");
+  transform.parent = g_backPass[1].root;
+  transform.addShape(plane);
+
+  // Draw pass1 alphaed into pass2
+  var material = createFadeMaterial(
+      g_pack,
+      g_backPass[2].viewInfo,
+      g_backPass[1].texture);
+  g_backPass[1].fadeParam = material.getParam('colorMult');
+  var plane = o3djs.primitives.createPlane(g_pack,
+                                           material,
+                                           1,  // width
+                                           1,  // height
+                                           1,  // quads across
+                                           1); // quads down
+  var transform = g_pack.createObject("Transform");
+  transform.parent = g_backPass[2].root;
+  transform.addShape(plane);
+
+  // Copy pass2 back to pass1
+  var renderSurfaceSet = g_pack.createObject("RenderSurfaceSet");
+  renderSurfaceSet.parent = g_client.renderGraphRoot;
+  renderSurfaceSet.renderSurface = g_backPass[1].surface;
+  renderSurfaceSet.renderDepthStencilSurface = g_depthSurface;
+  renderSurfaceSet.priority = -1;
+  var transform = g_pack.createObject("Transform");
+  var copyViewInfo = o3djs.rendergraph.createBasicView(
+      g_pack,
+      transform,
+      renderSurfaceSet, [0, 0, 0, 0]);
+  // Setup an orthographic projection
+  copyViewInfo.drawContext.projection = g_math.matrix4.orthographic(
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.1,
+    1000);
+
+  copyViewInfo.drawContext.view = g_math.matrix4.lookAt(
+      [0, 500, 0], // eye
+      [0, 0, 0],   // target
+      [0, 0, -1]); // up
+  var material = o3djs.material.createConstantMaterial(
+      g_pack,
+      copyViewInfo,
+      g_backPass[2].texture,
+      false);
+  var plane = o3djs.primitives.createPlane(g_pack,
+                                           material,
+                                           1,  // width
+                                           1,  // height
+                                           1,  // quads across
+                                           1); // quads down
+  transform.addShape(plane);
+
+  // Render pass2 to backbuffer.
+  var material = o3djs.material.createConstantMaterial(
+      g_pack,
+      g_viewInfo,
+      g_backPass[2].texture,
+      false);
+  var plane = o3djs.primitives.createPlane(g_pack,
+                                           material,
+                                           1,  // width
+                                           1,  // height
+                                           1,  // quads across
+                                           1); // quads down
+  var transform = g_pack.createObject("Transform");
+  transform.parent = mainRoot;
+  transform.addShape(plane);
+  g_mainTransform = transform;
+
+  for (var ii = 0; ii < 3; ++ii) {
+    var material = o3djs.material.createConstantMaterial(
+        g_pack,
+        g_viewInfo,
+        g_backPass[ii].texture,
+        false);
+    var plane = o3djs.primitives.createPlane(g_pack,
+                                             material,
+                                             1,  // width
+                                             1,  // height
+                                             1,  // quads across
+                                             1); // quads down
+    var transform = g_pack.createObject("Transform");
+    transform.parent = mainRoot;
+    transform.translate(-0.30 + ii * 0.30, 0, -0.3);
+    transform.scale(0.25, 1, 0.25);
+    transform.addShape(plane);
+    // Figure out why this does not work
+    //var paramSampler = transform.createParam('texSampler0', 'ParamSampler');
+    //var sampler = g_pack.createObject('Sampler');
+    //paramSampler.value = sampler;
+    //sampler.texture = g_backPass[ii].texture;
+    g_rtTransforms[ii] = transform;
+  }
+
+  toggleRenderTargets();
+
+  // g_visualizers.push(new ImageVisualizer(g_pack, g_backPass[0].viewInfo));
+  // g_visualizers.push(new WaveVisualizer(g_pack, g_backPass[0].viewInfo));
+  g_visualizers.push(new BallVisualizer(g_pack, g_backPass[0].viewInfo));
+
+  g_client.setRenderCallback(onRender);
+
+  g_backPass[2].rotateY = 0.1;
+  g_backPass[2].scaleX = 1.1;
+  g_backPass[2].scaleZ = 1.1;
+  g_backPass[0].scaleX = 1;
+  g_backPass[0].scaleZ = 1;
+  g_backPass[1].scaleX = 1;
+  g_backPass[1].scaleZ = 1;
+  g_backPass[0].fadeColor = [1, 1, 1, 1];
+  g_backPass[1].fadeColor = [1, 1, 1, 0.9];
+
+  o3djs.event.addEventListener(g_o3dElement, 'keydown', onKeyDown);
+  o3djs.event.addEventListener(g_o3dElement, 'keyup', onKeyUp);
+  registerKeyHandlers();
+
+  g_finished = true;  // for selenium testing.
+}
+
+function updateSamples() {
+  xaudio.realtimeAnalyser.smoothingTimeConstant = 0.8;
+  var nbins = xaudio.realtimeAnalyser.frequencyBinCount;
+
+  xaudio.realtimeAnalyser.getFloatFrequencyData(g_freqData);
+
+
+
+  for (var ii = 0; ii < g_numBins; ++ii) {
+    // g_samples[ii] = Math.sin(g_clock * (ii + 1));
+
+
+
+
+
+    var decay = 0.45;  // starts at 37Hz (sample rate == 44.1KHz)
+
+
+
+    var bin = Math.pow(decay, (g_numBins-1) - ii) * (nbins-1);
+    // var bin = (ii / g_numBins) * nbins;
+
+
+    bin = Math.floor(bin + 0.5);
+    
+    if (bin < 1) bin = 1;
+    
+    
+    var gainGrowth = 1.8; // 1.4; // 1.3;
+    var gainScale = Math.pow(gainGrowth, ii);
+    var gainScaleDb = 20.0 * Math.log(gainScale) / Math.log(10.0);
+    
+    // var x = gainScaleDb + xaudio.realtimeAnalyser.frequencyBin(bin);
+    var x = gainScaleDb + g_freqData[bin];
+    
+    
+    var minGain = -40.0;
+    var maxGain = -20.0;
+    // var minGain = 30.0;
+    // var maxGain = 60.0;
+    
+    
+    
+    x = (x - minGain) / (maxGain - minGain);
+    
+    if (x < 0.0) x = 0.0;
+    if (x > 1.0) x = 1.0;
+    
+
+    // x = 2.0*x - 1.0;
+    
+    
+    
+    // if (ii == g_numBins-1 ) x = 0.2;
+    
+
+    g_samples[ii] =  x;
+  }
+}
+
+function Visualizer(pack, root) {
+  this.rootTransform = pack.createObject("Transform");
+  this.rootTransform.visible = false;
+  this.rootTransform.parent = root;
+};
+
+Visualizer.prototype.init = function() {
+  g_backPass[2].rotateY = 0.1;
+  g_backPass[2].scaleX = 1.1;
+  g_backPass[2].scaleZ = 1.1;
+  g_backPass[0].scaleX = 1;
+  g_backPass[0].scaleZ = 1;
+  g_backPass[1].scaleX = 1;
+  g_backPass[1].scaleZ = 1;
+  g_backPass[0].fadeColor = [1, 1, 1, 1];
+  g_backPass[1].fadeColor = [1, 1, 1, 0.9];
+
+  this.rootTransform.visible = true;
+};
+
+Visualizer.prototype.cleanup = function() {
+  this.rootTransform.visible = false;
+};
+
+function ImageVisualizer(pack, viewInfo) {
+  Visualizer.call(this, pack, viewInfo.treeRoot);
+
+  var LETTER_OFFSETS = [0, 124, 226, 328, 378, 512];
+
+  // Create a material.
+  var material = o3djs.material.createMaterialFromFile(
+      g_pack,
+      'shaders/texture-colormult.shader',
+      viewInfo.zOrderedDrawList);
+
+  // Create a quad.
+  var shape = o3djs.primitives.createPlane(pack,
+                                           material,
+                                           1,  // width
+                                           1,  // height
+                                           1,  // quads across
+                                           1); // quads down
+
+  var root = pack.createObject("Transform");
+  root.parent = this.rootTransform;
+  var s = 1 / 512 / 2;
+  root.scale(s, 1, s);
+
+  this.letters = [];
+  this.colorParams = [];
+  this.textures = [];
+  for (var ii = 0; ii < LETTER_OFFSETS.length - 1; ++ii) {
+    var transform = pack.createObject("Transform");
+    transform.parent = root;
+    transform.translate(LETTER_OFFSETS[ii] - 256, 0, 0);
+
+    // I don't get why this is needed.
+    if (ii == 3) {
+      transform.translate(-50, 0, 0);
+    }
+
+    var width = LETTER_OFFSETS[ii + 1] - LETTER_OFFSETS[ii];
+    transform.scale(width, 1, 128);
+    var subTransform = pack.createObject("Transform");
+    subTransform.parent = transform;
+    subTransform.addShape(shape);
+
+    var sampler_param = subTransform.createParam('texSampler0', 'ParamSampler');
+    var sampler = pack.createObject('Sampler');
+    sampler_param.value = sampler;
+
+    var texture = pack.createTexture2D(
+        width, 128, g_o3d.Texture.ARGB8, 1, false);
+    sampler.texture = texture;
+
+    var colorParam = subTransform.createParam('colorMult', 'ParamFloat4');
+    colorParam.value = [1, 1, 1, 1];
+
+    this.letters[ii] = subTransform;
+    this.colorParams[ii] = colorParam;
+    this.textures[ii] = texture;
+  }
+
+  // Load our texture. This happens asynchronously.
+  var url = o3djs.util.getCurrentURI() + 'assets/audio.png';
+  var that = this;
+  o3djs.io.loadBitmaps(pack, url, function(bitmaps, exception) {
+    if (exception) {
+      alert(exception);
+    } else {
+      var bitmap = bitmaps[0];
+      for (var ii = 0; ii < that.textures.length; ++ii) {
+        that.textures[ii].width;
+        that.textures[ii].drawImage(
+            bitmap,
+            0,                   // src mip
+            LETTER_OFFSETS[ii],  // src x
+            0,                   // src y
+            width,               // src width
+            128,                 // src height
+            0,                   // dst mip
+            0,                   // dst x
+            0,                   // dst y
+            width,               // dst width
+            128);                // dst height
+      }
+    }
+  });
+}
+
+o3djs.base.inherit(ImageVisualizer, Visualizer);
+
+ImageVisualizer.prototype.process = function(elapsedTime, samples) {
+  for (var ii = 0; ii < this.colorParams.length; ++ii) {
+    var letter = this.letters[ii];
+    letter.identity();
+    var s = (samples[ii] + 1) * 0.5 + 0.5;
+    letter.scale(s, 1, s);
+    var clock = g_clock + ii * 0.1;
+    this.colorParams[ii].value = [
+       Math.sin(clock * 5.3) * 0.5 + 0.5,
+       Math.sin(clock * 7.4) * 0.5 + 0.5,
+       Math.sin(clock * 9.5) * 0.5 + 0.5,
+       (samples[1] + 1.3) * 0.5];
+  }
+
+  // Affect where to draw the -scene-
+  g_backPass[0].translateX = Math.sin(g_clock) * 0.1;
+  g_backPass[0].translateZ = Math.sin(g_clock * 2.1) * 0.1;
+  g_backPass[0].rotateY = Math.sin(g_clock * 2.1);
+
+  // Affect feedback
+  g_backPass[2].rotateY = Math.sin(g_clock * 0.9) * 0.2;
+  g_backPass[2].scaleX = 1.2 + Math.sin(g_clock) * 0.19;
+  g_backPass[2].scaleZ = 1.2 + Math.sin(g_clock) * 0.19;
+};
+
+function BallVisualizer(pack, viewInfo) {
+  Visualizer.call(this, pack, viewInfo.treeRoot);
+
+  this.balls = [];
+
+  // Create a material.
+  var material = o3djs.material.createBasicMaterial(
+      pack,
+      viewInfo,
+      [1, 0.5, 0.2, 1]);
+
+  material.getParam('emissive').value = [0.5, 0.5, 0.5, 1];
+  var state = pack.createObject('State');
+  material.state = state;
+  state.getStateParam('FillMode').value = g_o3d.State.WIREFRAME;
+
+  // Create a quad.
+  var shape = o3djs.primitives.createSphere(pack,
+                                            material,
+                                            0.05, // radius
+                                            6,   // hsubDiv
+                                            6);   // vsubDiv
+
+  for (var z = 0; z < 3; ++z) {
+    for (var x = 0; x < 3; ++x) {
+      var transform = pack.createObject('Transform');
+      transform.parent = this.rootTransform;
+      transform.translate((x - 1) * 0.15, 0, (z - 1) * 0.15);
+      var ballTransform = pack.createObject('Transform');
+      ballTransform.addShape(shape);
+      ballTransform.parent = transform;
+      this.balls.push(ballTransform);
+    }
+  }
+}
+
+o3djs.base.inherit(BallVisualizer, Visualizer);
+
+BallVisualizer.prototype.process = function(elapsedTime, samples) {
+  for (var ii = 0; ii < 9; ++ii) {
+    var ball = this.balls[ii];
+    var scale = samples[ii];
+    ball.identity();
+    ball.scale(scale, scale, scale);
+  }
+
+  // Affect where to draw the -scene-
+  g_backPass[0].translateX = Math.sin(g_clock) * 0.1;
+  g_backPass[0].translateZ = Math.sin(g_clock * 2.1) * 0.1;
+  g_backPass[0].rotateY = Math.sin(g_clock * 2.1);
+
+  // Affect feedback
+  g_backPass[2].rotateY = Math.sin(g_clock * 0.9) * 0.2;
+  g_backPass[2].scaleX = 1.2 + Math.sin(g_clock) * 0.19;
+  g_backPass[2].scaleZ = 1.2 + Math.sin(g_clock) * 0.19;
+};
+
+function WaveVisualizer(pack, viewInfo) {
+  Visualizer.call(this, pack, viewInfo.treeRoot);
+
+  // constants
+  var NUM_BONES = 9;
+  var SPACING = 4;
+  var BONE_SPACING = (NUM_BONES - 1) * SPACING;
+  var TOTAL_LENGTH = BONE_SPACING * (NUM_BONES - 1);
+  this.BONE_SPACING = BONE_SPACING;
+
+  var material = o3djs.material.createBasicMaterial(
+      pack,
+      viewInfo,
+      [1, 0.2, 1, 1]);
+
+  // Create a cylinder.
+  var vertexInfo = o3djs.primitives.createCylinderVertices(
+      1, TOTAL_LENGTH, 12, 20,
+      [[1, 0, 0, 0],
+       [0, 1, 0, 0],
+       [0, 0, 1, 0],
+       [0, TOTAL_LENGTH * 0.5, 0, 1]]);
+  var shape = vertexInfo.createShape(pack, material);
+
+  // Create an ParamArray to hold matrices for skinning.
+  var matrices = pack.createObject('ParamArray');
+
+  // Create a Skin to hold the influences and bind pose.
+  var skin = pack.createObject('Skin');
+
+  // Create a SkinEval to use the Skin.
+  var skinEval = pack.createObject('SkinEval');
+
+  // Tell the SkinEval which matrices and Skin to use.
+  skinEval.matrices = matrices;
+  skinEval.skin = skin;
+
+  // Create matrices on our ParamArray.
+  matrices.resize(NUM_BONES, 'o3d.ParamMatrix4');
+
+  this.boneTransforms = [];
+  var root = pack.createObject('Transform');
+  root.parent = this.rootTransform;
+
+  // Create 11 transforms for the bones and parent them into a chain.
+  for (var ii = 0; ii < NUM_BONES; ++ii) {
+    var transform = pack.createObject('Transform');
+    this.boneTransforms[ii] = transform;
+    transform.translate(0, this.BONE_SPACING * ii, 0);
+    transform.parent = root;
+    // Bind the world matrix of the transform to the corresponding matrix in the
+    // ParamArray.
+    matrices.getParam(ii).bind(transform.getParam('worldMatrix'));
+    // Store the inverse world matrix of each transform as the bind pose for the
+    // skin.
+    skin.setInverseBindPoseMatrix(ii, g_math.inverse(transform.worldMatrix));
+  }
+
+  // Add the cylinder to the root transform.
+  this.boneTransforms[0].addShape(shape);
+
+  // Skinning happens in world space so bind the transform of the shape
+  // to the SkinEval so it can put our skin in object space.
+  skinEval.getParam('base').bind(
+      this.boneTransforms[0].getParam('worldMatrix'));
+
+  // Make our source data for skinning and setup the influences for each bone.
+  // We only need the position and normals.
+  var positions = [];
+  var normals = [];
+  var positionStream = vertexInfo.findStream(g_o3d.Stream.POSITION);
+  var normalStream = vertexInfo.findStream(g_o3d.Stream.NORMAL);
+  var numVertices = positionStream.numElements();
+  for (var ii = 0; ii < numVertices; ++ii) {
+    // Choose the bones to influence the vertex based on its height.
+    // boneArea will be a fractional value between 2 bones based on the Y
+    // position of the vertex. In other words, if the y Position of the vertex
+    // 63 and the bones are 20 units apart then boneArea will = 6.15 meaning
+    // it's between bones 6 and 7
+    var boneArea = positionStream.getElementVector(ii)[1] / BONE_SPACING;
+
+    // Pull out the fractional part of boneArea
+    var influence = boneArea % 1;
+
+    // Compute the bone indicies
+    var bone1 = Math.floor(boneArea);
+    var bone2 = bone1 + 1;
+    if (bone2 >= NUM_BONES) {
+      bone2 = NUM_BONES - 1;
+    }
+
+    // Now make each vertex be influenced by these two bones. In the example
+    // above where boneArea was 6.15 we let bone1 influence the vertex by
+    // (1 - 0.15) or 0.85 and bone2 influence it by 0.15.
+    skin.setVertexInfluences(ii, [bone1, 1 - influence, bone2, influence]);
+  }
+
+  // Create a SourceBuffer for the Skin and set the vertices on it.
+  var sourceBuffer = pack.createObject('SourceBuffer');
+  var positionField = sourceBuffer.createField('FloatField', 3);
+  var normalField = sourceBuffer.createField('FloatField', 3);
+  sourceBuffer.allocateElements(numVertices);
+  positionField.setAt(0, positionStream.elements);
+  normalField.setAt(0, normalStream.elements);
+
+  // Tell the skinEval how to use the SourceBuffer
+  skinEval.setVertexStream(g_o3d.Stream.POSITION,
+                           0,
+                           positionField,
+                           0);
+  skinEval.setVertexStream(g_o3d.Stream.NORMAL,
+                           0,
+                           normalField,
+                           0);
+
+  // Bind the Primitive's position and normal streams
+  // to the SkinEval so the SkinEval will fill them in each frame.
+  var streamBank = shape.elements[0].streamBank;
+  streamBank.bindStream(skinEval, g_o3d.Stream.POSITION, 0);
+  streamBank.bindStream(skinEval, g_o3d.Stream.NORMAL, 0);
+
+  var s = 0.004;
+  this.rootTransform.rotateX(Math.PI / 2);
+  this.rootTransform.scale(s, s, s);
+  root.translate(0, TOTAL_LENGTH * -0.5, 0);
+
+  material.getParam('ambient').value = [1, 1, 1, 1];
+  this.colorMultParam = material.getParam('diffuse');
+  this.mode = 0;
+}
+
+o3djs.base.inherit(WaveVisualizer, Visualizer);
+
+WaveVisualizer.prototype.init = function() {
+  Visualizer.prototype.init.call(this);
+
+  switch (this.mode) {
+  case 0:
+    g_backPass[0].translateX = 0;
+    g_backPass[0].translateZ = 0;
+    g_backPass[0].scaleX = 2;
+    g_backPass[0].scaleZ = 1;
+    // Affect feedback
+    g_backPass[2].rotateY = 0.01;
+    g_backPass[2].scaleX = 1.0;
+    g_backPass[2].scaleZ = 1.0;
+    break;
+  case 1:
+    g_backPass[0].translateX = 0;
+    g_backPass[0].translateZ = 0;
+    g_backPass[0].scaleX = 2;
+    g_backPass[0].scaleZ = 2;
+    // Affect feedback
+    g_backPass[2].rotateY = 1;
+    g_backPass[2].scaleX = 1.0;
+    g_backPass[2].scaleZ = 1.0;
+    break;
+  case 2:
+    g_backPass[0].translateX = 0;
+    g_backPass[0].translateZ = 0;
+    g_backPass[0].scaleX = 1;
+    g_backPass[0].scaleZ = 1;
+    // Affect feedback
+    g_backPass[2].rotateY = -0.1;
+    g_backPass[2].scaleX = 0.90;
+    g_backPass[2].scaleZ = 0.90;
+    break;
+  case 3:
+    g_backPass[0].translateX = 0;
+    g_backPass[0].translateZ = 0;
+    g_backPass[0].scaleX = 2;
+    g_backPass[0].scaleZ = 1;
+    // Affect feedback
+    g_backPass[2].rotateY = 0.01;
+    g_backPass[2].scaleX = -0.95;
+    g_backPass[2].scaleZ = 1.1;
+    break;
+  }
+  this.mode = (this.mode + 1) % 4;
+}
+
+WaveVisualizer.prototype.process = function(elapsedTime, samples) {
+  this.colorMultParam.value = [
+     Math.sin(g_clock * 5.3) * 0.5 + 0.5,
+     Math.sin(g_clock * 7.4) * 0.5 + 0.5,
+     Math.sin(g_clock * 9.5) * 0.5 + 0.5,
+    1];
+  // Make our bone chain bend.
+  for (var ii = 1; ii < this.boneTransforms.length; ++ii) {
+    var transform = this.boneTransforms[ii];
+    transform.identity();
+    var s = ii < samples.length ? samples[ii] : 0;
+    transform.translate(s * this.BONE_SPACING, this.BONE_SPACING * ii, 0);
+  }
+
+  // Affect where to draw the -scene-
+  g_backPass[0].rotateY = g_clock * 0.2;
+};
+
+function onRender(renderEvent) {
+  var elapsedTime = renderEvent.elapsedTime;
+  g_clock += elapsedTime * g_timeMult;
+
+  updateSamples();
+
+  index = Math.floor(g_clock / 6) % g_visualizers.length;
+  if (g_visualizerIndex != index) {
+    if (g_currentVisualizer != null) {
+      g_currentVisualizer.cleanup();
+    }
+    g_currentVisualizer = g_visualizers[index];
+    g_visualizerIndex = index;
+    g_currentVisualizer.init();
+  }
+
+  g_currentVisualizer.process(elapsedTime, g_samples);
+
+  for (var ii = 0; ii < g_backPass.length; ++ii) {
+    var pass = g_backPass[ii];
+    pass.update(elapsedTime);
+  }
+}
+
+function onRender(renderEvent) {
+  var elapsedTime = renderEvent.elapsedTime;
+  g_clock += elapsedTime * g_timeMult;
+
+  updateSamples();
+
+  index = Math.floor(g_clock / 6) % g_visualizers.length;
+  if (g_visualizerIndex != index) {
+    if (g_currentVisualizer != null) {
+      g_currentVisualizer.cleanup();
+    }
+    g_currentVisualizer = g_visualizers[index];
+    g_visualizerIndex = index;
+    g_currentVisualizer.init();
+  }
+
+  g_currentVisualizer.process(elapsedTime, g_samples);
+
+  for (var ii = 0; ii < g_backPass.length; ++ii) {
+    var pass = g_backPass[ii];
+    pass.update(elapsedTime);
+  }
+}
+
+/**
+ * Removes any callbacks so they don't get called after the page has unloaded.
+ */
+function uninit() {
+  if (g_client) {
+    g_client.cleanup();
+  }
+}
+
+
+function initAudio() {
+  xaudio = document.getElementById('myAudioTag');
+  
+  g_audioSource = xaudio.addSource();
+
+  g_audioSource.mainGain = 1.0;
+  g_audioSource.sendGain = 0.0;
+  
+  g_audioSource.loop = true;
+
+  // Passthrough panning
+  g_audioSource.panningModel = AudioSource.PASSTHROUGH;
+    
+  g_freqData = new WebGLFloatArray(xaudio.realtimeAnalyser.frequencyBinCount);
+    
+  loadAudio();
+}
+
+function loadAudio() {
+  // var url = "../sounds/drum-samples/loops/crydamore.aif";
+  // var url = "../sounds/01 Ambition.m4a";
+  // var url = "../sounds/02 - Drifter (Drifting Drums Mix).mp3";
+  var url = "../sounds/drum-samples/loops/blueyellow.aif";
+
+  // Load asynchronously
+  var request = xaudio.createAudioRequest(url, true);
+  request.onload = function() {
+    g_audioSource.buffer = request.buffer;
+    // bufferLength = buffer.length - 0.050;
+
+    g_audioSource.play(0.0);
+  };
+  
+  request.onerror = function() {
+    alert("error loading");
+  };
+
+  request.send();
+}
+
+
+</script>
+</head>
+<body>
+<!-- Start of O3D plugin -->
+<div id="o3d" style="width:100%; height: 100%;"></div>
+<!-- End of O3D plugin -->
+
+<!-- Start of xaudio -->
+<xaudio id="myAudioTag"></xaudio>
+
+</body>
+</html>

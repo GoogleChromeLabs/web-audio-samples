@@ -1,0 +1,207 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+o3djs.require('o3djs.shader');
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var source = 0;
+var jsProcessor = 0;
+var analyser;
+var analyserView1;
+
+var phaseL = 0.0;
+var phaseR = 0.0;
+var kBaseFrequency = 440.0;
+var phaseIncrL = 2.0 * Math.PI * 440.0 / 44100.0;
+var phaseIncrR = 2.0 * Math.PI * (kBaseFrequency * 1.1) / 44100.0; // modulate slightly different on right channel
+var kTwoPi = 2.0 * Math.PI;
+var pitchRate = 1.0;
+
+function process(event) {
+    // Get left/right input and output arrays
+    var inputArrayL = event.inputBuffer.getChannelData(0);
+    var inputArrayR = event.inputBuffer.getChannelData(1);
+    var outputArrayL = event.outputBuffer.getChannelData(0);
+    var outputArrayR = event.outputBuffer.getChannelData(1);
+    
+    var n = inputArrayL.length;
+
+    for (var i = 0; i < n; ++i) {
+        var sampleL = Math.sin(phaseL);
+        var sampleR = Math.sin(phaseR);
+        
+        phaseL += pitchRate * phaseIncrL;
+        phaseR += pitchRate * phaseIncrR;
+        if (phaseL > kTwoPi) phaseL -= kTwoPi;
+        if (phaseR > kTwoPi) phaseR -= kTwoPi;
+
+        // Amplitude modulation effect
+        outputArrayL[i] = inputArrayL[i] * sampleL;
+        outputArrayR[i] = inputArrayR[i] * sampleR;
+    }
+}
+
+function pitchHandler(event, ui) {
+    pitchCents = ui.value;
+    pitchRate = Math.pow(2.0, pitchCents / 1200.0); // convert from cents to rate
+    var pitch = kBaseFrequency * pitchRate;
+    
+    var info = document.getElementById("pitch-value");
+    info.innerHTML = "modulation frequency = " + pitch + " Hertz";
+}
+
+function loadSample(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() { 
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            source.buffer = audioBuffer;
+            source.loop = true;
+            source.start(0);
+
+            draw();
+        }, function(error) {
+            console.error(error);
+        });
+    };
+
+    request.send();
+}
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    setTimeout(draw, 0);
+}
+
+function initAudio() {
+    context = new AudioContext();
+    source = context.createBufferSource();
+
+    context.createScriptProcessor = context.createScriptProcessor || context.createJavaScriptNode;
+
+    // This AudioNode will do the amplitude modulation effect directly in JavaScript
+    jsProcessor = context.createScriptProcessor(2048);
+    jsProcessor.onaudioprocess = process;
+
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+    
+    // Connect the processing graph: source -> jsProcessor -> analyser -> destination
+    source.connect(jsProcessor);
+    jsProcessor.connect(analyser);
+    analyser.connect(context.destination);
+
+    // Load the sample buffer for the audio source
+    loadSample("sounds/hyper-reality/bells.wav");
+}
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+    analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);
+    
+    initAudio();
+    analyserView1.initByteBuffer();
+
+    // Create a slider to control the modulation frequency with a 6 octave range (-3 -> +3)
+    addSlider("pitch");
+    configureSlider("pitch", 0.0, -3600.0, 3600.0, pitchHandler);
+}
+
+</script>
+</head>
+
+<body>
+
+<h1> JavaScript Processing </h1>
+
+<p>
+This example illustrates a simple amplitude modulation effect processed directly in JavaScript.
+</p>
+
+<!-- Real-time visualizer view -->
+<canvas id="view1" width="800px" height="600px"></canvas>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+</body>
+</html>

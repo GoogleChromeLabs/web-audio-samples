@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+ 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+
+<script type="text/javascript" src="resources/buffer-loader.js"></script>
+
+</head> 
+
+<link href="doc.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript">
+
+
+window.onload = init;
+
+var context;
+var bufferLoader;
+
+function init() {
+    try {
+        context = new webkitAudioContext();
+    }
+    catch(e) {
+        alert("Web Audio API is not supported in this browser");
+    }
+    
+    // Start loading the drum kit.
+    bufferLoader = new BufferLoader(
+        context,
+        [
+        "../sounds/drum-samples/KPR77/kick.wav",
+        "../sounds/drum-samples/KPR77/snare.wav",
+        "../sounds/drum-samples/KPR77/hihat.wav"
+        ],
+        startPlayingRhythm  // play rhythm when samples are loaded
+    );
+
+    bufferLoader.load();
+}
+
+function playSound(buffer, time) {
+    var source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.noteOn(time);
+}
+
+// Plays a simple 4/4 rhythm
+function startPlayingRhythm(bufferList) {
+    var kick = bufferList[0];
+    var snare = bufferList[1];
+    var hihat = bufferList[2];
+    
+    // We'll start playing the rhythm 100 milliseconds from "now"
+    var startTime = context.currentTime + 0.100;
+    
+    var tempo = 120; // BPM (beats per minute)
+    var quarterNoteTime = 60 / tempo;
+
+    // Play the bass (kick) drum on beats 1, 2, 3, 4
+    playSound(kick, startTime);
+    playSound(kick, startTime + quarterNoteTime);
+    playSound(kick, startTime + 2*quarterNoteTime);
+    playSound(kick, startTime + 3*quarterNoteTime);
+
+    // Play the snare drum on beats 2, 4
+    playSound(snare, startTime + quarterNoteTime);
+    playSound(snare, startTime + 3*quarterNoteTime);
+    
+    // Play the hi-hat every 16th note.
+    for (var i = 0; i < 16; ++i) {
+        playSound(hihat, startTime + i*0.25*quarterNoteTime);
+    }
+}
+
+
+</script>
+
+
+
+
+<body> 
+<h1>Playing Rhythms</h1>
+
+<p>
+Let's load a few AudioBuffers using the <a href="loading-sounds.html#BufferLoader">BufferLoader class</a>.
+In this example, we'll load the sounds for a very simple drum kit, including the bass drum, snare drum, and hihat:
+</p>
+
+<input type="button" value="Play Rhythm!" onclick="startPlayingRhythm(bufferLoader.bufferList);" />
+
+
+<pre>
+window.onload = init;
+
+var context;
+var bufferLoader;
+
+function init() {
+    context = new webkitAudioContext();
+
+    // Start loading the drum kit.
+    bufferLoader = new BufferLoader(
+        context,
+        [
+        "../sounds/drum-samples/KPR77/kick.wav",
+        "../sounds/drum-samples/KPR77/snare.wav",
+        "../sounds/drum-samples/KPR77/hihat.wav"
+        ],
+        startPlayingRhythm  // play rhythm when samples are loaded
+    );
+
+    bufferLoader.load();
+}
+
+function playSound(buffer, time) {
+    var source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.noteOn(time);
+}
+
+// Plays a simple 4/4 rhythm
+function startPlayingRhythm(bufferList) {
+    var kick = bufferList[0];
+    var snare = bufferList[1];
+    var hihat = bufferList[2];
+    
+    // We'll start playing the rhythm 100 milliseconds from "now"
+    var startTime = context.currentTime + 0.100;
+    
+    var tempo = 120; // BPM (beats per minute)
+    var quarterNoteTime = 60 / tempo;
+
+    // Play the bass (kick) drum on beats 1, 2, 3, 4
+    playSound(kick, startTime);
+    playSound(kick, startTime + quarterNoteTime);
+    playSound(kick, startTime + 2*quarterNoteTime);
+    playSound(kick, startTime + 3*quarterNoteTime);
+
+    // Play the snare drum on beats 2, 4
+    playSound(snare, startTime + quarterNoteTime);
+    playSound(snare, startTime + 3*quarterNoteTime);
+    
+    // Play the hi-hat every 16th note.
+    for (var i = 0; i < 16; ++i) {
+        playSound(hihat, startTime + i*0.25*quarterNoteTime);
+    }
+}
+
+</pre>
+
+
+<br><br>
+<div class="home">
+<a href="index.html" class="home">Home</a>
+</div>
+  
+</body> 
+</html>

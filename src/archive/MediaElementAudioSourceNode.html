@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>MediaElementAudioSourceNode</title>
+        <script>
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+            window.onload = init;
+
+            function init() {
+                var context = new AudioContext();
+
+                var audioTag = document.getElementById("human-voice");
+                var source = context.createMediaElementSource(audioTag);
+
+                var filter = context.createBiquadFilter();
+                filter.type = "highpass";
+                filter.frequency.value = 4000;
+
+                source.connect(filter);
+                filter.connect(context.destination);
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <audio id="human-voice" src="sounds/hyper-reality/human-voice.mp4" controls="controls">
+        </audio>
+    </body>
+</html>

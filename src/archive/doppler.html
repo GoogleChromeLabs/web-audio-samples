@@ -1,0 +1,542 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Doppler Shift Demo
+</title>
+
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+
+<link rel="stylesheet" type="text/css" href="style/simple.css" />
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Temporary patch until all browsers support unprefixed context.
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var kMainSpeed = 0.385;
+var kSecondarySpeed = 0.063;
+var kSecondaryRange = 1.0;
+var kTertiarySpeed = 0.02;
+var kAmbientGain = 0.2;
+var kMainSweepDistance = 30.0;
+
+var secondaryRange = kSecondaryRange;
+
+var context;
+var convolver;
+var panner;
+var source;
+var masterGainNode;
+var dryGainNode;
+var wetGainNode;
+var x = 0;
+var y = 0;
+var z = 0;
+
+var gLastX = 0;
+var gLastY = 0;
+var gLastZ = 0;
+
+var lfo = 0;
+var slowLfo = 0;
+var tertiaryLfo = 0;
+var mode = 2;
+var dopplerFactor = 1.0;
+
+var canvas;
+var ctx;
+var gLastPixelX = 0;
+var gLastPixelY = 0;
+var gLastRadius = 12;
+var gLastLfoValue = 0;
+
+/**
+ * Class Lfo
+ */
+
+Lfo = function(initialValue, max, increment) {
+  this.lfo_ = initialValue;
+  this.max_ = max;
+  this.direction_ = 1.0;
+  this.increment_ = increment;
+}
+
+Lfo.prototype.advance = function() {
+  this.lfo_ += this.direction_ * this.increment_;
+  var abs_lfo = this.lfo_ >= 0.0 ? this.lfo_ : -this.lfo_;
+  
+  if (abs_lfo > this.max_) {
+    this.direction_ *= -1.0;
+    var sign = this.lfo_ >= 0.0 ? 1.0 : -1.0;
+    this.lfo_ = sign * this.max_;
+  }
+}
+
+Lfo.prototype.setValue = function(value) {
+  this.lfo_ = value;
+}
+
+Lfo.prototype.setIncrement = function(value) {
+  this.increment_ = value;
+}
+
+Lfo.prototype.getValue = function() {
+  return this.lfo_;
+}
+
+Lfo.prototype.getSinValue = function() {
+  var s = this.max_ * Math.sin(0.5 * Math.PI * this.lfo_ / this.max_);
+  return s;
+}
+
+Lfo.prototype.max = function() {
+  return this.max_;
+}
+
+Lfo.prototype.getDirection = function() {
+  return this.direction_;
+}
+
+
+var hilightedElement = 0;
+
+function highlightElement(object) {
+  if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+  hilightedElement = object;
+
+  object.style.backgroundColor = "green";
+}
+
+function setReverbImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              convolver.buffer = buffer;
+          },
+
+          function(buffer) {
+              console.log("Error decoding impulse response!");
+          }
+      );
+  }
+  
+  request.send();
+}
+
+function mixToMono(buffer) {
+    if (buffer.numberOfChannels == 2) {
+        var pL = buffer.getChannelData(0);
+        var pR = buffer.getChannelData(1);
+        var length = buffer.length;
+        
+        for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+        }
+    }
+}
+
+function loadBufferAndPlay(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
+  request.onload = function() { 
+      context.decodeAudioData(
+          request.response,
+          function(buffer) {
+              if (source) {
+                source.stop(0);
+                source.disconnect();
+              }
+              source = context.createBufferSource();
+
+              source.connect(panner);
+              mixToMono(buffer);
+              source.buffer = buffer;
+              source.loop = true;
+              source.start(0);
+
+              // get rid of loading animation
+              var loading = document.getElementById("loading");
+              loading.innerHTML = "";
+          },
+
+          function(buffer) {
+              console.log("Error decoding source!");
+          }
+      );
+  }
+
+  request.send();
+}
+
+function useOscillator() {
+  if (source) {
+    source.stop(0);
+    source.disconnect();
+  }
+  source = context.createOscillator();
+  source.frequency.value = 110;
+  source.connect(panner);
+  source.start(0);
+}
+
+var kWhite = "rgb(255,255,255)";
+var kRed = "rgb(200,0,0)";
+var kGreen = "rgb(0,200,0)";
+
+function drawCircle(color, x, y, radius) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI*2, true)
+  ctx.fill();
+}
+
+function draw(x, y, z) {
+  var width = canvas.width;
+  var height = canvas.height;
+
+  var posx = 0.5*width + width * x / (2*kMainSweepDistance);
+  var posy = 0.5*height + height * -y / (2*kMainSweepDistance);
+
+  var radius = 1 + 0.5*kMainSweepDistance + 0.5*z;
+
+  // erase last location
+  drawCircle(kWhite, gLastPixelX, gLastPixelY, gLastRadius);
+
+  if (z <= 0) {
+    // draw new location
+    drawCircle(kRed, posx, posy, radius);
+
+    // draw center
+    drawCircle(kGreen, width/2, height/2, 0.5*kMainSweepDistance);
+  } else {
+    // draw center
+    drawCircle(kGreen, width/2, height/2, 0.5*kMainSweepDistance);
+
+    // draw new location
+    drawCircle(kRed, posx, posy, radius);
+  }
+
+  ctx.strokeRect(0,0, width, height);
+
+  gLastPixelX = posx;
+  gLastPixelY = posy;
+  gLastRadius = radius + 2;
+}
+
+/**
+ * "Animate" the doppler effect
+ */
+function schedule() {
+   // Calculate velocity for doppler effect
+   var velocity;
+   var direction = lfo.getDirection();
+   velocity = 20.0 * direction;
+   
+   var sinLfoValue = lfo.getSinValue();
+   
+   var slowValue = secondaryRange * slowLfo.getSinValue();
+   var tertiaryValue = tertiaryLfo.getSinValue();
+   
+   if (mode == 0) { // left-right
+     x = sinLfoValue;
+     y = slowValue;
+     z = tertiaryValue; //-2;
+   
+     panner.setPosition(x, y, z); 
+   } else if (mode == 1) { // front-back
+     x = slowValue;
+     y = tertiaryValue; // 0;
+     z = sinLfoValue;
+   
+     panner.setPosition(x, y, z); 
+   } else if (mode == 2) { // up-down
+     x = tertiaryValue; // 0;
+     y = sinLfoValue;
+     z = slowValue;
+   
+     panner.setPosition(x, y, z); 
+   }
+   
+   // Velocity (for doppler effect)
+   if (panner.setVelocity) {
+     var kVelocityScale = 50.0;
+     var deltaX = kVelocityScale * (x - gLastX);
+     var deltaY = kVelocityScale * (y - gLastY);
+     var deltaZ = kVelocityScale * (z - gLastZ);
+     gLastX = x;
+     gLastY = y;
+     gLastZ = z;
+   
+     panner.setVelocity(deltaX, deltaY, deltaZ);
+     // console.log( "setVelocity( " + deltaX + ", " + deltaY + ", " + deltaZ + ")");
+   }
+
+   if (context.listener.dopplerFactor) {
+     context.listener.dopplerFactor = dopplerFactor;
+   }
+   
+   draw(x, y, z);
+   
+   lfo.advance();
+   slowLfo.advance();
+   tertiaryLfo.advance();
+   setTimeout("schedule()", 20);
+}
+
+function mainSpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("mainSpeed-value");
+  info.innerHTML = "mainSpeed = " + value;
+  
+  lfo.setIncrement(value);
+}
+
+function secondarySpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("secondarySpeed-value");
+  info.innerHTML = "secondarySpeed = " + value;
+  
+  slowLfo.setIncrement(value);
+}
+
+function secondaryRangeHandler(event, ui) {
+  secondaryRange = ui.value;
+  var info = document.getElementById("secondaryRange-value");
+  info.innerHTML = "secondaryRange = " + secondaryRange;
+}
+
+function tertiarySpeedHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("tertiarySpeed-value");
+  info.innerHTML = "tertiarySpeed = " + value;
+  
+  tertiaryLfo.setIncrement(value);
+}
+
+function pitchHandler(event, ui) {
+   var cents = ui.value;
+   var info = document.getElementById("pitch-value");
+   info.innerHTML = "pitch = " + cents + " cents";
+   
+   var rate = Math.pow(2.0, cents / 1200.0);
+   source.playbackRate.value = rate;
+}
+
+function dopplerFactorHandler(event, ui) {
+   dopplerFactor = ui.value;
+   var info = document.getElementById("dopplerFactor-value");
+   info.innerHTML = "dopplerFactor = " + dopplerFactor;
+}
+
+function ambienceHandler(event, ui) {
+  var value = ui.value;
+  var info = document.getElementById("ambience-value");
+  info.innerHTML = "ambience = " + value;
+  
+  wetGainNode.gain.value = 8.0 * value;
+}
+
+function addSliders() {
+  addSlider("mainSpeed");
+  addSlider("secondarySpeed");
+  addSlider("tertiarySpeed");
+  addSlider("dopplerFactor");
+  addSlider("ambience");
+  
+  configureSlider("mainSpeed", kMainSpeed, 0.05, 1.0, mainSpeedHandler);
+  configureSlider("secondarySpeed", kSecondarySpeed, 0.01, 1.0, secondarySpeedHandler);
+  configureSlider("tertiarySpeed", kTertiarySpeed, 0.01, 1.0, tertiarySpeedHandler);
+  configureSlider("dopplerFactor", 1.0, 0.0, 4.0, dopplerFactorHandler);
+  configureSlider("ambience", kAmbientGain, 0.0, 0.5, ambienceHandler);
+}
+
+/**
+ * Start doppler demo
+ */
+ function init() {
+     context = new AudioContext();
+     
+     masterGainNode = context.createGain();
+     dryGainNode = context.createGain();
+     wetGainNode = context.createGain();
+
+     panner = context.createPanner();
+     convolver = context.createConvolver();
+
+     // Setup initial gains
+     masterGainNode.gain.value = 2.0;
+     dryGainNode.gain.value = 3.0;
+     wetGainNode.gain.value = kAmbientGain;
+
+     // Connect dry mix
+     panner.connect(dryGainNode);
+     dryGainNode.connect(masterGainNode);
+     
+     // Connect wet mix
+     panner.connect(convolver);
+     convolver.connect(wetGainNode);
+     wetGainNode.connect(masterGainNode);
+     
+     // Connect master gain
+     masterGainNode.connect(context.destination);
+     
+     // setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav');
+     // setReverbImpulseResponse('impulse-responses/house-impulses/dining-living-true-stereo.wav');
+     setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');
+
+//     source.playbackRate.value = 0.75;
+
+     x = 0;
+     y = 0;
+     z = -4.0;
+
+     panner.setPosition(x, y, z);
+
+     // Load up initial buffer
+     loadBufferAndPlay("sounds/hyper-reality/white-noise-mono.wav");
+
+     lfo = new Lfo(0.0, kMainSweepDistance, kMainSpeed);
+     slowLfo = new Lfo(-5.0, 5.0, kSecondarySpeed);
+     tertiaryLfo = new Lfo(-5.0, 5.0, kTertiarySpeed);
+
+     // UI stuff
+     canvas = document.getElementById('canvasID');
+     ctx = canvas.getContext('2d');
+
+     addSliders();
+
+     // Start moving the source
+     schedule();
+ }
+
+</script>
+</head>
+
+<body>
+
+<h1> Doppler Shift </h1>
+
+<div id="info">
+</div>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div style="position:relative; height:350px;">
+
+<canvas id="canvasID" width="400" height="400" style="position:absolute; top:0; left:0; border: 10px inset blue;">
+</canvas>
+
+
+<div style="position:absolute; top:50px; left:450px; width:50%;">
+
+<div class='emph'>
+
+
+<div class='bigList' onmousedown="mode = 0; highlightElement(this);">
+Left ... Right
+</div>
+
+<div class='bigList' onmousedown="mode = 1; highlightElement(this);">
+Front ... Back
+</div>
+
+<div class='bigList' onmousedown="mode = 2; highlightElement(this);">
+Up ... Down
+</div>
+
+<br><br><br>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/white-noise.wav'); highlightElement(this);">
+White Noise
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/refreshing-drink.wav'); highlightElement(this);">
+Refreshing Drink
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/effects/cauldron.wav'); highlightElement(this);">
+Cauldron
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/crunched-up-paper.wav'); highlightElement(this);">
+Crunched up Paper
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/siren.wav'); highlightElement(this);">
+Siren
+</div>
+
+<div class='bigList' onmousedown="loadBufferAndPlay('sounds/hyper-reality/sine.ogg'); highlightElement(this);">
+Sine Wave (buffer-based)
+</div>
+
+<div class='bigList' onmousedown="useOscillator(); highlightElement(this);">
+OscillatorNode (not buffer-based)
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- Initial loading animation -->
+<div id="loading">
+<img src="images/loading.gif" width="400" height="400">
+</div>
+
+</body>
+</html>

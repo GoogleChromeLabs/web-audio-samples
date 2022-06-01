@@ -1,0 +1,751 @@
+<!--
+Copyright 2013, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- WebGL stuff -->
+<script src="visualizer-gl/o3djs/base.js"></script>
+<script src="visualizer-gl/cameracontroller.js"></script>
+
+<!-- TODO(kbr): remove this dependency -->
+<script src="visualizer-gl/moz/matrix4x4.js"></script>
+
+<!-- Visualizer GL library -->
+<script type="text/javascript" src="visualizer-gl/visualizer.js"></script>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<script type="text/javascript" src="lib/adsr.js"></script>
+<script type="text/javascript" src="lib/waveshaper.js"></script>
+<script type="text/javascript" src="lib/knob.js"></script>
+
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+o3djs.require('o3djs.shader');
+
+window.onload = init;
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+var context;
+var waveshaper;
+var subsonicFilter;
+var lfo;
+var lfoDepth;
+
+var noiseBuffer;
+
+var osc1Mix = 1;
+var osc2Mix = 0.75;
+var osc3Mix = 0.5;
+var noiseMix = 0;
+
+var unitySource;
+var masterGain;
+var resonanceGainNode;
+
+var tune; // cents
+var pitch1;
+var pitch2;
+var pitch3;
+var filterCutoff;
+var Q1;
+var Q2;
+
+var filterEnvAmount = 7200;
+var filterSustain = 25; // percent
+var filterAttack = 0.020;
+var filterDecay = 0.600;
+var filterRelease = 0.500;
+
+var ampAttack = 0.020;
+var ampDecay = 0.300;
+var ampSustain = 85;
+var ampRelease = 0.250;
+
+var osc1Type = "square";
+var osc2Type = "square";
+var osc3Type = "square";
+
+var periodicWave;
+var custom1PeriodicWave;
+
+var filterType = "2pole";
+
+var frequencyData;
+var analyser;
+var analyserView1;
+var views;
+
+var PITCH1 = -1200;
+var PITCH2 = -14;
+var PITCH3 = 13;
+
+var FILTERCUTOFF = 2400; // cents
+var RESONANCE = 3;
+var RANDOMIZATION = 10;
+var LFODEPTH = 0;
+var LFOSPEED = 6;
+
+// We keep track of actively playing SynthNotes here.
+// When a key is released (note-off), then we need to find the correct voice and release it.
+var notes = new Array(128);
+for (var i = 0; i < 128; ++i)
+    notes[i] = 0;
+
+//----------------------------------------------------------------------------------------------------
+
+function SynthNote() {
+}
+
+SynthNote.prototype.noteOn = function(detune, gain) {
+    this.detune = 0;
+    this.resonance = RESONANCE;
+    
+    var osc1 = context.createOscillator();
+    var osc2 = context.createOscillator();
+    var osc3 = context.createOscillator();
+    
+    // More complicated than just setting osc.type, since we handle periodicWaves too.
+    setOscType(osc1, osc1Type);
+    setOscType(osc2, osc2Type);
+    setOscType(osc3, osc3Type);
+    
+    // Individual osc detune.
+    osc1.frequency.value = 40;
+    osc2.frequency.value = 40;
+    osc3.frequency.value = 40;
+    pitch1.output.connect(osc1.detune);
+    pitch2.output.connect(osc2.detune);
+    pitch3.output.connect(osc3.detune);
+    
+    // Master detune.
+    osc1.detune.value = detune;
+    osc2.detune.value = detune;
+    osc3.detune.value = detune;
+    tune.output.connect(osc1.detune);
+    tune.output.connect(osc2.detune);
+    tune.output.connect(osc3.detune);
+    
+    // Create gain node for use with amplitude envelope.
+    var ampEnvelopeGain = context.createGain();
+    var scaledSustain = 0.01 * ampSustain; // convert from percent to 0->1
+    scaledSustain *= scaledSustain;
+    var ampEnvelope = new ADSR(ampEnvelopeGain.gain, ampAttack, ampDecay, scaledSustain, ampRelease, 0, 1);
+
+    var mix1 = context.createGain();
+    var mix2 = context.createGain();
+    var mix3 = context.createGain();
+    mix1.gain.value = osc1Mix;
+    mix2.gain.value = osc2Mix;
+    mix3.gain.value = osc3Mix;
+
+    var noiseSource1 = createRandomPitchSource();
+    var noiseSource2 = createRandomPitchSource();
+    var noiseSource3 = createRandomPitchSource();
+    noiseSource1.connect(osc1.frequency);
+    noiseSource2.connect(osc2.frequency);
+    noiseSource3.connect(osc3.frequency);
+    
+    var gainNode = context.createGain();
+    gainNode.gain.value = 0.25 * gain;
+    
+    // We have 2pole mode, using the first filter, and 4pole mode chaining both biquad sections together.
+    var filter = context.createBiquadFilter();
+    var filter2 = context.createBiquadFilter();
+    filter.Q.value = 0;
+    filter2.Q.value = 0;
+    filter.frequency.value = 0;
+    filter2.frequency.value = 0;
+
+    Q1.output.connect(filter.Q);
+    Q2.output.connect(filter2.Q);
+
+    // Wasteful, since we create the 2nd filter even if we don't use it, ...
+    if (filterType == "4pole") {
+        filter.connect(filter2);
+        filter2.connect(gainNode);
+    } else {
+        filter.connect(gainNode);        
+    }
+    
+    // Key-follow so filter frequency tracks MIDI key number.
+    filter.detune.value = detune;
+    filter2.detune.value = detune;
+    
+    // Master filter cutoff.
+    filterCutoff.output.connect(filter.detune);
+    filterCutoff.output.connect(filter2.detune);
+
+    // LFO modulates filters.
+    // FIXME: add option to route to filter or pitch...
+    lfoDepth.connect(filter.detune);
+    lfoDepth.connect(filter2.detune);
+
+    // Setup envelope for filter - actually uses the same envelope for each 2nd-order filter section.
+    var velEnvAttack = Math.pow(gain, 0.75);
+    var filterSustainCents = velEnvAttack*filterEnvAmount * 0.01 * filterSustain;
+    var minFilterFrequency = 40;
+    var maxFilterFrequency = minFilterFrequency * Math.pow(2, velEnvAttack*filterEnvAmount / 1200);
+    var sustainFrequency = minFilterFrequency * Math.pow(2, filterSustainCents / 1200);
+    
+    var filterEnvelope1 = new ADSR(filter.frequency, filterAttack, filterDecay, sustainFrequency, filterRelease, minFilterFrequency, maxFilterFrequency);
+    var filterEnvelope2 = new ADSR(filter2.frequency, filterAttack, filterDecay, sustainFrequency, filterRelease, minFilterFrequency, maxFilterFrequency);
+
+    gainNode.connect(ampEnvelopeGain);
+    ampEnvelopeGain.connect(masterGain);
+    
+    var dest = filter;
+
+    // Noise
+    var noise = context.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+    noise.start(0);
+    
+    var noiseGain = context.createGain();
+    noiseGain.gain.value = noiseMix;
+    noise.connect(noiseGain);
+
+    osc1.connect(mix1);
+    osc2.connect(mix2);
+    osc3.connect(mix3);
+    mix1.connect(dest);
+    mix2.connect(dest);
+    mix3.connect(dest);
+    noiseGain.connect(dest);
+    
+    //
+    this.osc1 = osc1;
+    this.osc2 = osc2;
+    this.osc3 = osc3;
+    this.noise = noise;
+    this.noiseSource1 = noiseSource1;
+    this.noiseSource2 = noiseSource2;
+    this.noiseSource3 = noiseSource3;
+    this.gainNode = gainNode;
+    this.filter = filter;
+    this.filter2 = filter2;
+    this.ampEnvelope = ampEnvelope;
+    this.filterEnvelope1 = filterEnvelope1;
+    this.filterEnvelope2 = filterEnvelope2;
+    
+    this.setRandomization(RANDOMIZATION);
+ 
+    // Trigger oscillators and envelopes.
+    var now = context.currentTime;
+
+    osc1.start(now);
+    osc2.start(now);
+    osc3.start(now);
+ 
+    ampEnvelope.trigger(now);
+    filterEnvelope1.trigger(now);
+    filterEnvelope2.trigger(now);
+}
+
+SynthNote.prototype.noteOff = function() {
+    var now = context.currentTime;
+    this.ampEnvelope.release(now);
+    this.filterEnvelope1.release(now);
+    this.filterEnvelope2.release(now);
+    this.osc1.stop(now + 3);
+    this.osc2.stop(now + 3);
+    this.osc3.stop(now + 3);
+    this.noise.stop(now + 3);
+}
+
+function setFilterResonance(value) {
+    // Set resonance values differently for each 2nd-order section to approximate Butterworth.
+    Q1.setValue(value);
+    Q2.setValue(value - 6);
+
+    // Empirical resonance gain compensation.
+    if (filterType == "2pole") {
+        // don't compensate as much for 2pole
+        value *= 0.5;
+    }
+
+    var gain = Math.pow(10, -value * 0.05);
+    resonanceGainNode.gain.setTargetValueAtTime(gain, 0, 0.020);
+}
+
+SynthNote.prototype.setRandomization = function(value) {
+    value *= 10;
+
+    this.noiseSource1.gain.value = 0.01*value * this.osc1.frequency.value;
+    this.noiseSource2.gain.value = 0.01*value * this.osc2.frequency.value;
+    this.noiseSource3.gain.value = 0.01*value * this.osc3.frequency.value;
+}
+
+function createNoiseBuffer() {
+    var n =  10 * context.sampleRate;
+    var buffer = context.createBuffer(1, n, context.sampleRate);
+    var p = buffer.getChannelData(0);
+    
+    for (var i = 0; i < n; ++i) {
+        var x = 2*Math.random() - 1;        
+        p[i] = x;
+    }
+
+    return buffer;
+}
+
+function createRandomPitchSource() {
+    var noiseSource = context.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+    
+    // It's slightly inefficient to run the filter in real-time, since we could have
+    // simply pre-filtered the noise buffer to taste.  But we do have the opportunity to
+    // have a real-time control here...
+    var cutoff = 0.125;
+    var noiseLowpass = context.createBiquadFilter();
+    noiseLowpass.frequency.value = cutoff;
+    noiseLowpass.frequency.Q = 0;
+    
+    var noiseGain = context.createGain();
+    noiseGain.gain.value = 1;
+        
+    noiseSource.connect(noiseLowpass);
+    noiseLowpass.connect(noiseGain);
+
+    var startTime = Math.random() * 10;
+    noiseSource.start(0, startTime);
+    
+    return noiseGain;
+}
+
+function handleMIDIData(event) {
+    var data = event.data;
+    var length = event.data.length;
+    // console.log("event " + length);
+    
+    // if (data.length != 3)
+    //     return; // FIXME
+    
+    // var str = "MIDI message received at timestamp " + event.timestamp + "[" + event.data.length + " bytes]: ";
+    // for (var i=0; i<event.data.length; i++) {
+    //   str += "0x" + event.data[i].toString(16) + " ";
+    // }
+    // 
+    // console.log(str);
+
+    // var now = performance.now();
+    // var delta = now - event.receivedTime;
+    // console.log("timestamp: " + event.receivedTime + " : " + now + " delta: " + delta);
+
+    var message = data[0] & 0xf0;
+
+    var data1 = data[1];
+    var data2 = data[2];
+    var noteNumber = data1;
+    if (noteNumber < 0) noteNumber = 0;
+
+    var velocity = data2;
+    var v = velocity / 128;
+    var gain = Math.pow(v, 1.3); // empirical velocity response curve
+    gain = 0.25 + 0.75*gain;
+
+    var detune = noteNumber * 100 - 3600;
+
+    if (message == 0x90 && velocity != 0) {
+        var note = new SynthNote();
+        note.noteOn(detune, gain);
+
+        // stop any old note
+        if (notes[noteNumber] != 0)
+            notes[noteNumber].noteOff();
+
+        notes[noteNumber] = note;
+    } else if (message == 0x80 || message == 0x90 && velocity == 0) {
+        if (notes[noteNumber] != 0)
+            notes[noteNumber].noteOff();
+        notes[noteNumber] = 0;
+    } else if (message == 0xe0) {
+        // Pitch wheel
+        var value = (data1 + 128 * data2) - 8192;
+        value /= 8192;
+        
+        tune.setValue(2400 * value, 0.030);
+    } else if (message == 0xb0) {
+        var value = data2 / 128;
+        if (data1 == 28) { // filter cutoff
+            views[4].setNormalizedValue(value); // Ugly!
+        } else if (data1 == 1) {
+            // modulation - control lfo depth
+            views[17].setNormalizedValue(value); // Ugly!
+        }
+    }
+    //  else if (message == 0xd0) {
+    //     // Channel Pressure
+    //     var value = data1 / 128;
+    //     views[4].setNormalizedValue(value); // Ugly!
+    // }
+}
+
+var input;
+
+var midiAccess = 0;
+
+function onMIDISuccess(access) {
+    midiAccess = access;
+
+    var inputs = midiAccess.inputs();
+    console.log("Number of inputs: " + inputs.length);
+    for (var i = 0; i < inputs.length; ++i) {
+        var input = inputs[i];
+        console.log(input.id);
+        console.log(input.manufacturer);
+        console.log(input.name);
+        console.log(input.version);
+
+        input.onmidimessage = handleMIDIData;
+    }
+    
+    var outputs = midiAccess.outputs();
+    console.log("Number of outputs: " + outputs.length);
+    for (var i = 0; i < outputs.length; ++i) {
+        var output = outputs[i];
+        console.log(output.id);
+        console.log(output.manufacturer);
+        console.log(output.name);
+        console.log(output.version);
+    }
+}
+
+function onMIDIFailure(error) {
+    console.log("MIDI Access failed: " + error);
+}
+
+function initAudio() {
+    context = new AudioContext();
+    
+    noiseBuffer = createNoiseBuffer();
+
+    lfo = context.createOscillator();
+    lfo.frequency.value = LFOSPEED;
+    lfo.type = "triangle";
+    
+    lfoDepth = context.createGain();
+    lfoDepth.gain.value = LFODEPTH;
+    
+    lfo.connect(lfoDepth);
+    lfo.start(0);
+    
+    masterGain = context.createGain();
+    masterGain.gain.value = 1;
+    
+    resonanceGainNode = context.createGain();
+    
+    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+
+    // Let's create some master control signals which can be changed via the UI
+    // and connected to all active voices.
+    unitySource = createUnitySource(context);
+    tune = new ControlSignal(context, unitySource, 0);
+    pitch1 = new ControlSignal(context, unitySource, PITCH1);
+    pitch2 = new ControlSignal(context, unitySource, PITCH2);
+    pitch3 = new ControlSignal(context, unitySource, PITCH3);
+    filterCutoff = new ControlSignal(context, unitySource, FILTERCUTOFF);
+    Q1 = new ControlSignal(context, unitySource, RESONANCE);
+    Q2 = new ControlSignal(context, unitySource, RESONANCE - 6);   
+    
+    masterGain.connect(resonanceGainNode);
+
+    // Subsonic rumble filter.
+    subsonicFilter = context.createBiquadFilter();
+    subsonicFilter.type = "highpass";
+    subsonicFilter.frequency.value = 15;
+
+    resonanceGainNode.connect(subsonicFilter);
+
+    // Warming oversampled saturation.
+    waveshaper = new WaveShaper(context);
+
+    subsonicFilter.connect(waveshaper.input);
+    
+    // Visualize the whole mix.
+    analyser = context.createAnalyser();
+    analyser.fftSize = 2048;
+
+    waveshaper.output.connect(analyser);
+
+    analyser.connect(context.destination);
+
+    // As one of our waveform types, use a nice organ.
+    loadWaveTable("wave-tables/Twelve_OpTines");    
+}
+
+function initUI() {
+    var controls = document.getElementById("controls");
+    views = new Array();
+    
+    var j = 0;
+    views[j++] = new KnobView("pitch1", PITCH1, -1200, 2400, UNITS.cents, 0, false, function(value) { pitch1.setValue(value); } );
+    views[j++] = new KnobView("pitch2", PITCH2, -1200, 2400, UNITS.cents, 0, false, function(value) { pitch2.setValue(value); } );
+    views[j++] = new KnobView("pitch3", PITCH3, -1200, 2400, UNITS.cents, 0, false, function(value) { pitch3.setValue(value); } );
+    views[j++] = new KnobView("tune", 0, -2400, 2400, UNITS.cents, 0, false, function(value) { tune.setValue(value); } );
+    views[j++] = new KnobView("cutoff", 2400, -3600, 8400, UNITS.cents, 0, false, function(value) { filterCutoff.setValue(value); } );
+    views[j++] = new KnobView("resonance", RESONANCE, 0, 40, UNITS.decibels, 0, false, function(value) { setFilterResonance(value); } );
+
+    views[j++] = new KnobView("filter amount", 1200, 0, 1200 * 12, UNITS.cents, 0, false, function(value) { filterEnvAmount = value; } );
+
+    views[j++] = new KnobView("filter attack", filterAttack, 0.0001, 0.200, UNITS.seconds, 3, false, function(value) { filterAttack = value; } );
+    views[j++] = new KnobView("filter decay", filterDecay, 0.0001, 1, UNITS.seconds, 3, false, function(value) { filterDecay = value; } );
+    views[j++] = new KnobView("filter sustain", filterSustain, 0, 100, UNITS.percent, 0, false, function(value) { filterSustain = value; } );
+    views[j++] = new KnobView("filter release", filterRelease, 0.0001, 1, UNITS.seconds, 3, false, function(value) { filterRelease = value; } );
+
+    views[j++] = new KnobView("amp attack", ampAttack, 0.004, 0.200, UNITS.seconds, 3, false, function(value) { ampAttack = value; } );
+    views[j++] = new KnobView("amp decay", ampDecay, 0.004, 1, UNITS.seconds, 3, false, function(value) { ampDecay = value; } );
+    views[j++] = new KnobView("amp sustain", ampSustain, 0, 100, UNITS.percent, 0, false, function(value) { ampSustain = value; } );
+    views[j++] = new KnobView("amp release", ampRelease, 0.004, 1, UNITS.seconds, 3, false, function(value) { ampRelease = value; } );
+
+    views[j++] = new KnobView("randomization", RANDOMIZATION, 0, 100, UNITS.percent, 0, false, function(value) { setRandomization(value); } );
+
+    views[j++] = new KnobView("lfo speed", LFOSPEED, 0.5, 30, UNITS.hertz, 0, true, function(value) { lfo.frequency.value = value; } );
+    views[j++] = new KnobView("lfo depth", LFODEPTH, 0, 4800, UNITS.cents, 0, false, function(value) { lfoDepth.gain.value = value; } );
+
+    views[j++] = new KnobView("osc1 mix", osc1Mix, 0, 1, UNITS.generic, 0, false, function(value) { osc1Mix = value*value; } );
+    views[j++] = new KnobView("osc2 mix", osc2Mix, 0, 1, UNITS.generic, 0, false, function(value) { osc2Mix = value*value; } );
+    views[j++] = new KnobView("osc3 mix", osc3Mix, 0, 1, UNITS.generic, 0, false, function(value) { osc3Mix = value*value; } );
+
+    views[j++] = new KnobView("noise mix", 0, 0, 1, UNITS.generic, 0, false, function(value) { noiseMix = value*value; } );
+
+    views[j++] = new KnobView("master gain", 1, 0, 2, UNITS.generic, 0, false, function(value) { masterGain.gain.value = value; } );
+    
+    installViews(views, controls);
+    
+    // FIXME: add support for presets
+    // for (var i = 0; i < views.length; ++i) {
+    //     console.log(views[i].name + " : " + views[i].value);
+    // }
+}
+
+function init() {
+    analyserView1 = new AnalyserView("view1");
+
+    initAudio();
+    initUI();
+
+    analyserView1.initByteBuffer();
+    analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);
+    draw();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+function draw() {
+    analyserView1.doFrequencyAnalysis();
+    
+    window.requestAnimationFrame(draw);
+}
+
+function loadWaveTable(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    
+    request.onload = function() {
+        // Get the frequency-domain waveform data.
+        var f = eval('(' + request.responseText + ')');
+
+        // Copy into more efficient Float32Arrays.
+        var n = f.real.length;
+        frequencyData = { "real": new Float32Array(n), "imag": new Float32Array(n) };
+
+        for (var i = 0; i < n; ++i) {
+            frequencyData.real[i] = f.real[i];
+            frequencyData.imag[i] = f.imag[i];
+        }
+        
+        periodicWave = context.createPeriodicWave(frequencyData.real, frequencyData.imag);
+        
+        custom1PeriodicWave = periodicWave;
+        
+        console.log("loaded periodicWave");   
+    };
+
+    request.onerror = function() {
+        alert("error loading: " + url);
+    };
+
+    request.send();
+}
+
+// This is allows us to set one of the standard shapes, or a custom periodicWave.
+function setOscType(osc, type) {
+    if (type == "custom1")
+        osc.setPeriodicWave(custom1PeriodicWave);
+    else
+        osc.type = type;
+}
+
+function setOsc1Type(type) {
+    osc1Type = type;
+    
+    for (var i = 0; i < 128; ++i) {
+        if (notes[i] != 0)
+            setOscType(notes[i].osc1, type);
+    }
+}
+
+function setOsc2Type(type) {
+    osc2Type = type;
+
+    for (var i = 0; i < 128; ++i) {
+        if (notes[i] != 0)
+            setOscType(notes[i].osc2, type);
+    }
+}
+
+function setOsc3Type(type) {
+    osc3Type = type;
+
+    for (var i = 0; i < 128; ++i) {
+        if (notes[i] != 0)
+            setOscType(notes[i].osc3, type);
+    }
+}
+
+function setRandomization(value) {
+    for (var i = 0; i < 128; ++i) {
+        if (notes[i] != 0)
+            notes[i].setRandomization(value);
+    }
+}
+
+function setFilterType(type) {
+    filterType = type;
+}
+
+</script>
+</head>
+
+<body style="-webkit-user-select: none;"  ondragstart="return false;" ondrop="return false;">
+
+<!-- Canvas tag for WebGL output -->
+
+<canvas id="view1" width="640px" height="200px" style=\"-webkit-user-select: none;\"></canvas>
+
+<br>
+
+<!-- Analyser type -->
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_FREQUENCY);" />
+Frequency
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_SONOGRAM);" />
+Sonogram
+<input type="radio" name="radioSet" value="data" checked="checked" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_3D_SONOGRAM);" />
+3D Sonogram
+<input type="radio" name="radioSet" value="data" onMouseDown="analyserView1.setAnalysisType(ANALYSISTYPE_WAVEFORM);"/>
+Waveform
+
+<br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"  draggable="false" style="-webkit-user-select: none;"  ondragstart="return false;" ondrop="return false;"> </div>
+
+
+<br>
+Filter:
+<!-- Filter type -->
+<input type="radio" name="FilterType" value="data" checked="checked" onMouseDown="setFilterType('2pole');" />
+2pole
+<input type="radio" name="FilterType" value="data" onMouseDown="setFilterType('4pole');" />
+4pole
+
+<br>
+<!-- LFO type -->
+LFO:
+<input type="radio" name="LFOType" value="data" onMouseDown="lfo.type = 'sine';" />
+SINE
+<input type="radio" name="LFOType" value="data" onMouseDown="lfo.type = 'square';" />
+SQUARE
+<input type="radio" name="LFOType" value="data" checked="checked" onMouseDown="lfo.type = 'triangle';"/>
+TRIANGLE
+
+<br>
+OSC1:
+<!-- Waveform type -->
+<input type="radio" name="Waveform1" value="data" onMouseDown="setOsc1Type('sine');" />
+SINE
+<input type="radio" name="Waveform1" value="data" checked="checked" onMouseDown="setOsc1Type('square');" />
+SQUARE
+<input type="radio" name="Waveform1" value="data" onMouseDown="setOsc1Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform1" value="data" onMouseDown="setOsc1Type('triangle');"/>
+TRIANGLE
+<input type="radio" name="Waveform1" value="data" onMouseDown="setOsc1Type('custom1');"/>
+CUSTOM1
+
+<br>
+OSC4:
+<!-- Waveform type -->
+<input type="radio" name="Waveform2" value="data" onMouseDown="setOsc2Type('sine');" />
+SINE
+<input type="radio" name="Waveform2" value="data" checked="checked" onMouseDown="setOsc2Type('square');" />
+SQUARE
+<input type="radio" name="Waveform2" value="data" onMouseDown="setOsc2Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform2" value="data" onMouseDown="setOsc2Type('triangle');"/>
+TRIANGLE
+<input type="radio" name="Waveform2" value="data" onMouseDown="setOsc2Type('custom1');"/>
+CUSTOM1
+
+<br>
+OSC3:
+<!-- Waveform type -->
+<input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('sine');" />
+SINE
+<input type="radio" name="Waveform3" value="data" checked="checked" onMouseDown="setOsc3Type('square');" />
+SQUARE
+<input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('sawtooth');" />
+SAWTOOTH
+<input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('triangle');"/>
+TRIANGLE
+<input type="radio" name="Waveform3" value="data" onMouseDown="setOsc3Type('custom1');"/>
+CUSTOM1
+
+</body>
+</html>

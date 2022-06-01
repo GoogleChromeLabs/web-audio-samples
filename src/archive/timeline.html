@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<!-- This is used to create the audioparam timeline graph at
+http://webaudio.github.io/web-audio-api/#audioparam-automation-example.
+
+Be careful when changing this, and if you do, think about updating the spec with a new image.
+-->
+<head>
+<script type="text/javascript" src="flot/jquery.js"></script>
+<script type="text/javascript" src="flot/jquery.flot.js"></script>
+<script type="text/javascript" src="flot-axislabels/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/base64.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/lib/canvas2image.js"></script>
+<script type="text/javascript" src="jquery.flot.saveAsImage.js/jquery.float.saveAsImage.js"></script>
+
+<script>
+
+window.onload = runTest;
+
+var sampleRate = 8000.0;
+var lengthInSeconds = 1;
+var sampleFrameLength = sampleRate * lengthInSeconds;
+
+var context = 0;
+var constantOneBuffer = 0;
+var linearRampBuffer = 0;
+
+function selectSampleRate() {
+    // Try to create an offline context with the given rate.  The first rate that succeeds wins.
+    var possibleRates = [4000, 8000, 16000, 22050];
+
+    for (var k = 0; k < possibleRates.length; ++k) {
+        try {
+            var c = new OfflineAudioContext(1, 100, possibleRates[k]);
+            return possibleRates[k];
+       } catch (e) {
+       }
+    }
+    return 22050;
+}
+
+function annotationText(place, position, text) {
+    var divPrefix = "<div style='position:absolute;";
+    var divPosition = "left:" + (position.left + 4) + "px;top:" + position.top + "px;";
+    var font = "font-family:monospace;font-size:xx-small'>";
+    var divSuffix = "</div>";
+
+    place.append(divPrefix + divPosition + font + text + divSuffix);
+}
+      
+function drawCurve(event) {
+    var renderedBuffer = event.renderedBuffer;
+    var data = renderedBuffer.getChannelData(0);
+
+    var plotData = [];
+    for (var k = 0; k < data.length; ++k)
+        plotData.push([k / sampleRate, data[k]]);
+
+    var place = $("#graph");
+    var plot = $.plot(place,
+        [ { data : plotData, label : "Automation value" } ],
+        { xaxes: [{ max: 1.01, axisLabel: "Time, sec" }],
+          yaxes: [{ max: 1.01, axisLabel: "Automation value" }]
+        });
+
+    plot.getCanvas
+    // Annotate the graph a little
+    var o = plot.pointOffset({x: 0.01, y: .18});
+    annotationText(place, o, "setValue(0.2,0)");
+
+    o = plot.pointOffset({x: 0.11, y: 0.28});
+    annotationText(place, o, "setValue(0.3,0.1)");
+
+    o = plot.pointOffset({x: 0.21, y: 0.39});
+    annotationText(place, o, "setValue(0.4,0.2)");
+
+    o = plot.pointOffset({x: 0.12, y: 0.65});
+    annotationText(place, o, "linearRamp(0.3,1)");
+
+    o = plot.pointOffset({x: 0.32, y: 0.9});
+    annotationText(place, o, "linearRamp(0.8,0.325)");
+
+    o = plot.pointOffset({x: 0.28, y: 0.58});
+    annotationText(place, o, "setTarget(0.5,0.325,0.5)");
+
+    o = plot.pointOffset({x: 0.43, y : 0.54});
+    annotationText(place, o, "setValue(0.552..,0.5)");
+
+    o = plot.pointOffset({x: 0.4, y: 0.7});
+    annotationText(place, o, "exponentialRamp(0.75,0.6)");
+
+    o = plot.pointOffset({x: 0.48, y: 0.15});
+    annotationText(place, o, "exponentialRamp(0.05,0.7)");
+
+    o = plot.pointOffset({x: 0.71, y: 0.1});
+    annotationText(place, o, "setValueCurve(curve,0.7,0.3)");
+
+}
+
+// Create a buffer of the given length having a constant value.
+function createConstantBuffer(context, sampleFrameLength, constantValue) {
+    var audioBuffer = context.createBuffer(1, sampleFrameLength, context.sampleRate);
+    var n = audioBuffer.length;
+    var dataL = audioBuffer.getChannelData(0);
+
+    for (var i = 0; i < n; ++i)
+        dataL[i] = constantValue;
+
+    return audioBuffer;
+}
+
+// Create a buffer of the given length having a constant value.
+function createCurveBuffer(length, offset) {
+    curve = new Float32Array(length);
+    for (var i = 0; i < length; ++i)
+        curve[i] = Math.sin(Math.PI * i / length) + offset;
+    return curve;
+}
+
+function runTest() {
+    sampleRate = selectSampleRate();
+    console.log("Sample rate = " + sampleRate);
+
+    // Create offline audio context.
+    context = new OfflineAudioContext(1, sampleFrameLength, sampleRate);
+
+    // Create buffer used by the source which will have its gain controlled.
+    constantOneBuffer = createConstantBuffer(context, sampleFrameLength, 1);
+
+    var constantSource = context.createBufferSource();
+    constantSource.buffer = constantOneBuffer;
+
+    // Create a gain node controlling the gain of constantSource and make the connections.
+    var gainNode = context.createGain();
+    constantSource.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    var curve = createCurveBuffer(sampleFrameLength, 0);
+    
+    var param = gainNode.gain;
+    
+    var t0 = 0;
+    var t1 = 0.1;
+    var t2 = 0.2;
+    var t3 = 0.3;
+    var t4 = 0.325;
+    var t5 = 0.5;
+    var t6 = 0.6;
+    var t7 = 0.7;
+    var t8 = 1.0;
+    var timeConstant = 0.1;
+    
+    param.setValueAtTime(0.2, t0);
+    param.setValueAtTime(0.3, t1);
+    param.setValueAtTime(0.4, t2);
+    param.linearRampToValueAtTime(1, t3);
+    param.linearRampToValueAtTime(0.8, t4);
+    param.setTargetAtTime(.5, t4, timeConstant);
+    // Compute where the setTargetAtTime will be at time t5 so we can make
+    // the following exponential start at the right point so there's no
+    // jump discontinuity.  From the spec, we have
+    //   v(t) = 0.5 + (0.8 - 0.5)*exp(-(t-t4)/timeConstant)
+    // Thus v(t5) = 0.5 + (0.8 - 0.5)*exp(-(t5-t4)/timeConstant)
+    param.setValueAtTime(0.5 + (0.8 - 0.5)*Math.exp(-(t5 - t4)/timeConstant), t5);
+    param.exponentialRampToValueAtTime(0.75, t6);
+    param.exponentialRampToValueAtTime(0.05, t7);
+    param.setValueCurveAtTime(curve, t7, t8 - t7);
+
+    // var t0 = 0;
+    // var t1 = 0.1;
+    // var t2 = 0.2;
+    // var t3 = 0.3;
+    // var t4 = 0.4;
+    // var t5 = 0.6;
+    // var t6 = 0.7;
+    // var t7 = 1.0;
+    // 
+    // param.linearRampToValueAtTime(0.2, t0);
+    // param.linearRampToValueAtTime(0.5, t2);
+
+
+    // Start source at time 0.
+    constantSource.start(0);
+
+    context.oncomplete = drawCurve;
+    context.startRendering();
+}
+
+</script>
+</head>
+<body>
+<div id="content">
+  <div class="graph-container">
+    <div id="graph" class="graph-container" style="width:900px;height:540px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

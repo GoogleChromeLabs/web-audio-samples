@@ -1,0 +1,231 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+</title>
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var canvas;
+var canvasContext;
+var canvasWidth = 0;
+var canvasHeight = 0;
+
+
+var curveColor = "rgb(192,192,192)";
+var playheadColor = "rgb(80, 100, 80)";
+var noteColor = "rgb(200,60,20)";
+var gridColor = "rgb(200,200,200)";
+
+var sampleRate = 44100.0;
+var nyquist = 0.5 * sampleRate;
+
+var kA;
+var kB;
+var kC;
+var kD;
+var kE;
+
+var y1 = 0.09;
+var y2 = 0.16;
+var y3 = 0.42;
+var y4 = 0.99;
+
+function calculatePolynomialCoefficients() {
+    kA = 0.9999999999999998*y1 + 1.8432219684323923e-16*y2 - 1.9373394351676423e-16*y3 + 8.824516011816245e-18*y4;
+    kB = -1.5788320352845888*y1 + 2.3305837032074286*y2 - 0.9141194204840429*y3 + 0.1623677525612032*y4;
+    kC = 0.5334142869106424*y1 - 1.272736789213631*y2 + 0.9258856042207512*y3 - 0.18656310191776226*y4;
+    kD = 0.08783463138207234*y1 - 0.1694162967925622*y2 + 0.08588057951595272*y3 - 0.00429891410546283*y4;
+    kE = -0.042416883008123074*y1 + 0.1115693827987602*y2 - 0.09764676325265872*y3 + 0.028494263462021576*y4;
+}
+
+function y1Handler(event, ui) {
+  y1 = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("y1-value");
+  info.innerHTML = "y1 = " + y1;
+}
+
+function y2Handler(event, ui) {
+  y2 = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("y2-value");
+  info.innerHTML = "y2 = " + y2;
+}
+
+function y3Handler(event, ui) {
+  y3 = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("y3-value");
+  info.innerHTML = "y3 = " + y3;
+}
+
+function y4Handler(event, ui) {
+  y4 = ui.value;
+  drawCurve();
+  
+  var info = document.getElementById("y4-value");
+  info.innerHTML = "y4 = " + y4;
+}
+
+
+function drawCurve() {
+    calculatePolynomialCoefficients();
+    
+    // draw center
+    var width = canvas.width;
+    var height = canvas.height;
+
+    // canvasContext.strokeStyle = "rgb(150, 255, 150)";
+    canvasContext.fillStyle = "rgb(0, 0, 0)";
+    canvasContext.fillRect(0, 0, width, height);
+    
+    console.log(width);
+    console.log(height);
+    
+    canvasContext.strokeStyle = curveColor;
+    canvasContext.lineWidth = 3;
+
+    canvasContext.beginPath();
+    canvasContext.moveTo(0, 0);
+
+    for (var i = 0; i < width; ++i) {
+        var x = 3.0 * (i / width);
+        
+		var x2 = x * x;
+		var x3 = x2 * x;
+		var x4 = x2 * x2;
+
+		var y = kA + kB * x + kC * x2 + kD * x3 + kE * x4;
+        
+        canvasContext.lineTo(i, height - height*y);
+    }
+    
+    canvasContext.stroke();
+}
+
+function init() {
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    canvas.addEventListener("mousedown", handleMouseDown, true);
+    canvas.addEventListener("mousemove", handleMouseMove, true);
+    canvas.addEventListener("mouseup", handleMouseUp, true);
+
+    canvasWidth = parseFloat(window.getComputedStyle(canvas, null).width);
+    canvasHeight = parseFloat(window.getComputedStyle(canvas, null).height);
+
+    addSlider("y1");
+    addSlider("y2");
+    addSlider("y3");
+    addSlider("y4");
+    configureSlider("y1", y1, 0.0, 1.0, y1Handler);
+    configureSlider("y2", y2, 0.0, 1.0, y2Handler);
+    configureSlider("y3", y3, 0.0, 1.0, y3Handler);
+    configureSlider("y4", y4, 0.0, 1.0, y4Handler);
+
+    calculatePolynomialCoefficients();
+    
+    drawCurve();
+}
+
+var gIsMouseDown = false;
+var gLastX = 0;
+var gLastY = 0;
+
+function handleMouseDown(event) {
+    gIsMouseDown = true;
+
+    var posx = event.clientX;
+    var posy = event.clientY;
+
+    var eventInfo = {event: event, element:canvas};
+
+    var c = getRelativeCoordinates(eventInfo);
+    var x = c.x;
+    var y = c.y;
+}
+
+function handleMouseUp(event) {
+    gIsMouseDown = false;
+}
+
+function handleMouseMove(event) {
+    if (gIsMouseDown) {
+    }
+}
+
+</script>
+</head>
+
+<body>
+
+
+<div id="info">
+</div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<br><br>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<div id="info"> </div>
+
+<div id="kits">
+</div>
+
+</body>
+</html>

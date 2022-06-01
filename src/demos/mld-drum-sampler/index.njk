@@ -1,0 +1,35 @@
+---
+eleventyNavigation:
+  key: mld-drum-sampler
+  title: Web Audio API 드럼머신 만들기
+  parent: landing
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<div class="mb-12">
+  <h1>Web Audio API 드럼머신 만들기</h1>
+  <p>Web Audio API로 만들어 보는 간단한 드럼머신 예제. "2021 모국어의 날" 특집으로 제작된 한글
+    튜토리얼 입니다. 이 데모의 정상적인 사용을 위해서는 오디오 파일들이 필요하며,
+    <a href="https://www.youtube.com/watch?v=MY8LZ49D76c" target="_blank">
+    튜토리얼 비디오</a>에 사용된 오디오 파일들은
+    <a href="https://github.com/GoogleChromeLabs/web-audio-samples/raw/main/drum-machine/samples/samples.zip">
+    이 곳</a>에서 다운로드 할 수 있습니다.</p>
+  <p>NOTE: This code example is for a Korean tutorial of "Web Audio API 드럼머신 
+    만들기". For more information, see the Chrome Developers
+    <a href="https://developer.chrome.com/blog/mother-language-day-2021/">blog
+    post</a> about International Mother Language Day 2021.</p>
+</div>
+
+<div class="demo-box">
+  <p>아래 버튼을 누르고 오디오 파일들이 포함된 로컬 디렉토리를 선택해주세요. 파일 로딩이 완료되면
+    키보드를 사용하여 드럼 사운드를 연주할 수 있습니다.</p>
+  <button id="button-start" disabled>시작</button>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}

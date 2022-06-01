@@ -1,0 +1,76 @@
+- title: Resources
+  entries:
+    - title: Audio Worklet
+      description: Audio Worklet examples and resources
+      href: audio-worklet/
+    - title: Web Audio DevTools Extension
+      description: Graph visualizer and inspector in Chrome DevTools
+      href: https://chrome.google.com/webstore/detail/audion/cmhomipkklckpomafalojobppmmidlgl
+    - title: Web Audio API Specification
+      description: W3C Recommendation
+      href: https://www.w3.org/TR/webaudio/
+    - title: Web Audio API Specification (Editor's Draft)
+      description: Latest editor's draft
+      href: https://webaudio.github.io/web-audio-api/
+    - title: Web Audio API on MDN
+      description: Documentations and examples on MDN
+      href: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+    - title: Canopy
+      description: Web Audio code editor and visual debugger
+      href: https://hoch.github.io/canopy/
+
+- title: Projects
+  entries:
+    - title: Omnitone
+      description: 360° audio renderer for AR/VR web apps
+      href: https://googlechrome.github.io/omnitone/
+    - title: Resonance Audio for Web
+      description: 3D Audio SDK powered by Omnitone
+      href: https://developers.google.com/resonance-audio/develop/web/getting-started
+    - title: Chrome Music Lab
+      description: Learning music through web technology
+      href: https://musiclab.chromeexperiments.com/
+    - title: "Google Doodle: Hiphop"
+      description: 44th Anniversary of the Birth of Hip Hop
+      href: https://www.google.com/doodles/44th-anniversary-of-the-birth-of-hip-hop
+    - title: "Google Doodle: Clara Rockmore"
+      description: "Clara Rockmore's 105th Birthday"
+      href: https://www.google.com/doodles/clara-rockmores-105th-birthday
+    - title: "Google Doodle: Robert Moog's 78th Birthday"
+      description: "Robert Moog's 78th Birthday"
+      href: https://www.google.com/doodles/robert-moogs-78th-birthday
+    - title: Web Audio Weekly
+      description: A newsletter curates notable Web Audio projects
+      href: https://www.webaudioweekly.com/
+
+- title: Demos
+  entries:
+    - title: Web Audio Demos
+      description: A demo collection by Chris Wilson
+      href: https://webaudiodemos.appspot.com/
+    - title: Shiny Drum Machine
+      description: Drum sequencer with a variety of drum kits and effects
+      href: demos/shiny-drum-machine/
+    - title: Web Audio DJ
+      description: Dual deck DJ app playing beatsynced loops
+      href: demos/dj/
+    - title: Audio Recorder
+      description: A simple PWA that records audio clips
+      href: demos/pwa-audio-recorder/
+    - title: Web Audio API Drum Sampler (Korean)
+      description: A special tutorial for Mother Language Day
+      href: demos/mld-drum-sampler/
+    - title: Box2D Stress Test
+      description: For smoke testing
+      href: demos/stress-box/
+    - title: Wavetable Synthesizer
+      href: archive/wavetable-synth.html
+    - title: AnalyserNode with visualization 
+      href: archive/visualizer-gl.html
+    - title: Panning and Reverberation
+      href: archive/simple.html
+    - title: 8 Ball with 3D audio
+      href: archive/o3d-webgl-samples/pool.html
+    - title: Old demo collection
+      href: archive/
+    

@@ -1,0 +1,161 @@
+body {
+  padding-top: 1em;
+}
+
+.decks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 1em;
+}
+
+.deck, .center {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1em;
+}
+
+.deck .viz {
+  display: flex;
+  flex-direction: row;
+}
+
+.dragging .drop-target {
+  outline: 2px dashed #555;
+  outline-offset: 2px;
+}
+
+.dials {
+  display: flex;
+  column-gap: 1em;
+  justify-content: center;
+}
+
+.dial {
+  display: flex;
+  flex-direction: column;
+  row-gap: .5em;
+  align-items: center;
+}
+
+.crossfader {
+  display: flex;
+  justify-content: center;
+  margin: 2em 0;
+}
+
+.placeholder, .button {
+  width: 75px;
+  height: 75px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  display: flex;
+  padding: .2em;
+}
+
+.disabled, .viz [nexus-ui] {
+  pointer-events: none;
+}
+
+.paused .hide-paused,
+.playing .hide-playing {
+  display: none;
+}
+
+.button {
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  pointer-events: none;
+}
+
+.tracks {
+  display: flex;
+  justify-content: center;
+  column-gap: 1em;
+  row-gap: 1em;
+  padding-top: 4rem;
+}
+
+.track {
+  width: 150px;
+  height: 150px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: .0125em;
+  display: flex;
+  justify-content: center;
+
+  background: linear-gradient(135deg, var(--color1) 0%, var(--color2) 100%);
+}
+
+.tracks .track {
+  transition: transform 300ms;
+}
+
+.tracks .track:hover {
+  transform: translate(0, -10px);
+}
+
+[draggable="true"] {
+  cursor: move;
+}
+
+.track::after {
+  content: attr(data-track);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track[data-track="blueyellow"] {
+  --color1: #ffc400;
+  --color2: #00b0ff;
+}
+
+.track[data-track="break12"] {
+  --color1: #d500f9;
+  --color2: #311b92;
+}
+
+.track[data-track="break28"] {
+  --color1: #3d5afe;
+  --color2: #6a1b9a;
+}
+
+.track[data-track="break29"] {
+  --color1: #00b0ff;;
+  --color2: #006064;
+}
+
+.track[data-track="coolloop7"] {
+  --color1: #1de9b6;
+  --color2: #1b5e20;
+}
+
+.track[data-track="ominous"] {
+  --color1: #ff1744;
+  --color2: #880e4f;
+}
+
+.track[data-track="organ-echo-chords"] {
+  --color1: #ff3d00;
+  --color2: #827717;
+}

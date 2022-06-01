@@ -1,0 +1,241 @@
+<!--
+Copyright 2012, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/buffer-loader.js"></script>
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+// sr-conversion in when loading: 22050 -> 44100
+var rateScale; // initialized depending on the context sample-rate
+
+var assetList =
+[
+{"url": "A3.wav", "loopStartFrame": 22377, "loopEndFrame": 37996},
+{"url": "D4.wav", "loopStartFrame": 27635, "loopEndFrame": 41106},
+{"url": "G4.wav", "loopStartFrame": 24308, "loopEndFrame": 41818},
+{"url": "C5.wav", "loopStartFrame": 9476, "loopEndFrame": 32968},
+{"url": "F5.wav", "loopStartFrame": 12215, "loopEndFrame": 41636},
+{"url": "As5.wav", "loopStartFrame": 15054, "loopEndFrame": 36647}
+];
+
+// a list of AudioBuffers for the assets.
+var bufferList;
+var buffer;
+var currentIndex = 0;
+
+var canvas;
+var canvasContext;
+
+var backgroundColor = "rgb(0, 0, 0)";
+var curveColor = "rgb(192,192,192)";
+var gridColor = "rgb(200,200,200)";
+var gridColor2 = "rgb(255,50,50)";
+
+var context;
+var latency = 0.0;
+var source = 0;
+
+function drawCurve() {
+    var info = document.getElementById("info");
+    var width = canvas.width;
+    var height = canvas.height;
+    
+    var curve = buffer.getChannelData(0);
+    var curveLength = buffer.length;
+    
+    var startFrame = assetList[currentIndex].loopStartFrame;
+    var endFrame = assetList[currentIndex].loopEndFrame;
+    var drawOffset = Math.floor(rateScale * startFrame);
+    var drawOffset2 = Math.floor(rateScale * endFrame);
+    var drawLength = 500;
+
+    var scale = drawLength / width;
+
+    canvasContext.fillStyle = backgroundColor;
+    canvasContext.fillRect(0, 0, width, height);
+    canvasContext.lineWidth = 1;
+
+
+    // Draw end of loop in red on left side.
+    canvasContext.beginPath();
+    canvasContext.strokeStyle = gridColor2;
+
+    var pcmValue = curve[drawOffset2];
+    var y0 = 0.5*height - height * 0.5*pcmValue;
+    var halfWidth = 0.5*width;
+
+    canvasContext.moveTo(0, y0);
+    for (var i = 0; i <= halfWidth; ++i) {
+        var pcmValue = curve[Math.floor((i-halfWidth)*scale + drawOffset2)];
+        var y = 0.5*height - height * 0.5*pcmValue;
+        canvasContext.lineTo(i, y);
+    }
+    canvasContext.stroke();    
+
+    canvasContext.strokeStyle = gridColor;
+    canvasContext.beginPath();
+
+    // Draw start of loop in white on left side.
+    pcmValue = curve[drawOffset];
+    y0 = 0.5*height - height * 0.5*pcmValue;
+    
+    canvasContext.moveTo(halfWidth, y0);
+    for (var i = 0; i < halfWidth; ++i) {
+        var pcmValue = curve[Math.floor(i*scale + drawOffset)];
+        var y = 0.5*height - height * 0.5*pcmValue;
+        canvasContext.lineTo(halfWidth + i, y);
+    }
+    canvasContext.stroke();    
+    
+}
+
+function handleKeyDown(event) {
+    if (source) {
+        source.stop(0);
+    }
+
+    console.log("keyCode: " + event.keyCode);
+
+    // Handle sample asset changes:
+    var kOneKey = 49;
+    if (event.keyCode >= kOneKey && event.keyCode < kOneKey + assetList.length) {
+        var index = event.keyCode - kOneKey;
+        updateCurrentBuffer(index);
+        return;
+    }
+
+    var pitch = event.keyCode - 70;
+    var rate = Math.pow(2, pitch/12.);
+    console.log("pitch = " + pitch + " : " + "rate = " + rate);
+    
+    source = context.createBufferSource();
+
+    source.buffer = buffer;
+    source.loop = true;
+    source.playbackRate.value = rate;
+
+    // Convert from sample-frames to seconds which is used by the .loopStart and .loopEnd attributes
+    // Please note that we're HARDCODING the assumption that the assets (the trumpet samples) are at
+    // a sample-rate of 22050Hz
+    var assetSampleRate = 22050;
+    source.loopStart = assetList[currentIndex].loopStartFrame / assetSampleRate;
+    source.loopEnd = assetList[currentIndex].loopEndFrame / assetSampleRate;
+
+    source.connect(context.destination);
+    
+    var currentTime = context.currentTime;
+    var playTime = latency == 0.0 ? 0.0 : currentTime + latency;
+    source.start(playTime);
+}
+
+function updateCurrentBuffer(index) {
+    currentIndex = index;
+    buffer = bufferList[currentIndex];
+    source.buffer = buffer;
+
+    var info = document.getElementById('info');
+    var asset = assetList[currentIndex];
+    var s = asset.url + ": " + asset.loopStartFrame + ", " + asset.loopEndFrame + "   : " + buffer.length;
+    info.innerHTML = s;
+
+    drawCurve();
+}
+
+function loadAssets(url) {
+    // Load asynchronously
+    var urlList = new Array();
+    for (var i = 0; i < assetList.length; ++i) {
+        var url = "sounds/trumpet/wav22mono/" + assetList[i].url;
+        urlList.push(url);
+    }
+
+    console.log(urlList);
+
+    bufferLoader = new BufferLoader(context, urlList, finishedLoading);
+    bufferLoader.load();
+}
+
+function finishedLoading(bl) {
+    bufferList = bl; // Keep track of the loaded buffers.
+        
+    document.addEventListener("keydown", handleKeyDown, true);
+    
+    updateCurrentBuffer(0);    
+}
+
+function init() {
+    canvas = document.getElementById('canvasID');
+    canvasContext = canvas.getContext('2d');
+
+    context = new AudioContext();
+    rateScale = context.sampleRate / 22050.0;
+    
+    loadAssets();
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+<canvas id="canvasID" width="1024" height="768" style="border: 2px inset blue;">
+</canvas>
+
+<div id="info"> </div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Title
+</title>
+
+<link rel="stylesheet" type="text/css" href = "style/simple.css" />
+
+<!-- Slider stuff -->
+<script type="text/javascript" src="lib/events.js"></script>
+<style type="text/css">
+  #slider { margin: 10px; }
+</style>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// Events
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var hihatShort;
+
+var delay1;
+var delay2;
+var feedbackGainNode1;
+var feedbackGainNode2;
+var channelMerger;
+
+function delayTime1Handler(event, ui) {
+    var delayTime1 = Math.pow(2.0, 8.0 * (ui.value - 1.0));
+    if (ui.value == 0.0) delayTime1 = 0.0;
+    
+    delay1.delayTime.value = delayTime1;
+
+    var info = document.getElementById("delayTime1-value");
+    info.innerHTML = "delayTime1 = " + delayTime1 + " seconds";
+}
+
+function delayTime2Handler(event, ui) {
+    var delayTime2 = Math.pow(2.0, 8.0 * (ui.value - 1.0));
+    if (ui.value == 0.0) delayTime2 = 0.0;
+    
+    delay2.delayTime.value = delayTime2;
+
+    var info = document.getElementById("delayTime2-value");
+    info.innerHTML = "delayTime2 = " + delayTime2 + " seconds";
+}
+
+function feedbackHandler(event, ui) {
+    feedback = ui.value;
+    
+    feedbackGainNode1.gain.value = feedback;
+    feedbackGainNode2.gain.value = feedback;
+
+    var info = document.getElementById("feedback-value");
+    info.innerHTML = "feedback = " + feedback*100.0 + " percent";
+}
+
+function handleKeyDown(event) {
+    var source = context.createBufferSource();
+
+    source.buffer = hihatShort;
+    source.connect(context.destination);
+    source.connect(delay1);
+    source.connect(delay2);
+    source.start(0.0);
+}
+
+function finishLoad() {
+    addSlider("delayTime1");
+    addSlider("delayTime2");
+    addSlider("feedback");
+    configureSlider("delayTime1", 0.4, 0.0, 1.0, delayTime1Handler);
+    configureSlider("delayTime2", 0.6, 0.0, 1.0, delayTime2Handler);
+    configureSlider("feedback", 0.5, 0.0, 1.0, feedbackHandler);
+
+    document.addEventListener("keydown", handleKeyDown, true);  
+}
+
+function loadHihat(url) {
+    // Load asynchronously
+
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(audioBuffer) {
+            hihatShort = audioBuffer;
+            finishLoad();  // add in the slider, etc. now that we've loaded the audio
+        }, function(error) {
+            console.error(error);
+        });
+    };
+
+    request.send();
+}
+
+function init() {
+    context = new AudioContext();
+    
+    // Setup a delay with feedback
+    delay1 = context.createDelay();
+    delay1.delayTime.value = 0.4;
+
+    delay2 = context.createDelay();
+    delay2.delayTime.value = 0.6;
+    
+    feedbackGainNode1 = context.createGain();
+    feedbackGainNode1.gain.value = 0.5;
+    
+    feedbackGainNode2 = context.createGain();
+    feedbackGainNode2.gain.value = 0.5;
+
+    channelMerger = context.createChannelMerger();
+    
+    delay1.connect(feedbackGainNode1);
+    feedbackGainNode1.connect(delay2);
+    
+    delay2.connect(feedbackGainNode2);
+    feedbackGainNode2.connect(delay1);
+    
+    // Re-merge the two delay channels into stereo L/R
+    delay1.connect(channelMerger, 0, 0);
+    delay2.connect(channelMerger, 0, 1);
+    
+    channelMerger.connect(context.destination);
+
+    // loadHihat("sounds/drum-samples/hihat-short.wav");
+    loadHihat("sounds/drum-samples/CR78/kick.wav");
+}
+
+</script>
+</head>
+
+<body>
+
+<!-- Sliders and other controls will be added here -->
+<div id="controls"> </div>
+
+</body>
+</html>

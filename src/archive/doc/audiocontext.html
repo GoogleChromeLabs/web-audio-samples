@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+ 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+</head> 
+
+<link href="doc.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript">
+
+</script>
+
+
+
+
+<body> 
+<h1>AudioContext</h1>
+
+<p>
+An <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section">AudioContext</a> is used for managing and playing all sounds.
+In most cases a single AudioContext is created for a page which wants to play one or more sounds.
+</p>
+
+<p>
+Here are a <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ModularRouting-section">few more details</a> about the AudioContext and AudioNodes.
+</p>
+
+<p>
+Before working with any sounds, we need to create the context:
+</p>
+
+<pre>
+window.onload = init;
+
+var context;
+
+function init() {
+    context = new webkitAudioContext();
+}
+
+</pre>
+
+<p>
+Many of the interesting Web Audio API methods are based on the AudioContext, such as creating <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section">AudioNodes</a>
+and decoding audio file data.
+</p>
+
+<p>
+Note: for the WebKit implementation, the "webkit" prefix is used when creating the AudioContext.
+</p>
+
+
+<br><br>
+<div class="home">
+<a href="index.html" class="home">Home</a>
+</div>
+
+</body> 
+</html>
