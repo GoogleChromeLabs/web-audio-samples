@@ -1,11 +1,18 @@
-{% set navPages = collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key) %}
+{% set breadcrumbData =
+    collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key) %}
 
-{{ navPages | dump | safe }}
-
-{% for navPage in navPages %}
-  <a href="{{ page | relativePath(navPage.url) }}">{{ navPage.title }}</a>
-{% endfor %}
-
-<br>
-
-{#{{ page | relativePath }}#}
+<div class="flex pb-3">
+  {% for destination in breadcrumbData %}
+    <div class="mr-2">
+      <a href="{{ page | relativePath(destination.url) }}">
+        {{ destination.title }}
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  {% endfor %}
+  <div>
+    {{ eleventyNavigation.title }}
+  </div>
+</div>
