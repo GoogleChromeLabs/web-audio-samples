@@ -39,8 +39,8 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
   eleventyConfig.addPlugin(navigationPlugin);
 
-  eleventyConfig.addFilter('relativePath', (page, targetUrl) => {
-    return path.relative(page.filePathStem, targetUrl);
+  eleventyConfig.addFilter('relativePath', (fromPage, toUrl) => {
+    return path.relative(fromPage.url, toUrl);
   });
 
   writeBuildInfoToFile();

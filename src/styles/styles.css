@@ -4,6 +4,10 @@ h1 {
   @apply text-5xl pb-6;
 }
 
+h2 {
+  @apply text-2xl pb-2;
+}
+
 a, a:active, a:visited {
   @apply text-blue-600;
 }

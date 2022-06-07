@@ -10,11 +10,11 @@ to_root_dir: ../../../
 
 {% block content %}
 
-<div class="mb-12">
-  <h1>{{ eleventyNavigation.title }}</h1>
-  <p>A simple AudioWorkletNode that bypasses the incoming audio stream to its
-    output. The sound source a sine oscillator at 440Hz.</p>
-</div>
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>A simple AudioWorkletNode that bypasses the incoming audio stream to its
+  output. The sound source a sine oscillator at 440Hz. See
+  <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
+  Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>
 
 <div class="demo-box">
   <button id="button-start" disabled>START</button>
