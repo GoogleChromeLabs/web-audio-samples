@@ -1,0 +1,38 @@
+---
+eleventyNavigation:
+  key: audio-worklet
+  title: AudioWorklet
+  parent: landing
+to_root_dir: ../../
+---
+
+{% extends "../_includes/base.njk" %}
+
+{% block content %}
+
+<div class="mb-12">
+  <h1>AudioWorklet</h1>
+  <p>Code examples and resources for
+    <a href="https://www.w3.org/TR/webaudio/#audioworklet" target="_blank">
+    AudioWorklet</a>.</p>
+</div>
+
+{% for section in audioworklet_data %}
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    {{ section.title }}
+  </h2>
+  <div class="flex flex-wrap">
+    {% for entry in section.entries %}
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="{{ entry.href }}" target="_blank" class="text-xl">
+          {{ entry.title }}
+        </a>
+        <p>{{ entry.description }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

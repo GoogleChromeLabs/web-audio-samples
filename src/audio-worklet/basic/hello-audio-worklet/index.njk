@@ -1,0 +1,30 @@
+---
+eleventyNavigation:
+  key: hello-audio-worklet
+  title: Hello Audio Worklet!
+  parent: audio-worklet
+to_root_dir: ../../../
+---
+
+{% extends "../../../_includes/base.njk" %}
+
+{% block content %}
+
+<div class="mb-12">
+  <h1>{{ eleventyNavigation.title }}</h1>
+  <p>A simple AudioWorkletNode that bypasses the incoming audio stream to its
+    output. The sound source a sine oscillator at 440Hz.</p>
+</div>
+
+<div class="demo-box">
+  <button id="button-start" disabled>START</button>
+  <div class="text-sm text-right">
+    <a href="{{ global_data.githubUrl + page.url }}" target="_blank">
+      source code
+    </a>
+  </div>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}

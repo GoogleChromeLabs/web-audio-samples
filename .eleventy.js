@@ -56,9 +56,13 @@ module.exports = function(eleventyConfig) {
   
   // eleventyConfig.addPassthroughCopy('src/scripts');
   eleventyConfig.addPassthroughCopy('src/style.css');
-  eleventyConfig.addPassthroughCopy('src/demos');
-  eleventyConfig.addPassthroughCopy('src/archive');
-  eleventyConfig.addPassthroughCopy('src/sounds');
+  eleventyConfig.addPassthroughCopy('src/**/*.js');
+  eleventyConfig.addPassthroughCopy('src/**/*.mp3');
+  eleventyConfig.addPassthroughCopy('src/**/*.wav');
+  // eleventyConfig.addPassthroughCopy('src/audio-worklet');
+  // eleventyConfig.addPassthroughCopy('src/demos/**/*.js');
+  // eleventyConfig.addPassthroughCopy('src/archive');
+  // eleventyConfig.addPassthroughCopy('src/sounds');
   // eleventyConfig.addPassthroughCopy('src/favicon');
   eleventyConfig.addPassthroughCopy('src/robots.txt');
   eleventyConfig.addPassthroughCopy('src/sitemap.xml');

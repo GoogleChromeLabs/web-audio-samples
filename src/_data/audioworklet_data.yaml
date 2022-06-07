@@ -1,0 +1,53 @@
+- title: Basic Demo
+  entries:
+    - title: Hello Audio Worklet!
+      description: Bypassing input to output
+      href: basic/hello-audio-worklet/
+    - title: One Pole Filter
+      description: One-pole filter built with Audio Worklet
+      href: basic/one-pole-filter/
+    - title: Noise Generator with AudioParam
+      description: Noise generator with user-defined AudioParam
+      href: basic/noise-generator/
+    - title: BitCrusher with AudioParam
+      description: Declative AudioParam configuration and its automation
+      href: basic/bit-crusher/
+    - title: MessagePort
+      description: Messaging between an AudioWorkletNode and the associated
+        AudioWorkletProcessor
+      href: basic/message-port/
+    - title: AudioWorkletNode Options
+      description: Passing AudioWorkletNodeOptions from the node to the
+        associated AudioWorkletProcessor
+      href: basic/audio-worklet-node-options/
+    - title: Handling Errors
+      description: How to handle errors from AudioWorkletProcessor
+      href: basic/handling-errors/
+
+- title: Advanced Design Pattern
+  entries:
+    - title: Audio Worklet and WebAssembly
+      description: A basic set up for AudioWorklet and WebAssembly
+      href: design-pattern/wasm/
+    - title: WebAssembly Supersaw
+      description: C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio 
+        Developer Conference 2021)
+      href: design-pattern/wasm-supersaw/
+    - title: Ring Buffer in AudioWorkletProcessor
+      description: Using Ring Buffer to work around buffer size mismatch
+      href: design-pattern/wasm-ring-buffer/
+    - title: Audio Worklet SharedArrayBuffer and Worker
+      description: For high performance large-scale audio applications
+      href: design-pattern/shared-buffer/
+
+- title: Resources
+  entries:
+    - title: Enter AudioWorklet
+      description: An introductory article on Audio Worklet
+      href: https://developer.chrome.com/blog/audio-worklet/
+    - title: AudioWorklet Design Pattern
+      description: Design with WebAssembly SharedArrayBuffer and more
+      href: https://developer.chrome.com/blog/audio-worklet-design-pattern/
+    - title: AudioWorklet - The future of web audio
+      description: The first conference paper about AudioWorklet (ICMC 2018)
+      href: https://hoch.io/assets/publications/icmc-2018-choi-audioworklet.pdf
