@@ -1,7 +1,7 @@
 ---
 eleventyNavigation:
-  key: hello-audio-worklet
-  title: Hello Audio Worklet!
+  key: noise-generator-with-modulation
+  title: Noise generator with modulation
   parent: audio-worklet
 to_root_dir: ../../../
 ---
@@ -11,8 +11,9 @@ to_root_dir: ../../../
 {% block content %}
 
 <h1>{{ eleventyNavigation.title }}</h1>
-<p>A simple AudioWorkletNode that bypasses the incoming audio stream to its
-  output. The sound source a sine oscillator at 440Hz.</p>
+<p>A simple noise generator with a user-defined AudioParam modulated by an
+  OscillatorNode. The modulation on a gain parameter creates a tremolo effect.
+  </p>
 <p>See
   <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
   Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>

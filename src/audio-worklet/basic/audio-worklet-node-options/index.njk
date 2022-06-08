@@ -1,0 +1,142 @@
+---
+eleventyNavigation:
+  key: using-options-for-audio-worklet-node
+  title: Using Options for AudioWorkletNode
+  parent: audio-worklet
+to_root_dir: ../../../
+---
+
+{% extends "../../../_includes/base.njk" %}
+
+{% block content %}
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>A simple AudioWorkletNode constructor example that passes options of
+  waveform type and freqency to the matching AudioWorkletProcessor constructor.
+  </p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
+  Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>
+
+<div class="demo-box">
+  <div class="p-3 mb-2 bg-slate-100 w-1/4 rounded">
+    <label for="type" class="w-1/2 text-sm mr-1">Waveform</label>
+    <select name="type" id="demo-select-waveform-type" class="p-1 rounded">
+      <option value="sine">Sine</option>
+      <option value="triangle">Triangle</option>
+      <option value="square">Square</option>
+      <option value="sawtooth">Sawtooth</option>
+      <option value="noise">Noise</option>
+    </select>
+  </div>
+  <div class="p-3 mb-2 bg-slate-100 w-1/4 rounded">
+    <label for="frequency" class="text-sm mr-1">Frequency (Hz)</label>
+    <input type="number" name="frequency" id="demo-input-frequency"
+      class="p-1 rounded" min="1" max="20000" value=440>
+  </div>
+  <button id="button-start" disabled>START</button>
+  <div class="text-sm text-right">
+    <a href="{{ global_data.githubUrl + page.url }}" target="_blank">
+      source code
+    </a>
+  </div>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}
+
+{#
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link href="../../../assets/was-styles.css" rel="stylesheet">
+  <title>AudioWorkletNode Options! | WebAudio Samples</title>
+</head>
+
+<body>
+  <div class="container was-page-wrap"></div>
+  <script type="module">
+    import PageData from './PageData.js';
+
+    import {
+      html, render,
+      Component, WorkletIndicator, TopBar, Footer,
+      OneColumnView
+    } from '../../../assets/Components.js';
+
+    render(html`
+      <div id="TopBar"></div>
+      <div id="WorkletIndicator"></div>
+      <div id="Description"></div>
+      <div id="DemoInput">
+        <label for="type">Type:</label>
+        <select name="type" id="demo-input-type">
+          <option value="noise">Noise</option>
+          <option value="sine">Sine</option>
+          <option value="square">Square</option>
+          <option value="triangle">Triangle</option>
+          <option value="sawtooth">Sawtooth</option>
+        </select>
+        <label for="frequency">Frequency (1 - 20000):</label>
+        <input type="number" name="frequency" id="demo-input-frequency" min="1" 
+          max="20000" value=440>
+      </div>
+      <br>
+      <div id="Runner">
+        <button id="toogle">START</button>
+      </div>
+      <div id="Footer"></div>`,
+      document.getElementsByClassName('container was-page-wrap')[0]);
+
+    Component.build('TopBar', TopBar, PageData.TopBar);
+    Component.build('WorkletIndicator', WorkletIndicator);
+    Component.build('Description', OneColumnView, PageData.Description);
+    Component.build('Footer', Footer);
+    Component.present();
+    let context;
+
+    const demoFunction = async (e) => {
+      const element = document.getElementById('toogle');
+      if (element.innerText === 'START' && e.target === element) {
+        element.innerText = 'STOP';
+        const type = document.querySelector('#demo-input-type').value;
+        const frequency = document.querySelector('#demo-input-frequency').value;
+        context = new AudioContext();
+
+        await context.audioWorklet.addModule('basic-processor.js');
+
+        const basicProcessor = new AudioWorkletNode(context, 'basic-processor', {
+          processorOptions: {
+            type: type,
+            frequency: frequency
+          }
+        });
+        basicProcessor.connect(context.destination);
+        context.resume();
+      } else {
+        element.innerText = 'START';
+        if (context) {
+          context.suspend();
+          context.close();
+        }
+      }
+    }
+    
+    document.querySelector('#toogle').addEventListener('click', demoFunction);
+    document.querySelector('#demo-input-type')
+            .addEventListener('change', demoFunction);
+    document.querySelector('#demo-input-frequency')
+            .addEventListener('change', demoFunction);
+  </script>
+</body>
+
+</html>
+
+#}

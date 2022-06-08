@@ -18,4 +18,12 @@ brew doctor && brew cleanup
 
 ## 5/31/2022
 - mld tutorial almost finished
-- 
+
+## 6/6/2022
+- AudioWorklet pages done
+- hello audio worklet finished
+
+## 6/7/2022
+- DONE: node options, message port, noise generator
+- all audioworklet example first pass done
+- TODO: passthrough copy duplicate caused build error

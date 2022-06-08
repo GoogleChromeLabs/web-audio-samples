@@ -1,7 +1,7 @@
 ---
 eleventyNavigation:
-  key: hello-audio-worklet
-  title: Hello Audio Worklet!
+  key: one-pole-filter
+  title: One Pole Filter
   parent: audio-worklet
 to_root_dir: ../../../
 ---
@@ -11,8 +11,9 @@ to_root_dir: ../../../
 {% block content %}
 
 <h1>{{ eleventyNavigation.title }}</h1>
-<p>A simple AudioWorkletNode that bypasses the incoming audio stream to its
-  output. The sound source a sine oscillator at 440Hz.</p>
+<p>A one pole filter implementation with AudioWorkletNode. A noise generator
+  goes into an one-pole filter and a series of AudioParam automations is in
+  action to move the filter frequency.</p>
 <p>See
   <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
   Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>
