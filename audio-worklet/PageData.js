@@ -62,6 +62,11 @@ export default {
         title: 'Handling Errors',
         description: `How to handle errors from processor`,
         url: 'basic/handling-errors/',
+      },
+      {
+        title: 'Volume Meter',
+        description: `Measure microphone volume`,
+        url: 'basic/volume-meter/',
       }
     ],
   },
