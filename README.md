@@ -30,6 +30,11 @@ brew doctor && brew cleanup
 
 ## 6/13/2022
 - DONE: design pattern
+- TODO: supersaw example is still messy. let's clean up.
+
+## 6/14/2022
+- DONE: supersaw example is still messy. let's clean up.
 - TODO: SAb example needs to go to Netlify (do we have a tier-account?)
 - TODO: "target=blank" is everywhere. let's fix that
-- TODO: supersaw example is still messy. let's clean up.
+- TODO: https://github.com/marketplace/actions/push-git-subdirectory-as-branch
+- Also google style lint https://www.npmjs.com/package/eslint-config-google
