@@ -25,5 +25,11 @@ brew doctor && brew cleanup
 
 ## 6/7/2022
 - DONE: node options, message port, noise generator
-- all audioworklet example first pass done
+- all audioworklet basic example first pass done
 - TODO: passthrough copy duplicate caused build error
+
+## 6/13/2022
+- DONE: design pattern
+- TODO: SAb example needs to go to Netlify (do we have a tier-account?)
+- TODO: "target=blank" is everywhere. let's fix that
+- TODO: supersaw example is still messy. let's clean up.

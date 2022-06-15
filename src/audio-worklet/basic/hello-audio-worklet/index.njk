@@ -19,11 +19,7 @@ to_root_dir: ../../../
 
 <div class="demo-box">
   <button id="button-start" disabled>START</button>
-  <div class="text-sm text-right">
-    <a href="{{ global_data.githubUrl + page.url }}" target="_blank">
-      source code
-    </a>
-  </div>
+  {% include "../../../_includes/example-source-code.njk" %}
 </div>
 
 <script src="./main.js" type="module"></script>

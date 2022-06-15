@@ -1,0 +1,29 @@
+---
+eleventyNavigation:
+  key: ring-buffer-in-audioworkletprocessor
+  title: Ring Buffer in AudioWorkletProcessor
+  parent: audio-worklet
+to_root_dir: ../../../
+---
+
+{% extends to_root_dir + "_includes/base.njk" %}
+
+{% block content %}
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>This example demonstrates how to handle different buffer sizes between the
+  C++ audio processing kernel (1024 sample frames) and AudioWorkletProcessor
+  (128 sample frames).</p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/"
+    target="_blank">Chrome Developers Article: Audio Worklet Design Pattern</a>
+  for more details.</p>
+
+<div class="demo-box">
+  <button id="button-start" disabled>START</button>
+  {% include to_root_dir + "_includes/example-source-code.njk" %}
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}

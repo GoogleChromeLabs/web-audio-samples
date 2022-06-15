@@ -28,6 +28,14 @@ button[disabled] {
   @apply cursor-not-allowed opacity-50;
 }
 
+.inactive {
+  @apply fill-blue-400;
+}
+
+.active {
+  @apply fill-white;
+}
+
 @tailwind utilities;
 
 .footer {

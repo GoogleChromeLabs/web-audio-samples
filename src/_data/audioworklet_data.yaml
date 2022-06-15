@@ -36,7 +36,7 @@
     - title: Ring Buffer in AudioWorkletProcessor
       description: Using Ring Buffer to work around buffer size mismatch
       href: design-pattern/wasm-ring-buffer/
-    - title: Audio Worklet SharedArrayBuffer and Worker
+    - title: Audio Worklet, SharedArrayBuffer, and Worker
       description: For high performance large-scale audio applications
       href: design-pattern/shared-buffer/
 

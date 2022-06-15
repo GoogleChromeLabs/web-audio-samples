@@ -1,0 +1,29 @@
+---
+eleventyNavigation:
+  key: audio-worklet-and-web-assembly
+  title: Audio Worklet and WebAssembly
+  parent: audio-worklet
+to_root_dir: ../../../
+---
+
+{% extends to_root_dir + "_includes/base.njk" %}
+
+{% block content %}
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>A basic pattern to use Audio Worklet with WebAssembly. The
+  AudioWorkletProcessor simply bypasses (copies) the audio via the WebAssembly
+  function.</p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/"
+    target="_blank">Chrome Developers Article: Audio Worklet Design Pattern</a>
+  for more details.</p>
+
+<div class="demo-box">
+  <button id="button-start" disabled>START</button>
+  {% include to_root_dir + "_includes/example-source-code.njk" %}
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}
