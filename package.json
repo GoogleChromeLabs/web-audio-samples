@@ -11,7 +11,7 @@
     "start": "run-p start:*",
     "start:eleventy": "eleventy --serve",
     "start:postcss": "postcss src/styles/*.css --dir _site --watch",
-    "format": ""
+    "format": "npx eslint _site/audio-worklet/**/*.js"
   },
   "license": "MIT",
   "dependencies": {
