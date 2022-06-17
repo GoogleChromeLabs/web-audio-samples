@@ -48,9 +48,8 @@ class HeapAudioBuffer {
     this._isInitialized = false;
     this._module = wasmModule;
     this._length = length;
-    this._maxChannelCount = maxChannelCount
-        ? Math.min(maxChannelCount, MAX_CHANNEL_COUNT)
-        : channelCount;
+    this._maxChannelCount = maxChannelCount ?
+        Math.min(maxChannelCount, MAX_CHANNEL_COUNT) : channelCount;
     this._channelCount = channelCount;
     this._allocateHeap();
     this._isInitialized = true;
@@ -68,12 +67,13 @@ class HeapAudioBuffer {
     this._dataPtr = this._module._malloc(dataByteSize);
     this._channelData = [];
     for (let i = 0; i < this._channelCount; ++i) {
-      let startByteOffset = this._dataPtr + i * channelByteSize;
-      let endByteOffset = startByteOffset + channelByteSize;
+      const startByteOffset = this._dataPtr + i * channelByteSize;
+      const endByteOffset = startByteOffset + channelByteSize;
       // Get the actual array index by dividing the byte offset by 2 bytes.
       this._channelData[i] =
-          this._module.HEAPF32.subarray(startByteOffset >> BYTES_PER_UNIT,
-                                        endByteOffset >> BYTES_PER_UNIT);
+          this._module.HEAPF32.subarray(
+              startByteOffset >> BYTES_PER_UNIT,
+              endByteOffset >> BYTES_PER_UNIT);
     }
   }
 
@@ -129,8 +129,8 @@ class HeapAudioBuffer {
       return null;
     }
 
-    return typeof channelIndex === 'undefined'
-        ? this._channelData : this._channelData[channelIndex];
+    return typeof channelIndex === 'undefined' ?
+        this._channelData : this._channelData[channelIndex];
   }
 
   /**
@@ -214,9 +214,9 @@ class RingBuffer {
     // match with this buffer obejct.
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
-    let sourceLength = arraySequence[0].length;
+    const sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
-      let writeIndex = (this._writeIndex + i) % this._length;
+      const writeIndex = (this._writeIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         this._channelData[channel][writeIndex] = arraySequence[channel][i];
       }
@@ -248,11 +248,11 @@ class RingBuffer {
       return;
     }
 
-    let destinationLength = arraySequence[0].length;
+    const destinationLength = arraySequence[0].length;
 
     // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      let readIndex = (this._readIndex + i) % this._length;
+      const readIndex = (this._readIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         arraySequence[channel][i] = this._channelData[channel][readIndex];
       }

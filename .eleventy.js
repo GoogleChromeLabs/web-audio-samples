@@ -1,4 +1,4 @@
-const htmlmin = require('html-minifier');
+// const htmlmin = require('html-minifier');
 const yaml = require('js-yaml');
 const navigationPlugin = require('@11ty/eleventy-navigation');
 const path = require('path');
@@ -22,20 +22,21 @@ const writeBuildInfoToFile = () => {
   fs.writeFileSync('src/_data/build_info.json', jsonData);
 };
 
-const htmlMinifierCallback = (content, outputPath) => {
-  if (outputPath.endsWith('.html')) {
-    let minified = htmlmin.minify(content, {
-      useShortDoctype: true,
-      removeComments: true,
-      collapseWhitespace: true,
-    });
-    return minified;
-  }
-  return content;
-};
+// const htmlMinifierCallback = (content, outputPath) => {
+//   if (outputPath.endsWith('.html')) {
+//     let minified = htmlmin.minify(content, {
+//       useShortDoctype: true,
+//       removeComments: true,
+//       collapseWhitespace: true,
+//     });
+//     return minified;
+//   }
+//   return content;
+// };
 
 module.exports = function(eleventyConfig) {
   eleventyConfig.setUseGitIgnore(false);
+  
   eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
   eleventyConfig.addPlugin(navigationPlugin);
 
@@ -46,7 +47,7 @@ module.exports = function(eleventyConfig) {
   writeBuildInfoToFile();
 
   if (process.env.ELEVENTY_ENV === 'production') {
-    eleventyConfig.addTransform('htmlminifier', htmlMinifierCallback);
+    // eleventyConfig.addTransform('htmlminifier', htmlMinifierCallback);
   } else {
     eleventyConfig.setBrowserSyncConfig({});
   }

@@ -9,8 +9,9 @@ const startAudio = async (context, options) => {
   const oscillatorProcessor =
       new AudioWorkletNode(context, 'oscillator-processor', {
         processorOptions: {
-          waveformType: options.waveformType, 
-          frequency: options.frequency}});
+          waveformType: options.waveformType,
+          frequency: options.frequency,
+        }});
   oscillatorProcessor.connect(context.destination);
 };
 

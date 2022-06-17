@@ -24,11 +24,14 @@ class MessengerWorkletNode extends AudioWorkletNode {
   }
 }
 
-
 const audioContext = new AudioContext();
 
 const startAudio = async (context) => {
   await context.audioWorklet.addModule('messenger-processor.js');
+
+  // This worklet node does not need a connection to function. The
+  // AudioWorkletNode is automatically processed after construction.
+  // eslint-disable-next-line no-unused-vars
   const messengerWorkletNode = new MessengerWorkletNode(context);
 };
 

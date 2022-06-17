@@ -10,7 +10,8 @@
     "build:postcss": "ELEVENTY_ENV=production postcss src/styles/*.css --dir _site",
     "start": "run-p start:*",
     "start:eleventy": "eleventy --serve",
-    "start:postcss": "postcss src/styles/*.css --dir _site --watch"
+    "start:postcss": "postcss src/styles/*.css --dir _site --watch",
+    "format": ""
   },
   "license": "MIT",
   "dependencies": {

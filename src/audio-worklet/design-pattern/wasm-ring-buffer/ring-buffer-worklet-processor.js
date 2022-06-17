@@ -14,10 +14,8 @@
  * the License.
  */
 
-
 import Module from './variable-buffer-kernel.wasmmodule.js';
-import { HeapAudioBuffer, RingBuffer } from '../lib/wasm-audio-helper.js';
-
+import {HeapAudioBuffer, RingBuffer} from '../lib/wasm-audio-helper.js';
 
 /**
  * An example of AudioWorkletProcessor that uses RingBuffer inside. If your
@@ -69,8 +67,8 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
     // Use the 1st input and output only to make the example simpler. |input|
     // and |output| here have the similar structure with the AudioBuffer
     // interface. (i.e. An array of Float32Array)
-    let input = inputs[0];
-    let output = outputs[0];
+    const input = inputs[0];
+    const output = outputs[0];
 
     // AudioWorkletProcessor always gets 128 frames in and 128 frames out. Here
     // we push 128 frames into the ring buffer.
@@ -85,9 +83,10 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
       // |onaudioprocess| callback funciton. However, if the event handler
       // touches DOM in the main scope, it needs to be translated with the
       // async messaging via MessagePort.
-      this._kernel.process(this._heapInputBuffer.getHeapAddress(),
-                           this._heapOutputBuffer.getHeapAddress(),
-                           this._channelCount);
+      this._kernel.process(
+          this._heapInputBuffer.getHeapAddress(),
+          this._heapOutputBuffer.getHeapAddress(),
+          this._channelCount);
 
       // Fill the output ring buffer with the processed data.
       this._outputRingBuffer.push(this._heapOutputBuffer.getChannelData());

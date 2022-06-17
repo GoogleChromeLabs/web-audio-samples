@@ -76,7 +76,7 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
    * @param {Float32Array} inputChannelData The input data.
    */
   _pushInputChannelData(inputChannelData) {
-    let inputWriteIndex = this._states[STATE.IB_WRITE_INDEX];
+    const inputWriteIndex = this._states[STATE.IB_WRITE_INDEX];
 
     if (inputWriteIndex + inputChannelData.length < this._ringBufferLength) {
       // If the ring buffer has enough space to push the input.
@@ -85,9 +85,9 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
     } else {
       // When the ring buffer does not have enough space so the index needs to
       // be wrapped around.
-      let splitIndex = this._ringBufferLength - inputWriteIndex;
-      let firstHalf = inputChannelData.subarray(0, splitIndex);
-      let secondHalf = inputChannelData.subarray(splitIndex);
+      const splitIndex = this._ringBufferLength - inputWriteIndex;
+      const firstHalf = inputChannelData.subarray(0, splitIndex);
+      const secondHalf = inputChannelData.subarray(splitIndex);
       this._inputRingBuffer[0].set(firstHalf, inputWriteIndex);
       this._inputRingBuffer[0].set(secondHalf);
       this._states[STATE.IB_WRITE_INDEX] = secondHalf.length;
@@ -112,9 +112,9 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
           this._outputRingBuffer[0].subarray(outputReadIndex, nextReadIndex));
       this._states[STATE.OB_READ_INDEX] += outputChannelData.length;
     } else {
-      let overflow = nextReadIndex - this._ringBufferLength;
-      let firstHalf = this._outputRingBuffer[0].subarray(outputReadIndex);
-      let secondHalf = this._outputRingBuffer[0].subarray(0, overflow);
+      const overflow = nextReadIndex - this._ringBufferLength;
+      const firstHalf = this._outputRingBuffer[0].subarray(outputReadIndex);
+      const secondHalf = this._outputRingBuffer[0].subarray(0, overflow);
       outputChannelData.set(firstHalf);
       outputChannelData.set(secondHalf, firstHalf.length);
       this._states[STATE.OB_READ_INDEX] = secondHalf.length;
@@ -147,8 +147,8 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
 
     return true;
   }
-} // class SharedBufferWorkletProcessor
+}
 
+registerProcessor(
+    'shared-buffer-worklet-processor', SharedBufferWorkletProcessor);
 
-registerProcessor('shared-buffer-worklet-processor',
-                  SharedBufferWorkletProcessor);

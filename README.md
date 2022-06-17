@@ -37,4 +37,9 @@ brew doctor && brew cleanup
 - TODO: SAb example needs to go to Netlify (do we have a tier-account?)
 - TODO: "target=blank" is everywhere. let's fix that
 - TODO: https://github.com/marketplace/actions/push-git-subdirectory-as-branch
+- TODO: README.md gets built to html. don't do that
+
+## 6/16/2022
 - Also google style lint https://www.npmjs.com/package/eslint-config-google
+- HTML prettify https://www.npmjs.com/package/pretty
+- add npm run comment for lint + html prettify on site/{audio-worklet}
