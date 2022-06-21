@@ -9,7 +9,8 @@
   ],
   "ignorePatterns": [
     "_site/**/*.wasm.js",
-    "_site/**/*.wasmmodule.js"
+    "_site/**/*.wasmmodule.js",
+    "_site/archive/"
   ],
   "parserOptions": {
     "ecmaVersion": 12,

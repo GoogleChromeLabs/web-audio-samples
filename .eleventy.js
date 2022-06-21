@@ -1,4 +1,7 @@
-// const htmlmin = require('html-minifier');
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 const yaml = require('js-yaml');
 const navigationPlugin = require('@11ty/eleventy-navigation');
 const path = require('path');
@@ -22,51 +25,46 @@ const writeBuildInfoToFile = () => {
   fs.writeFileSync('src/_data/build_info.json', jsonData);
 };
 
-// const htmlMinifierCallback = (content, outputPath) => {
-//   if (outputPath.endsWith('.html')) {
-//     let minified = htmlmin.minify(content, {
-//       useShortDoctype: true,
-//       removeComments: true,
-//       collapseWhitespace: true,
-//     });
-//     return minified;
-//   }
-//   return content;
-// };
-
 module.exports = function(eleventyConfig) {
-  eleventyConfig.setUseGitIgnore(false);
-  
-  eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
-  eleventyConfig.addPlugin(navigationPlugin);
-
-  eleventyConfig.addFilter('relativePath', (fromPage, toUrl) => {
-    return path.relative(fromPage.url, toUrl);
-  });
-
   writeBuildInfoToFile();
 
-  if (process.env.ELEVENTY_ENV === 'production') {
-    // eleventyConfig.addTransform('htmlminifier', htmlMinifierCallback);
-  } else {
+  // See .eleventyignore for files to ignore.
+  eleventyConfig.setUseGitIgnore(false);
+  
+  // To enable YAML files in `_data`.
+  eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
+  
+  // To handle relative paths and basic navigation via breadcrumbs.
+  eleventyConfig.addPlugin(navigationPlugin);
+  eleventyConfig.addFilter('relativePath', (fromPage, toUrl) => {
+    return path.relative(fromPage.url, toUrl);
+  }); 
+
+  if (process.env.ELEVENTY_ENV !== 'production') {
     eleventyConfig.setBrowserSyncConfig({});
   }
 
-  // eleventyConfig.addWatchTarget('./scripts/*.js');
-  eleventyConfig.addWatchTarget('./src/styles/styles.css');
+  eleventyConfig.addWatchTarget('src/**/*.js');
+  eleventyConfig.addWatchTarget('src/styles/styles.css');
   
-  // eleventyConfig.addPassthroughCopy('src/scripts');
-  eleventyConfig.addPassthroughCopy('src/style.css');
-  eleventyConfig.addPassthroughCopy('src/**/*.js');
-  eleventyConfig.addPassthroughCopy('src/**/*.mp3');
-  eleventyConfig.addPassthroughCopy('src/**/*.wav');
-  // eleventyConfig.addPassthroughCopy('src/audio-worklet');
-  // eleventyConfig.addPassthroughCopy('src/demos/**/*.js');
-  // eleventyConfig.addPassthroughCopy('src/archive');
+  // Do not process and passthrough these directories.
+  [
+    'src/audio-worklet/**/*.html',
+    'src/audio-worklet/**/*.js',
+    'src/demos/**/*.css',
+    'src/demos/**/*.html',
+    'src/demos/**/*.js',
+    'src/archive/**/*.css',
+    'src/archive/**/*.html',
+    'src/archive/**/*.js',
+    'src/robots.txt',
+    'src/sitemap.xml',
+  ].map((path) => {
+    eleventyConfig.addPassthroughCopy(path);
+  });
+
   // eleventyConfig.addPassthroughCopy('src/sounds');
   // eleventyConfig.addPassthroughCopy('src/favicon');
-  eleventyConfig.addPassthroughCopy('src/robots.txt');
-  eleventyConfig.addPassthroughCopy('src/sitemap.xml');
 
   return {
     dir: {input: 'src'}
