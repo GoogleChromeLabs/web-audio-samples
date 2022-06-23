@@ -47,16 +47,29 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addWatchTarget('src/**/*.js');
   eleventyConfig.addWatchTarget('src/styles/styles.css');
   
-  // Do not process and passthrough these directories.
+  // Passthrough files via these glob patterns.
   [
-    'src/audio-worklet/**/*.html',
-    'src/audio-worklet/**/*.js',
-    'src/demos/**/*.css',
-    'src/demos/**/*.html',
-    'src/demos/**/*.js',
     'src/archive/**/*.css',
     'src/archive/**/*.html',
     'src/archive/**/*.js',
+    'src/audio-worklet/**/*.html',
+    'src/audio-worklet/**/*.js',
+    'src/demos/**/*.css',
+    'src/demos/**/*.gif',
+    'src/demos/**/*.html',
+    'src/demos/**/*.js',
+    'src/demos/**/*.mjs',
+    'src/demos/**/*.mp3',
+    'src/demos/**/*.png',
+    'src/demos/**/*.shader',
+    'src/demos/**/*.wav',
+    'src/demos/**/*.webmanifest',
+    'src/demos/**/*.zip',
+    'src/demos/wavetable-synth/wave-tables/*',
+    'src/sounds/drum-samples/**/*.wav',
+    'src/sounds/hyper-reality/**/*.mp3',
+    'src/sounds/hyper-reality/**/*.wav',
+    'src/sounds/impulse-responses/**/*.wav',
     'src/robots.txt',
     'src/sitemap.xml',
   ].map((path) => {

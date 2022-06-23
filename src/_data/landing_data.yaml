@@ -64,13 +64,10 @@
       description: For smoke testing
       href: demos/stress-box/
     - title: Wavetable Synthesizer
-      href: archive/wavetable-synth.html
+      href: demos/wavetable-synth/
     - title: AnalyserNode with visualization 
-      href: archive/visualizer-gl.html
+      href: demos/visualizer/
     - title: Panning and Reverberation
-      href: archive/simple.html
+      href: demos/panning-reverberation/
     - title: 8 Ball with 3D audio
-      href: archive/o3d-webgl-samples/pool.html
-    - title: Old demo collection
-      href: archive/
-    
+      href: demos/pool/
