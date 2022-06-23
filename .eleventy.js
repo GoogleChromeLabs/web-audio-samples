@@ -1,7 +1,3 @@
-// Copyright (c) 2022 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 const yaml = require('js-yaml');
 const navigationPlugin = require('@11ty/eleventy-navigation');
 const path = require('path');
@@ -71,12 +67,12 @@ module.exports = function(eleventyConfig) {
     'src/sounds/hyper-reality/**/*.wav',
     'src/sounds/impulse-responses/**/*.wav',
     'src/robots.txt',
+    'src/README.md',
     'src/sitemap.xml',
   ].map((path) => {
     eleventyConfig.addPassthroughCopy(path);
   });
 
-  // eleventyConfig.addPassthroughCopy('src/sounds');
   // eleventyConfig.addPassthroughCopy('src/favicon');
 
   return {

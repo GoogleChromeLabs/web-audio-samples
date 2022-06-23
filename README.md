@@ -1,80 +1,38 @@
-# Package Maintenance (04/29/2022)
+# Web Audio Samples by Chrome Web Audio Team
 
-brew doctor
-brew update --verbose
-brew upgrade
-brew doctor && brew cleanup
+This branch contains the source codes of the Web Audio Samples site. See the
+actual site built from the source, see `gh-pages` branch.
 
-# Log
+## Development
 
-## 4/29/2022
-- Set up packages. npm run start now works.
+1. Clone the repository.
+2. `npm install`
+3. To fire up the local dev server, `npm run start`
+4. Make sure to run `npm run format` to apply linting/formatting.
+5. To deploy, `npm run deploy`
 
-## 5/4/2022
-- The landing page structure is completed.
+## Support
 
-## 5/23/2022
-- TODO: AudioWorklet pages
-
-## 5/31/2022
-- mld tutorial almost finished
-
-## 6/6/2022
-- AudioWorklet pages done
-- hello audio worklet finished
-
-## 6/7/2022
-- DONE: node options, message port, noise generator
-- all audioworklet basic example first pass done
-
-## 6/13/2022
-- DONE: design pattern
-- TODO: supersaw example is still messy. let's clean up.
-
-## 6/14/2022
-- DONE: supersaw example is still messy. let's clean up.
-
-## 6/16/2022
-- Also google style lint https://www.npmjs.com/package/eslint-config-google
-- HTML prettify https://www.npmjs.com/package/pretty
-- DONE add npm run comment for lint
-- DONE html prettify on site/{audio-worklet}
-
-## 6/17/2022
-- README.md gets built to html. don't do that [DONE]
-- Build
-  - Translate
-    - njk -> directory/index.html [DONE]
-  - Passthrough
-    - **/README.md (do not translate) [DONE]
-    - **/*.js [DONE]
-    - ./archive [DONE]
-- Lint/Format
-  - Ignore
-    - **/*.wasmmodule.js [DONE]
-    - **/*.wasm.js [DONE]
-    - ./archive [DONE]
+If you have found an error in this library, please file an issue at: 
+https://github.com/GoogleChromeLabs/web-audio-samples/issues.
 
 
-## 06/20/2022
-- [DONE]: *.njk file shouldn't passthrough
-- [DONE]: npm run format now works on audio-worklet directory
-- [DONE]: "target=blank" is everywhere. let's fix that
+## Contribution
 
-## 06/21/2022
-- [DONE]: Some legacy examples should work: Wavetable Synth, Box2D stress test, 
-  AnalyserNode visualization, panning, 8ball with 3D audio
+Patches are encouraged, and may be submitted by forking this project and
+submitting a pull request through GitHub. See CONTRIBUTING.md for more detail.
 
-## 6/22/2022
-- [TODO]: write README
-- [TODO]: Make a TODO list for contributors
-- [TODO]: push _site directory to gh-pages branch
+## License
 
----
+Copyright 2018 Google, Inc.
 
-## TODO
-- TODO: SAb example needs to go to Netlify (do we have a tier-account?)
-- TODO: remove old demo collection
-- TODO: https://github.com/marketplace/actions/push-git-subdirectory-as-branch
-  - git subtree split --branch gh-pages --prefix _site/
-    (see https://stackoverflow.com/questions/32616844/git-how-to-push-a-subdirectory-to-a-separate-branch-of-the-same-repository)
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
