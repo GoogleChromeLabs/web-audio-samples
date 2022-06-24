@@ -63,15 +63,16 @@ module.exports = function(eleventyConfig) {
     'src/demos/**/*.zip',
     'src/demos/wavetable-synth/wave-tables/*',
     'src/sounds/drum-samples/**/*.wav',
+    'src/sounds/fx/**/*.wav',
+    'src/sounds/fx/**/*.mp3',
     'src/sounds/hyper-reality/**/*.mp3',
     'src/sounds/hyper-reality/**/*.wav',
     'src/sounds/impulse-responses/**/*.wav',
+    'src/sounds/loops/**/*.wav',
     'src/robots.txt',
     'src/README.md',
     'src/sitemap.xml',
-  ].map((path) => {
-    eleventyConfig.addPassthroughCopy(path);
-  });
+  ].map(path => eleventyConfig.addPassthroughCopy(path));
 
   // eleventyConfig.addPassthroughCopy('src/favicon');
 

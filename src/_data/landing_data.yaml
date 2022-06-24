@@ -19,30 +19,6 @@
       description: Web Audio code editor and visual debugger
       href: https://hoch.github.io/canopy/
 
-- title: Projects
-  entries:
-    - title: Omnitone
-      description: 360° audio renderer for AR/VR web apps
-      href: https://googlechrome.github.io/omnitone/
-    - title: Resonance Audio for Web
-      description: 3D Audio SDK powered by Omnitone
-      href: https://developers.google.com/resonance-audio/develop/web/getting-started
-    - title: Chrome Music Lab
-      description: Learning music through web technology
-      href: https://musiclab.chromeexperiments.com/
-    - title: "Google Doodle: Hiphop"
-      description: 44th Anniversary of the Birth of Hip Hop
-      href: https://www.google.com/doodles/44th-anniversary-of-the-birth-of-hip-hop
-    - title: "Google Doodle: Clara Rockmore"
-      description: "Clara Rockmore's 105th Birthday"
-      href: https://www.google.com/doodles/clara-rockmores-105th-birthday
-    - title: "Google Doodle: Robert Moog's 78th Birthday"
-      description: "Robert Moog's 78th Birthday"
-      href: https://www.google.com/doodles/robert-moogs-78th-birthday
-    - title: Web Audio Weekly
-      description: A newsletter curates notable Web Audio projects
-      href: https://www.webaudioweekly.com/
-
 - title: Demos
   entries:
     - title: Web Audio Demos
@@ -69,5 +45,26 @@
       href: demos/visualizer/
     - title: Panning and Reverberation
       href: demos/panning-reverberation/
-    - title: 8 Ball with 3D audio
+    - title: WebGL Pool with 3D audio
       href: demos/pool/
+
+- title: Selected Projects
+  entries:
+    - title: Omnitone
+      description: 360° audio renderer for AR/VR web apps
+      href: https://googlechrome.github.io/omnitone/
+    - title: Resonance Audio for Web
+      description: 3D Audio SDK powered by Omnitone
+      href: https://developers.google.com/resonance-audio/develop/web/getting-started
+    - title: Chrome Music Lab
+      description: Learning music through web technology
+      href: https://musiclab.chromeexperiments.com/
+    - title: "Google Doodle: Hiphop"
+      description: 44th Anniversary of the Birth of Hip Hop
+      href: https://www.google.com/doodles/44th-anniversary-of-the-birth-of-hip-hop
+    - title: "Google Doodle: Clara Rockmore"
+      description: "Clara Rockmore's 105th Birthday"
+      href: https://www.google.com/doodles/clara-rockmores-105th-birthday
+    - title: "Google Doodle: Robert Moog's 78th Birthday"
+      description: "Robert Moog's 78th Birthday"
+      href: https://www.google.com/doodles/robert-moogs-78th-birthday

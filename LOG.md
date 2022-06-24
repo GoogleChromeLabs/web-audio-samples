@@ -66,16 +66,27 @@ brew doctor && brew cleanup
   AnalyserNode visualization, panning, 8ball with 3D audio
 
 ## 6/22/2022
-- [TODO]: Make a TODO list for contributors
-- [TODO]: weed out unused audio files
+- [DONE]: write README.md
+
+## 6/23/2022
+- [DONE]: weed out unused audio files
+
+## 6/24/2022
+- [TODO]: apply format/lint to demos/
+- [TODO]: push _site directory to gh-pages branch
 
 ---
 
 ## TODO
-- [TODO]: push _site directory to gh-pages branch
-
-- TODO: SAb example needs to go to Netlify (do we have a tier-account?)
-- TODO: remove old demo collection
+- TODO: Make a TODO list for contributors
+- TODO: clean up license all files.
+- TODO: SAB examples need to be deployed to Netlify. (chrome web audio account?)
 - TODO: https://github.com/marketplace/actions/push-git-subdirectory-as-branch
   - git subtree split --branch gh-pages --prefix _site/
     (see https://stackoverflow.com/questions/32616844/git-how-to-push-a-subdirectory-to-a-separate-branch-of-the-same-repository)
+
+# Branches
+- main: site source
+- gh-pages: actual site
+- archive: V2 and earlier projects/examples
+

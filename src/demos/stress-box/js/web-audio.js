@@ -1,9 +1,7 @@
 const filePath = {
-  ping: '../../sounds/hyper-reality/filter-noise-2.wav',
-  impulse: '../../sounds/impulse-responses/tim-warehouse/' +
-      'cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav'
+  ping: '../../sounds/fx/filter-noise-2.wav',
+  impulse: '../../sounds/impulse-responses/cardiod-true-stereo-15-8.wav'
 };
-
 
 class AudioNodeCounter {
 

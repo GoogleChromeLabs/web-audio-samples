@@ -252,30 +252,6 @@ const IMPULSE_RESPONSE_DATA = freeze([
     wetMix: 0.9,
   },
   {
-    name: 'Kitchen',
-    url: 'impulse-responses/house-impulses/kitchen-true-stereo.wav',
-    dryMix: 1,
-    wetMix: 1,
-  },
-  {
-    name: 'Living Room',
-    url: 'impulse-responses/house-impulses/dining-living-true-stereo.wav',
-    dryMix: 1,
-    wetMix: 1,
-  },
-  {
-    name: 'Living-Bedroom',
-    url: 'impulse-responses/house-impulses/living-bedroom-leveled.wav',
-    dryMix: 1,
-    wetMix: 1,
-  },
-  {
-    name: 'Dining-Far-Kitchen',
-    url: 'impulse-responses/house-impulses/dining-far-kitchen.wav',
-    dryMix: 1,
-    wetMix: 1,
-  },
-  {
     name: 'Medium Hall 1',
     url: 'impulse-responses/matrix-reverb2.wav',
     dryMix: 1,
@@ -306,23 +282,10 @@ const IMPULSE_RESPONSE_DATA = freeze([
     wetMix: 1,
   },
   {
-    name: 'Warehouse',
-    url: 'impulse-responses/tim-warehouse/cardiod-rear-35-10/' +
-          'cardiod-rear-levelled.wav',
-    dryMix: 1,
-    wetMix: 1,
-  },
-  {
     name: 'Diffusor',
     url: 'impulse-responses/diffusor3.wav',
     dryMix: 1,
     wetMix: 1,
-  },
-  {
-    name: 'Binaural Hall',
-    url: 'impulse-responses/bin_dfeq/s2_r4_bd.wav',
-    dryMix: 1,
-    wetMix: 0.5,
   },
   {
     name: 'Huge',

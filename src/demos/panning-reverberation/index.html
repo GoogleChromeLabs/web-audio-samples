@@ -78,14 +78,14 @@ var bufferList;
 
 var fileCount = 8;
 var fileList = [
-    "../../sounds/hyper-reality/white-noise.wav",
-    "../../sounds/hyper-reality/human-voice.mp4",
-    "../../sounds/effects/ticking.wav",
-    "../../sounds/effects/waves.wav",
-    "../../sounds/effects/cauldron.wav",
-    "../../sounds/hyper-reality/obama-oilspill.mp4",
-    "../../sounds/hyper-reality/penny-spinning.wav",
-    "../../sounds/drum-samples/breakbeat.wav",
+    "../../sounds/fx/white-noise.wav",
+    "../../sounds/fx/human-voice.mp3",
+    "../../sounds/fx/ticking.wav",
+    "../../sounds/fx/waves.wav",
+    "../../sounds/fx/cauldron.wav",
+    "../../sounds/fx/obama-oilspill.mp3",
+    "../../sounds/fx/penny-spinning.wav",
+    "../../sounds/loops/breakbeat.wav",
 ];
 
 var kInitialReverbLevel = 0.6;
@@ -489,73 +489,73 @@ function handleElevationMouseMove(event) {
 <h1>Acoustic Spaces</h1>
 
 <form>
-  <input type="radio" name="reverb" value="binaural"  checked="checked" onClick="setReverbImpulseResponse('impulse-responses/bin_dfeq/s3_r4_bd.wav');">
+  <input type="radio" name="reverb" value="binaural"  checked="checked" onClick="setReverbImpulseResponse('../../sounds/impulse-responses/binaural-s3_r4_bd.wav');">
   Binaural<br/>
 
-  <input type="radio" name="reverb" value="warehouse cardiod-25-10-spread"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-35-10/cardiod-35-10-spread.wav');">
+  <input type="radio" name="reverb" value="warehouse cardiod-25-10-spread"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-35-10-spread.wav');">
 Warehouse Cardiod-35-10-spread<br/>
 
-  <input type="radio" name="reverb" value="warehouse cardiod-rear-35-10"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-rear-35-10/cardiod-rear-35-10.wav');">
+  <input type="radio" name="reverb" value="warehouse cardiod-rear-35-10"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-rear-35-10.wav');">
 Warehouse Cardiod-rear-35-10<br/>
 
-  <input type="radio" name="reverb" value="warehouse super-ceiling-35-10"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/super-ceiling-35-10/super-ceiling-35-10.wav');">
+  <input type="radio" name="reverb" value="warehouse super-ceiling-35-10"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/super-ceiling-35-10.wav');">
 Warehouse Super-ceiling-35-10<br/>
 
-  <input type="radio" name="reverb" value="warehouse omni-35-10"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/omni-35-10/omni-35-10.wav');">
+  <input type="radio" name="reverb" value="warehouse omni-35-10"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/omni-35-10.wav');">
 Warehouse Omni-35-10<br/>
 
-  <input type="radio" name="reverb" value="warehouse true-stereo-15-8"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/cardiod-true-stereo-15-8/cardiod-true-stereo-15-8.wav');">
+  <input type="radio" name="reverb" value="warehouse true-stereo-15-8"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-true-stereo-15-8.wav');">
 Warehouse True-Stereo-15-8<br/>
 
-  <input type="radio" name="reverb" value="spatialized 1"  onClick="setReverbImpulseResponse('impulse-responses/spatialized1.wav');">
+  <input type="radio" name="reverb" value="spatialized 1"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized1.wav');">
 spatialized 1 (huge spacious)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 2"  onClick="setReverbImpulseResponse('impulse-responses/spatialized2.wav');">
+  <input type="radio" name="reverb" value="spatialized 2"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized2.wav');">
 spatialized 2 (outside)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 3"  onClick="setReverbImpulseResponse('impulse-responses/spatialized3.wav');">
+  <input type="radio" name="reverb" value="spatialized 3"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized3.wav');">
 spatialized 3 (outside)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 4"  onClick="setReverbImpulseResponse('impulse-responses/spatialized4.wav');">
+  <input type="radio" name="reverb" value="spatialized 4"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized4.wav');">
 spatialized 4 (huge spacious)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 5"  onClick="setReverbImpulseResponse('impulse-responses/spatialized5.wav');">
+  <input type="radio" name="reverb" value="spatialized 5"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized5.wav');">
 spatialized 5 (backwards)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 6"  onClick="setReverbImpulseResponse('impulse-responses/spatialized6.wav');">
+  <input type="radio" name="reverb" value="spatialized 6"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized6.wav');">
 spatialized 6 (cosmic)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 7"  onClick="setReverbImpulseResponse('impulse-responses/spatialized7.wav');">
+  <input type="radio" name="reverb" value="spatialized 7"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized7.wav');">
 spatialized 7 (dark cathedral)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 8"  onClick="setReverbImpulseResponse('impulse-responses/spatialized8.wav');">
+  <input type="radio" name="reverb" value="spatialized 8"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized8.wav');">
 spatialized 8 (medium open)<br/>
 
-  <input type="radio" name="reverb" value="spatialized 9"  onClick="setReverbImpulseResponse('impulse-responses/spatialized9.wav');">
+  <input type="radio" name="reverb" value="spatialized 9"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized9.wav');">
 spatialized 9 (medium open)<br/>
 
-  <input type="radio" name="reverb" value="echo chamber"  onClick="setReverbImpulseResponse('impulse-responses/echo-chamber.wav');">
+  <input type="radio" name="reverb" value="echo chamber"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/echo-chamber.wav');">
 Echo Chamber<br/>
 
-  <input type="radio" name="reverb" value="noise spreader"  onClick="setReverbImpulseResponse('impulse-responses/noise-spreader1.wav');">
+  <input type="radio" name="reverb" value="noise spreader"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/noise-spreader1.wav');">
 Noise Spreader<br/>
 
-  <input type="radio" name="reverb" value="fluttery"  onClick="setReverbImpulseResponse('impulse-responses/peculiar-backwards.wav');">
+  <input type="radio" name="reverb" value="fluttery"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/peculiar-backwards.wav');">
 Fluttery<br/>
 
-  <input type="radio" name="reverb" value="sifter"  onClick="setReverbImpulseResponse('impulse-responses/sifter.wav');">
+  <input type="radio" name="reverb" value="sifter"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/sifter.wav');">
 Sifter<br/>
 
-  <input type="radio" name="reverb" value="wild echo"  onClick="setReverbImpulseResponse('impulse-responses/wildecho.wav');">
+  <input type="radio" name="reverb" value="wild echo"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/wildecho.wav');">
 Wild Echo<br/>
 
-  <input type="radio" name="reverb" value="backslap"  onClick="setReverbImpulseResponse('impulse-responses/backslap1.wav');">
+  <input type="radio" name="reverb" value="backslap"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/backslap1.wav');">
 backslap<br/>
 
-  <input type="radio" name="reverb" value="tim-stretch2"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/tim-stretch2.wav');">
+  <input type="radio" name="reverb" value="tim-stretch2"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/tim-stretch2.wav');">
 tim-stretch2<br/>
 
-  <input type="radio" name="reverb" value="time-warehouse-stretch1"  onClick="setReverbImpulseResponse('impulse-responses/tim-warehouse/tim-warehouse-stretch1.wav');">
+  <input type="radio" name="reverb" value="time-warehouse-stretch1"  onClick="setReverbImpulseResponse('../../sounds/impulse-responses/tim-warehouse-stretch1.wav');">
 tim-warehouse-stretch1.wav<br/>
 </form>
 

@@ -5,6 +5,13 @@ actual site built from the source, see `gh-pages` branch.
 
 ## Development
 
+### Branch structure
+- `main`: site source
+- `gh-pages`: the actual site built from `main`
+- `archive`: old projects/examples (V2 and earlier)
+
+### How to make changes and depoly
+
 1. Clone the repository.
 2. `npm install`
 3. To fire up the local dev server, `npm run start`

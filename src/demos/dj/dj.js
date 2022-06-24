@@ -7,7 +7,7 @@ window.onload = init;
 const tempo = 120.0; // hardcoded for now
 let anchorTime = 0;
 
-const BASE_URL = '../../sounds/drum-samples/loops/';
+const BASE_URL = '../../sounds/loops/';
 
 const TRACKS = [
   'blueyellow',
@@ -253,7 +253,7 @@ async function init() {
   // Load initial loop samples and reverb.
   const loadEffect = async () => {
     convolver.buffer = await fetchAndDecodeAudio(context,
-        '../../sounds/impulse-responses/filter-rhythm2.wav');
+        '../../sounds/impulse-responses/filter-rhythm3.wav');
   };
   const loaded = Promise.all([
     loadEffect(),
