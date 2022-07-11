@@ -14,7 +14,7 @@ actual site built from the source, see `gh-pages` branch.
 
 1. Clone the repository.
 2. `npm install`
-3. To fire up the local dev server, `npm run start`
+3. To fire up the local dev server, `npm run start`.
 4. Make sure to run `npm run format` to apply linting/formatting.
 5. To deploy, `npm run deploy`
 
@@ -22,7 +22,6 @@ actual site built from the source, see `gh-pages` branch.
 
 If you have found an error in this library, please file an issue at: 
 https://github.com/GoogleChromeLabs/web-audio-samples/issues.
-
 
 ## Contribution
 

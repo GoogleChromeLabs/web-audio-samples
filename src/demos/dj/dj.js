@@ -240,7 +240,7 @@ async function init() {
   meter.connect(postCompressorGain);
 
   const trackContainer = document.getElementById('tracks');
-  const template = trackContainer.querySelector('template');  
+  const template = trackContainer.querySelector('template');
   for (const track of TRACKS) {
     const trackElement = template.content.firstElementChild.cloneNode(true);
     trackElement.dataset.track = track;

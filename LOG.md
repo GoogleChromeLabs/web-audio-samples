@@ -71,7 +71,7 @@ brew doctor && brew cleanup
 ## 6/23/2022
 - [DONE]: weed out unused audio files
 
-## 6/24/2022
+## 7/11/2022
 - [TODO]: apply format/lint to demos/
 - [TODO]: push _site directory to gh-pages branch
 
