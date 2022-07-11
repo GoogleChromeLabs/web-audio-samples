@@ -23,7 +23,7 @@ jobs:
     - name: deploy _site to gh-pages
       uses: s0/git-publish-subdir-action@develop
       env:
-        REPO: git@github.com:hoch/was-staging.git
+        REPO: self
         BRANCH: gh-pages
         FOLDER: _site
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
