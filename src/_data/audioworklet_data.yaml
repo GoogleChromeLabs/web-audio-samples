@@ -16,6 +16,9 @@
       description: Messaging between an AudioWorkletNode and the associated
         AudioWorkletProcessor
       href: basic/message-port/
+    - title: Volume Meter
+      description: Measures microphone volume with AudioWorkletProcessor
+      href: basic/volume-meter/
     - title: AudioWorkletNode Options
       description: Passing AudioWorkletNodeOptions from the node to the
         associated AudioWorkletProcessor
