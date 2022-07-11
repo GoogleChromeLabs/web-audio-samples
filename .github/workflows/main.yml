@@ -13,15 +13,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
-        node-version: 10.x
+        node-version: 16
     - name: npm install and build
       run: |
         npm install
         npm run build
     - name: deploy _site to gh-pages
-      uses: s0/git-publish-subdir-action@develop
+      uses: s0/git-publish-subdir-action@2.5.1
       env:
         REPO: git@github.com:hoch/was-staging.git
         BRANCH: gh-pages
