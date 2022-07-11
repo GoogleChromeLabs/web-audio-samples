@@ -1,0 +1,29 @@
+name: Build and deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    name: Build and deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: npm install and build
+      run: |
+        npm install
+        npm run build
+    - name: deploy _site to gh-pages
+      uses: s0/git-publish-subdir-action@develop
+      env:
+        REPO: git@github.com:hoch/was-staging.git
+        BRANCH: gh-pages
+        FOLDER: _site
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
