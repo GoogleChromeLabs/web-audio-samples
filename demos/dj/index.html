@@ -1,0 +1,120 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html>
+<html class="paused" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Audio DJ</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+    <link rel="stylesheet" type="text/css" href = "dj.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎛️</text></svg>">
+  </head>
+  <body class="mdc-typography">
+    <div class="decks">
+      <div class="deck">
+        <div class="dials">
+          <div class="dial filter">
+            Filter
+            <div class="control"></div>
+            <div class="value"></div>
+          </div>
+          <div class="dial effect">
+            Effect
+            <div class="control"></div>
+            <div class="value"></div>
+          </div>
+        </div>
+        <div class="viz mdc-card drop-target" data-deck='source1'>
+          <div class="track"></div>
+          <div class="viz-content"></div>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="dial play hide-playing">
+          Play
+          <div class="button">
+            <div class="overlay">▶</div>
+            <div id="play"></div>
+          </div>
+          <div>&nbsp;</div>
+        </div>
+        <div class="dial disabled hide-paused">
+          Beat
+          <div id="time"></div>
+          <div id="time-value"></div>
+        </div>
+        <div class="viz mdc-card">
+          <div id="meter"></div>
+        </div>
+      </div>
+
+      <div class="deck">
+        <div class="dials">
+          <div class="dial filter">
+            Filter
+            <div class="control"></div>
+            <div class="value"></div>
+          </div>
+          <div class="dial effect">
+            Effect
+            <div class="control"></div>
+            <div class="value"></div>
+          </div>
+        </div>
+        <div class="viz mdc-card drop-target" data-deck='source2'>
+          <div class="track"></div>
+          <div class="viz-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="crossfader">
+      <div id="crossfader"></div>
+    </div>
+
+    <div class="tracks" id="tracks">
+      <template>
+        <div class="mdc-card track" draggable="true"></div>
+      </template>
+    </div>
+
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nexusui@2.1.6/dist/NexusUI.js"></script>
+    <script>
+      console.warn('This project uses NexusUI, which uses the deprecated ScriptProcessorNode.');
+    </script>
+    <script type="module" src="dj.js"></script>
+  </body>
+</html>

@@ -86,17 +86,20 @@ function processKernel() {
   let inputReadIndex = States[STATE.IB_READ_INDEX];
   let outputWriteIndex = States[STATE.OB_WRITE_INDEX];
 
-  if (isNaN(InputRingBuffer[0][inputReadIndex]))
+  if (isNaN(InputRingBuffer[0][inputReadIndex])) {
     console.error('Found NaN at buffer index: %d', inputReadIndex);
+  }
 
   // A stupid processing kernel that clones audio data sample-by-sample. Also
   // note here we are handling only the first channel.
   for (let i = 0; i < CONFIG.kernelLength; ++i) {
     OutputRingBuffer[0][outputWriteIndex] = InputRingBuffer[0][inputReadIndex];
-    if (++outputWriteIndex === CONFIG.ringBufferLength)
+    if (++outputWriteIndex === CONFIG.ringBufferLength) {
       outputWriteIndex = 0;
-    if (++inputReadIndex === CONFIG.ringBufferLength)
+    }
+    if (++inputReadIndex === CONFIG.ringBufferLength) {
       inputReadIndex = 0;
+    }
   }
 
   States[STATE.IB_READ_INDEX] = inputReadIndex;

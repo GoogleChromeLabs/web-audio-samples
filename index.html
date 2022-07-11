@@ -1,54 +1,277 @@
-<!--
- * Copyright 2018 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
--->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="keywords" content="Web Audio API, Web MIDI API, Chrome">
-    <meta name="description" content="A collection of projects, examples and resource for Web Audio API. Curated by Chrome WebAudio team.">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link href="./assets/was-styles.css" rel="stylesheet">
-    <title>Web Audio Samples | Google Chrome Labs</title>
+    <title>
+      Home | Web Audio Samples
+    </title>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+    <link rel="stylesheet" href="./styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png">
   </head>
   <body>
-    <div class="container was-page-wrap">
-      <div class="row was-header">
-        <div class="column">
-          <h1>Web Audio Samples</h1>
-          <h2></h2>
-          <p>A collection of projects, examples and resources for Web Audio
-            API. Curated by <strong>Chrome Web Audio</strong> team.</p>
+
+    <div>
+      <div id="header" class="py-12">
+        
+      </div>
+    
+      <div id="content">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          
+
+<div class="mb-12">
+  <h1>Web Audio/MIDI Samples</h1>
+  <p>A collection of resources and examples for Web Audio/MIDI API. Curated by
+    <strong>Chrome Web Audio Team</strong>.</p>
+</div>
+
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Resources
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="audio-worklet/" class="text-xl">
+          Audio Worklet
+        </a>
+        <p>Audio Worklet examples and resources</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://chrome.google.com/webstore/detail/audion/cmhomipkklckpomafalojobppmmidlgl" class="text-xl">
+          Web Audio DevTools Extension
+        </a>
+        <p>Graph visualizer and inspector in Chrome DevTools</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://www.w3.org/TR/webaudio/" class="text-xl">
+          Web Audio API Specification
+        </a>
+        <p>W3C Recommendation</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://webaudio.github.io/web-audio-api/" class="text-xl">
+          Web Audio API Specification (Editor&#39;s Draft)
+        </a>
+        <p>Latest editor&#39;s draft</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API" class="text-xl">
+          Web Audio API on MDN
+        </a>
+        <p>Documentations and examples on MDN</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://hoch.github.io/canopy/" class="text-xl">
+          Canopy
+        </a>
+        <p>Web Audio code editor and visual debugger</p>
+      </div>
+    
+  </div>
+</div>
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Demos
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://webaudiodemos.appspot.com/" class="text-xl">
+          Web Audio Demos
+        </a>
+        <p>A demo collection by Chris Wilson</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/shiny-drum-machine/" class="text-xl">
+          Shiny Drum Machine
+        </a>
+        <p>Drum sequencer with a variety of drum kits and effects</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/dj/" class="text-xl">
+          Web Audio DJ
+        </a>
+        <p>Dual deck DJ app playing beatsynced loops</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/pwa-audio-recorder/" class="text-xl">
+          Audio Recorder
+        </a>
+        <p>A simple PWA that records audio clips</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/mld-drum-sampler/" class="text-xl">
+          Web Audio API Drum Sampler (Korean)
+        </a>
+        <p>A special tutorial for Mother Language Day</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/stress-box/" class="text-xl">
+          Box2D Stress Test
+        </a>
+        <p>For smoke testing</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/wavetable-synth/" class="text-xl">
+          Wavetable Synthesizer
+        </a>
+        <p></p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/visualizer/" class="text-xl">
+          AnalyserNode with visualization
+        </a>
+        <p></p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/panning-reverberation/" class="text-xl">
+          Panning and Reverberation
+        </a>
+        <p></p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="demos/pool/" class="text-xl">
+          WebGL Pool with 3D audio
+        </a>
+        <p></p>
+      </div>
+    
+  </div>
+</div>
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Selected Projects
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://googlechrome.github.io/omnitone/" class="text-xl">
+          Omnitone
+        </a>
+        <p>360° audio renderer for AR/VR web apps</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://developers.google.com/resonance-audio/develop/web/getting-started" class="text-xl">
+          Resonance Audio for Web
+        </a>
+        <p>3D Audio SDK powered by Omnitone</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://musiclab.chromeexperiments.com/" class="text-xl">
+          Chrome Music Lab
+        </a>
+        <p>Learning music through web technology</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://www.google.com/doodles/44th-anniversary-of-the-birth-of-hip-hop" class="text-xl">
+          Google Doodle: Hiphop
+        </a>
+        <p>44th Anniversary of the Birth of Hip Hop</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://www.google.com/doodles/clara-rockmores-105th-birthday" class="text-xl">
+          Google Doodle: Clara Rockmore
+        </a>
+        <p>Clara Rockmore&#39;s 105th Birthday</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://www.google.com/doodles/robert-moogs-78th-birthday" class="text-xl">
+          Google Doodle: Robert Moog&#39;s 78th Birthday
+        </a>
+        <p>Robert Moog&#39;s 78th Birthday</p>
+      </div>
+    
+  </div>
+</div>
+
+
+
         </div>
       </div>
-      <div id="Resources"></div>
-      <div id="Projects"></div>
-      <div id="Demos"></div>
-      <div id="Footer"></div>
-    </div>
-    <script type="module">
-      import { Component, Footer, TwoColumnListView }
-          from './assets/Components.js';
-      import PageData from './home/PageData.js';
 
-      Component.build('Resources', TwoColumnListView, PageData.Resources);
-      Component.build('Projects', TwoColumnListView, PageData.Projects);
-      Component.build('Demos', TwoColumnListView, PageData.Demos);
-      Component.build('Footer', Footer);
-      Component.present();
+      <div id="footer" class="py-8">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          <div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    
+      <div class="mr-1">
+        <a href="https://googlechromelabs.github.io/web-audio-samples/" target="_blank">Home</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/" target="_blank">Sources</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank">Report issues</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio" target="_blank">Report Chrome issues</a>
+      </div>
+      
+    
+  </div>
+  <div class="pb-3">
+    2010-2022 Chromium authors
+    (3d397c9)
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57132539-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-57132539-4');
     </script>
   </body>
 </html>

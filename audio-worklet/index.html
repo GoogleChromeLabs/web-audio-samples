@@ -1,62 +1,250 @@
-<!--
- * Copyright 2018 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
--->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link href="../assets/was-styles.css" rel="stylesheet">
-    <title>Audio Worklet | WebAudio Samples</title>
+    <title>
+      AudioWorklet | Web Audio Samples
+    </title>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+    <link rel="stylesheet" href="../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon/favicon-16x16.png">
   </head>
   <body>
-    <div class="container was-page-wrap">
-      <div id="TopBar"></div>
-      <div id="WorkletIndicator"></div>
-      <div class="row was-header">
-        <div class="column">
-          <h1>Audio Worklet</h1>
-          <h2></h2>
-          <p><a href="//developers.google.com/web/updates/2017/12/audio-worklet"
-            target="_blank">Audio Worklet</a> is available on <strong>Chrome 66
-            (or later) by default</strong>. If the status indicator on the
-            top-right corner of this page is not green, it means your browser
-            does not support Audio Worklet. If you are using Chrome, update
-            it to the latest version.
-          </p>
+
+    <div>
+      <div id="header" class="py-12">
+        
+          <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+            
+
+<div class="flex pb-3">
+  
+    <div class="mr-2">
+      <a href="..">
+        Home
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+  <div>
+    AudioWorklet
+  </div>
+</div>
+
+          </div>
+        
+      </div>
+    
+      <div id="content">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          
+
+<div class="mb-12">
+  <h1>AudioWorklet</h1>
+  <p>Code examples and resources for
+    <a href="https://www.w3.org/TR/webaudio/#audioworklet" target="_blank">
+    AudioWorklet</a>.</p>
+</div>
+
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Basic Demo
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/hello-audio-worklet/" class="text-xl">
+          Hello Audio Worklet!
+        </a>
+        <p>Bypassing input to output</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/one-pole-filter/" class="text-xl">
+          One Pole Filter
+        </a>
+        <p>One-pole filter built with Audio Worklet</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/noise-generator/" class="text-xl">
+          Noise Generator with AudioParam
+        </a>
+        <p>Noise generator with user-defined AudioParam</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/bit-crusher/" class="text-xl">
+          BitCrusher with AudioParam
+        </a>
+        <p>Declative AudioParam configuration and its automation</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/message-port/" class="text-xl">
+          MessagePort
+        </a>
+        <p>Messaging between an AudioWorkletNode and the associated AudioWorkletProcessor</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/volume-meter/" class="text-xl">
+          Volume Meter
+        </a>
+        <p>Measures microphone volume with AudioWorkletProcessor</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/audio-worklet-node-options/" class="text-xl">
+          AudioWorkletNode Options
+        </a>
+        <p>Passing AudioWorkletNodeOptions from the node to the associated AudioWorkletProcessor</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="basic/handling-errors/" class="text-xl">
+          Handling Errors
+        </a>
+        <p>How to handle errors from AudioWorkletProcessor</p>
+      </div>
+    
+  </div>
+</div>
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Advanced Design Pattern
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="design-pattern/wasm/" class="text-xl">
+          Audio Worklet and WebAssembly
+        </a>
+        <p>A basic set up for AudioWorklet and WebAssembly</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="design-pattern/wasm-supersaw/" class="text-xl">
+          WebAssembly Supersaw
+        </a>
+        <p>C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio Developer Conference 2021)</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="design-pattern/wasm-ring-buffer/" class="text-xl">
+          Ring Buffer in AudioWorkletProcessor
+        </a>
+        <p>Using Ring Buffer to work around buffer size mismatch</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="design-pattern/shared-buffer/" class="text-xl">
+          Audio Worklet, SharedArrayBuffer, and Worker
+        </a>
+        <p>For high performance large-scale audio applications</p>
+      </div>
+    
+  </div>
+</div>
+
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    Resources
+  </h2>
+  <div class="flex flex-wrap">
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://developer.chrome.com/blog/audio-worklet/" class="text-xl">
+          Enter AudioWorklet
+        </a>
+        <p>An introductory article on Audio Worklet</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/" class="text-xl">
+          AudioWorklet Design Pattern
+        </a>
+        <p>Design with WebAssembly SharedArrayBuffer and more</p>
+      </div>
+    
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="https://hoch.io/assets/publications/icmc-2018-choi-audioworklet.pdf" class="text-xl">
+          AudioWorklet - The future of web audio
+        </a>
+        <p>The first conference paper about AudioWorklet (ICMC 2018)</p>
+      </div>
+    
+  </div>
+</div>
+
+
+
         </div>
       </div>
-      <div id="BasicDemo"></div>
-      <div id="DesignPattern"></div>
-      <div id="Resources"></div>
-      <div id="Footer"></div>
-    </div>
-    <script type="module">
-      import { Component, WorkletIndicator, TopBar, Footer, TwoColumnListView }
-          from '../assets/Components.js';
-      import PageData from './PageData.js';
 
-      Component.build('WorkletIndicator', WorkletIndicator);
-      Component.build('TopBar', TopBar, PageData.TopBar);
-      Component.build('BasicDemo', TwoColumnListView, PageData.BasicDemo);
-      Component.build('DesignPattern',
-                      TwoColumnListView, PageData.DesignPattern);
-      Component.build('Resources', TwoColumnListView, PageData.Resources);
-      Component.build('Footer', Footer);
-      Component.present();
+      <div id="footer" class="py-8">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          <div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    
+      <div class="mr-1">
+        <a href="https://googlechromelabs.github.io/web-audio-samples/" target="_blank">Home</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/" target="_blank">Sources</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank">Report issues</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio" target="_blank">Report Chrome issues</a>
+      </div>
+      
+    
+  </div>
+  <div class="pb-3">
+    2010-2022 Chromium authors
+    (3d397c9)
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57132539-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-57132539-4');
     </script>
   </body>
 </html>

@@ -10,7 +10,8 @@
  */
 class ConstructorErrorProcessor extends AudioWorkletProcessor {
   constructor() {
-    throw 'ConstructorErrorProcessor: an error thrown from constructor.';
+    throw new Error(
+        'ConstructorErrorProcessor: an error thrown from constructor.');
   }
 
   process() {
@@ -31,8 +32,8 @@ class ProcessErrorProcessor extends AudioWorkletProcessor {
   }
 
   process() {
-    throw 'ProcessErrorProcessor: an error throw from process method.';
-    return true;
+    throw new Error(
+        'ProcessErrorProcessor: an error throw from process method.');
   }
 }
 

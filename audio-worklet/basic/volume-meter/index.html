@@ -1,54 +1,139 @@
-<!--
- * Copyright 2022 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
--->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link href="../../../assets/was-styles.css" rel="stylesheet">
-    <title>Volume Meter | WebAudio Samples</title>
+    <title>
+      Volume Meter | Web Audio Samples
+    </title>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+    <link rel="stylesheet" href="../../../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../favicon/favicon-16x16.png">
   </head>
   <body>
-    <div class="container was-page-wrap"></div>
-    <script type="module">
-      import WorkletDemoBuilder from '../../assets/WorkletDemoBuilder.js';
-      import PageData from './PageData.js';
 
-      const slider = document.createElement('input');
-      slider.type = 'range';
-      slider.min = 0;
-      slider.max = 10;
-      slider.value = 0;
+    <div>
+      <div id="header" class="py-12">
+        
+          <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+            
 
-      const demoCode = async (context) => {
-        await context.audioWorklet.addModule('volume-meter.js');
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const microphone = context.createMediaStreamSource(stream);
-        const volumeMeter = new AudioWorkletNode(context, 'volume-meter');   
-        volumeMeter.port.onmessage = ({ data }) => { 
-          slider.value = data * 100;
-        }   
-        microphone.connect(volumeMeter).connect(context.destination);
-      };
+<div class="flex pb-3">
+  
+    <div class="mr-2">
+      <a href="../../..">
+        Home
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+    <div class="mr-2">
+      <a href="../..">
+        AudioWorklet
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+  <div>
+    Volume Meter
+  </div>
+</div>
 
-      WorkletDemoBuilder(PageData, demoCode);
+          </div>
+        
+      </div>
+    
+      <div id="content">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          
 
-      const demoArea = document.querySelector('.was-demo-area');
-      demoArea.insertBefore(slider, demoArea.firstChild);
+<h1>Volume Meter</h1>
+<p>Measures microphone volume with AudioWorkletProcessor.</p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
+  Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>
+
+<div class="demo-box">
+  <div class="p-3 mb-2 bg-slate-100 w-1/3 rounded text-sm">
+    <input id="volume-meter" class="w-full bg-white"
+      type="range" min="0" max="100" value="0" step="1" disabled>
+  </div>
+  <button id="button-start" disabled>START</button>
+  <div class="text-sm text-right">
+  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/audio-worklet/basic/volume-meter/" target="_blank">
+    source code
+  </a>
+</div>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+
+        </div>
+      </div>
+
+      <div id="footer" class="py-8">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          <div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    
+      <div class="mr-1">
+        <a href="https://googlechromelabs.github.io/web-audio-samples/" target="_blank">Home</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/" target="_blank">Sources</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank">Report issues</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio" target="_blank">Report Chrome issues</a>
+      </div>
+      
+    
+  </div>
+  <div class="pb-3">
+    2010-2022 Chromium authors
+    (3d397c9)
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57132539-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-57132539-4');
     </script>
   </body>
 </html>

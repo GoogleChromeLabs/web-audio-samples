@@ -1,55 +1,149 @@
-<!--
-  Copyright 2021 Google Inc. All Rights Reserved.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
-
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <title>
+      WebAssembly Supersaw | Web Audio Samples
+    </title>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+    <link rel="stylesheet" href="../../../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../favicon/favicon-16x16.png">
+  </head>
+  <body>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link href="style.css" rel="stylesheet">
-  <title>wasm-supersaw | WebAudio Samples</title>
-</head>
-
-<body>
-  <div id="demo-app">
     <div>
-      <button id="audio-toggle" class="inactive" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" width="36px" height="36px" viewBox="0 0 24 24">
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z" />
-        </svg>
-      </button>
-      <button id="play-tone" class="inactive" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" width="36px" height="36px" viewBox="0 0 24 24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path
-            d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
-        </svg>
-      </button>
-    </div>
-    <div id="footer">
-      <a
-        href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/audio-worklet/design-pattern/wasm-supersaw">
-        See source code on GitHub
+      <div id="header" class="py-12">
+        
+          <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+            
+
+<div class="flex pb-3">
+  
+    <div class="mr-2">
+      <a href="../../..">
+        Home
       </a>
     </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+    <div class="mr-2">
+      <a href="../..">
+        AudioWorklet
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+  <div>
+    WebAssembly Supersaw
   </div>
-  <script src="index.js" type="module"></script>
-</body>
+</div>
 
+          </div>
+        
+      </div>
+    
+      <div id="content">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          
+
+<h1>WebAssembly Supersaw</h1>
+<p>A C++ supersaw synth ported via WebAssembly. This example desmonstrates a
+  bare minumum setup for Audio Worklet to use a WebAssembly module compiled
+  from multiple C++ source codes with dependency.</p>
+<p>Press the power button to activate the audio engine. Then press the note
+  button to play a tone.</p>
+<p>This demo was presented at
+  <a href="https://youtu.be/-GaD0RCp-Q0?t=737" target="_blank">Google I/O 2019
+    </a> and 
+    <a href="https://youtu.be/GfC2WTStW8M?t=1576" target="_blank">Audio
+    Developer Conference 2021</a>.
+
+<div class="demo-box">
+  
+  <button id="audio-toggle" class="inactive" disabled>
+    <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path d="M22.5 26.1V5.8H25.5V26.1ZM24 42.1Q20.3 42.1 17.025 40.675Q13.75 39.25 11.3 36.8Q8.85 34.35 7.425 31.075Q6 27.8 6 24.1Q6 20.1 7.7 16.625Q9.4 13.15 12.5 10.45L14.6 12.55Q11.95 14.7 10.475 17.675Q9 20.65 9 24.1Q9 30.35 13.375 34.725Q17.75 39.1 24 39.1Q30.25 39.1 34.625 34.725Q39 30.35 39 24.1Q39 20.65 37.525 17.625Q36.05 14.6 33.5 12.55L35.65 10.45Q38.65 13 40.325 16.55Q42 20.1 42 24.1Q42 27.8 40.575 31.075Q39.15 34.35 36.725 36.8Q34.3 39.25 31.025 40.675Q27.75 42.1 24 42.1Z"/></svg>
+  </button>
+
+  <button id="play-tone" class="inactive" disabled>
+    <svg xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path d="M19.65 42Q16.5 42 14.325 39.825Q12.15 37.65 12.15 34.5Q12.15 31.35 14.325 29.175Q16.5 27 19.65 27Q21.05 27 22.175 27.4Q23.3 27.8 24.15 28.5V6H35.85V12.75H27.15V34.5Q27.15 37.65 24.975 39.825Q22.8 42 19.65 42Z"/></svg>
+  </button>
+
+  <div class="text-sm text-right">
+  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/audio-worklet/design-pattern/wasm-supersaw/" target="_blank">
+    source code
+  </a>
+</div>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+
+        </div>
+      </div>
+
+      <div id="footer" class="py-8">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          <div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    
+      <div class="mr-1">
+        <a href="https://googlechromelabs.github.io/web-audio-samples/" target="_blank">Home</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/" target="_blank">Sources</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank">Report issues</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio" target="_blank">Report Chrome issues</a>
+      </div>
+      
+    
+  </div>
+  <div class="pb-3">
+    2010-2022 Chromium authors
+    (3d397c9)
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57132539-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-57132539-4');
+    </script>
+  </body>
 </html>

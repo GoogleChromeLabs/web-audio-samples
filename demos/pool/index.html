@@ -1,0 +1,2551 @@
+<!--
+Copyright 2009, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!--
+This sample is a pool game engine with a 3D physics model.  All models
+are procedurally generated.  Textures for the balls are loaded from a
+single image file and then split up using Bitmaps.
+-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<style>
+  html, body {
+      border: 0;
+      margin: 0;
+      height: 100%;
+      height: 100%;
+    }
+    div#container {
+      position:relative; /* needed for footer positioning*/
+      margin:0 auto; /* center, not in IE5 */
+
+      height:auto !important; /* real browsers */
+      height:100%; /* IE6: treaded as min-height*/
+
+      min-height:100%; /* real browsers */
+    }
+    div#footer {
+      position:absolute;
+      width:100%;
+      bottom:0; /* stick to bottom */
+      background: #111111;
+    }
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>
+Pool
+</title>
+<script type="text/javascript" src="./o3d-webgl/base.js"></script>
+<script type="text/javascript" src="./o3djs/base.js"></script>
+<script type="text/javascript">
+o3djs.base.o3d = o3d;
+o3djs.require('o3djs.webgl');
+o3djs.require('o3djs.util');
+o3djs.require('o3djs.math');
+o3djs.require('o3djs.rendergraph');
+o3djs.require('o3djs.primitives');
+o3djs.require('o3djs.quaternions');
+o3djs.require('o3djs.effect');
+o3djs.require('o3djs.event');
+
+
+var SHADOWPOV = false; // Shows the rendertarget where the shadows get drawn.
+
+// global variables
+var g_o3dElement;
+var g_client;
+var g_o3d;
+var g_math;
+var g_quat;
+var g_pack;
+var g_viewInfo;
+var g_clock = 0;
+var g_shadowPassViewInfo;
+var g_ballTransforms = [];
+var g_centers = [];
+
+var g_ballTextures = [];
+var g_ballTextureSamplers = [];
+var g_ballTextureSamplerParams = [];
+var g_shadowOnParams = [];
+
+var g_shadowSampler;
+var g_shadowTexture;
+
+var g_tableRoot;
+var g_shadowRoot;
+var g_hudRoot;
+var g_barRoot;
+
+var g_physics;
+
+var g_target = [0, 0, 0];
+var g_light = [0, 0, 50];
+
+var g_materials;
+var g_solidMaterial;
+
+var RENDER_TARGET_WIDTH = 512;
+var RENDER_TARGET_HEIGHT = 512;
+
+var g_queueClock = 0;
+
+var g_rolling = false;
+var g_shooting = false;
+
+var g_table = null;
+
+
+g_queue = [];
+
+// g_queue is a list of commands to run at various time intervals,
+// it is supposed to be used one day to implement an opponent.  For now,
+// comment this in to allow the AI to play.
+/*
+var g_queue = [
+  {condition: '!(g_shooting || g_rolling)',
+   action: 'cueNewShot(.9);'}
+];
+*/
+
+
+
+// Audio stuff
+
+var context = 0;
+var compressor = 0;
+var pingBuffer = 0;
+var info = 0;
+
+var ballBallLight = 0;
+var ballBallMedium = 0;
+var ballBallHard = 0;
+var stickCueLight = 0;
+var stickCueMedium = 0;
+var stickCueHard = 0;
+var ballPocket = 0;
+var mediumEdge = 0;
+var hardEdge = 0;
+
+var softCount = 0;
+var mediumCount = 0;
+var hardCount = 0;
+
+// Temporary patch until all browsers support unprefixed context.
+AudioContext = AudioContext || webkitAudioContext;
+
+function updateInfo() {
+ var info = document.getElementById('info');
+ 
+ var s = "soft = " + softCount + " : medium = " + mediumCount + " : hard = " + hardCount;
+ 
+ info.innerHTML = s;
+}
+
+function loadStickCueLight(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { stickCueLight = buffer; });
+  }
+
+  request.send();
+}
+
+function loadStickCueMedium(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { stickCueMedium = buffer; });
+  }
+
+  request.send();
+}
+
+function loadStickCueHard(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { stickCueHard = buffer; });
+  }
+
+  request.send();
+}
+
+
+function loadBallPocket(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { ballPocket = buffer; });
+  }
+
+  request.send();
+}
+
+function loadBallBallLight(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { ballBallLight = buffer; });
+  }
+
+  request.send();
+}
+
+function loadBallBallMedium(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { ballBallMedium = buffer; });
+  }
+
+  request.send();
+}
+
+function loadBallBallHard(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { ballBallHard = buffer; });
+  }
+
+  request.send();
+}
+
+function loadMediumEdge(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { mediumEdge = buffer; });
+  }
+
+  request.send();
+}
+
+function loadHardEdge(url) {
+  // Load asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { hardEdge = buffer; });
+  }
+
+  request.send();
+}
+
+function loadImpulseResponse(url) {
+  // Load impulse response asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() { 
+    context.decodeAudioData(request.response, function(buffer) { convolver.buffer = buffer; });
+  }
+  
+  request.send();
+}
+
+function playSound(impactType, velocity, x, y) {
+  var buffer = 0;
+  var gainScale = 1.0;
+  var sendScale = 1.0;
+  
+  
+  if (impactType == 0) {
+    if (velocity < 0.36) {
+       buffer = ballBallLight;
+       // softCount++;
+       // updateInfo();
+    } else if (velocity < 0.66) {
+      buffer = ballBallMedium;
+      // mediumCount++;
+      // updateInfo();
+    } else {
+      buffer = ballBallHard;
+      // hardCount++;
+      // updateInfo();
+    }
+  } else if (impactType == 1) {
+    if (velocity < 0.66666) {
+      buffer = mediumEdge;
+    } else {
+      buffer = hardEdge;
+    }
+    gainScale = 0.2;
+    sendScale = 0.01;
+  } else if (impactType == 2) {
+    if (velocity < 0.36) {
+       buffer = stickCueLight;
+    } else if (velocity < 0.66) {
+      buffer = stickCueMedium;
+    } else {
+      buffer = stickCueHard;
+    }
+
+    gainScale = 1;
+    sendScale = 1.0;
+  } else if (impactType == 3) {
+    buffer = ballPocket;
+    gainScale = 0.5;
+    sendScale = 2.0;
+  }
+  
+  var voice = context.createBufferSource();
+
+  if (voice) {
+    voice.buffer = buffer;
+
+    // base volume on velocity
+    var xx = velocity;
+    if (xx > 1.0) xx = 1.0;
+    if (xx < 0.0) xx = 0.0;
+    var s = Math.sin(0.5 * xx * Math.PI);
+    s = s*s;
+    var gain = gainScale * s;
+    var isQuiet = (gain < 0.5);
+    
+    // Setup send and main gains
+    var sendGain = context.createGain();
+    var mainGain = context.createGain();
+
+    // Use biquad filter API if available.
+    var filter = context.createBiquadFilter();
+
+    sendGain.gain.value = sendScale;
+    mainGain.gain.value = gain;
+    voice.connect(filter);
+    filter.connect(sendGain);
+    filter.connect(mainGain);
+    sendGain.connect(convolver);
+    mainGain.connect(compressor);
+    
+    // // Randomize pitch          
+    var r = Math.random();
+    var cents = 600.0 * (r - 0.5);
+    var rate = Math.pow(2.0, cents / 1200.0);
+    voice.playbackRate.value = rate;  // really rate (not pitch)
+    // 
+    // Adjust filter
+    var value = 0.5 + 0.5 * xx;
+    var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
+    var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+    
+    var sampleRate = 44100.0;
+    var nyquist = sampleRate * 0.5;
+
+    filter.type = "lowpass";
+    filter.frequency.value = v2 * nyquist;
+    filter.Q.value = 0.0; // this is actually resonance in dB
+
+    var azimuth = 0.5*Math.PI * (x - 200.0 /*250.0*/) / 150.0;
+    if (azimuth < -0.5*Math.PI) azimuth = -0.5*Math.PI;
+    if (azimuth > 0.5*Math.PI) azimuth = 0.5*Math.PI;
+    
+    var posX = 10.0 * Math.sin(azimuth);
+    var posZ = 10.0 * Math.cos(azimuth);
+    
+    
+    var elevation = -0.5*Math.PI * (y - 250.0) / 150.0;
+    if (elevation < -0.5*Math.PI) elevation = -0.5*Math.PI;
+    if (elevation > 0.5*Math.PI) elevation = 0.5*Math.PI;
+    
+    var scaleY = Math.sin(elevation);
+    var scaleXZ = Math.cos(elevation);
+    posX *= scaleXZ;
+    posZ *= scaleXZ;
+    var posY = scaleY * 10.0;
+    
+    // FIXME: add panner back in...
+    // voice.setPosition(posX, posY, isQuiet ? +posZ : -posZ);
+
+    if (impactType == 3) {
+      voice.start(context.currentTime + 0.125);
+    } else {
+      voice.start(0);
+    }
+  }  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var pool = {};
+
+function myMod(n, m) {
+  return ((n % m) + m) % m;
+}
+
+pool.Ball = function() {
+  this.mass = 1.0;
+  this.angularInertia = 0.4;
+  this.center = [0, 0, 0];
+  this.velocity = [0, 0, 0];
+  this.verticalAcceleration = 0;
+  this.orientation = [0, 0, 0, 1];
+  this.angularVelocity = [0, 0, 0];
+  this.active = true;
+  this.sunkInPocket = -1;
+};
+
+pool.Physics = function() {
+  this.record = [];
+
+  this.speedFactor = 0;
+  this.maxSpeed = 1;
+
+  this.balls = [];
+  for (var i = 0; i < 16; ++i) {
+    this.balls.push(new pool.Ball());
+  }
+
+  // The cue ball is slightly heavier
+  // than the rest of the balls.
+  // 6 ounces versus 5.5.
+  this.balls[0].mass *= 6.0 / 5.5;
+  this.balls[0].rotationalInertia *= 6.0 / 5.5;
+
+  this.walls = [];
+  this.collisions = [];
+  this.wallCollisions = [];
+
+  this.placeBalls = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active) {
+        g_shadowOnParams[i].value = 0;
+        continue;
+      }
+      var p = ball.center;
+      placeBall(i, p[0], p[1], p[2], ball.orientation);
+    }
+  };
+
+  this.step = function() {
+    for (var i = 0; i < 5; ++i) {
+      this.ballsLoseEnergy();
+      this.ballsImpactFloor();
+      this.move(1);
+      while (this.collide()) {
+        this.move(-1);
+        this.handleCollisions();
+        this.move(1);
+      }
+    }
+    this.sink();
+    this.handleFalling();
+    this.placeBalls();
+  };
+
+  this.move = function(timeStep) {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var p = ball.center;
+      var v = ball.velocity;
+      p[0] += timeStep * v[0];
+      p[1] += timeStep * v[1];
+      p[2] += timeStep * v[2];
+      ball.orientation = this.quat.normalize(this.quat.mul(
+          vectorToQuaternion(this.math.mulScalarVector(
+              timeStep, ball.angularVelocity)), ball.orientation));
+      v[2] += ball.verticalAcceleration;
+    }
+  };
+
+  this.impartSpeed = function(i, direction) {
+    var ball = this.balls[i];
+    ball.velocity[0] += direction[0] * this.maxSpeed * this.speedFactor;
+    ball.velocity[1] += direction[1] * this.maxSpeed * this.speedFactor;
+  };
+
+  this.stopAllBalls = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+        w[0] = 0;
+        w[1] = 0;
+        w[2] = 0;
+    }
+  };
+
+  this.stopSlowBalls = function() {
+    var epsilon = 0.0001;
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+      if (this.math.length(v) < epsilon) {
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+      }
+      if (this.math.length(w) < epsilon) {
+        w[0] = 0;
+        w[1] = 0;
+        w[2] = 0;
+      }
+    }
+  };
+
+  this.someBallsMoving = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+      if (v[0] != 0 || v[1] != 0 || v[2] != 0 ||
+          w[0] != 0 || w[1] != 0 || w[2] != 0)
+        return true;
+    }
+    return false;
+  };
+
+  this.sink = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var p = this.balls[i].center;
+      for (var j = 0; j < this.pocketCenters.length; ++j) {
+        var pocketCenter = this.pocketCenters[j];
+        var dx = p[0] - pocketCenter[0];
+        var dy = p[1] - pocketCenter[1];
+        if (dx * dx + dy * dy <
+            this.pocketRadius * this.pocketRadius) {
+          ball.verticalAcceleration = -0.005;
+          ball.sunkInPocket = j;
+        }
+      }
+    }
+  };
+
+  this.handleFalling = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      if (ball.sunkInPocket >= 0) {
+        var p = ball.center;
+        var z = p[2];
+        var pocketCenter = this.pocketCenters[ball.sunkInPocket];
+        var dx = p[0] - pocketCenter[0];
+        var dy = p[1] - pocketCenter[1];
+
+        // Once the ball is sunk, it must not escape the pocket.
+        var norm = Math.sqrt(dx * dx + dy * dy);
+        var maxNorm =
+            this.pocketRadius - Math.sqrt(Math.max(0, 1 - (z + 1) * (z + 1)));
+        if (norm > maxNorm) {
+          p[0] = pocketCenter[0] + dx * maxNorm / norm;
+          p[1] = pocketCenter[1] + dy * maxNorm / norm;
+        }
+      }
+      if (ball.center[2] < -3) {
+        var v = ball.velocity;
+        var w = ball.angularVelocity;
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+        w[0] = 0;
+        w[1] = 0;
+        w[2] = 0;
+        ball.verticalAcceleration = 0;
+        ball.active = false;
+        ballOff(i);
+        
+        playSound(3, 0.75, 0,0);
+        
+      }
+    }
+  };
+
+  this.boundCueBall = function() {
+    var c = this.balls[0].center;
+    if (c[0] < this.left)
+      c[0] = this.left;
+    if (c[0] > this.right)
+      c[0] = this.right;
+    if (c[1] < this.bottom)
+      c[1] = this.bottom;
+    if (c[1] > this.top)
+      c[1] = this.top;
+    this.pushOut();
+    this.placeBalls();
+  };
+
+  this.collide = function() {
+    this.collideBalls();
+    this.collideWithWalls();
+    return this.collisions.length != 0 || this.wallCollisions.length != 0;
+  };
+
+  this.pushOut = function() {
+    while (this.collide()) {
+      this.pushCollisions();
+    }
+  }
+
+  this.collideBalls = function() {
+    this.collisions = [];
+    for (var i = 0; i < 16; ++i) {
+      if (!this.balls[i].active)
+        continue;
+      var p1 = this.balls[i].center;
+      for (var j = 0; j < i; ++j) {
+        if (!this.balls[j].active)
+          continue;
+        var p2 = this.balls[j].center;
+
+        var dx = p1[0] - p2[0];
+        var dy = p1[1] - p2[1];
+
+        var normSquared = dx * dx + dy * dy;
+        if (normSquared < 3.99) {
+          var norm = Math.sqrt(normSquared)
+          this.collisions.push({i: i, j: j, ammt: 2 - norm});
+        }
+      }
+    }
+  };
+
+  this.initWalls = function() {
+    var r = this.pocketRadius;
+    var w = this.tableWidth;
+
+    // Three walls connecting the points in this list get put around each
+    // cushion.
+    var path = [[0, -w / 2 + r, 0],
+                [r, -w / 2 + 2 * r, 0],
+                [r, w / 2 - 2 * r, 0],
+                [0, w / 2 - r, 0]];
+
+    var angles = [0, Math.PI/2, Math.PI, Math.PI, 3 * Math.PI / 2, 0];
+    var translations = this.math.mulMatrixMatrix(
+        [[-1, -1, 0], [0, -2, 0], [1, -1, 0], [1, 1, 0], [0, 2, 0], [-1, 1, 0]],
+        [[w / 2, 0, 0], [0, w / 2, 0], [0, 0, 1]]);
+
+    for (var i = 0; i < 6; ++i) {
+      var newPath = [];
+      for (var j = 0; j < path.length; ++j) {
+        newPath.push(
+            this.math.matrix4.transformPoint(this.math.matrix4.composition(
+                this.math.matrix4.translation(translations[i]),
+                this.math.matrix4.rotationZ(angles[i])), path[j]));
+      }
+
+      for (var j = 0; j < newPath.length - 1; ++j) {
+        this.walls.push({p: [newPath[j][0], newPath[j][1]],
+                         q: [newPath[j + 1][0], newPath[j + 1][1]]});
+      }
+    }
+
+    this.computeWallNormals(this.walls);
+  };
+
+  this.computeWallNormals = function(walls) {
+    for (var i = 0; i < walls.length; ++i) {
+      var wall = walls[i];
+      var tangent = this.math.normalize(this.math.subVector(wall.q, wall.p));
+      wall.nx = tangent[1];
+      wall.ny = -tangent[0];
+      wall.k = wall.nx * wall.p[0] + wall.ny * wall.p[1];
+      wall.a = wall.p[1] * wall.nx - wall.p[0] * wall.ny;
+      wall.b = wall.q[1] * wall.nx - wall.q[0] * wall.ny;
+    }
+  }
+
+  this.collideWithWalls =
+      function(opt_wallList, opt_collisionList, opt_radius) {
+    var radius = opt_radius || 1.0;
+    var walls = opt_wallList || this.walls;
+    var wallCollisions = opt_collisionList || this.wallCollisions;
+    while(wallCollisions.length) {
+      wallCollisions.pop();
+    }
+
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var p = ball.center;
+      var x = p[0];
+      var y = p[1];
+
+      if (!opt_wallList &&
+          x > this.left &&
+          x < this.right &&
+          y > this.bottom &&
+          y < this.top) {
+        continue;
+      }
+
+      for (var j = 0; j < walls.length; ++j) {
+        var wall = walls[j];
+        var norm = Math.abs(x * wall.nx + y * wall.ny - wall.k);
+        if (norm < radius) {
+          var t = y * wall.nx - x * wall.ny;
+          if (t > wall.a && t < wall.b) {
+            wallCollisions.push({i: i, x: wall.nx, y: wall.ny, ammt: 1 - norm});
+            break;
+          } else {
+            var dx = x - wall.p[0];
+            var dy = y - wall.p[1];
+            var normSquared = dx * dx + dy * dy;
+            if (normSquared < radius*radius) {
+              var norm = Math.sqrt(normSquared);
+              wallCollisions.push(
+                  {i: i, x: dx / norm, y: dy / norm, ammt: 1 - norm});
+              break;
+            }
+            var dx = x - wall.q[0];
+            var dy = y - wall.q[1];
+            var normSquared = dx * dx + dy * dy;
+            if (normSquared < radius*radius) {
+              var norm = Math.sqrt(normSquared);
+              wallCollisions.push(
+                  {i: i, x: dx / norm, y: dy / norm, n: 1 - norm});
+              break;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  this.pushCollisions = function() {
+    var l = this.wallCollisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.wallCollisions[i];
+      var p = this.balls[c.i].center;
+
+      p[0] += c.ammt * c.x;
+      p[1] += c.ammt * c.y;
+    }
+
+    var l = this.collisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.collisions[i];
+      var pi = this.balls[c.i].center;
+      var pj = this.balls[c.j].center;
+
+      var dx = pj[0] - pi[0];
+      var dy = pj[1] - pi[1];
+      var norm = Math.sqrt(dx * dx + dy * dy);
+
+      var r = [c.ammt * dx / norm / 2, c.ammt * dy / norm / 2];
+
+      pi[0] -= r[0];
+      pi[1] -= r[1];
+      pj[0] += r[0];
+      pj[1] += r[1];
+    }
+  }
+
+  this.handleCollisions = function() {
+    var l = this.wallCollisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.wallCollisions[i];
+      var ball = this.balls[c.i];
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+      var r1 = [-c.x, -c.y, 0];
+      var r2 = [c.x, c.y, 0];
+
+      var impulse = this.impulse(
+          v, w, ball.mass, ball.angularInertia, r1,
+          [0, 0, 0], [0, 0, 0], 1e100, 1e100, r2,
+          r1, 0.99, 1, 1);
+
+      this.applyImpulse(c.i, impulse, r1);
+
+
+      var vMag = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+
+      var soundVelocity = 5.0 * vMag;
+      if (soundVelocity > 1.0) soundVelocity = 1.0;
+      
+      playSound(1 /* ball-wall */, soundVelocity, 0, 0);
+
+    }
+
+    var l = this.collisions.length;
+    for (var i = 0; i < l; ++i) {
+      var c = this.collisions[i];
+      var bi = this.balls[c.i];
+      var bj = this.balls[c.j];
+      var vi = bi.velocity;
+      var wi = bi.angularVelocity;
+      var vj = bj.velocity;
+      var wj = bj.angularVelocity;
+
+      var ri = this.math.normalize(this.math.subVector(bj.center, bi.center));
+      var rj = this.math.negativeVector(ri);
+
+      var impulse = this.impulse(
+          vi, wi, bi.mass, bi.angularInertia, ri,
+          vj, wj, bj.mass, bj.angularInertia, rj,
+          ri, 0.99, .2, .1);
+
+      this.applyImpulse(c.i, impulse, ri);
+      this.applyImpulse(c.j, this.math.negativeVector(impulse), rj);
+
+
+
+
+      var v1 = Math.sqrt(vi[0]*vi[0] + vi[1]*vi[1] + vi[2]*vi[2]);
+      var v2 = Math.sqrt(vj[0]*vj[0] + vj[1]*vj[1] + vj[2]*vj[2]);
+      
+      var soundVelocity = 5.0 * (v1 + v2);
+      if (soundVelocity > 1.0) soundVelocity = 1.0;
+
+      playSound(0 /* ball-ball */, soundVelocity, 0, 0);
+
+
+    }
+  };
+
+  this.randomOrientations = function() {
+    for (var i = 0; i < 16; ++i) {
+      this.balls[i].orientation =
+          this.math.normalize([Math.random() - 0.5,
+                               Math.random() - 0.5,
+                               Math.random() - 0.5,
+                               Math.random() - 0.5]);
+    }
+  };
+
+  this.impulse = function(v1, w1, m1, I1, r1,
+                          v2, w2, m2, I2, r2,
+                          N, e, u_s, u_d) {
+    // Just to be safe, make N unit-length.
+    N = this.math.normalize(N);
+
+    // Vr is the relative velocity at the point of impact.
+    // Vrn and Vrt are the normal and tangential parts of Vr.
+    var Vr =
+        this.math.subVector(
+            this.math.addVector(this.math.cross(w2, r2), v2),
+            this.math.addVector(this.math.cross(w1, r1), v1));
+
+    var Vrn = this.math.mulScalarVector(this.math.dot(Vr, N), N);
+    var Vrt = this.math.subVector(Vr, Vrn);
+
+    var K = this.math.addMatrix(
+        this.intertialTensor(m1, I1, r1), this.intertialTensor(m2, I2, r2));
+    var Kinverse = this.math.inverse(K);
+
+    // Compute the impulse assuming 0 tangential velocity.
+    var j0 = this.math.mulMatrixVector(Kinverse,
+        this.math.subVector(Vr, this.math.mulScalarVector(-e, Vrn)));
+
+    // If j0 is in the static friction cone, we return that.
+    // If the length of Vrt is 0, then we cannot normalize it,
+    // so we return j0 in that case, too.
+    var j0n = this.math.mulScalarVector(this.math.dot(j0, N), N);
+    var j0t = this.math.subVector(j0, j0n);
+
+    if (this.math.lengthSquared(j0t) <=
+        u_s * u_s * this.math.lengthSquared(j0n) ||
+            this.math.lengthSquared(Vrt) == 0.0) {
+      return j0;
+    }
+
+    // Get a unit-length tangent vector by normalizing the tangent velocity.
+    // The friction impulse acts in the opposite direction.
+    var T = this.math.normalize(Vrt);
+
+    // Compute the current impulse in the normal direction.
+    var jn = this.math.dot(this.math.mulMatrixVector(Kinverse, Vr), N);
+
+    // Compute the impulse assuming no friction.
+    var js = this.math.mulMatrixVector(Kinverse,
+        this.math.mulScalarVector(1 + e, Vrn));
+
+    // Return the frictionless impulse plus the impulse due to friction.
+    return this.math.addVector(js, this.math.mulScalarVector(-u_d * jn, T));
+  };
+
+  this.intertialTensor = function(m, I, r) {
+    var a = r[0];
+    var b = r[1];
+    var c = r[2];
+
+    return [[1 / m + (b * b + c * c) / I, (-a * b) / I, (-a * c) / I],
+            [(-a * b) / I, 1 / m + (a * a + c * c) / I, (-b * c) / I],
+            [(-a * c) / I, (-b * c) / I, 1 / m + (a * a + b * b) / I]];
+  };
+
+  this.applyImpulse = function(i, impulse, r) {
+    var ball = this.balls[i];
+    var v = ball.velocity;
+    var w = ball.angularVelocity;
+
+    // v += impulse / mass
+    v[0] += impulse[0] / ball.mass;
+    v[1] += impulse[1] / ball.mass;
+
+    // w += r x impulse / angularInertia
+    w[0] += (-r[2] * impulse[1]) / ball.angularInertia;
+    w[1] += (impulse[0] * r[2]) / ball.angularInertia;
+    w[2] += (r[0] * impulse[1] - r[1] * impulse[0]) / ball.angularInertia;
+  };
+
+  this.ballsImpactFloor = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var v = ball.velocity;
+      v = [v[0], v[1], -0.1];
+      var w = ball.angularVelocity;
+
+      var impulse = this.impulse(
+          v, w, ball.mass, ball.angularInertia, [0, 0, -1],
+          [0, 0, 0], [0, 0, 0], 1e100, 1e100, [0, 0, 1],
+          [0, 0, -1], 0.1, 0.1, 0.02);
+
+      this.applyImpulse(i, impulse, [0, 0, -1]);
+    }
+  };
+
+  this.ballsLoseEnergy = function() {
+    for (var i = 0; i < 16; ++i) {
+      var ball = this.balls[i];
+      if (!ball.active)
+        continue;
+      var v = ball.velocity;
+      var w = ball.angularVelocity;
+
+      this.loseEnergy(v, 0.00004);
+      this.loseEnergy(w, 0.00006);
+    }
+  };
+
+  this.loseEnergy = function(v, epsilon) {
+      var vLength = this.math.length(v);
+      if (vLength < epsilon) {
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 0;
+      } else {
+        var t = epsilon / vLength;
+        v[0] -= t * v[0];
+        v[1] -= t * v[1];
+        v[2] -= t * v[2];
+      }
+   };
+};
+
+
+function vectorToQuaternion(r) {
+  var theta = g_math.length(r);
+  var stot = (theta < 1.0e-6)?1:(Math.sin(theta/2) / theta);
+  return [stot * r[0], stot * r[1], stot * r[2], Math.cos(theta)];
+}
+
+
+CameraPosition = function() {
+  this.center = [0, 0, 0];
+  this.theta = 0;
+  this.phi = 0;
+  this.radius = 1;
+};
+
+
+CameraInfo = function() {
+  this.lastX = 0;
+  this.lastY = 0;
+  this.position = new CameraPosition();
+  this.targetPosition = new CameraPosition();
+  this.vector_ = [0, 0, 0];
+  this.lerpCoefficient = 1;
+  this.startingTime = 0;
+
+  this.begin = function(x, y) {
+    this.lastX = x;
+    this.lastY = y;
+  };
+
+  this.update = function(x, y) {
+    this.targetPosition.theta -= (x - this.lastX) / 200;
+    this.targetPosition.phi += (y - this.lastY) / 200;
+    this.bound();
+    this.lastX = x;
+    this.lastY = y;
+  };
+
+  this.bound = function() {
+    if (this.position.phi < 0.01) this.position.phi = 0.01;
+    if (this.position.phi > Math.PI / 2 - 0.01)
+      this.position.phi = Math.PI / 2 - 0.01;
+
+    if (this.targetPosition.phi < 0.01) this.targetPosition.phi = 0.01;
+    if (this.targetPosition.phi > Math.PI / 2 - 0.01)
+      this.targetPosition.phi = Math.PI / 2 - 0.01;
+  };
+
+  this.getCurrentPosition = function() {
+    var t = this.lerpCoefficient;
+    t = 3 * t * t - 2 * t * t * t;
+    var a = this.position;
+    var b = this.targetPosition;
+
+    return {center: [(1 - t) * a.center[0] + t * b.center[0],
+                     (1 - t) * a.center[1] + t * b.center[1],
+                     (1 - t) * a.center[2] + t * b.center[2]],
+            radius: (1 - t) * a.radius + t * b.radius,
+            theta: (1 - t) * a.theta + t * b.theta,
+            phi: (1 - t) * a.phi + t * b.phi};
+  }
+
+  this.getEyeAndTarget = function(eye, target) {
+    var p = this.getCurrentPosition();
+
+    var cosPhi = Math.cos(p.phi);
+    target[0] = p.center[0];
+    target[1] = p.center[1];
+    target[2] = p.center[2];
+    eye[0] = target[0] + p.radius * cosPhi * Math.cos(p.theta);
+    eye[1] = target[1] + p.radius * cosPhi * Math.sin(p.theta);
+    eye[2] = target[2] + p.radius * Math.sin(p.phi);
+  };
+
+  this.goTo = function(center, theta, phi, radius) {
+    if (!center) {
+      center = this.targetPosition.center;
+    }
+    if (!theta) {
+      theta = this.targetPosition.theta;
+    }
+    if (!phi) {
+      phi = this.targetPosition.phi;
+    }
+    if (!radius) {
+      radius = this.targetPosition.radius;
+    }
+
+    var p = this.getCurrentPosition();
+
+    this.position.center[0] = p.center[0];
+    this.position.center[1] = p.center[1];
+    this.position.center[2] = p.center[2];
+    this.position.theta = p.theta;
+    this.position.phi = p.phi;
+    this.position.radius = p.radius;
+
+    this.targetPosition.center = center;
+    this.targetPosition.theta = theta;
+    this.targetPosition.phi = phi;
+    this.targetPosition.radius = radius;
+
+    this.lerpCoefficient = 0;
+    this.startingTime = g_clock;
+
+    var k = 3 * Math.PI / 2;
+    this.position.theta =
+        myMod(this.position.theta + k, 2.0 * Math.PI) - k;
+    this.targetPosition.theta =
+        myMod(this.targetPosition.theta + k, 2.0 * Math.PI) - k;
+  };
+
+  this.backUp = function() {
+    var c = this.targetPosition.center;
+    this.goTo([c[0], c[1], c[2]],
+              null,
+              Math.PI / 6,
+              100);
+  };
+
+  this.zoomToPoint = function(center) {
+    this.goTo(center,
+              this.targetPosition.theta,
+              Math.PI / 20,
+              20);
+  };
+
+  this.updateClock = function() {
+    this.lerpCoefficient = Math.min(1, g_clock - this.startingTime);
+    if (this.lerpCoefficient == 1) {
+      this.position.center[0] = this.targetPosition.center[0];
+      this.position.center[1] = this.targetPosition.center[1];
+      this.position.center[2] = this.targetPosition.center[2];
+      this.position.theta = this.targetPosition.theta;
+      this.position.phi = this.targetPosition.phi;
+      this.position.radius = this.targetPosition.radius;
+    }
+  };
+
+  this.lookingAt = function(center) {
+    return this.targetPosition.center == center;
+  }
+
+  this.goTo([0, 0, 0],
+            -Math.PI / 2,
+            Math.PI / 6,
+            140);
+};
+
+var g_cameraInfo = new CameraInfo();
+var g_dragging = false;
+
+function startDragging(e) {
+  g_cameraInfo.begin(e.x, e.y);
+  g_dragging = true;
+}
+
+function drag(e) {
+  if (g_dragging) {
+    g_cameraInfo.update(e.x, e.y);
+    updateContext();
+  }
+}
+
+function stopDragging(e) {
+  if (g_dragging) {
+    g_cameraInfo.update(e.x, e.y);
+    updateContext();
+  }
+  g_dragging = false;
+}
+
+/**
+ * Initializes global variables, positions eye, draws shapes.
+ * @param {Array} clientElements Array of o3d object elements.
+ */
+function main(clientElements) {
+  initPhysics();
+  initGlobals(clientElements);
+  initRenderGraph();
+  updateContext();
+  initMaterials();
+  initShadowPlane();
+  initTable();
+  initHud();
+
+  rack(8);
+
+  setRenderCallback();
+  registerEventCallbacks();
+}
+
+
+/**
+ * Registers event handlers.
+ */
+function registerEventCallbacks() {
+  o3djs.event.addEventListener(g_o3dElement, 'mousedown', startDragging);
+  o3djs.event.addEventListener(g_o3dElement, 'mousemove', drag);
+  o3djs.event.addEventListener(g_o3dElement, 'mouseup', stopDragging);
+
+  o3djs.event.addEventListener(g_o3dElement, 'keypress', keyPressed);
+  o3djs.event.addEventListener(g_o3dElement, 'keyup', keyUp);
+  o3djs.event.addEventListener(g_o3dElement, 'keydown', keyDown);
+}
+
+
+/**
+ * Creates the client area.
+ */
+function initClient() {
+  o3djs.webgl.makeClients(main);
+}
+
+function initAudio() {
+    // Audio init
+    context = new AudioContext();
+    
+    // Create compressor to sweeten overall mix
+    if (context.createDynamicsCompressor) {
+        compressor = context.createDynamicsCompressor();
+        compressor.connect(context.destination);
+    } else {
+        // we don't really have a compressor, just connect to destination...
+        compressor = context.destination;
+    }
+
+    convolver = context.createConvolver();
+    convolver.connect(compressor);
+
+    info = document.getElementById('info');
+
+    // loadPing("sounds/hyper-reality/filter-noise-3.wav");
+    loadBallBallLight("../../sounds/fx/ball-ball-light2.wav");
+    loadBallBallMedium("../../sounds/fx/ball-ball-medium3.wav");
+    loadBallBallHard("../../sounds/fx/ball-ball-hard2.wav");
+
+    // loadMediumEdge("sounds/hyper-reality/filter-noise-1.wav");
+    loadMediumEdge("../../sounds/fx/ball-edge-medium2.wav");
+    loadHardEdge("../../sounds/fx/ball-edge-hard1.wav");
+
+    loadStickCueLight("../../sounds/fx/stick-cue-light2.wav");
+    loadStickCueMedium("../../sounds/fx/stick-cue-medium5.wav");
+    loadStickCueHard("../../sounds/fx/stick-cue-medium2.wav");
+
+    loadBallPocket("../../sounds/fx/ball-pocket-balls.wav");
+
+    // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.wav');  
+    // loadImpulseResponse('../impulse-responses/house-impulses/dining-room.wav');
+    // loadImpulseResponse('../impulse-responses/house-impulses/cinema-hallway.wav');  
+    loadImpulseResponse('../../sounds/impulse-responses/kitchen-true-stereo.wav');  
+    // loadImpulseResponse('../impulse-responses/spatialized4.wav');
+}
+
+/**
+ * Initializes global variables and libraries.
+ */
+function initGlobals(clientElements) {
+  g_o3dElement = clientElements[0];
+  window.g_client = g_client = g_o3dElement.client;
+  g_o3d = g_o3dElement.o3d;
+  g_math = o3djs.math;
+  g_quat = o3djs.quaternions;
+
+  // Create a pack to manage the objects created.
+  g_pack = g_client.createPack();
+
+  initAudio();
+}
+
+
+/**
+ * Initalizes the render graph.
+ */
+function initRenderGraph() {
+  // Need separate roots for the table, shadow and heads-up display.
+  g_tableRoot = g_pack.createObject('Transform');
+  g_tableRoot.parent = g_client.root;
+  g_shadowRoot = g_pack.createObject('Transform');
+  g_shadowRoot.parent = g_client.root;
+  g_hudRoot = g_pack.createObject('Transform');
+  g_hudRoot.parent = g_client.root;
+
+  // Create the render graph for a view.
+  var viewRoot = g_pack.createObject('RenderNode');
+  viewRoot.priority = 1;
+  if (!SHADOWPOV)
+    viewRoot.parent = g_client.renderGraphRoot;
+
+  var shadowPassRoot = g_pack.createObject('RenderNode');
+  shadowPassRoot.priority = 0;
+  shadowPassRoot.parent = g_client.renderGraphRoot;
+
+  g_viewInfo = o3djs.rendergraph.createBasicView(
+      g_pack,
+      g_tableRoot,
+      viewRoot,
+      [0, 0, 0, 1]);
+
+  var hudRenderRoot = g_client.renderGraphRoot;
+  if (SHADOWPOV)
+    hudRenderRoot = null;
+
+  g_hudViewInfo = o3djs.rendergraph.createBasicView(
+      g_pack,
+      g_hudRoot,
+      hudRenderRoot);
+
+  // Make sure the hud gets drawn after the 3d scene.
+  g_hudViewInfo.root.priority = g_viewInfo.root.priority + 1;
+
+  // Turn off clearing the color for the hud.
+  g_hudViewInfo.clearBuffer.clearColorFlag = false;
+
+  // Set culling to none so we can flip images using rotation or negative scale.
+  g_hudViewInfo.zOrderedState.getStateParam('CullMode').value =
+      g_o3d.State.CULL_NONE;
+  g_hudViewInfo.zOrderedState.getStateParam('ZWriteEnable').value = false;
+
+  // Create an orthographic matrix for 2d stuff in the HUD.
+  g_hudViewInfo.drawContext.projection = g_math.matrix4.orthographic(
+      0, 1, 0, 1, -10, 10);
+
+  g_hudViewInfo.drawContext.view = g_math.matrix4.lookAt(
+      [0, 0, 1],   // eye
+      [0, 0, 0],   // target
+      [0, 1, 0]);  // up
+
+  // Create the texture required for the render-target.
+  g_shadowTexture = g_pack.createTexture2D(RENDER_TARGET_WIDTH,
+                                           RENDER_TARGET_HEIGHT,
+                                           g_o3d.Texture.XRGB8, 1, true);
+
+  var renderSurface = g_shadowTexture.getRenderSurface(0);
+
+  var depthSurface = g_pack.createDepthStencilSurface(RENDER_TARGET_WIDTH,
+                                                      RENDER_TARGET_HEIGHT);
+
+  var renderSurfaceSet = g_pack.createObject('RenderSurfaceSet');
+  renderSurfaceSet.renderSurface = renderSurface;
+  renderSurfaceSet.renderDepthStencilSurface = depthSurface;
+  renderSurfaceSet.parent = shadowPassRoot;
+
+  var shadowPassParent = renderSurfaceSet;
+  if (SHADOWPOV)
+    shadowPassParent = g_client.renderGraphRoot;
+
+  g_shadowPassViewInfo = o3djs.rendergraph.createBasicView(
+      g_pack,
+      g_shadowRoot,
+      shadowPassParent,
+      [0, 0, 0, 1]);
+
+  g_shadowPassViewInfo.zOrderedState.
+      getStateParam('ZComparisonFunction').value =
+          o3djs.base.o3d.State.CMP_ALWAYS;
+}
+
+function handleResizeEvent(event) {
+  updateContext();
+}
+
+/**
+ * Sets up reasonable view and projection matrices.
+ */
+function updateContext() {
+  // Set up a perspective transformation for the projection.
+  g_shadowPassViewInfo.drawContext.projection =
+      g_viewInfo.drawContext.projection = g_math.matrix4.perspective(
+          g_math.degToRad(30), // 30 degree frustum.
+          g_client.width / g_client.height, // Aspect ratio.
+          1,                   // Near plane.
+          5000);               // Far plane.
+
+  // Set the view transformation.
+  var eye = [0, 0, 0];
+  var target = [0, 0, 0];
+  g_cameraInfo.getEyeAndTarget(eye, target);
+  g_shadowPassViewInfo.drawContext.view =
+  g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, [0, 0, 1]);
+
+  updateMaterials();
+}
+
+
+function setOptionalParam(material, name, value) {
+  var param = material.getParam(name);
+  if (param) {
+    param.value = value;
+  }
+}
+
+
+function initMaterials() {
+  g_materials = {
+      'solid':{},
+      'felt':{},
+      'wood':{},
+      'cushion':{},
+      'billiard':{},
+      'ball':{},
+      'shadowPlane':{}};
+
+  var vertexShaderString = document.getElementById('vshader').value;
+  var pixelShaderString = document.getElementById('pshader').value;
+
+  for (name in g_materials) {
+    var material = g_pack.createObject('Material');
+    g_materials[name] = material;
+    var effect = g_pack.createObject('Effect');
+
+    var mainString =
+      'void main() {' +
+      '  gl_FragColor = ' + name + 'PixelShader();' +
+      '}';
+
+    effect.loadVertexShaderFromString(vertexShaderString);
+    effect.loadPixelShaderFromString(pixelShaderString + mainString);
+
+    material.effect = effect;
+    effect.createUniformParameters(material);
+    material.drawList = g_viewInfo.performanceDrawList;
+
+    var eye = [0, 0, 0];
+    var target = [0, 0, 0];
+    g_cameraInfo.getEyeAndTarget(eye, target);
+
+    setOptionalParam(material, 'factor', 2 / g_tableWidth);
+    setOptionalParam(material, 'lightWorldPosition', g_light);
+    setOptionalParam(material, 'eyeWorldPosition', eye);
+  }
+
+  g_solidMaterial = g_materials['solid'];
+  g_solidMaterial.drawList = g_hudViewInfo.zOrderedDrawList;
+
+  g_materials['shadowPlane'].drawList = g_shadowPassViewInfo.zOrderedDrawList;
+
+  g_shadowSampler = g_pack.createObject('Sampler');
+  g_shadowSampler.texture = g_shadowTexture;
+  g_materials['felt'].getParam('textureSampler').value = g_shadowSampler;
+
+  o3djs.io.loadBitmaps(g_pack,
+      o3djs.util.getAbsoluteURI('./images/poolballs.png'),
+      finishLoadingBitmaps);
+}
+
+
+function updateMaterials() {
+  for (name in g_materials) {
+    var eye = [0, 0, 0];
+    var target = [0, 0, 0];
+    g_cameraInfo.getEyeAndTarget(eye, target);
+    setOptionalParam(g_materials[name], 'eyeWorldPosition', eye);
+  }
+}
+
+
+/**
+ * Gets called back when the bitmap has loaded.
+ */
+function finishLoadingBitmaps(bitmaps, exception) {
+  var bitmap = bitmaps[0];
+
+  bitmap.flipVertically();
+
+  var width = bitmaps[0].width / 4;
+  var height = bitmaps[0].height / 4;
+  var levels = o3djs.texture.computeNumLevels(width, height);
+
+  for (var i = 0; i < 16; ++i) {
+    g_ballTextures[i] = g_pack.createTexture2D(
+        width, height, g_o3d.Texture.XRGB8, 0, false);
+    g_ballTextureSamplers[i] = g_pack.createObject('Sampler');
+    g_ballTextureSamplers[i].texture = g_ballTextures[i];
+  }
+
+  for (var i = 0; i < 16; ++i) {
+    var u = i % 4;
+    var v = Math.floor(i / 4);
+    g_ballTextures[i].drawImage(bitmap,
+        0, u * width, v * height, width, height,
+        0, 0, 0, width, height);
+    g_ballTextures[i].generateMips(0, levels - 1);
+  }
+
+  for (var i = 0; i < 16; ++i) {
+    g_ballTextureSamplerParams[i].value = g_ballTextureSamplers[i];
+  }
+}
+
+
+function flatMesh(material, vertexPositions, faceIndices) {
+  var vertexInfo = o3djs.primitives.createVertexInfo();
+  var positionStream = vertexInfo.addStream(
+      3, o3djs.base.o3d.Stream.POSITION);
+  var normalStream = vertexInfo.addStream(
+      3, o3djs.base.o3d.Stream.NORMAL);
+
+  var vertexCount = 0;
+  for (var i = 0; i < faceIndices.length; ++i) {
+    var face = faceIndices[i];
+
+    var n = g_math.normalize(g_math.cross(
+        g_math.subVector(vertexPositions[face[1]],
+                         vertexPositions[face[0]]),
+        g_math.subVector(vertexPositions[face[2]],
+                         vertexPositions[face[0]])));
+
+    var faceFirstIndex = vertexCount;
+
+    for (var j = 0; j < face.length; ++j) {
+      var v = vertexPositions[face[j]];
+      positionStream.addElement(v[0], v[1], v[2]);
+      normalStream.addElement(n[0], n[1], n[2]);
+      ++vertexCount;
+    }
+
+    for (var j = 1; j < face.length - 1; ++j)
+      vertexInfo.addTriangle(faceFirstIndex,
+                             faceFirstIndex + j,
+                             faceFirstIndex + j + 1);
+    }
+
+  return vertexInfo.createShape(g_pack, material);
+}
+
+function arc(center, radius, start, end, steps) {
+  var r = [];
+
+  for (var i = 0; i <= steps; ++i) {
+    var theta = start + i * (end - start) / steps;
+    r.push([center[0] + radius * Math.cos(theta),
+            center[1] + radius * Math.sin(theta)]);
+  }
+  return r;
+}
+
+function myreverse(l) {
+  var r = [l[0]];
+  var n = l.length;
+  for (var i = 0; i < n - 1; ++i) {
+    r.push(l[n - i - 1]);
+  }
+  return r;
+}
+
+function flip(a, b) {
+  r = [];
+  for (var i = 0; i < a.length; ++i)
+    r.push([b[0] * a[i][0], b[1] * a[i][1]]);
+  if (b[0] * b[1] < 0)
+    return myreverse(r);
+  return r;
+}
+
+
+var g_pocketRadius = 2.3;
+var g_woodBreadth = 3.2;
+var g_tableThickness = 5;
+var g_tableWidth = 45;
+var g_woodHeight = 1.1;
+
+function initTable() {
+  var feltMaterial = g_materials.felt;
+  var woodMaterial = g_materials.wood;
+  var cushionMaterial = g_materials.cushion;
+  var billiardMaterial = g_materials.billiard;
+
+  var shapes = [];
+
+  var root = g_pack.createObject('Transform');
+  root.parent = g_tableRoot;
+  var tableRoot = g_pack.createObject('Transform');
+  tableRoot.translate(0, 0, -g_tableThickness / 2 - 1);
+  var cushionRoot = g_pack.createObject('Transform');
+  var ballRoot = g_pack.createObject('Transform');
+  tableRoot.parent = root;
+  cushionRoot.parent = tableRoot;
+  ballRoot.parent = root;
+
+  var root2 = Math.sqrt(2);
+
+  var scaledPocketRadius = 2 * g_pocketRadius / g_tableWidth;
+  var scaledWoodBreadth = 2 * g_woodBreadth / g_tableWidth;
+
+  var felt_polygon_A =
+      [[0, -2], [0, (1 + .5 * root2) * scaledPocketRadius - 2]].concat(
+          arc([.5 * root2 * scaledPocketRadius - 1,
+             .5 * root2 * scaledPocketRadius - 2],
+              scaledPocketRadius, Math.PI / 2, -.25 * Math.PI, 15));
+
+  var felt_polygon_B =
+      [[-1, (1 + .5 * root2) * scaledPocketRadius - 2]].concat(
+          arc([.5 * root2 * scaledPocketRadius - 1,
+             .5 * root2 * scaledPocketRadius - 2],
+              scaledPocketRadius, .75 * Math.PI, .5 * Math.PI, 15));
+
+  var felt_polygon_C =
+      [[0, (1 + .5 * root2) * scaledPocketRadius - 2], [0, 0]].concat(
+          arc([-1, 0], scaledPocketRadius, 0, -.5 * Math.PI, 15)).concat(
+              [[-1, (1 + .5 * root2) * scaledPocketRadius - 2]]);
+
+  var wood_polygon =
+      [[-scaledWoodBreadth - 1, -scaledWoodBreadth - 2],
+       [0, -scaledWoodBreadth - 2],
+       [0, -2]].concat(
+           arc([.5 * root2 * scaledPocketRadius - 1,
+              .5 * root2 * scaledPocketRadius - 2],
+             scaledPocketRadius,
+             -.25 * Math.PI,
+             -1.25 * Math.PI,
+             15)).concat(
+                  arc([-1, 0],
+                    scaledPocketRadius,
+                    1.5 * Math.PI,
+                    Math.PI,
+                    15)).concat([[-scaledWoodBreadth - 1, 0]]);
+
+  var m = g_math.mulScalarMatrix(g_tableWidth / 2, g_math.identity(2));
+  felt_polygon_A = g_math.mulMatrixMatrix(felt_polygon_A, m);
+  felt_polygon_B = g_math.mulMatrixMatrix(felt_polygon_B, m);
+  felt_polygon_C = g_math.mulMatrixMatrix(felt_polygon_C, m);
+  wood_polygon = g_math.mulMatrixMatrix(wood_polygon, m);
+
+  var felt_polygons = [];
+  var wood_polygons = [];
+  for (var i = -1; i < 2; i+=2) {
+    for (var j = -1; j < 2; j+=2) {
+      felt_polygons.push(flip(felt_polygon_A, [i, j]),
+                         flip(felt_polygon_B, [i, j]),
+                         flip(felt_polygon_C, [i, j]));
+      wood_polygons.push(flip(wood_polygon, [i, j]));
+    }
+  }
+
+  for (var i = 0; i < felt_polygons.length; ++i) {
+    shapes.push(o3djs.primitives.createPrism(
+          g_pack,
+          feltMaterial,
+          felt_polygons[i], g_tableThickness));
+  }
+
+  for (var i = 0; i < wood_polygons.length; ++i) {
+    shapes.push(o3djs.primitives.createPrism(
+          g_pack,
+          woodMaterial,
+          wood_polygons[i], g_tableThickness + 2 * g_woodHeight));
+  }
+
+  for (var i = 0; i < 1; i++) {
+    var t = g_pack.createObject('Transform');
+    t.parent = tableRoot;
+    for (var j = 0; j < shapes.length; ++j) {
+      t.addShape(shapes[j]);
+    }
+  }
+
+  var cushionHeight = 1.1 * g_woodHeight;
+  var cushionUp = g_tableThickness / 2;
+  var cushionProp = .9 * g_woodHeight;
+  var cushionDepth = g_tableWidth;
+  var cushionBreadth = g_pocketRadius;
+  var cushionSwoop = g_pocketRadius;
+
+  var angles = [0, Math.PI/2, Math.PI, Math.PI, 3 * Math.PI / 2, 0];
+  var translations = g_math.mulMatrixMatrix(
+      [[-1, -1, 0], [0, -2, 0], [1, -1, 0], [1, 1, 0], [0, 2, 0], [-1, 1, 0]],
+      [[g_tableWidth / 2, 0, 0], [0, g_tableWidth / 2, 0], [0, 0, 1]]);
+  var shortenings = g_math.mulScalarMatrix(g_pocketRadius,
+      [[1, root2], [root2, root2], [root2, 1]])
+
+  var billiardThickness = 0.1;
+  var billiardBreadth = 1;
+  var billiardDepth = .309;
+  var billiardOut = -g_woodBreadth / 2;
+  var billiardSpacing = g_tableWidth / 4;
+
+  var billiards = [];
+
+  for (var i = -1; i < 2; ++i) {
+    billiards.push(o3djs.primitives.createPrism(
+        g_pack,
+        billiardMaterial,
+        [[billiardOut + billiardBreadth / 2, i * billiardSpacing],
+         [billiardOut, billiardDepth + i * billiardSpacing],
+         [billiardOut - billiardBreadth / 2, i * billiardSpacing],
+         [billiardOut, -billiardDepth + i * billiardSpacing]],
+        g_tableThickness + 2 * g_woodHeight + billiardThickness));
+  }
+
+  for (var i = 0; i < 6; ++i) {
+    var backShortening = shortenings[i % 3][1];
+    var frontShortening = shortenings[i % 3][0];
+
+    var vertexPositions = [
+      [0, -cushionDepth / 2 + backShortening, cushionUp],
+      [cushionBreadth, -cushionDepth / 2 + cushionSwoop + backShortening,
+       cushionUp + cushionProp],
+      [cushionBreadth, -cushionDepth / 2 + cushionSwoop + backShortening,
+       cushionUp + cushionHeight],
+      [0, -cushionDepth / 2 + backShortening, cushionUp + cushionHeight],
+      [0, cushionDepth / 2 - frontShortening, cushionUp],
+      [cushionBreadth, cushionDepth / 2 - cushionSwoop - frontShortening,
+       cushionUp + cushionProp],
+      [cushionBreadth, cushionDepth / 2 - cushionSwoop - frontShortening,
+       cushionUp + cushionHeight],
+      [0, cushionDepth / 2 - frontShortening, cushionUp + cushionHeight]
+    ];
+
+    var faceIndices = [
+      [0, 1, 2, 3], // front
+      [7, 6, 5, 4], // back
+      [1, 0, 4, 5], // bottom
+      [2, 1, 5, 6], // right
+      [3, 2, 6, 7], // top
+      [0, 3, 7, 4]  // left
+    ];
+
+    var cushion = flatMesh(cushionMaterial, vertexPositions, faceIndices);
+    shapes.push(cushion);
+
+    var t = g_pack.createObject('Transform');
+    t.localMatrix = g_math.mulMatrixMatrix(
+        g_math.matrix4.rotationZ(angles[i]),
+        g_math.matrix4.translation(translations[i]));
+
+    t.parent = cushionRoot;
+    t.addShape(cushion);
+    for (var j = 0; j < billiards.length; ++j)
+      t.addShape(billiards[j]);
+  }
+
+  for (var j = 0; j < billiards.length; ++j)
+    shapes.push(billiards[j]);
+
+  var ball =
+      o3djs.primitives.createSphere(g_pack, g_materials.ball, 1, 50, 70);
+  shapes.push(ball);
+
+  for(var i = 0; i < 16; ++i) {
+    var transform = g_pack.createObject('Transform');
+    g_ballTextureSamplerParams[i] =
+        transform.createParam('textureSampler', 'ParamSampler');
+    transform.parent = ballRoot;
+    g_ballTransforms[i] = transform;
+    transform.addShape(ball);
+  }
+}
+
+
+function initHud() {
+  var barT1 = g_pack.createObject('Transform');
+  g_barScaling = g_pack.createObject('Transform');
+  var barT2 = g_pack.createObject('Transform');
+  var backT2 = g_pack.createObject('Transform');
+
+  g_barRoot = barT1;
+  barT1.parent = g_hudRoot;
+  g_barScaling.parent = barT1;
+  barT2.parent = g_barScaling;
+  backT2.parent = barT1;
+
+  var plane = o3djs.primitives.createPlane(
+      g_pack, g_solidMaterial, 1, 1, 1, 1,
+      [[1, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0,-1, 0, 0],
+       [0, 0, 0, 1]]);
+
+  var backPlane = o3djs.primitives.createPlane(
+      g_pack, g_solidMaterial, 1, 1, 1, 1,
+      [[1, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0,-1, 0, 0],
+       [0, 0, 0, 1]]);
+
+  barT2.addShape(plane);
+  //backT2.addShape(backPlane);
+
+  barT1.translate([0.05, 0.05, 0]);
+  barT1.scale([0.05, 0.9, 1]);
+  g_barScaling.localMatrix = g_math.matrix4.scaling([1, 0.0, 1]);
+  barT2.translate([.5, .5, 0]);
+  backT2.translate([.5, .5, 0.1]);
+}
+
+function setBarScale(t) {
+  g_barScaling.localMatrix = g_math.matrix4.scaling([1, t, 1]);
+}
+
+if ( !window.requestAnimationFrame ) {
+
+        window.requestAnimationFrame = ( function() {
+
+                return window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                        window.setTimeout( callback, 1000 / 60 );
+
+                };
+
+        } )();
+
+}
+
+function onrender(event) {
+  g_clock += event.elapsedTime;
+
+  g_queueClock += event.elapsedTime;
+  var clock = g_queueClock;
+
+  if (g_queue.length) {
+    if (eval(g_queue[0].condition)) {
+      var action = g_queue[0].action;
+      for (var i = 0; i < g_queue.length - 1; ++i) {
+        g_queue[i] = g_queue[i + 1];
+      }
+      g_queue.pop();
+      eval(action);
+      g_queueClock = 0;
+    }
+  }
+
+  if (g_cameraInfo) {
+    g_cameraInfo.updateClock();
+  }
+
+  if (g_physics) {
+    if (g_physics.someBallsMoving()) {
+      g_physics.step();
+      g_physics.stopSlowBalls();
+    } else {
+      if (g_rolling) {
+        g_rolling = false;
+        var cueBall = g_physics.balls[0];
+        if (g_cameraInfo.lookingAt(cueBall.center))
+          g_barRoot.visible = true;
+        if (!cueBall.active) {
+          ballOn(0);
+          cueBall.center[0] = 0;
+          cueBall.center[1] = 0;
+          cueBall.center[2] = 0;
+          g_physics.boundCueBall();
+        }
+      }
+    }
+  }
+
+  updateContext();
+}
+
+function doAnimation() {
+    g_client.render();
+    requestAnimationFrame(doAnimation);
+}
+
+function setRenderCallback() {
+  g_client.setRenderCallback(onrender);
+  doAnimation();
+}
+
+function initPhysics() {
+  g_physics = new pool.Physics();
+  g_physics.math = o3djs.math;
+  g_physics.quat = o3djs.quaternions;
+
+  g_physics.left = -g_tableWidth / 2 + g_pocketRadius + 1;
+  g_physics.right = g_tableWidth / 2 - g_pocketRadius - 1;
+  g_physics.top = g_tableWidth - g_pocketRadius - 1;
+  g_physics.bottom = - g_tableWidth + g_pocketRadius + 1;
+
+  var w = g_tableWidth / 2;
+  var r = g_pocketRadius;
+  var root2 = Math.sqrt(2);
+  var x = .5 * root2 * r - w;
+  var y = .5 * root2 * r - 2 * w;
+
+  g_physics.pocketCenters = [
+    [w, 0], [-w, 0], [x, y], [-x, y], [x, -y], [-x, -y]];
+
+  g_physics.pocketRadius = g_pocketRadius;
+  g_physics.tableWidth = g_tableWidth;
+  g_physics.initWalls();
+}
+
+
+function rack(game, yOffset, cueYOffset) {
+  var root3 = Math.sqrt(3);
+
+  if (!yOffset)
+    yOffset = 6.0 * g_tableWidth / 12.0;
+
+  if (!cueYOffset)
+    cueYOffset = -g_tableWidth / 2;
+
+  for (var i = 0; i < 16; ++i)
+    ballOn(i);
+
+  g_physics.stopAllBalls();
+
+  switch(game) {
+    case 8:
+      placeBall(1, 0, 0 + yOffset);
+      placeBall(9, -1, root3 + yOffset);
+      placeBall(2, 1, root3 + yOffset);
+      placeBall(10, 2, 2 * root3 + yOffset);
+      placeBall(8, 0, 2 * root3 + yOffset);
+      placeBall(3, -2, 2 * root3 + yOffset);
+      placeBall(11, -3, 3 * root3 + yOffset);
+      placeBall(4, -1, 3 * root3 + yOffset);
+      placeBall(12, 1, 3 * root3 + yOffset);
+      placeBall(5, 3, 3 * root3 + yOffset);
+      placeBall(13, 4, 4 * root3 + yOffset);
+      placeBall(6, 2, 4 * root3 + yOffset);
+      placeBall(14, 0, 4 * root3 + yOffset);
+      placeBall(15, -2, 4 * root3 + yOffset);
+      placeBall(7, -4, 4 * root3 + yOffset);
+
+      placeBall(0, 0, cueYOffset);
+      break;
+
+    case 9:
+      placeBall(1, 0, 0 + yOffset);
+      placeBall(2, 1, root3 + yOffset);
+      placeBall(3, -1, root3 + yOffset);
+      placeBall(9, 0, 2 * root3 + yOffset);
+      placeBall(4, 2, 2 * root3 + yOffset);
+      placeBall(5, -2, 2 * root3 + yOffset);
+      placeBall(6, 1, 3 * root3 + yOffset);
+      placeBall(7, -1, 3 * root3 + yOffset);
+      placeBall(8, 0, 4 * root3 + yOffset);
+
+      for (var i = 10; i < 16; ++i) {
+        placeBall(i, 0, 0, -5);
+        ballOff(i);
+      }
+
+      placeBall(0, 0, cueYOffset);
+      break;
+
+    case 0:
+      for (var i = 1; i < 16; ++i) {
+        placeBall(i, 0, 0, -5);
+        ballOff(i);
+      }
+      placeBall(0, 0, cueYOffset);
+      break;
+
+    case 1:
+      for (var i = 1; i < 16; ++i) {
+        placeBall(i, 0, 0, -5);
+        ballOff(i);
+      }
+      placeBall(0, 0, cueYOffset);
+      placeBall(1, -g_tableWidth/4, cueYOffset/2);
+      placeBall(2, -3*g_tableWidth/8, cueYOffset/4);
+      placeBall(3, g_tableWidth/4, 0);
+
+      ballOn(0);
+      ballOn(1);
+      ballOn(2);
+      ballOn(3);
+      break;
+  }
+
+  g_physics.randomOrientations();
+  g_physics.placeBalls();
+  g_cameraInfo.goTo([0, 0, 0], -Math.PI / 2, Math.PI / 6, 140);
+}
+
+
+function ballOn(i) {
+  g_physics.balls[i].active = true;
+  g_physics.balls[i].sunkInPocket = -1;
+  g_ballTransforms[i].visible = true;
+  g_shadowOnParams[i].value = 1;
+}
+
+
+function ballOff(i) {
+  g_physics.balls[i].active = false;
+  g_ballTransforms[i].visible = false;
+  g_shadowOnParams[i].value = 0;
+}
+
+
+function placeBall(i, x, y, z, q) {
+  if (!q) {
+    q = [0, 0, 0, 1];
+  }
+  if (!z) {
+    z = 0;
+  }
+  g_physics.balls[i].center[0] = x;
+  g_physics.balls[i].center[1] = y;
+  g_physics.balls[i].center[2] = z;
+  g_ballTransforms[i].localMatrix = g_math.matrix4.translation([x, y, z]);
+  g_ballTransforms[i].quaternionRotate(q);
+  g_centers[i].value = [x, y];
+}
+
+
+function initShadowPlane() {
+  var root = g_pack.createObject('Transform');
+  root.parent = g_shadowRoot;
+
+  var plane = o3djs.primitives.createPlane(g_pack,
+                                           g_materials.shadowPlane,
+                                           g_tableWidth,
+                                           g_tableWidth * 2,
+                                           1,
+                                           1);
+  root.translate([0, 0, -1]);
+  root.rotateX(Math.PI / 2);
+
+  for (var i = 0; i < 16; ++i) {
+    var transform = g_pack.createObject('Transform');
+    transform.parent = root;
+    g_centers.push(transform.createParam('ballCenter', 'ParamFloat2'));
+    g_shadowOnParams[i] =
+        transform.createParam('shadowOn', 'ParamFloat');
+    g_shadowOnParams[i].value = 1;
+    transform.addShape(plane);
+  }
+}
+
+
+// To avoid problem where user just taps space bar instead of holding for
+// more thrust:  If the user doesn't hold the button down for a few ticks
+// showing 'seriousness' the stroke doesn't take.
+var g_seriousness = 0;
+
+var g_shooting_timers = [];
+
+
+function computeShot(i, j, cueCenter, objectCenter, pocketCenter) {
+  // The vector from the object ball to the pocket, I'm calling "second".
+  // The vector from the cue ball to the "ghost ball" behind the object
+  // ball I'm calling "first"
+  var secondX = pocketCenter[0] - objectCenter[0];
+  var secondY = pocketCenter[1] - objectCenter[1];
+  var secondDistance = Math.sqrt(secondX * secondX + secondY * secondY);
+
+  var toPocket = [secondX / secondDistance, secondY / secondDistance];
+  var toObject =
+      [objectCenter[0] - cueCenter[0], objectCenter[0] - cueCenter[0]];
+  var d = Math.sqrt(toObject[0] * toObject[0] + toObject[1] * toObject[1]);
+  toObject = [toObject[0] / d, toObject[1] / d];
+
+  // Cut correction.
+  var cc = (toObject[0] * toPocket[0] + toObject[1] * toPocket[1]);
+  cc = cc > 0.8 ? .4 : 0 ;
+
+  var cut = [(2.0 + cc) * toPocket[0], (2.0 + cc) * toPocket[1]];
+  var target = [objectCenter[0] - cut[0], objectCenter[1] - cut[1]];
+
+  var firstX = target[0] - cueCenter[0];
+  var firstY = target[1] - cueCenter[1];
+  var firstDistance = Math.sqrt(firstX * firstX + firstY * firstY);
+
+  var cutAmmount = 1.0 - (firstX * secondX + firstY * secondY) /
+      (firstDistance * secondDistance);
+
+  var power = 0.12 * (firstDistance + secondDistance / (1.01-cutAmmount)) /
+      g_tableWidth;
+
+  var difficulty = cutAmmount * cutAmmount - 0.5 / (1 + secondDistance/2);
+
+  if (difficulty < 1) {
+    // Determine if the shot is occluded.
+    var walls = [
+      {p:cueCenter, q:target},
+      {p:objectCenter, q:pocketCenter}
+    ];
+
+    var collisions = [];
+    g_physics.computeWallNormals(walls);
+    g_physics.collideWithWalls(walls, collisions, 1.99);
+    if (collisions.length > 2)
+      difficulty += 10;
+  }
+
+  return {target: target,
+          power: Math.min(1, Math.max(0.1, power)),
+          difficulty: difficulty};
+}
+
+
+function cueNewShot(opt_power) {
+  g_queue.push(
+      {condition: 'clock > 1',
+          action: 'g_cameraInfo.zoomToPoint(g_physics.balls[0].center);'});
+
+  var cue = g_physics.balls[0];
+
+  var current = null;
+
+  var objectBalls = [];
+
+  for (var i = 1; i < 8; ++i) {
+    var ball = g_physics.balls[i];
+    if (ball.active) {
+      objectBalls.push(ball);
+    }
+  }
+
+  var eight = g_physics.balls[i];
+  if (objectBalls.length == 0 && eight.active) {
+    objectBalls.push(eight);
+  }
+
+  for (var i = 0; i < objectBalls.length; ++i) {
+    var ball = objectBalls[i];
+
+    for (var j = 0; j < g_physics.pocketCenters.length; ++j) {
+      var pocketCenter = g_physics.pocketCenters[j];
+      pocketCenter = [pocketCenter[0], pocketCenter[1]];
+      var k = g_pocketRadius;
+      if (pocketCenter[0] > 1)
+        pocketCenter[0] -= k;
+      if (pocketCenter[0] < -1)
+        pocketCenter[0] += k;
+      if (pocketCenter[1] > 1)
+        pocketCenter[1] -= k;
+      if (pocketCenter[1] < -1)
+        pocketCenter[1] += k;
+      var shot = computeShot(i, j, cue.center, ball.center, pocketCenter);
+      if (!current || shot.difficulty < current.difficulty)
+        current = shot;
+    }
+  }
+
+  if (current) {
+    var theta = Math.atan2(cue.center[1] - current.target[1],
+                           cue.center[0] - current.target[0]);
+    var power = current.power;
+    if (opt_power)
+      power = opt_power;
+
+    g_queue.push(
+        {condition: 'true',
+            action: 'g_cameraInfo.goTo(null, ' + theta + ', null, 0);'});
+
+    g_queue.push(
+        {condition: 'clock > 1.5',
+            action: 'startShooting();'});
+
+    g_queue.push(
+          {condition: 'g_physics.speedFactor >= ' + power,
+              action: 'g_physics.speedFactor = ' + power +
+                          '; finishShooting();'});
+
+    g_queue.push(
+          {condition: '!(g_shooting || g_rolling)',
+              action: 'cueNewShot();'});
+  }
+}
+
+
+var g_phi = 0.0;
+
+function cueNewTestShot() {
+  var cue = g_physics.balls[0];
+
+  placeBall(0, 0, -20);
+  placeBall(1, 0, 0);
+
+  ballOn(0);
+  ballOn(1);
+
+  var current = {target: [0, 0], power: 0.1};
+
+  var phi = g_phi;
+  g_phi += 0.1;
+  current.target[0] = - 2.0 * Math.cos(phi);
+  current.target[1] = - 2.0 * Math.sin(phi);
+
+  if (current) {
+    var theta = Math.atan2(cue.center[1] - current.target[1],
+                           cue.center[0] - current.target[0]);
+
+    var power = current.power;
+
+    g_queue.push(
+        {condition: 'true',
+            action: 'g_cameraInfo.goTo(null, ' + theta + ', null, 0);'});
+
+    g_queue.push(
+        {condition: 'clock > 1.5',
+            action: 'startShooting();'});
+
+    g_queue.push(
+          {condition: 'g_physics.speedFactor >= ' + power,
+              action: 'g_physics.speedFactor = ' + power +
+                          '; finishShooting();'});
+
+    g_queue.push(
+          {condition: '!(g_shooting || g_rolling)',
+              action: 'printResult(' + phi + '); cueNewTestShot();'});
+  }
+}
+
+
+function startShooting() {
+  g_shooting = true;
+  g_shooting_timers.push(
+      setInterval('increaseFactor()', 1000.0 / 60.0));
+}
+
+
+function increaseFactor() {
+  g_physics.speedFactor += 0.01;
+  setBarScale(g_physics.speedFactor);
+  if (g_physics.speedFactor > 1)
+    g_physics.speedFactor = 1;
+}
+
+
+function finishShooting() {
+  while (g_shooting_timers.length > 0)
+    clearTimeout(g_shooting_timers.pop())
+  if (g_physics.speedFactor > 0.0) {
+    playSound(2, g_physics.speedFactor, 0,0);
+
+    var eye = [0, 0, 0];
+    var target = [0, 0, 0];
+    g_cameraInfo.getEyeAndTarget(eye, target);
+    var dx = target[0] - eye[0];
+    var dy = target[1] - eye[1];
+    var norm = Math.sqrt(dx * dx + dy * dy);
+    g_physics.impartSpeed(0, [dx / norm, dy / norm]);
+    g_cameraInfo.backUp();
+    g_rolling = true;
+    g_barRoot.visible = false;
+  }
+  g_physics.speedFactor = 0;
+  g_seriousness = 0;
+  setBarScale(g_physics.speedFactor);
+  g_shooting = false;
+}
+
+
+function keyUp(event) {
+  switch (event.keyCode) {
+    case 32:
+        finishShooting();
+      break;
+  }
+}
+
+function keyDown(event) {
+  switch (event.keyCode) {
+  }
+}
+
+function keyPressed(event) {
+  var keyChar = String.fromCharCode(o3djs.event.getEventKeyChar(event));
+  keyChar = keyChar.toLowerCase();
+  var identifier = o3djs.event.getKeyIdentifier(event.charCode, event.keyCode);
+
+  var spotDelta = 1;
+  var cueBall = g_physics.balls[0];
+  var x = cueBall.center[0];
+  var y = cueBall.center[1];
+
+  switch(keyChar) {
+    case '*':
+      rack(8);
+      break;
+
+    case '(':
+      rack(9);
+      break;
+
+    case ')':
+      rack(0);
+      break;
+
+    case 'd':
+      ballOn(0);
+      placeBall(0, x + spotDelta, y);
+      g_physics.boundCueBall();
+      break;
+
+    case 'a':
+      ballOn(0);
+      placeBall(0, x - spotDelta, y);
+      g_physics.boundCueBall();
+      break;
+
+    case 's':
+      ballOn(0);
+      placeBall(0, x, y - spotDelta);
+      g_physics.boundCueBall();
+      break;
+
+    case 'w':
+      ballOn(0);
+      placeBall(0, x, y + spotDelta);
+      g_physics.boundCueBall();
+      break;
+
+    case 'c':
+      g_cameraInfo.zoomToPoint(g_physics.balls[0].center);
+      if (!g_rolling)
+        g_barRoot.visible = true;
+      break;
+
+    case 't':
+      g_cameraInfo.goTo([0, 0, 0], null, null, 100);
+      break;
+
+    case '=':
+    case '+':
+      g_cameraInfo.targetPosition.radius *= 0.9;
+      break;
+
+    case '-':
+    case '_':
+      g_cameraInfo.targetPosition.radius /= 0.9;
+      break;
+
+    case ' ':
+      if (!g_cameraInfo.lookingAt(g_physics.balls[0].center)) {
+        g_cameraInfo.zoomToPoint(g_physics.balls[0].center);
+        if (!g_rolling)
+          g_barRoot.visible = true;
+      } else {
+        if (g_seriousness > 1) {
+          if (!(g_rolling || g_shooting)) {
+            startShooting();
+          }
+        }
+        g_seriousness++;
+      }
+      break;
+  }
+
+  updateContext();
+}
+
+</script>
+</head>
+<body onload="initClient()" style="background-color: #111111">
+<div id="container">
+<!-- Start of O3D client area -->
+<div id="o3d" style="width: 100%; height:100%;"> </div>
+<!-- End of O3D plugin -->
+
+<div id="footer">
+<center>
+<table width = 800 style="color: gray">
+<tr>
+<td> Click and drag to move the view. </td>
+<td> spacebar : Hold down to shoot.</td>
+<td> t : Table view mode.</td>
+<td> * : Rack for 8-Ball. </td>
+</tr>
+<tr>
+<td> +/- : Zoom in / out. </td>
+<td> asdw : Position the cue ball.</td>
+<td> c : Cue ball view mode.</td>
+<td> ( : Rack for 9-Ball. </td>
+</tr>
+</table>
+</center>
+</div>
+</div>
+
+<div style="display:none">
+<!-- Start of effect -->
+<textarea id="vshader">
+  uniform mat4 worldViewProjection;
+  uniform mat4 worldInverseTranspose;
+  uniform mat4 world;
+
+  attribute vec4 position;
+  attribute vec3 normal;
+
+  varying vec4 vposition;
+  varying vec4 vobjectPosition;
+  varying vec3 vworldPosition;
+  varying vec4 vscreenPosition;
+  varying vec3 vnormal;
+
+  void main() {
+    vposition = worldViewProjection * position;
+    vec4 temp = vposition;
+    temp += temp.w * vec4(1.0, 1.0, 0.0, 0.0);
+    temp.xyz /= 2.0;
+    vscreenPosition = temp;
+    vnormal = (worldInverseTranspose * vec4(normal, 0.0)).xyz;
+    vworldPosition = (world * vec4(position.xyz, 1.0)).xyz;
+    vobjectPosition = position;
+    gl_Position = vposition;
+  }
+
+</textarea>
+<textarea id="pshader">
+#ifdef GL_ES
+  precision mediump float;
+#endif
+
+  uniform vec3 lightWorldPosition;
+  uniform vec3 eyeWorldPosition;
+  uniform float factor;
+  uniform float shadowOn;
+
+  uniform sampler2D textureSampler;
+
+  uniform vec2 ballCenter;
+
+  varying vec4 vposition;
+  varying vec4 vobjectPosition;
+  varying vec3 vworldPosition;
+  varying vec4 vscreenPosition;
+  varying vec3 vnormal;
+
+  vec4 roomColor(vec3 p, vec3 r) {
+    vec2 c = vec2(1.0 / 15.0, 1.0 / 30.0) *
+        (p.xy + r.xy * (lightWorldPosition.z - p.z) / r.z);
+
+    float temp = (abs(c.x + c.y) + abs(c.y - c.x));
+    float t = min(0.15 * max(7.0 - temp, 0.0) +
+              ((temp < 5.0) ? 1.0 : 0.0), 1.0);
+    return vec4(t, t, t, 1.0);
+  }
+
+  vec4 lighting(vec4 pigment, float shininess) {
+    vec3 p = vworldPosition;
+    vec3 l = normalize(lightWorldPosition - p);  // Toward light.
+    vec3 n = normalize(vnormal);                 // Normal.
+    vec3 v = normalize(eyeWorldPosition - p);    // Toward eye.
+    vec3 r = normalize(-reflect(v, n));          // Reflection of v across n.
+
+    return vec4(max(dot(l, n), 0.0) * pigment.xyz +
+        0.2 * pow(max(dot(l, r), 0.0), shininess) * vec3(1, 1, 1), 1.0);
+  }
+
+  vec4 woodPigment(vec3 p) {
+    vec3 core = normalize(
+        (abs(p.y) > abs(p.x) + 1.0) ?
+            vec3(1.0, 0.2, 0.3) : vec3(0.2, 1.0, 0.3));
+    float grainThickness = 0.02;
+    float t =
+        mod(length(p - dot(p,core)*core), grainThickness) / grainThickness;
+
+    return mix(vec4(0.15, 0.05, 0.0, 0.1), vec4(0.1, 0.0, 0.0, 0.1), t);
+  }
+
+  vec4 feltPigment(vec3 p) {
+    return vec4(0.1, 0.45, 0.15, 1.0);
+  }
+
+  vec4 environmentColor(vec3 p, vec3 r) {
+    vec4 upColor = 0.1 * roomColor(p, r);
+    vec4 downColor = -r.z * 0.3 * feltPigment(p);
+    float t = smoothstep(0.0, 0.05, r.z);
+    return mix(downColor, upColor, t);
+  }
+
+  vec4 solidPixelShader() {
+    return vec4(1.0, 1.0, 1.0, 0.2);
+  }
+
+  vec4 feltPixelShader() {
+    vec2 tex = vscreenPosition.xy / vscreenPosition.w;
+
+    vec3 p = factor * vworldPosition;
+    vec3 c = factor * eyeWorldPosition.xyz;
+    float width = 0.3;
+    float height = 0.3;
+    float d =
+        1.0 * (smoothstep(1.0 - width, 1.0 + width, abs(p.x)) +
+               smoothstep(2.0 - height, 2.0 + height, abs(p.y)));
+    p = vworldPosition;
+
+    return (1.0 - texture2D(textureSampler, tex).x - d) *
+        lighting(feltPigment(p), 4.0);
+  }
+
+  vec4 woodPixelShader() {
+    vec3 p = factor * vworldPosition;
+    return lighting(woodPigment(p), 50.0);
+  }
+
+  vec4 cushionPixelShader() {
+    vec3 p = factor * vworldPosition;
+    return lighting(feltPigment(p), 4.0);
+  }
+
+  vec4 billiardPixelShader() {
+    vec3 p = factor * vworldPosition;
+    return lighting(vec4(0.5, 0.5, 0.2, 1), 30.0);
+  }
+
+  vec4 ballPixelShader() {
+    vec3 p = normalize(vobjectPosition.xyz);
+    vec4 u = 0.5 * vec4(p.x, p.y, p.x, -p.y);
+    u = clamp(u, -0.45, 0.45);
+    u += vec4(0.5, 0.5, 0.5, 0.5);
+
+    float t = clamp(5.0 * p.z, 0.0, 1.0);
+
+    p = vworldPosition;
+    vec3 l = normalize(lightWorldPosition - p); // Toward light.
+    vec3 n = normalize(vnormal);                // Normal.
+    vec3 v = normalize(eyeWorldPosition - p);   // Toward eye.
+    vec3 r = normalize(-reflect(v, n));         // Reflection of v across n.
+
+    vec4 pigment =
+        mix(texture2D(textureSampler, u.zw),
+            texture2D(textureSampler, u.xy), t);
+
+    return 0.4 * environmentColor(p, r) +
+        pigment * (0.3 * smoothstep(0.0, 1.1, dot(n, l)) +
+                   0.3 * (p.z + 1.0));
+  }
+
+  vec4 shadowPlanePixelShader() {
+    vec2 p = vworldPosition.xy - ballCenter;
+    vec2 q = (vworldPosition.xy / lightWorldPosition.z);
+
+    vec2 offset = (1.0 - 1.0 / (vec2(1.0, 1.0) + abs(q))) * sign(q);
+    float t = mix(smoothstep(0.9, 0.0, length(p - length(p) * offset) / 2.0),
+                  smoothstep(1.0, 0.0, length(p) / 10.0), 0.15);
+    return shadowOn * vec4(t, t, t, t);
+  }
+
+</textarea>
+<!-- End of effect -->
+</div>
+
+<div id="info">
+</div>
+
+</body>
+</html>

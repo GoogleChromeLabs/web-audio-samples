@@ -29,8 +29,7 @@
  * @class SharedBufferWorkletNode
  * @extends AudioWorkletNode
  */
-class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
-    extends AudioWorkletNode {
+class SharedBufferWorkletNode extends AudioWorkletNode {
   /**
    * @constructor
    * @param {BaseAudioContext} context The associated BaseAudioContext.
@@ -45,9 +44,8 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
   constructor(context, options) {
     super(context, 'shared-buffer-worklet-processor', options);
 
-    this._workerOptions = (options && options.worker)
-      ? options.worker
-      : {ringBufferLength: 3072, channelCount: 1};
+    this._workerOptions = (options && options.worker) ?
+        options.worker : {ringBufferLength: 3072, channelCount: 1};
 
     // Worker backend.
     this._worker = new Worker('shared-buffer-worker.js');
@@ -82,16 +80,14 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
     }
 
     if (data.message === 'WORKER_ERROR') {
-      console.log('[SharedBufferWorklet] Worker Error:',
-                  data.detail);
+      console.log(`[SharedBufferWorklet] Worker Error: ${data.detail}`);
       if (typeof this.onError === 'function') {
         this.onError(data);
       }
       return;
     }
 
-    console.log('[SharedBufferWorklet] Unknown message: ',
-                eventFromWorker);
+    console.log(`[SharedBufferWorklet] Unknown message: ${eventFromWorker}`);
   }
 
   /**
@@ -107,10 +103,8 @@ class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
       return;
     }
 
-    console.log('[SharedBufferWorklet] Unknown message: ',
-                eventFromProcessor);
+    console.log(`[SharedBufferWorklet] Unknown message: ${eventFromProcessor}`);
   }
-} // class SharedBufferWorkletNode
-
+}
 
 export default SharedBufferWorkletNode;

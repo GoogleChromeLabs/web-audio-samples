@@ -9,9 +9,8 @@
  * @extends AudioWorkletProcessor
  */
 class BypassProcessor extends AudioWorkletProcessor {
-
-  // When constructor() undefined, the default constructor will be
-  // implicitly used.
+  // When constructor() undefined, the default constructor will be implicitly
+  // used.
 
   process(inputs, outputs) {
     // By default, the node has single input and output.

@@ -17,6 +17,9 @@
 // Byte per audio sample. (32 bit float)
 const BYTES_PER_SAMPLE = Float32Array.BYTES_PER_ELEMENT;
 
+// Basic byte unit of WASM heap. (16 bit = 2 bytes)
+const BYTES_PER_UNIT = Uint16Array.BYTES_PER_ELEMENT;
+
 // The max audio channel on Chrome is 32.
 const MAX_CHANNEL_COUNT = 32;
 
@@ -45,9 +48,8 @@ class HeapAudioBuffer {
     this._isInitialized = false;
     this._module = wasmModule;
     this._length = length;
-    this._maxChannelCount = maxChannelCount
-        ? Math.min(maxChannelCount, MAX_CHANNEL_COUNT)
-        : channelCount;
+    this._maxChannelCount = maxChannelCount ?
+        Math.min(maxChannelCount, MAX_CHANNEL_COUNT) : channelCount;
     this._channelCount = channelCount;
     this._allocateHeap();
     this._isInitialized = true;
@@ -60,15 +62,18 @@ class HeapAudioBuffer {
    * @private
    */
   _allocateHeap() {
-    const dataByteSize = this._channelCount * this._length * BYTES_PER_SAMPLE;
+    const channelByteSize = this._length * BYTES_PER_SAMPLE;
+    const dataByteSize = this._channelCount * channelByteSize;
     this._dataPtr = this._module._malloc(dataByteSize);
     this._channelData = [];
     for (let i = 0; i < this._channelCount; ++i) {
-      // convert pointer to HEAPF32 index
-      let startOffset = this._dataPtr / BYTES_PER_SAMPLE + i * this._length;
-      let endOffset = startOffset + this._length;
+      const startByteOffset = this._dataPtr + i * channelByteSize;
+      const endByteOffset = startByteOffset + channelByteSize;
+      // Get the actual array index by dividing the byte offset by 2 bytes.
       this._channelData[i] =
-          this._module.HEAPF32.subarray(startOffset, endOffset);
+          this._module.HEAPF32.subarray(
+              startByteOffset >> BYTES_PER_UNIT,
+              endByteOffset >> BYTES_PER_UNIT);
     }
   }
 
@@ -124,8 +129,8 @@ class HeapAudioBuffer {
       return null;
     }
 
-    return typeof channelIndex === 'undefined'
-        ? this._channelData : this._channelData[channelIndex];
+    return typeof channelIndex === 'undefined' ?
+        this._channelData : this._channelData[channelIndex];
   }
 
   /**
@@ -134,6 +139,15 @@ class HeapAudioBuffer {
    * @return {number} WASM Heap address.
    */
   getHeapAddress() {
+    return this._dataPtr;
+  }
+
+  /**
+   * Returns the base address of the allocated memory space in the WASM heap.
+   *
+   * @return {number} WASM Heap address.
+   */
+  getPointer() {
     return this._dataPtr;
   }
 
@@ -200,9 +214,9 @@ class RingBuffer {
     // match with this buffer obejct.
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
-    let sourceLength = arraySequence[0].length;
+    const sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
-      let writeIndex = (this._writeIndex + i) % this._length;
+      const writeIndex = (this._writeIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         this._channelData[channel][writeIndex] = arraySequence[channel][i];
       }
@@ -234,11 +248,11 @@ class RingBuffer {
       return;
     }
 
-    let destinationLength = arraySequence[0].length;
+    const destinationLength = arraySequence[0].length;
 
     // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      let readIndex = (this._readIndex + i) % this._length;
+      const readIndex = (this._readIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         arraySequence[channel][i] = this._channelData[channel][readIndex];
       }
