@@ -1,0 +1,88 @@
+<html>
+    <body>
+        <!-- 
+        <a id="download">Download</a>
+        <button id="stop">Stop</button>
+        <script>
+            const handleSuccess = function (stream) {
+                const context = new AudioContext();
+                const source = context.createMediaStreamSource(stream);
+                const processor = context.createScriptProcessor(1024, 1, 1);
+
+                source.connect(processor);
+                processor.connect(context.destination);
+
+                /// CALLBACK FOR ONAUDIOPROCESS
+                processor.onaudioprocess = function (e) {
+                    // Do something with the data, e.g. convert it to WAV
+                    console.log(e.inputBuffer);
+                };
+            };
+
+            navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then(handleSuccess);
+        </script> 
+        -->
+
+
+
+<h1>Start simple</h1>
+<input type="file" accept="audio/*" capture id="recorder" />  
+<audio id="player" controls></audio>  
+	<script>  
+		const recorder = document.getElementById('recorder');  
+		const player = document.getElementById('player');  
+		  
+		recorder.addEventListener('change', function (e) {  
+			const file = e.target.files[0];  
+			const url = URL.createObjectURL(file);  
+			// Do something with the audio file.  
+
+      console.log(file)
+			player.src = url;  
+		});  
+	</script>  
+</audio>
+
+<h1>Full with MediaRecorder</h1>
+
+
+<a id="download">Download</a>
+<button id="stop">Stop</button>
+<script>
+  const downloadLink = document.getElementById('download');
+  const stopButton = document.getElementById('stop');
+
+
+  const handleSuccess = function(stream) {
+    const options = {mimeType: 'audio/webm'};
+    const recordedChunks = [];
+    const mediaRecorder = new MediaRecorder(stream, options);
+
+    mediaRecorder.addEventListener('dataavailable', function(e) {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+
+      console.log(typeof e.data)
+      console.log(e.data)
+      console.log(recordedChunks)
+    });
+
+    mediaRecorder.addEventListener('stop', function() {
+      downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
+      downloadLink.download = 'acetest.wav';
+    });
+
+    stopButton.addEventListener('click', function() {
+      mediaRecorder.stop();
+    });
+
+    mediaRecorder.start();
+  };
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(handleSuccess);
+</script>
+
+    </body>
+</html>

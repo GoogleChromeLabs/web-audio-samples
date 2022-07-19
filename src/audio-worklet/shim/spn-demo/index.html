@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- <link rel="stylesheet" href="style.css" /> -->
+
+        <style>
+            canvas {
+                display: block;
+                height: 40px;
+                border: 1px solid black;
+
+                margin: 1em 0;
+
+                width: 40vw;
+            }
+
+            .columns {
+                display: flex;
+            }
+
+            .columns > div {
+                padding: 0 20px;
+            }
+
+            #ctx-status {
+                text-transform: capitalize;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>ScriptProcessor</h1>
+
+        <p>Audio Context Status: <span id="ctx-status">Suspended</span></p>
+
+        <div class="columns">
+            <div class="Live">
+                <h2>Live</h2>
+
+                <p>Mic: AT2020 by id</p>
+
+                <div>
+                    <button id="monitor">Turn monitor <span>on</span></button>
+                    <button id="viz-toggle"><span>Pause</span> viz</button>
+                </div>
+
+                <canvas id="live-canvas"></canvas>
+                <canvas id="analyzer-vis"></canvas>
+            </div>
+
+            <div id="recording">
+                <h2>Recording</h2>
+
+                <p>Record it or don't</p>
+
+                <div>
+                    <button id="record"><span>Start</span> Recording</button>
+                    <span>Length: <span id="data-len">0</span></span>
+                </div>
+
+                <canvas id="recording-canvas"></canvas>
+
+                <div>
+
+                    <audio id="player" controls></audio>  
+                    <a href="" id="playback"
+                        ><button>playback current recording</button></a
+                    >
+                    <a href="" id="download"><button>download file</button></a>
+                </div>
+            </div>
+        </div>
+        <script type="module" src="index.js"></script>
+    </body>
+</html>
