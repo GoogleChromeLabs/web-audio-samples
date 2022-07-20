@@ -54,3 +54,9 @@
     - title: AudioWorklet - The future of web audio
       description: The first conference paper about AudioWorklet (ICMC 2018)
       href: https://hoch.io/assets/publications/icmc-2018-choi-audioworklet.pdf
+
+- title: Shim
+  entries: 
+    - title: ScriptProcessor Demo 
+      description: An simple recording demo of the deprecated ScriptProcessorNode 
+      href: shim/spn-demo/
