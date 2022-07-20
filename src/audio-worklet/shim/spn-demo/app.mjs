@@ -1,5 +1,6 @@
-
 'use strict';
+
+import createLinkFromAudioBuffer from './exporter.mjs';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const context = new AudioContext();
@@ -10,9 +11,7 @@ let visualizationEnabled = true;
 
 const BUFFER_SIZE = 256;
 
-
 // TODO: Refactor as buffers
-let recordingBuffer;
 let streamSampleRate;
 const currData = new Array(2).fill([]);
 let recordLength = 0;
@@ -24,7 +23,7 @@ document.addEventListener('DOMContentLoaded', init);
 // TODO comment as necessary
 async function init() {
   if (context.state === 'suspended') {
-    context.resume();
+    await context.resume();
   }
 
   // Create intermediary nodes
@@ -42,38 +41,37 @@ async function init() {
   const medianEnd = context.createGain();
 
   // Setup mic and processor
-  const micStream = await setupMic(inputGain);
+  const micStream = await setupMic();
   streamSampleRate = context.sampleRate;
 
-  recordingBuffer = context.createBuffer(
+  const recordBuffer = context.createBuffer(
       2,
       streamSampleRate * 5,
       streamSampleRate,
   );
 
-  const spNode = setupScriptProcessor(micStream, inputGain);
+  const spNode = setupScriptProcessor(micStream, recordBuffer);
 
   ls(streamSampleRate);
 
   // Setup components
   setupMonitor(monitorNode);
-  setupRecording();
+  setupRecording(recordBuffer);
   setupVisualizers(liveAnalyserNode);
 
-  // Mic to proces
-  inputGain
+
+  const micSourceNode = context.createMediaStreamSource(micStream);
+
+  // Setup node chain
+  micSourceNode
+      .connect(inputGain)
       .connect(medianEnd)
       .connect(liveAnalyserNode)
+      .connect(spNode)
       .connect(monitorNode)
       .connect(context.destination);
 
-  // Separate out for SP. Thru SP to dest only doesn't output any audio
-  // NEVERMIND I DIDNT SET OUTPUT
-  // https://github.com/WebAudio/web-audio-api/issues/345
-  medianEnd.connect(spNode).connect(context.destination);
-
   // Watch Context Status
-
   const setStatusText = (text) =>
     (document.querySelector('#ctx-status').innerHTML = text);
   context.addEventListener('statechange', (e) =>
@@ -82,26 +80,31 @@ async function init() {
   setStatusText(context.state);
 }
 
-function setupScriptProcessor(stream, attachNode) {
-  const micSource = context.createMediaStreamSource(stream);
-
-  micSource.connect(attachNode);
-
+function setupScriptProcessor(stream, recordBuffer) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
 
   // Callback for ScriptProcessorNode.
   processor.onaudioprocess = function(e) {
-    // Just pushes data to dataArr and currData
-    for (let i = 0; i < currData.length; i++) {
-      currData[i] = e.inputBuffer.getChannelData(i);
+    for (let channel = 0; channel < currData.length; channel++) {
+      const inputData = e.inputBuffer.getChannelData(channel);
+      const outputData = e.outputBuffer.getChannelData(channel);
 
+      // Set data for live gain visualizer to interpret from
+      currData[channel] = inputData;
+
+      // If recording, feed data to recording buffer
       if (isRecording) {
-        recordingBuffer.copyToChannel(currData[i], i, recordLength);
-      }
-    }
+        recordBuffer.copyToChannel(currData[channel], channel, recordLength);
 
-    if (isRecording) {
-      recordLength += BUFFER_SIZE;
+        // Update recording length as necessary
+
+        recordLength += inputData.length;
+      }
+
+      // Pass data through SPN's output to dest
+      for (let sample = 0; sample < inputData.length; sample++) {
+        outputData[sample] = inputData[sample];
+      }
     }
   };
 
@@ -144,9 +147,10 @@ function setupMonitor(monitorNode) {
 }
 
 /**
- * Setup Recording
+ * Set events and define callbacks for recording start/stop events
+ * @param {AudioBuffer} recordBuffer recording buffer
  */
-function setupRecording() {
+function setupRecording(recordBuffer) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
@@ -157,14 +161,14 @@ function setupRecording() {
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
 
-    // Call
+    // Called when recording is paused
     if (!isRecording) {
-      const wavUrl = getWavFromData();
-      drawRecordingVis();
+      const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
 
-      document.querySelector('#data-len').innerHTML = 
-        recordLength / streamSampleRate;
-      // Update player and download file src
+      // drawRecordingVis(recordBuffer);
+
+      document.querySelector('#data-len').innerHTML =
+        Math.round(recordLength / streamSampleRate * 100)/100;
       player.src = wavUrl;
       downloadButton.src = wavUrl;
       downloadButton.download = 'recording.wav';
@@ -172,114 +176,12 @@ function setupRecording() {
   });
 }
 
-/**
- * Finalize current clip recording
- * @return {Uint8Array} Interleaved audio array
- */
-function getWavFromData() {
-  const getWavBytes = (buffer, options) => {
-    const type = options.isFloat ? Float32Array : Uint16Array;
-    const numFrames = buffer.byteLength / type.BYTES_PER_ELEMENT;
-
-    ls([numFrames, buffer.byteLength, type.BYTES_PER_ELEMENT]);
-
-    const headerBytes = getWavHeader(
-        Object.assign({}, options, {numFrames}),
-    );
-    const wavBytes = new Uint8Array(headerBytes.length + buffer.byteLength);
-
-    // prepend header, then add pcmBytes
-    wavBytes.set(headerBytes, 0);
-    wavBytes.set(new Uint8Array(buffer), headerBytes.length);
-
-    return wavBytes;
-  };
-
-  // adapted from https://gist.github.com/also/900023
-  // returns Uint8Array of WAV header bytes
-  const getWavHeader = (options) => {
-    const numFrames = options.numFrames;
-    const numChannels = options.numChannels || 2;
-    const sampleRate = options.sampleRate || streamSampleRate || 44100;
-    const bytesPerSample = options.isFloat ? 4 : 2;
-    const format = options.isFloat ? 3 : 1;
-
-    const blockAlign = numChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const dataSize = numFrames * blockAlign;
-
-    const buffer = new ArrayBuffer(44);
-    const dv = new DataView(buffer);
-
-    let p = 0;
-
-    function writeString(s) {
-      for (let i = 0; i < s.length; i++) {
-        dv.setUint8(p + i, s.charCodeAt(i));
-      }
-      p += s.length;
-    }
-
-    function writeUint32(d) {
-      dv.setUint32(p, d, true);
-      p += 4;
-    }
-
-    function writeUint16(d) {
-      dv.setUint16(p, d, true);
-      p += 2;
-    }
-
-    writeString('RIFF'); // ChunkID
-    writeUint32(dataSize + 36); // ChunkSize
-    writeString('WAVE'); // Format
-    writeString('fmt '); // Subchunk1ID
-    writeUint32(16); // Subchunk1Size
-    writeUint16(format); // AudioFormat https://i.stack.imgur.com/BuSmb.png
-    writeUint16(numChannels); // NumChannels
-    writeUint32(sampleRate); // SampleRate
-    writeUint32(byteRate); // ByteRate
-    writeUint16(blockAlign); // BlockAlign
-    writeUint16(bytesPerSample * 8); // BitsPerSample
-    writeString('data'); // Subchunk2ID
-    writeUint32(dataSize); // Subchunk2Size
-
-    return new Uint8Array(buffer);
-  };
-
-  // Get sample array from dataArr
-  const [left, right] = [
-    recordingBuffer.getChannelData(0),
-    recordingBuffer.getChannelData(1),
-  ];
-
-  // Interleave audio into a 1d stream
-  const interleaved = new Float32Array(left.length + right.length);
-  for (let src = 0, dst = 0; src < left.length; src++, dst += 2) {
-    interleaved[dst] = left[src];
-    interleaved[dst + 1] = right[src];
-  }
-
-  // get WAV file bytes and audio params of your audio source
-  const wavBytes = getWavBytes(interleaved.buffer, {
-    isFloat: true, // floating point or 16-bit integer
-    numChannels: 2,
-    sampleRate: streamSampleRate,
-  });
-
-  const wavBlob = new Blob([wavBytes], {type: 'audio/wav'});
-  const wavUrl = URL.createObjectURL(wavBlob, {
-    type: 'audio/wav',
-  });
-
-  return wavUrl;
-}
-
 /** Setup all visualizers.
  * @param {AnalyserNode} liveAnalyser Live Analyser node to
  * render live frequency graph from
+ * @param {AudioBuffer} recordBuffer recording buffer
   */
-function setupVisualizers(liveAnalyser) {
+function setupVisualizers(liveAnalyser, recordBuffer) {
   setupGainVis();
   setupLiveAnalyserVis(liveAnalyser);
 
@@ -377,7 +279,7 @@ function setupLiveAnalyserVis(analyserNode) {
   draw();
 }
 
-const drawRecordingVis = () => {
+function drawRecordingVis(recordBuffer) {
   const canvas = document.querySelector('#recording-canvas');
   const bufferLength = recordLength;
 
@@ -386,7 +288,7 @@ const drawRecordingVis = () => {
 
   const canvasContext = canvas.getContext('2d');
 
-  const channelData = recordingBuffer.getChannelData(0);
+  const channelData = recordBuffer.getChannelData(0);
 
   // save buffer as data
   let currX = 0;
@@ -421,8 +323,8 @@ const drawRecordingVis = () => {
 
     loudness /= BUFFER_SIZE;
 
-    draw(loudness, i);
+    // draw(loudness, i);
   }
 
   // draw();
-};
+}
