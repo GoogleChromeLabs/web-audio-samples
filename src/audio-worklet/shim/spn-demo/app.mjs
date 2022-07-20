@@ -38,13 +38,12 @@ async function init() {
   });
 
   const monitorNode = context.createGain();
-  const medianStart = context.createGain();
+  const inputGain = context.createGain();
   const medianEnd = context.createGain();
 
   // Setup mic and processor
-  const micStream = await setupMic(medianStart);
-  streamSampleRate = await micStream.getAudioTracks()[0].getSettings()
-      .sampleRate;
+  const micStream = await setupMic(inputGain);
+  streamSampleRate = context.sampleRate;
 
   recordingBuffer = context.createBuffer(
       2,
@@ -52,7 +51,7 @@ async function init() {
       streamSampleRate,
   );
 
-  const spNode = setupScriptProcessor(micStream, medianStart);
+  const spNode = setupScriptProcessor(micStream, inputGain);
 
   ls(streamSampleRate);
 
@@ -62,7 +61,7 @@ async function init() {
   setupVisualizers(liveAnalyserNode);
 
   // Mic to proces
-  medianStart
+  inputGain
       .connect(medianEnd)
       .connect(liveAnalyserNode)
       .connect(monitorNode)
@@ -110,14 +109,8 @@ function setupScriptProcessor(stream, attachNode) {
 }
 
 async function setupMic() {
-  // Triggered when mic is selected
-
-  const at20 =
-        '7c142e20af72ddc0bb42359c74b7693031ac4cf27870749f0f53553d15fd6c8f';
-
   return await navigator.mediaDevices.getUserMedia({
     audio: {
-      deviceId: at20,
       echoCancellation: false,
       autoGainControl: false,
       noiseSuppression: false,
@@ -169,7 +162,8 @@ function setupRecording() {
       const wavUrl = getWavFromData();
       drawRecordingVis();
 
-      document.querySelector('#data-len').innerHTML = recordLength;
+      document.querySelector('#data-len').innerHTML = 
+        recordLength / streamSampleRate;
       // Update player and download file src
       player.src = wavUrl;
       downloadButton.src = wavUrl;
