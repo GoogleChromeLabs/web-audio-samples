@@ -29,17 +29,12 @@ async function init() {
 
   // Create intermediary nodes
   // TODO remove medians?
-  const liveAnalyserNode = await new AnalyserNode(context, {
-    fftSize: 128,
-  });
-
-  const monitorNode = context.createGain();
-  const inputGain = context.createGain();
-  const medianEnd = context.createGain();
-
   // Setup mic and processor
   const micStream = await setupMic();
+  const micSourceNode = context.createMediaStreamSource(micStream);
+
   streamSampleRate = context.sampleRate;
+  ls(streamSampleRate);
 
   const recordBuffer = context.createBuffer(
       2,
@@ -49,13 +44,17 @@ async function init() {
 
   const spNode = setupScriptProcessor(micStream, recordBuffer);
 
+  const monitorNode = context.createGain();
+  const inputGain = context.createGain();
+  const medianEnd = context.createGain();
+  const liveAnalyserNode = await new AnalyserNode(context, {
+    fftSize: 128,
+  });
+
   // Setup components
   setupMonitor(monitorNode);
   setupRecording(recordBuffer);
   setupVisualizers(liveAnalyserNode);
-
-
-  const micSourceNode = context.createMediaStreamSource(micStream);
 
   // Setup node chain
   micSourceNode
@@ -80,9 +79,9 @@ function setupScriptProcessor(stream, recordBuffer) {
 
   // Callback for ScriptProcessorNode.
   processor.onaudioprocess = function(e) {
+    // For all channels
     for (let channel = 0; channel < currData.length; channel++) {
       const inputData = e.inputBuffer.getChannelData(channel);
-      const outputData = e.outputBuffer.getChannelData(channel);
 
       // Set data for live gain visualizer to interpret from
       currData[channel] = inputData;
@@ -90,23 +89,26 @@ function setupScriptProcessor(stream, recordBuffer) {
       // If recording, feed data to recording buffer
       if (isRecording) {
         recordBuffer.copyToChannel(currData[channel], channel, recordLength);
-
-        // Update recording length as necessary
-        recordLength += inputData.length;
       }
-
-      // Track and create sum for visualizers
-      let sumSamples = 0;
-
-      // Pass data through SPN's output to dest
-      for (let sample = 0; sample < inputData.length; sample++) {
-        const sampVal = inputData[sample];
-        outputData[sample] = sampVal;
-        sumSamples+=sampVal;
-      }
-
-      currDataGain = sumSamples / BUFFER_SIZE;
+      e.outputBuffer.copyToChannel(inputData, channel, 0);
     }
+
+    // First channel only (only needs 1 run)
+
+    // Runs on first channel only (length tracking +)
+    const inputData = e.inputBuffer.getChannelData(0);
+
+    // Update tracked recording length
+    if (isRecording) {
+      recordLength += inputData.length;
+    }
+
+    // Find average gain (for visualizers)
+    let sumSamples = 0;
+    for (let sample = 0; sample < inputData.length; sample++) {
+      sumSamples+=inputData[sample];
+    }
+    currDataGain = sumSamples / BUFFER_SIZE;
   };
 
   return processor;
@@ -157,6 +159,20 @@ function setupRecording(recordBuffer) {
   const player = document.querySelector('#player');
   const downloadButton = document.querySelector('#download');
 
+  async function prepareClip() {
+    const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
+
+
+    document.querySelector('#data-len').innerHTML =
+      Math.round(recordLength / streamSampleRate * 100)/100;
+
+    ls(recordLength);
+    ls(streamSampleRate);
+    player.src = wavUrl;
+    downloadButton.src = wavUrl;
+    downloadButton.download = 'recording.wav';
+  }
+
   recordButton.addEventListener('click', (e) => {
     isRecording = !isRecording;
 
@@ -164,15 +180,7 @@ function setupRecording(recordBuffer) {
 
     // Called when recording is paused
     if (!isRecording) {
-      const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
-
-      // drawRecordingVis(recordBuffer);
-
-      document.querySelector('#data-len').innerHTML =
-        Math.round(recordLength / streamSampleRate * 100)/100;
-      player.src = wavUrl;
-      downloadButton.src = wavUrl;
-      downloadButton.download = 'recording.wav';
+      prepareClip();
     }
   });
 }
