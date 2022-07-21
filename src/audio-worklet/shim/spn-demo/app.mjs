@@ -14,6 +14,7 @@ const BUFFER_SIZE = 256;
 // TODO: Refactor as buffers
 let streamSampleRate;
 const currData = new Array(2).fill([]);
+let currDataGain = 0;
 let recordLength = 0;
 
 const ls = async (x) => console.log(await x);
@@ -32,10 +33,6 @@ async function init() {
     fftSize: 128,
   });
 
-  const recordingAnalyserNode = await new AnalyserNode(context, {
-    fftSize: 128,
-  });
-
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
@@ -46,13 +43,11 @@ async function init() {
 
   const recordBuffer = context.createBuffer(
       2,
-      streamSampleRate * 5,
-      streamSampleRate,
+      context.sampleRate * 5,
+      context.sampleRate,
   );
 
   const spNode = setupScriptProcessor(micStream, recordBuffer);
-
-  ls(streamSampleRate);
 
   // Setup components
   setupMonitor(monitorNode);
@@ -97,14 +92,20 @@ function setupScriptProcessor(stream, recordBuffer) {
         recordBuffer.copyToChannel(currData[channel], channel, recordLength);
 
         // Update recording length as necessary
-
         recordLength += inputData.length;
       }
 
+      // Track and create sum for visualizers
+      let sumSamples = 0;
+
       // Pass data through SPN's output to dest
       for (let sample = 0; sample < inputData.length; sample++) {
-        outputData[sample] = inputData[sample];
+        const sampVal = inputData[sample];
+        outputData[sample] = sampVal;
+        sumSamples+=sampVal;
       }
+
+      currDataGain = sumSamples / BUFFER_SIZE;
     }
   };
 
@@ -182,8 +183,9 @@ function setupRecording(recordBuffer) {
  * @param {AudioBuffer} recordBuffer recording buffer
   */
 function setupVisualizers(liveAnalyser, recordBuffer) {
-  setupGainVis();
+  setupLiveGainVis();
   setupLiveAnalyserVis(liveAnalyser);
+  setupRecordingVis();
 
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
@@ -197,42 +199,29 @@ function setupVisualizers(liveAnalyser, recordBuffer) {
 /**
  * Script Processor Frequency Visualizer
  */
-const setupGainVis = () => {
+const setupLiveGainVis = () => {
   const canvas = document.querySelector('#live-canvas');
+  const canvasContext = canvas.getContext('2d');
 
   const width = canvas.width;
   const height = canvas.height;
 
-  const canvasContext = canvas.getContext('2d');
-
   // save buffer as data
-  let currX = 0;
+  const drawStart = width-1;
 
   const draw = () => {
+    requestAnimationFrame(draw);
     if (!visualizationEnabled || !currData) return;
 
-    const loudness =
-                currData[0].reduce((e, a) => a + e, 0) / currData[0].length;
-    const centerY = ((1 - loudness) * height) / 2;
-
-    canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currX, centerY, 1, 1);
+    const centerY = ((1 - currDataGain) * height) / 2;
+    const gainHeight = currDataGain * height;
 
     canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX, centerY, 1, loudness * height);
+    canvasContext.fillRect(drawStart, centerY, 1, gainHeight);
 
-    if (currX < width - 1) {
-      currX++;
-    } else {
-      currX = 0;
-    }
-
-    canvasContext.fillStyle = 'rgba(255,255,255,.8)';
-    canvasContext.fillRect(currX + 1, 0, 1, height);
-    canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX - 1, centerY, 1, 1);
-
-    requestAnimationFrame(draw);
+    canvasContext.globalCompositeOperation = 'copy';
+    canvasContext.drawImage(canvas, -1, 0);
+    canvasContext.globalCompositeOperation = 'source-over';
   };
 
   draw();
@@ -254,6 +243,7 @@ function setupLiveAnalyserVis(analyserNode) {
   const barWidth = width / bufferLength;
 
   function draw() {
+    requestAnimationFrame(draw);
     if (!visualizationEnabled) return;
 
     canvasContext.clearRect(0, 0, width, height);
@@ -272,59 +262,55 @@ function setupLiveAnalyserVis(analyserNode) {
       }, 100%, 50%)`;
       canvasContext.fillRect(x, height - y, barWidth, y);
     });
-
-    requestAnimationFrame(draw);
   }
 
   draw();
 }
 
-function drawRecordingVis(recordBuffer) {
+function setupRecordingVis(recordBuffer) {
   const canvas = document.querySelector('#recording-canvas');
-  const bufferLength = recordLength;
+  const canvasContext = canvas.getContext('2d');
 
   const width = canvas.width;
   const height = canvas.height;
 
-  const canvasContext = canvas.getContext('2d');
-
-  const channelData = recordBuffer.getChannelData(0);
-
   // save buffer as data
+
+  // draw first red bar
+  canvasContext.fillStyle = 'red';
+  canvasContext.fillRect(0, 0, 1, 1);
+
   let currX = 0;
 
-  const draw = (loudness, offset) => {
-    const centerY = ((1 - loudness) * height) / 2;
+  function draw() {
+    requestAnimationFrame(draw);
+    if (!isRecording || !visualizationEnabled || !currData) return;
 
+    const centerY = ((1 - currDataGain) * height) / 2;
+    const gainHeight = currDataGain * height;
+
+    // clear current
+    canvasContext.fillStyle = 'white';
+    canvasContext.fillRect(currX, 0, 1, height);
+
+    // draw red bar 1 ahead
     canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currX, centerY, 1, 1);
+    canvasContext.fillRect(currX+1, 0, 1, height);
 
+    // draw current gain
     canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX, centerY, 1, loudness * height);
+    canvasContext.fillRect(currX, centerY, 1, gainHeight);
 
-    if (currX < width - 1) {
+    if (currX < width - 2) {
       currX++;
     } else {
-      currX = 0;
+      // If the waveform fills the canvas, move it by one pixel to the left to
+      // make room.
+      canvasContext.globalCompositeOperation = 'copy';
+      canvasContext.drawImage(canvas, -1, 0);
+      canvasContext.globalCompositeOperation = 'source-over';
     }
-
-    canvasContext.fillStyle = 'rgba(255,255,255,.8)';
-    canvasContext.fillRect(currX + 1, 0, 1, height);
-    canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX - 1, centerY, 1, 1);
-
-    requestAnimationFrame(draw);
-  };
-
-  for (let i = 0; i < bufferLength; i += BUFFER_SIZE) {
-    let loudness = 0;
-
-    for (let j = i; j < i + BUFFER_SIZE; j++) loudness += channelData[0];
-
-    loudness /= BUFFER_SIZE;
-
-    // draw(loudness, i);
   }
 
-  // draw();
+  draw();
 }
