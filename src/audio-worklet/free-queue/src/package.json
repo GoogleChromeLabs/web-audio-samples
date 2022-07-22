@@ -1,0 +1,33 @@
+{
+  "name": "freequeue",
+  "version": "1.0.0",
+  "license": "MIT",
+  "source": "src/index.ts",
+  "main": "dist/freequeue.cjs",
+  "module": "dist/freequeue.mjs",
+  "browser": "dist/freequeue.js",
+  "types": "dist/dts/freequeue.d.ts",
+  "targets": {},
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.3",
+    "@types/node": "^14.11.2",
+    "grunt": "^1.5.3",
+    "gts": "^3.1.0",
+    "rollup": "^2.75.7",
+    "typescript": "^4.0.3"
+  },
+  "scripts": {
+    "lint": "gts lint ./src",
+    "clean": "gts clean",
+    "compile": "rollup --config",
+    "fix": "gts fix ./src",
+    "prepare": "yarn run compile",
+    "pretest": "yarn run compile",
+    "posttest": "yarn run lint",
+    "build": "rollup --config",
+    "grunt": "grunt"
+  }
+}

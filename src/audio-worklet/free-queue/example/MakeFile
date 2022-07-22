@@ -1,0 +1,15 @@
+DEPS = $(wildcard ./src/*.c)
+OUT_FILES = $(wildcard ./build/*)
+
+build: $(DEPS) $(OUT_FILES)
+	-@mkdir "build"
+	@emcc \
+		$(DEPS) \
+		-s ENVIRONMENT=worker \
+		-s MODULARIZE=1 \
+		-s EXPORT_NAME=FQC \
+		-s EXPORT_ES6=1 \
+		-s INVOKE_RUN=0 \
+		-s EXPORTED_RUNTIME_METHODS="['callMain','ccall', 'cwrap']" \
+		-pthread \
+		-o build/main.js
