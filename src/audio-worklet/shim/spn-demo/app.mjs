@@ -5,45 +5,41 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const context = new AudioContext();
 
+const BUFFER_SIZE = 256;
 let isRecording = false;
 let isMonitoring = false;
 let visualizationEnabled = true;
-
-const BUFFER_SIZE = 256;
-
-// TODO: Refactor as buffers
-let streamSampleRate;
-const currData = new Array(2).fill([]);
+let currData = [];
 let currDataGain = 0;
 let recordLength = 0;
 
-const ls = async (x) => console.log(await x);
-
 document.addEventListener('DOMContentLoaded', init);
 
-// TODO comment as necessary
 async function init() {
   if (context.state === 'suspended') {
     await context.resume();
   }
 
-  // Create intermediary nodes
-  // TODO remove medians?
-  // Setup mic and processor
-  const micStream = await setupMic();
+  // Setup mic stream
+  const micStream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: false,
+      autoGainControl: false,
+      noiseSuppression: false,
+      latency: 0,
+    },
+  });
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  streamSampleRate = context.sampleRate;
-  ls(streamSampleRate);
-
+  // Setup Script Processor Node
   const recordBuffer = context.createBuffer(
       2,
       context.sampleRate * 5,
       context.sampleRate,
   );
+  const spNode = setupScriptProcessor(recordBuffer);
 
-  const spNode = setupScriptProcessor(micStream, recordBuffer);
-
+  // Create intermediary nodes
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
@@ -64,24 +60,32 @@ async function init() {
       .connect(spNode)
       .connect(monitorNode)
       .connect(context.destination);
-
-  // Watch Context Status
-  const setStatusText = (text) =>
-    (document.querySelector('#ctx-status').innerHTML = text);
-  context.addEventListener('statechange', (e) =>
-    setStatusText(context.state),
-  );
-  setStatusText(context.state);
 }
 
-function setupScriptProcessor(stream, recordBuffer) {
+/**
+ * Creates script processor and defines callback
+ * @param {AudioBuffer} recordBuffer
+ * @return {ScriptProcessorNode} script processor node
+ */
+function setupScriptProcessor(recordBuffer) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
+  currData = new Array(recordBuffer.numberOfChannels).fill({});
 
-  // Callback for ScriptProcessorNode.
+  // Callback for ScriptProcessorNode
   processor.onaudioprocess = function(e) {
     // For all channels
     for (let channel = 0; channel < currData.length; channel++) {
       const inputData = e.inputBuffer.getChannelData(channel);
+
+      if (channel === 0) {
+        // Find average gain (for visualizers).
+        // First channel only, for simplicity
+        let sumSamples = 0;
+        for (let sample = 0; sample < inputData.length; sample++) {
+          sumSamples+=inputData[sample];
+        }
+        currDataGain = sumSamples / BUFFER_SIZE;
+      }
 
       // Set data for live gain visualizer to interpret from
       currData[channel] = inputData;
@@ -90,41 +94,19 @@ function setupScriptProcessor(stream, recordBuffer) {
       if (isRecording) {
         recordBuffer.copyToChannel(currData[channel], channel, recordLength);
       }
+
+      // Pass audio data through to output
       e.outputBuffer.copyToChannel(inputData, channel, 0);
     }
 
-    // First channel only (only needs 1 run)
-
-    // Runs on first channel only (length tracking +)
-    const inputData = e.inputBuffer.getChannelData(0);
-
     // Update tracked recording length
     if (isRecording) {
-      recordLength += inputData.length;
+      recordLength += BUFFER_SIZE;
     }
-
-    // Find average gain (for visualizers)
-    let sumSamples = 0;
-    for (let sample = 0; sample < inputData.length; sample++) {
-      sumSamples+=inputData[sample];
-    }
-    currDataGain = sumSamples / BUFFER_SIZE;
   };
 
   return processor;
 }
-
-async function setupMic() {
-  return await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: false,
-      autoGainControl: false,
-      noiseSuppression: false,
-      latency: 0,
-    },
-  });
-}
-// AUDIO
 
 /**
  * Sets up monitor feature (listen to mic live) and handles gain changes
@@ -151,7 +133,7 @@ function setupMonitor(monitorNode) {
 
 /**
  * Set events and define callbacks for recording start/stop events
- * @param {AudioBuffer} recordBuffer recording buffer
+ * @param {AudioBuffer} recordBuffer Buffer of the current recording.
  */
 function setupRecording(recordBuffer) {
   const recordButton = document.querySelector('#record');
@@ -160,14 +142,14 @@ function setupRecording(recordBuffer) {
   const downloadButton = document.querySelector('#download');
 
   async function prepareClip() {
+    // Get recording file URL
     const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
 
-
+    // Calculate length
     document.querySelector('#data-len').innerHTML =
-      Math.round(recordLength / streamSampleRate * 100)/100;
+      Math.round(recordLength / recordBuffer.sampleRate * 100)/100;
 
-    ls(recordLength);
-    ls(streamSampleRate);
+    // Set URL on player and download button
     player.src = wavUrl;
     downloadButton.src = wavUrl;
     downloadButton.download = 'recording.wav';
@@ -176,24 +158,24 @@ function setupRecording(recordBuffer) {
   recordButton.addEventListener('click', (e) => {
     isRecording = !isRecording;
 
-    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
-
-    // Called when recording is paused
+    // When recording is paused, process clip
     if (!isRecording) {
       prepareClip();
     }
+
+    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
   });
 }
 
-/** Setup all visualizers.
+/**
+ * Sets up all visualizers.
  * @param {AnalyserNode} liveAnalyser Live Analyser node to
  * render live frequency graph from
- * @param {AudioBuffer} recordBuffer recording buffer
   */
-function setupVisualizers(liveAnalyser, recordBuffer) {
+function setupVisualizers(liveAnalyser) {
   setupLiveGainVis();
   setupLiveAnalyserVis(liveAnalyser);
-  setupRecordingVis();
+  setupRecordingGainVis();
 
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
@@ -214,19 +196,21 @@ const setupLiveGainVis = () => {
   const width = canvas.width;
   const height = canvas.height;
 
-  // save buffer as data
   const drawStart = width-1;
 
   const draw = () => {
     requestAnimationFrame(draw);
     if (!visualizationEnabled || !currData) return;
 
+    // Determine center and gain height
     const centerY = ((1 - currDataGain) * height) / 2;
     const gainHeight = currDataGain * height;
 
+    // Fill gain
     canvasContext.fillStyle = 'black';
     canvasContext.fillRect(drawStart, centerY, 1, gainHeight);
 
+    // Copy visualizer left
     canvasContext.globalCompositeOperation = 'copy';
     canvasContext.drawImage(canvas, -1, 0);
     canvasContext.globalCompositeOperation = 'source-over';
@@ -245,6 +229,7 @@ function setupLiveAnalyserVis(analyserNode) {
   const canvasContext = canvas.getContext('2d');
 
   const bufferLength = analyserNode.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
 
   const width = canvas.width;
   const height = canvas.height;
@@ -255,16 +240,14 @@ function setupLiveAnalyserVis(analyserNode) {
     if (!visualizationEnabled) return;
 
     canvasContext.clearRect(0, 0, width, height);
-
-    // save buffer as data
-
-    const dataArray = new Uint8Array(bufferLength);
     analyserNode.getByteFrequencyData(dataArray);
 
     dataArray.forEach((item, index) => {
+      // Determine bar height by gain
       const y = (item / 255) * height * 0.9;
       const x = barWidth * index;
 
+      // Determine bar color by height
       canvasContext.fillStyle = `hsl(${
         (y / height) * 2 * 200
       }, 100%, 50%)`;
@@ -275,14 +258,15 @@ function setupLiveAnalyserVis(analyserNode) {
   draw();
 }
 
-function setupRecordingVis(recordBuffer) {
+/**
+ * Sets up recording gain visualizer.
+ */
+function setupRecordingGainVis() {
   const canvas = document.querySelector('#recording-canvas');
   const canvasContext = canvas.getContext('2d');
 
   const width = canvas.width;
   const height = canvas.height;
-
-  // save buffer as data
 
   // draw first red bar
   canvasContext.fillStyle = 'red';
@@ -297,23 +281,22 @@ function setupRecordingVis(recordBuffer) {
     const centerY = ((1 - currDataGain) * height) / 2;
     const gainHeight = currDataGain * height;
 
-    // clear current
-    canvasContext.fillStyle = 'white';
-    canvasContext.fillRect(currX, 0, 1, height);
+    // Clear current Y
+    canvasContext.clearRect(currX, 0, 1, height);
 
-    // draw red bar 1 ahead
+    // Draw recording bar 1 ahead
     canvasContext.fillStyle = 'red';
     canvasContext.fillRect(currX+1, 0, 1, height);
 
-    // draw current gain
+    // Draw current gain
     canvasContext.fillStyle = 'black';
     canvasContext.fillRect(currX, centerY, 1, gainHeight);
 
     if (currX < width - 2) {
       currX++;
     } else {
-      // If the waveform fills the canvas, move it by one pixel to the left to
-      // make room.
+      // If the waveform fills the canvas,
+      // move it by one pixel to the left to make room
       canvasContext.globalCompositeOperation = 'copy';
       canvasContext.drawImage(canvas, -1, 0);
       canvasContext.globalCompositeOperation = 'source-over';
