@@ -1,24 +1,25 @@
-#ifndef FREE_QUEUE_C
-#define FREE_QUEUE_C
+#ifndef FREE_QUEUE_C_H_
+#define FREE_QUEUE_C_H_
 
-
-#include <stdint.h>
-#include <stdlib.h>
 #include <stdatomic.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef EMSCRIPTEN_KEEPALIVE
-#define EMSCRIPTEN_KEEPALIVE __attribute__((used))
-#endif
-
 /**
- * C Struct to represent FreeQueue
+ * C Struct representation of FreeQueue.
+ * It has 4 data members.
+ * bufferLength stores size/length of backing buffer.
+ * channelCount stores number of channels FreeQueue has.
+ * state points to array storing Read and Write heads of FreeQueue.
+ * channels stores a pointer pointing to array, whose each cell
+ * points to a channel buffer in memory.
 */
 struct FreeQueue {
     size_t bufferLength;
@@ -84,7 +85,6 @@ static uint32_t _getAvailableWrite(struct FreeQueue* fq, uint32_t readIndex, uin
 
     return readIndex - writeIndex -1;
 }
-
 
 struct FreeQueue* create_free_queue(size_t length, size_t channelCount) {
     struct FreeQueue* fq = (struct FreeQueue*)malloc(sizeof(struct FreeQueue));
@@ -203,4 +203,3 @@ EMSCRIPTEN_KEEPALIVE void free_queue_address(struct FreeQueue* fq) {
 }
 #endif
 #endif
-

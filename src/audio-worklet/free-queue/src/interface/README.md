@@ -1,8 +1,9 @@
 # FreeQueue C Interface
 
 A single header C API implementation to access FreeQueue functionality from C/C++ programs.
-
-## Using
+This uses atomics from `stdatomic.h` and emscripten to implement atomic read and writes.
+This is lock-free implementation and will assure concurrency, given there is single producer (thread pushing data into buffer) and single consumer (thread pulling data out of buffer)
+## How to Use
 
 ```C
 #define FREE_QUEUE_IMPL // Should be defined in Single Source file before including free_queue.h .
@@ -32,7 +33,12 @@ void* get_free_queue_pointers(struct FreeQueue* fq, char* data);
 ```
 
 ### Building
-After Installing and Activating Emscripten Toolchain, the following cli instruction can be used to build project. (It needs to be modified depending on project).
+
+#### Prerequisites
+
+Emscripten -[https://emscripten.org/docs/getting_started/downloads.html](https://emscripten.org/docs/getting_started/downloads.html)
+
+#### Example emcc settings for building
 
 ```ps
 emcc \
@@ -47,13 +53,11 @@ emcc \
 	-o {output_file_name.js}
 ```
 
-### Example Usage
-
 An example workflow of using interface.
 
-1. Create FreeQueue in C.
-2. Query for Pointers through JS.
-3. Create JS instance of FreeQueue through Pointers.
-4. Now you can push and pull from either side, while one side being producer and other being consumer.
+1. Create a FreeQueue in C.
+2. Query for Pointers of FreeQueue data members through JS.
+3. Create JS instance of FreeQueue using queried Pointers.
+4. Now we can push and pull from either side, while one side being producer and other being consumer.
 
 [FreeQueue WebAssembly Example: DivyamAhuja/free_queue_c](https://github.com/DivyamAhuja/free_queue_c)
