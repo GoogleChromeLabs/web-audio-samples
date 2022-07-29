@@ -1,3 +1,3 @@
 # ScriptProcessorNode Demo
 
-This demonstrates a basic web audio recording app using ScriptProcessorNode.
+This demonstrates a basic recording app using ScriptProcessorNode.
