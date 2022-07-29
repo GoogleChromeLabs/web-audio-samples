@@ -2,16 +2,16 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
 const context = new AudioContext();
 
+// Arbitrary buffer size chosen
 const BUFFER_SIZE = 256;
 let isRecording = false;
 let isMonitoring = false;
 let visualizationEnabled = true;
-let currData = [];
-let currDataGain = 0;
-let recordLength = 0;
+let currentSample = [];
+let currentSampleGain = 0;
+let recordingLength = 0;
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -31,7 +31,7 @@ async function init() {
   });
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  // Setup Script Processor Node
+  // Setup ScriptProcessorNode
   const recordBuffer = context.createBuffer(
       2,
       context.sampleRate * 5,
@@ -43,7 +43,7 @@ async function init() {
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
-  const liveAnalyserNode = await new AnalyserNode(context, {
+  const liveAnalyserNode = new AnalyserNode(context, {
     fftSize: 128,
   });
 
@@ -69,13 +69,12 @@ async function init() {
  */
 function setupScriptProcessor(recordBuffer) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
-  currData = new Array(recordBuffer.numberOfChannels).fill({});
+  currentSample = new Array(recordBuffer.numberOfChannels).fill({});
 
-  // Callback for ScriptProcessorNode
-  processor.onaudioprocess = function(e) {
+  processor.onaudioprocess = function(event) {
     // For all channels
-    for (let channel = 0; channel < currData.length; channel++) {
-      const inputData = e.inputBuffer.getChannelData(channel);
+    for (let channel = 0; channel < currentSample.length; channel++) {
+      const inputData = event.inputBuffer.getChannelData(channel);
 
       if (channel === 0) {
         // Find average gain (for visualizers).
@@ -84,24 +83,24 @@ function setupScriptProcessor(recordBuffer) {
         for (let sample = 0; sample < inputData.length; sample++) {
           sumSamples+=inputData[sample];
         }
-        currDataGain = sumSamples / BUFFER_SIZE;
+        currentSampleGain = sumSamples / BUFFER_SIZE;
       }
 
       // Set data for live gain visualizer to interpret from
-      currData[channel] = inputData;
+      currentSample[channel] = inputData;
 
       // If recording, feed data to recording buffer
       if (isRecording) {
-        recordBuffer.copyToChannel(currData[channel], channel, recordLength);
+        recordBuffer.copyToChannel(currentSample[channel], channel, recordingLength);
       }
 
       // Pass audio data through to output
-      e.outputBuffer.copyToChannel(inputData, channel, 0);
+      event.outputBuffer.copyToChannel(inputData, channel, 0);
     }
 
     // Update tracked recording length
     if (isRecording) {
-      recordLength += BUFFER_SIZE;
+      recordingLength += BUFFER_SIZE;
     }
   };
 
@@ -120,11 +119,10 @@ function setupMonitor(monitorNode) {
     monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
   };
 
-  // Controls
   const monitorButton = document.querySelector('#monitor');
   const monitorText = monitorButton.querySelector('span');
 
-  monitorButton.addEventListener('click', (e) => {
+  monitorButton.addEventListener('click', (event) => {
     isMonitoring = !isMonitoring;
     updateMonitorGain(isMonitoring);
     monitorText.innerHTML = isMonitoring ? 'off' : 'on';
@@ -147,7 +145,7 @@ function setupRecording(recordBuffer) {
 
     // Calculate length
     document.querySelector('#data-len').innerHTML =
-      Math.round(recordLength / recordBuffer.sampleRate * 100)/100;
+      Math.round(recordingLength / recordBuffer.sampleRate * 100)/100;
 
     // Set URL on player and download button
     player.src = wavUrl;
@@ -180,9 +178,8 @@ function setupVisualizers(liveAnalyser) {
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
     visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML = visualizationEnabled ?
-            'Pause' :
-            'Play';
+    visToggle.querySelector('span').innerHTML =
+      visualizationEnabled ? 'Pause' : 'Play';
   });
 }
 
@@ -200,11 +197,11 @@ const setupLiveGainVis = () => {
 
   const draw = () => {
     requestAnimationFrame(draw);
-    if (!visualizationEnabled || !currData) return;
+    if (!visualizationEnabled || !currentSample) return;
 
     // Determine center and gain height
-    const centerY = ((1 - currDataGain) * height) / 2;
-    const gainHeight = currDataGain * height;
+    const centerY = ((1 - currentSampleGain) * height) / 2;
+    const gainHeight = currentSampleGain * height;
 
     // Fill gain
     canvasContext.fillStyle = 'black';
@@ -276,10 +273,10 @@ function setupRecordingGainVis() {
 
   function draw() {
     requestAnimationFrame(draw);
-    if (!isRecording || !visualizationEnabled || !currData) return;
+    if (!isRecording || !visualizationEnabled || !currentSample) return;
 
-    const centerY = ((1 - currDataGain) * height) / 2;
-    const gainHeight = currDataGain * height;
+    const centerY = ((1 - currentSampleGain) * height) / 2;
+    const gainHeight = currentSampleGain * height;
 
     // Clear current Y
     canvasContext.clearRect(currX, 0, 1, height);

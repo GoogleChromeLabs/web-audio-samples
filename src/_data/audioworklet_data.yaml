@@ -43,11 +43,11 @@
       description: For high performance large-scale audio applications
       href: design-pattern/shared-buffer/
 
-- title: Shim
+- title: Migration from ScriptProcessorNode
   entries: 
-    - title: ScriptProcessor Demo 
-      description: An simple recording demo of the deprecated ScriptProcessorNode 
-      href: shim/spn-demo/
+    - title: ScriptProcessorNode Recorder
+      description: A simple audio recording app using ScriptProcessorNode 
+      href: migration/spn-recorder/
 
 - title: Resources
   entries:
