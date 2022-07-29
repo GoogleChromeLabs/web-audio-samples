@@ -1,3 +1,8 @@
+/**
+ * @license Copyright (c) Google. MIT License.
+ * @fileOverview Provides functionality for
+ * the ScriptProcessorNode Recording Demo.
+ */
 'use strict';
 
 import createLinkFromAudioBuffer from './exporter.mjs';
@@ -12,13 +17,21 @@ let visualizationEnabled = true;
 let currentSample = [];
 let recordingLength = 0;
 
+// Wait for user interaction to initialize audio, as per specification
 document.addEventListener('click', (element) => {
   init();
   document.querySelector('#click-to-start').remove();
 }, {once: true});
 
+/**
+ * Defines overall audio chain and initializes all functionality
+ */
 async function init() {
-  // Bring microphone into AudioContext
+  if (context.state === 'suspended') {
+    await context.resume();
+  }
+
+  // Get user's microphone and connect it to the AudioContext
   const micStream = await navigator.mediaDevices.getUserMedia({
     audio: {
       echoCancellation: false,
@@ -30,7 +43,7 @@ async function init() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  // Setup ScriptProcessorNode
+  // Prepare buffer for recording
   const recordBuffer = context.createBuffer(
       2,
       // 10 seconds seems reasonable for demo purposes
@@ -56,9 +69,9 @@ async function init() {
 }
 
 /**
- * Creates script processor and defines callback
+ * Creates ScriptProcessor to record and track microphone audio.
  * @param {AudioBuffer} recordBuffer
- * @return {ScriptProcessorNode} script processor node
+ * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
  */
 function setupScriptProcessor(recordBuffer) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
@@ -73,7 +86,7 @@ function setupScriptProcessor(recordBuffer) {
       // Provide current sample to visualizers
       currentSample[channel] = inputData;
 
-      // While recording, feed data to recording buffer
+      // While recording, feed data to recording buffer at the proper time
       if (isRecording) {
         recordBuffer
             .copyToChannel(currentSample[channel], channel, recordingLength);
@@ -93,7 +106,7 @@ function setupScriptProcessor(recordBuffer) {
 }
 
 /**
- * Set events and define callbacks for recording start/stop events
+ * Set events and define callbacks for recording start/stop events.
  * @param {AudioBuffer} recordBuffer Buffer of the current recording.
  */
 function setupRecording(recordBuffer) {
@@ -127,9 +140,8 @@ function setupRecording(recordBuffer) {
   });
 }
 
-
 /**
- * Sets up monitor functionality, allowing user to listen to mic audio live
+ * Sets up monitor functionality, allowing user to listen to mic audio live.
  * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
  */
 function setupMonitor(monitorNode) {
@@ -151,7 +163,7 @@ function setupMonitor(monitorNode) {
 }
 
 /**
- * Sets up and handles rendering for all visualizers
+ * Sets up and handles calculations and rendering for all visualizers.
  */
 function setupVisualizers() {
   const drawLiveGain = setupLiveGainVis();
@@ -194,8 +206,8 @@ function setupVisualizers() {
 }
 
 /**
- * Prepares and defines render function for the live gain visualizer
- * @return {function} Draw function to render new gain points
+ * Prepares and defines render function for the live gain visualizer.
+ * @return {function} Draw function to render incoming live audio.
  */
 const setupLiveGainVis = () => {
   const canvas = document.querySelector('#live-canvas');
@@ -207,11 +219,11 @@ const setupLiveGainVis = () => {
   const drawStart = width-1;
 
   function draw(currentSampleGain) {
-    // Determine center and gain height
+    // Determine center and height
     const centerY = ((1 - currentSampleGain) * height) / 2;
     const gainHeight = currentSampleGain * height;
 
-    // Fill gain
+    // Draw gain bar
     canvasContext.fillStyle = 'black';
     canvasContext.fillRect(drawStart, centerY, 1, gainHeight);
 
@@ -228,8 +240,8 @@ const setupLiveGainVis = () => {
 };
 
 /**
- * Prepares and defines render function for the recording gain visualizer
- * @return {function} Draw function to render new gain points
+ * Prepares and defines render function for the recording gain visualizer.
+ * @return {function} Draw function to render incoming recorded audio.
  */
 function setupRecordingGainVis() {
   const canvas = document.querySelector('#recording-canvas');
@@ -247,7 +259,7 @@ function setupRecordingGainVis() {
     const centerY = ((1 - currentSampleGain) * height) / 2;
     const gainHeight = currentSampleGain * height;
 
-    // Clear current Y
+    // Clear current Y-axis
     canvasContext.clearRect(currX, 0, 1, height);
 
     // Draw recording bar 1 ahead
