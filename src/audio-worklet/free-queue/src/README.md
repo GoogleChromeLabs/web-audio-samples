@@ -14,11 +14,16 @@ out of buffer.
 ## API
 
 ```ts
-    FreeQueue(size: number, channelCount: number = 1)           // Constructor
-    push(input: Float32Array[], blockLength: number): boolean   // push data into FreeQueue
-    pull(input: Float32Array[], blockLength: number): boolean   // pull data out of FreeQueue
-    getBufferLength(): number                                   // returns length of backing buffer
-    isFrameAvailable(size: number): number                      // returns if frame of given size is available
+    // Constructor
+    FreeQueue(size: number, channelCount: number = 1)
+    // push data into FreeQueue
+    push(input: Float32Array[], blockLength: number): boolean
+    // pull data out of FreeQueue 
+    pull(input: Float32Array[], blockLength: number): boolean
+    // returns length of backing buffer
+    getBufferLength(): number
+    // returns if frame of given size is available
+    isFrameAvailable(size: number): number
 ```
 
 ## Usage

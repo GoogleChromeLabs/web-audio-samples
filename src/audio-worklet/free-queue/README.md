@@ -1,11 +1,18 @@
 # Free Queue 
 
-A Lock-Free Ring Buffer Implementation, focused on utility for applications related to Audio Processing with WebAudio API.
+A lock-free ring buffer implementation for high-performance audio processing 
+designed to be used on top of Web Audio API.
 
-## Working
+It is based upon single-producer and single-consumer concept, so it can assure 
+thread safe concurrency without locks and mutexes, when following conditions 
+are satisfied -
+1. There is only one producer, that is only one thread/worker is pushing data 
+into buffer.
+2. There is only one consumer, that is only one thread/worker is pulling data 
+out of buffer.
 
-It is a Lock-Free implementation based on Single Producer - Single Consumer Concept.
+## How it works
 
-This Library Provieds API for creating a FreeQueue instance, to which data can be pushed to or pulled from by different worker threads.
-
-An example implementation of C Library interface is also provided with and example working, to use it with Emscripten and WebAssembly.
+This library can be used between two JavaScript Workers or can even be used
+with WebAssembly. To use in WebAssembly with programming languages like C/C++, 
+an interface can be used which can push and pull data from buffer.

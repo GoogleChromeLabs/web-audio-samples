@@ -1,13 +1,18 @@
 # FreeQueue C Interface
 
-A single header C API implementation to access FreeQueue functionality from C/C++ programs.
-This uses atomics from `stdatomic.h` and emscripten to implement atomic read and writes.
-This is lock-free implementation and will assure concurrency, given there is single producer (thread pushing data into buffer) and single consumer (thread pulling data out of buffer)
+A single header C API implementation to access FreeQueue functionality from 
+C/C++ programs. This uses atomics from `stdatomic.h` and emscripten to 
+implement atomic read and writes. This is lock-free implementation and will 
+assure concurrency, given there is single producer (thread pushing data into 
+buffer) and single consumer (thread pulling data out of buffer)
+
 ## How to Use
 
 ```C
-#define FREE_QUEUE_IMPL // Should be defined in Single Source file before including free_queue.h .
-#include "free_queue.h" // Include free_queue.h according to it's locatoion in project.
+// Should be defined in Single Source file before including free_queue.h .
+#define FREE_QUEUE_IMPL 
+// Include free_queue.h according to it's locatoion in project.
+#include "free_queue.h" 
 ```
 
 The Structure representation of FreeQueue in C API is like:
@@ -23,13 +28,17 @@ struct FreeQueue {
 
 The Methods that can be used on FreeQueue in C are:
 ```C
-struct FreeQueue* create_free_queue(size_t length, size_t channelCount);        // For Creating FreeQueue
-bool free_queue_push(struct FreeQueue* fq, float** input, size_t blockLength);  // For Pushing Data
-bool free_queue_pull(struct FreeQueue* fq, float** output, size_t blockLength); // For Pulling Data
-void destroy_free_queue(struct FreeQueue* fq);                                  // For Destroying FreeQueue
+// For Creating FreeQueue
+struct FreeQueue* CreateFreeQueue(size_t length, size_t channelCount);
+// For Pushing Data        
+bool FreeQueuePush(struct FreeQueue* queue, float** input, size_t blockLength);  
+// For Pulling Data
+bool FreeQueuePull(struct FreeQueue* queue, float** output, size_t blockLength);
+// For Destroying FreeQueue
+void DestroyFreeQueue(struct FreeQueue* queue);                                  
 
 // Helper function for querying for pointers of FreeQueue data members   
-void* get_free_queue_pointers(struct FreeQueue* fq, char* data);                
+void* GetFreePueuePointers(struct FreeQueue* queue, char* data);                
 ```
 
 ### Building
@@ -53,11 +62,9 @@ emcc \
 	-o {output_file_name.js}
 ```
 
-An example workflow of using interface.
+The following is the example usage of this interface.
 
-1. Create a FreeQueue in C.
-2. Query for Pointers of FreeQueue data members through JS.
-3. Create JS instance of FreeQueue using queried Pointers.
-4. Now we can push and pull from either side, while one side being producer and other being consumer.
-
-[FreeQueue WebAssembly Example: DivyamAhuja/free_queue_c](https://github.com/DivyamAhuja/free_queue_c)
+1. Create an instance of FreeQueue in the C code.
+2. Get the pointer from the C FreeQueue instance.
+3. Create a JS instance of FreeQueue with the obtained pointer.
+4. Now push and pull from either side; one side being a producer and the other a consumer.

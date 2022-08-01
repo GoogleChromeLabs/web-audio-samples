@@ -5,7 +5,7 @@
  * @property {Uint32Array} states Backed by SharedArrayBuffer.
  * @property {number} bufferLength The frame buffer length. Should be identical
  * throughout channels.
- * @property {Array<Float32Array>} channels The length must be > 0.
+ * @property {Array<Float32Array>} channelData The length must be > 0.
  * @property {number} channelCount same with channelData.length
  */
 
@@ -16,6 +16,18 @@
  */
 
 class FreeQueue {
+
+  /**
+   * An index set for shared state fields. Requires atomic access.
+   * @enum {number}
+   */
+  States = {
+    /** @type {number} A shared index for reading from the queue. (consumer) */
+    READ: 0,
+    /** @type {number} A shared index for writing into the queue. (producer) */
+    WRITE: 1,  
+  }
+  
   /**
    * FreeQueue constructor. A shared buffer created by this constuctor
    * will be shared between two threads.
@@ -23,18 +35,22 @@ class FreeQueue {
    * @param {number} size Frame buffer length.
    * @param {number} channelCount Total channel count.
    */
-
   constructor(size, channelCount = 1) {
     this.states = new Uint32Array(
       new SharedArrayBuffer(
-        Object.keys(FreeQueue.States).length * Uint32Array.BYTES_PER_ELEMENT
+        Object.keys(this.States).length * Uint32Array.BYTES_PER_ELEMENT
       )
     );
+    /**
+     * Use one extra bin to distinguish between the read and write indices 
+     * when full. See Tim Blechmann's |boost::lockfree::spsc_queue|
+     * implementation.
+     */
     this.bufferLength = size + 1;
     this.channelCount = channelCount;
-    this.channels = [];
+    this.channelData = [];
     for (let i = 0; i < channelCount; i++) {
-      this.channels.push(
+      this.channelData.push(
         new Float32Array(
           new SharedArrayBuffer(
             this.bufferLength * Float32Array.BYTES_PER_ELEMENT
@@ -46,7 +62,16 @@ class FreeQueue {
 
   /**
    * Helper function for creating FreeQueue from pointers.
-   * @param fqPointers
+   * @param {FreeQueuePointers} fqPointers 
+   * An object containing various pointers required to create FreeQueue
+   *
+   * interface FreeQueuePointers {
+   *    memory: WebAssembly.Memory;   // Reference to WebAssembly Memory
+   *    bufferLengthPointer: number;
+   *    channelCountPointer: number;
+   *    statePointer: number;
+   *    channelDataPointer: number;
+   * }
    * @returns FreeQueue
    */
   static fromPointers(fqPointers) {
@@ -59,12 +84,12 @@ class FreeQueue {
       HEAPU32[fqPointers.statePointer / 4] / 4,
       HEAPU32[fqPointers.statePointer / 4] / 4 + 2
     );
-    const channels = [];
+    const channelData = [];
     for (let i = 0; i < channelCount; i++) {
-      channels.push(
+      channelData.push(
         HEAPF32.subarray(
-          HEAPU32[HEAPU32[fqPointers.channelsPointer / 4] / 4 + i] / 4,
-          HEAPU32[HEAPU32[fqPointers.channelsPointer / 4] / 4 + i] / 4 +
+          HEAPU32[HEAPU32[fqPointers.channelDataPointer / 4] / 4 + i] / 4,
+          HEAPU32[HEAPU32[fqPointers.channelDataPointer / 4] / 4 + i] / 4 +
             bufferLength
         )
       );
@@ -72,7 +97,7 @@ class FreeQueue {
     fq.bufferLength = bufferLength;
     fq.channelCount = channelCount;
     fq.states = states;
-    fq.channels = channels;
+    fq.channelData = channelData;
     return fq;
   }
 
@@ -86,8 +111,8 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   push(input, blockLength) {
-    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
-    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
+    const currentRead = Atomics.load(this.states, this.States.READ);
+    const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableWrite(currentRead, currentWrite) < blockLength) {
       return false;
     }
@@ -95,8 +120,8 @@ class FreeQueue {
     if (this.bufferLength < nextWrite) {
       nextWrite -= this.bufferLength;
       for (let channel = 0; channel < this.channelCount; channel++) {
-        const blockA = this.channels[channel].subarray(currentWrite);
-        const blockB = this.channels[channel].subarray(0, nextWrite);
+        const blockA = this.channelData[channel].subarray(currentWrite);
+        const blockB = this.channelData[channel].subarray(0, nextWrite);
         blockA.set(input[channel].subarray(0, blockA.length));
         blockB.set(
           input[channel].subarray(
@@ -107,13 +132,13 @@ class FreeQueue {
       }
     } else {
       for (let channel = 0; channel < this.channelCount; channel++) {
-        this.channels[channel]
+        this.channelData[channel]
           .subarray(currentWrite, nextWrite)
           .set(input[channel].subarray(0, blockLength));
       }
       if (nextWrite === this.bufferLength) nextWrite = 0;
     }
-    Atomics.store(this.states, FreeQueue.States.WRITE, nextWrite);
+    Atomics.store(this.states, this.States.WRITE, nextWrite);
     return true;
   }
 
@@ -127,8 +152,8 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   pull(output, blockLength) {
-    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
-    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
+    const currentRead = Atomics.load(this.states, this.States.READ);
+    const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableRead(currentRead, currentWrite) < blockLength) {
       return false;
     }
@@ -136,28 +161,28 @@ class FreeQueue {
     if (this.bufferLength < nextRead) {
       nextRead -= this.bufferLength;
       for (let channel = 0; channel < this.channelCount; channel++) {
-        const blockA = this.channels[channel].subarray(currentRead);
-        const blockB = this.channels[channel].subarray(0, nextRead);
+        const blockA = this.channelData[channel].subarray(currentRead);
+        const blockB = this.channelData[channel].subarray(0, nextRead);
         output[channel].set(blockA);
         output[channel].set(blockB, blockA.length);
       }
     } else {
       for (let channel = 0; channel < this.channelCount; ++channel) {
         output[channel].set(
-          this.channels[channel].subarray(currentRead, nextRead)
+          this.channelData[channel].subarray(currentRead, nextRead)
         );
       }
       if (nextRead === this.bufferLength) {
         nextRead = 0;
       }
     }
-    Atomics.store(this.states, FreeQueue.States.READ, nextRead);
+    Atomics.store(this.states, this.States.READ, nextRead);
     return true;
   }
 
   print() {
-    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
-    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
+    const currentRead = Atomics.load(this.states, this.States.READ);
+    const currentWrite = Atomics.load(this.states, this.States.WRITE);
     console.log(this, {
       availableRead: this._getAvailableRead(currentRead, currentWrite),
       availableWrite: this._getAvailableWrite(currentRead, currentWrite),
@@ -165,8 +190,8 @@ class FreeQueue {
   }
 
   getAvailableBytes() {
-    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
-    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
+    const currentRead = Atomics.load(this.states, this.States.READ);
+    const currentWrite = Atomics.load(this.states, this.States.WRITE);
     return this._getAvailableRead(currentRead, currentWrite);
   }
 
@@ -194,16 +219,12 @@ class FreeQueue {
 
   _reset() {
     for (let channel = 0; channel < this.channelCount; channel++) {
-      this.channels[channel].fill(0);
+      this.channelData[channel].fill(0);
     }
-    Atomics.store(this.states, FreeQueue.States.READ, 0);
-    Atomics.store(this.states, FreeQueue.States.WRITE, 0);
+    Atomics.store(this.states, this.States.READ, 0);
+    Atomics.store(this.states, this.States.WRITE, 0);
   }
 }
 
-FreeQueue.States = {
-  READ: 0,
-  WRITE: 1,
-};
 
 export {FreeQueue};
