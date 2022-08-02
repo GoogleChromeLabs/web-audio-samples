@@ -1,4 +1,4 @@
-// Copyright (c) 2021 The Chromium Authors. All rights reserved.
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -132,7 +132,7 @@ function setupRecording(recordBuffer) {
         Math.round(recordingLength / recordBuffer.sampleRate * 100)/100;
   }
 
-  recordButton.addEventListener('click', (e) => {
+  recordButton.addEventListener('click', (event) => {
     isRecording = !isRecording;
 
     // When recording is paused, process clip.
@@ -173,7 +173,7 @@ function setupMonitor(monitorNode) {
 function setupVisualizers() {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
-  let currentSamples;
+  let currentSamples = [];
   let firstSamplesReceived = false;
 
   const setCurrentSamples = (newSamples) => {
@@ -186,10 +186,10 @@ function setupVisualizers() {
   };
 
   const visToggle = document.querySelector('#viz-toggle');
-  visToggle.addEventListener('click', (e) => {
+  visToggle.addEventListener('click', (event) => {
     visualizationEnabled = !visualizationEnabled;
     visToggle.querySelector('span').innerHTML =
-      visualizationEnabled ? 'Pause' : 'Play';
+       visualizationEnabled ? 'Pause' : 'Play';
   });
 
   function draw() {
@@ -204,7 +204,7 @@ function setupVisualizers() {
         }
       }
 
-      currentSampleGain /= (currentSamples.length *currentSamples[0].length);
+      currentSampleGain /= (currentSamples.length * currentSamples[0].length);
 
       drawLiveGain(currentSampleGain);
 
@@ -270,26 +270,26 @@ function setupRecordingGainVis() {
   canvasContext.fillStyle = 'red';
   canvasContext.fillRect(0, 0, 1, 1);
 
-  let currX = 0;
+  let currentX = 0;
 
   function draw(currentSampleGain) {
     const centerY = ((1 - currentSampleGain) * height) / 2;
     const gainHeight = currentSampleGain * height;
 
     // Clear current Y-axis.
-    canvasContext.clearRect(currX, 0, 1, height);
+    canvasContext.clearRect(currentX, 0, 1, height);
 
     // Draw recording bar 1 ahead.
     canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currX+1, 0, 1, height);
+    canvasContext.fillRect(currentX+1, 0, 1, height);
 
     // Draw current gain.
     canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX, centerY, 1, gainHeight);
+    canvasContext.fillRect(currentX, centerY, 1, gainHeight);
 
-    if (currX < width - 2) {
+    if (currentX < width - 2) {
       // Keep drawing new waveforms rightwards until canvas is full.
-      currX++;
+      currentX++;
     } else {
       // If the waveform fills the canvas,
       // move it by one pixel to the left to make room.
