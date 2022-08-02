@@ -1,0 +1,71 @@
+---
+eleventyNavigation:
+  key: worklet-recorder
+  title: Audio Worklet Recording App
+  parent: audio-worklet
+to_root_dir: ../../../
+---
+
+{% extends "../../../_includes/base.njk" %}
+
+{% block content %}
+
+  <style>
+    canvas {
+      display: block;
+      height: 80px;
+      border: 1px solid rgb(156 163 175 / var(--tw-border-opacity));
+      border-radius: 6px;
+
+      margin: 1em 0;
+      width: 100%;
+    }
+  </style>
+
+  <h1>ScriptProcessorNode Audio Recorder</h1>
+  <p>Demonstrates a simple recording app using ScriptProcessorNode</p>
+
+  <h3 class="text-2xl text-bold text-green-500" id="click-to-start">Click anywhere to start!</h3>
+
+  <div class="demo-box">
+    <div class="Live">
+      <h2>Live</h2>
+      <div>
+        <button id="monitor">
+          Turn monitor <span>on</span>
+        </button>
+        <button id="viz-toggle">
+          <span>Pause</span> visualizer
+        </button>
+      </div>
+
+      <canvas id="live-canvas"></canvas>
+    </div>
+
+    <div id="recording">
+      <h2>Recording</h2>
+
+      <div>
+        <p>Length: <span id="data-len">0</span>sec</p>
+        <button id="record">
+          <span>Start</span> Recording
+        </button>
+      </div>
+
+      <canvas id="recording-canvas"></canvas>
+
+      <div>
+        <audio id="player" class="w-full" controls></audio>
+
+        <div class="my-2">
+          <a href="" id="download">
+            <button>download file</button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+
+{% endblock %}
