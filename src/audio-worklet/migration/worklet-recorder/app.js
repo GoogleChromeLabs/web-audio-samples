@@ -51,7 +51,8 @@ async function init() {
 
   // Obtain samples passthrough function for visualizers
   const passSampleToVisualizers = setupVisualizers();
-  const recordingNode = await setupRecordingWorkletNode(recordBuffer, passSampleToVisualizers);
+  const recordingNode =
+      await setupRecordingWorkletNode(recordBuffer, passSampleToVisualizers);
 
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
@@ -75,20 +76,40 @@ async function init() {
  *    Function to pass current samples to visualizers.
  * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
  */
-async function setupRecordingWorkletNode(recordBuffer, passSampleToVisualizers) {
+async function setupRecordingWorkletNode(
+    recordBuffer,
+    passSampleToVisualizers,
+) {
+  const handleProcessEvent = (event) => {
+    console.log('received message');
+    console.log(event.data);
+
+    if (event.data.recordingLength) {
+      recordingLength = event.data.recordingLength;
+    }
+
+    if (event.data.currentSample) {
+      passSampleToVisualizers(event.data.currentSample);
+    }
+  };
   // Must await bc its promise based right???
-  const WorkletRecordingNode =
-      await context.audioWorklet.addModule("recording-processor.js").then(() => {
-        const out = new AudioWorkletNode(context, "recording-processor");
 
-        out.port.onmessage = (event) => {
-          passSampleToVisualizers(event.data);
-        }
+  await context.audioWorklet.addModule('recording-processor.js');
 
-        return out;
-      });
+  const WorkletRecordingNode = new AudioWorkletNode(
+      context,
+      'recording-processor',
+      {
+        processorOptions: {
+          sampleRate: context.sampleRate,
+          recordingBuffer: recordBuffer,
+        },
+      },
+  );
 
-  WorkletRecordingNode.port.postMessage("hi recording node!!! :)))")
+  WorkletRecordingNode.port.onmessage = handleProcessEvent;
+
+  WorkletRecordingNode.port.postMessage('hi recording node!!! :)))');
 
   return WorkletRecordingNode;
 }
