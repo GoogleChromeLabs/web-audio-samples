@@ -2,61 +2,73 @@ class RecordingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
 
-    console.log('constructor called');
-
     this.port.onmessage = (event) => {
-      console.log('received message');
-      console.log(event.data);
-
-      if (event.data.setRecording === false || event.data.setRecording === true) {
+      if (
+        event.data.setRecording === false ||
+        event.data.setRecording === true
+      ) {
         this.isRecording = event.data.setRecording;
       }
     };
 
-
-    if (options && options.processorOptions)
-      this.recordingBuffer = options.processorOptions.recordingBuffer;
-    this.currentSampleBuffer = new Array(2).fill([]);
+    if (options && options.processorOptions.recordingBuffer) {
+      this._recordingBuffer = new Float32Array(options.processorOptions.recordingBuffer);
+      this.sampleRate = options.processorOptions.sampleRate;
+    }
     this.recordingLength = 0;
+    this.publishedRecordingLength = 0;
     this.isRecording = false;
+
+
+    this.port.postMessage({
+      message: 'PROCESSOR_INIT',
+    });
   }
 
   process(inputs, outputs, params) {
-    const message = {};
-
-    for (let input = 0; input < inputs.length; input++) {
-      //Channel
-      for (let channel = 0; channel < 1; channel++) {
+    for (let input = 0; input < 1; input++) {
+      const numberOfChannels = inputs[input].length;
+      // Channel
+      for (let channel = 0; channel < numberOfChannels; channel++) {
         // Sample
-        for (let sample = 0; sample < 128; sample++) {
+        for (let sample = 0; sample < inputs[input][channel].length; sample++) {
           const currentSample = inputs[input][channel][sample];
-          this.currentSampleBuffer[channel].push(currentSample);
 
           // Handle recording
           outputs[input][channel][sample] = currentSample;
-        }
 
-        // Handle recording
-        if (this.isRecording) {
-          this.recordingBuffer.copyToChannel(
-              inputs[input][channel], channel, this.recordingLength
-          );
+          // Copy data to recording buffer interleaved
+          if (this.isRecording) {
+            const currentIndex =
+                this.recordingLength +
+                (sample * numberOfChannels) +
+                channel;
+
+            if (currentIndex < this._recordingBuffer.length) {
+              this._recordingBuffer[currentIndex] =
+                  currentSample;
+            }
+          }
         }
       }
     }
 
-    // Handle sample sending
-    if (this.currentSampleBuffer[0].length >= 256) {
-      message.currentSample = this.currentSampleBuffer;
-      this.currentSampleBuffer = new Array(inputs[0].length).fill([]);
-    }
-
-    if (this.isRecording) {
+    // TODO think about this bound
+    if (this.isRecording && this.recordingLength < this._recordingBuffer.length) {
       this.recordingLength+=128;
-      message.recordingLength = this.recordingLength;
-    }
 
-    this.port.sendMessage(message);
+      // Only post a recordingLength update every 1/4 second
+      if (this.recordingLength - this.publishedRecordingLength > this.sampleRate / 60) {
+        this.publishedRecordingLength = this.recordingLength;
+
+        this.port.postMessage({
+          message: 'UPDATE_RECORDING_LENGTH',
+          recordLength: this.recordLength,
+        });
+
+        console.log(`update: ${this.recordingLength}`);
+      }
+    }
 
     return true;
   }

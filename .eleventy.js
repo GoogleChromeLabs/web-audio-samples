@@ -24,6 +24,16 @@ const writeBuildInfoToFile = () => {
 module.exports = function(eleventyConfig) {
   writeBuildInfoToFile();
 
+
+  eleventyConfig.setBrowserSyncConfig({
+    middleware: function (req, res, next) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+        res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+        next();
+      }
+    });
+
   // See .eleventyignore for files to ignore.
   eleventyConfig.setUseGitIgnore(false);
   

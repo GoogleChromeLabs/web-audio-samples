@@ -8,8 +8,6 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 
 const context = new AudioContext();
 
-// Arbitrary buffer size, not specific for a reason
-const BUFFER_SIZE = 256;
 let recordingLength = 0;
 let isRecording = false;
 let isMonitoring = false;
@@ -42,24 +40,27 @@ async function init() {
   const micSourceNode = context.createMediaStreamSource(micStream);
 
   // Prepare buffer for recording.
-  const recordBuffer = context.createBuffer(
-      2,
-      // 10 seconds seems reasonable for demo purposes.
-      context.sampleRate * 10,
-      context.sampleRate,
-  );
-
   // Obtain samples passthrough function for visualizers
-  const passSampleToVisualizers = setupVisualizers();
-  const recordingNode =
-      await setupRecordingWorkletNode(recordBuffer, passSampleToVisualizers);
+  const [recordingNode, recordingBuffer, triggerUpdate] =
+      await setupRecordingWorkletNode();
+
+
+  recordingNode.port.onmessage = (event) => {
+    if (event.message === "UPDATE_RECORDING_LENGTH") {
+      recordingLength = event.data.recordingLength;
+      console.log(`update: ${recordingLength}`);
+    }
+  };
+
+  console.log("next call");
 
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
 
   setupMonitor(monitorNode);
-  setupRecording(recordBuffer);
+  handleRecordingButton(recordingBuffer, triggerUpdate);
+  setupVisualizers(recordingBuffer, micSourceNode.channelCount);
 
   micSourceNode
       .connect(inputGain)
@@ -71,70 +72,65 @@ async function init() {
 
 /**
  * Creates ScriptProcessor to record and track microphone audio.
- * @param {AudioBuffer} recordBuffer
+ * @param {AudioBuffer} recordingBuffer
  * @param {function} passSampleToVisualizers
  *    Function to pass current samples to visualizers.
  * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
  */
 async function setupRecordingWorkletNode(
-    recordBuffer,
+    maxLength,
     passSampleToVisualizers,
 ) {
-  const handleProcessEvent = (event) => {
-    console.log('received message');
-    console.log(event.data);
-
-    if (event.data.recordingLength) {
-      recordingLength = event.data.recordingLength;
-    }
-
-    if (event.data.currentSample) {
-      passSampleToVisualizers(event.data.currentSample);
-    }
-  };
-  // Must await bc its promise based right???
-
+  let recordingBuffer = new SharedArrayBuffer(context.sampleRate*10);
   await context.audioWorklet.addModule('recording-processor.js');
-
   const WorkletRecordingNode = new AudioWorkletNode(
       context,
       'recording-processor',
       {
         processorOptions: {
           sampleRate: context.sampleRate,
-          recordingBuffer: recordBuffer,
+          recordingBuffer: recordingBuffer,
         },
       },
   );
 
-  WorkletRecordingNode.port.onmessage = handleProcessEvent;
+  /**
+   * Message received
+   * - updated recording length
+   */
 
-  WorkletRecordingNode.port.postMessage('hi recording node!!! :)))');
+  function triggerUpdate() {
+    WorkletRecordingNode.port.postMessage({
+      setRecording: isRecording,
+    });
+  }
 
-  return WorkletRecordingNode;
+  recordingBuffer = new Float32Array(recordingBuffer);
+
+  console.log("setupRecording finished");
+
+  return [WorkletRecordingNode, recordingBuffer, triggerUpdate];
 }
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {AudioBuffer} recordBuffer Buffer of the current recording.
+ * @param {AudioBuffer} recordingBuffer Buffer of the current recording.
  */
-function setupRecording(recordBuffer) {
+function handleRecordingButton(recordingBuffer, triggerUpdate) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
   const downloadButton = document.querySelector('#download');
 
+
+  // TODO fix prepareClip
   async function prepareClip() {
     // Create recording file URL for playback and download.
-    const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
+    const wavUrl = createLinkFromAudioBuffer(recordingBuffer, true);
 
     player.src = wavUrl;
     downloadButton.src = wavUrl;
     downloadButton.download = 'recording.wav';
-
-    // Display current recording length.
-    document.querySelector('#data-len').innerHTML =
-        Math.round(recordingLength / recordBuffer.sampleRate * 100)/100;
   }
 
   recordButton.addEventListener('click', (e) => {
@@ -142,8 +138,20 @@ function setupRecording(recordBuffer) {
 
     // When recording is paused, process clip.
     if (!isRecording) {
-      prepareClip();
+      // Display current recording length.
+      document.querySelector('#data-len').innerHTML =
+          Math.round(recordingLength / context.sampleRate * 100)/100;
+
+      console.log(recordingBuffer.slice(recordingLength-128, recordingLength-1));
+
+      console.log(recordingLength);
+      console.log(recordingLength/context.sampleRate);
+      
+      // TODO fix prepare clip fn
+      // prepareClip();
     }
+
+    triggerUpdate();
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
   });
@@ -174,21 +182,12 @@ function setupMonitor(monitorNode) {
 /**
  * Sets up and handles calculations and rendering for all visualizers.
  * @return {function} Function to set current input samples for visualization.
+ * @param {SharedArrayBuffer} recordingBuffer Buffer holding recording channels
+ * @param {number} numberOfChannels Number of channels in the recording buffer
  */
-function setupVisualizers() {
+function setupVisualizers(recordingBuffer, numberOfChannels) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
-  let currentSamples;
-  let firstSamplesReceived = false;
-
-  const setCurrentSamples = (newSamples) => {
-    currentSamples = newSamples;
-
-    if (!firstSamplesReceived) {
-      draw();
-      firstSamplesReceived = true;
-    }
-  };
 
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
@@ -198,19 +197,17 @@ function setupVisualizers() {
   });
 
   function draw() {
-    if (visualizationEnabled && currentSamples) {
+    if (visualizationEnabled) {
       // Calculate current sample's average gain for visualizers to draw with.
       // We only need to calculate this value once per render frame.
       let currentSampleGain = 0;
+      const sampleLength = (128*numberOfChannels);
 
-      for (let i = 0; i < currentSamples.length; i++) {
-        for (let j = 0; j < currentSamples[i].length; j++) {
-          currentSampleGain += currentSamples[i][j];
-        }
+      for (let i = recordingLength-sampleLength; i < recordingLength; i++) {
+        currentSampleGain+=recordingBuffer[i];
       }
 
-      currentSampleGain /= (currentSamples.length *currentSamples[0].length);
-
+      currentSampleGain/=sampleLength;
       drawLiveGain(currentSampleGain);
 
       if (isRecording) {
@@ -218,13 +215,15 @@ function setupVisualizers() {
       }
     }
 
+    console.log(`found: ${recordingLength}`);
+
     // Request render frame regardless.
     // If visualizers are disabled, function can still wait for enable.
     requestAnimationFrame(draw);
   }
 
+  draw();
 
-  return setCurrentSamples;
 }
 
 /**
