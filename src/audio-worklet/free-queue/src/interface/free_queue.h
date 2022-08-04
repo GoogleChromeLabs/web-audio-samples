@@ -41,44 +41,59 @@ enum FreeQueueState {
  * Takes length of FreeQueue and channel Count as parameters.
  * Returns pointer to created FreeQueue.
  */
-EMSCRIPTEN_KEEPALIVE struct FreeQueue *CreateFreeQueue(size_t length, size_t channel_count);
+EMSCRIPTEN_KEEPALIVE 
+struct FreeQueue *CreateFreeQueue(size_t length, size_t channel_count);
 
 /**
  * Push new data to FreeQueue.
- * Takes pointer to FreeQueue, pointer to input data, and block length as parameters.
+ * Takes pointer to FreeQueue, pointer to input data,
+ * and block length as parameters.
  * Returns if operation was successful or not as boolean.
  */
-EMSCRIPTEN_KEEPALIVE bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t blockLength);
+EMSCRIPTEN_KEEPALIVE 
+bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t blockLength);
 
 /**
  * Pull data from FreeQueue.
- * Takes pointer to FreeQueue, pointer to output buffers, and block length as parameters.
+ * Takes pointer to FreeQueue, pointer to output buffers, 
+ * and block length as parameters.
  * Returns if operation was successful or not as boolean.
  */
-EMSCRIPTEN_KEEPALIVE bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t blockLength);
+EMSCRIPTEN_KEEPALIVE 
+bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t blockLength);
 
 /**
  * Destroy FreeQueue.
  * Takes pointer to FreeQueue as parameter.
  */
-EMSCRIPTEN_KEEPALIVE void DestroyFreeQueue(struct FreeQueue *queue);
+EMSCRIPTEN_KEEPALIVE 
+void DestroyFreeQueue(struct FreeQueue *queue);
 
 /**
  * Helper Function to get Pointers to data members of FreeQueue Struct.
  * Takes pointer to FreeQueue, and char* string refering to data member to query.
  */
-EMSCRIPTEN_KEEPALIVE void *GetFreeQueuePointers(struct FreeQueue *queue, char *data);
+EMSCRIPTEN_KEEPALIVE 
+void *GetFreeQueuePointers(struct FreeQueue *queue, char *data);
 
 #ifdef FREE_QUEUE_IMPL
 
-static uint32_t _getAvailableRead(struct FreeQueue *queue, uint32_t readIndex, uint32_t writeIndex) {
+static uint32_t _getAvailableRead(
+  struct FreeQueue *queue, 
+  uint32_t readIndex, 
+  uint32_t writeIndex
+) {  
   if (writeIndex >= readIndex)
     return writeIndex - readIndex;
   
   return writeIndex + queue->buffer_length - readIndex;
 }
 
-static uint32_t _getAvailableWrite(struct FreeQueue *queue, uint32_t readIndex, uint32_t writeIndex) {
+static uint32_t _getAvailableWrite(
+  struct FreeQueue *queue, 
+  uint32_t readIndex, 
+  uint32_t writeIndex
+) {
   if (writeIndex >= readIndex)
     return queue->buffer_length - writeIndex + readIndex - 1;
   
@@ -186,7 +201,9 @@ EMSCRIPTEN_KEEPALIVE void print_data(struct FreeQueue *queue) {
 
   printf("----------\n");
   printf("currentRead: %u  | currentWrite: %u\n", currentRead, currentWrite);
-  printf("availabeRead: %u  | availableWrite: %u\n", _getAvailableRead(queue, currentRead, currentWrite), _getAvailableWrite(queue, currentRead, currentWrite));
+  printf("availabeRead: %u  | availableWrite: %u\n", 
+      _getAvailableRead(queue, currentRead, currentWrite), 
+      _getAvailableWrite(queue, currentRead, currentWrite));
   printf("----------\n");
 }
 
@@ -195,12 +212,18 @@ EMSCRIPTEN_KEEPALIVE void print_data(struct FreeQueue *queue) {
  * This function prints out addresses and of FreeQueue data members.
  */
 EMSCRIPTEN_KEEPALIVE void free_queue_address(struct FreeQueue *queue) {
-  printf("buffer_length: %p   uint: %zu\n", &queue->buffer_length, (size_t)&queue->buffer_length);
-  printf("channel_count: %p   uint: %zu\n", &queue->channel_count, (size_t)&queue->channel_count);
-  printf("state       : %p   uint: %zu\n", &queue->state, (size_t)&queue->state);
-  printf("channel_data    : %p   uint: %zu\n", &queue->channel_data, (size_t)&queue->channel_data);
-  printf("state[0]    : %p   uint: %zu\n", &queue->state[0], (size_t)&queue->state[0]);
-  printf("state[1]    : %p   uint: %zu\n", &queue->state[1], (size_t)&queue->state[1]);
+  printf("buffer_length: %p   uint: %zu\n", 
+      &queue->buffer_length, (size_t)&queue->buffer_length);
+  printf("channel_count: %p   uint: %zu\n", 
+      &queue->channel_count, (size_t)&queue->channel_count);
+  printf("state       : %p   uint: %zu\n", 
+      &queue->state, (size_t)&queue->state);
+  printf("channel_data    : %p   uint: %zu\n", 
+      &queue->channel_data, (size_t)&queue->channel_data);
+  printf("state[0]    : %p   uint: %zu\n", 
+      &queue->state[0], (size_t)&queue->state[0]);
+  printf("state[1]    : %p   uint: %zu\n", 
+      &queue->state[1], (size_t)&queue->state[1]);
 }
 
 #endif
