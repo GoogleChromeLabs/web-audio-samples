@@ -50,6 +50,7 @@ module.exports = function(eleventyConfig) {
     'src/archive/**/*.js',
     'src/audio-worklet/**/*.html',
     'src/audio-worklet/**/*.js',
+    'src/audio-worklet/**/*.mjs',
     'src/demos/**/*.css',
     'src/demos/**/*.gif',
     'src/demos/**/*.html',
