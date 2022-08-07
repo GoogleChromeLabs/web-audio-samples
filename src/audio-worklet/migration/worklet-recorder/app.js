@@ -1,4 +1,9 @@
-// Copyright (c) 2021 The Chromium Authors. All rights reserved.
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable valid-jsdoc */
+/* eslint-disable quotes */
+/* eslint-disable max-len */
+
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -41,26 +46,18 @@ async function init() {
 
   // Prepare buffer for recording.
   // Obtain samples passthrough function for visualizers
+
+  const initVisualizers = setupVisualizers(micSourceNode.channelCount);
+
   const [recordingNode, recordingBuffer, triggerUpdate] =
-      await setupRecordingWorkletNode();
-
-
-  recordingNode.port.onmessage = (event) => {
-    if (event.message === "UPDATE_RECORDING_LENGTH") {
-      recordingLength = event.data.recordingLength;
-      console.log(`update: ${recordingLength}`);
-    }
-  };
-
-  console.log("next call");
+      await setupRecordingWorkletNode(10, initVisualizers);
 
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
 
   setupMonitor(monitorNode);
-  handleRecordingButton(recordingBuffer, triggerUpdate);
-  setupVisualizers(recordingBuffer, micSourceNode.channelCount);
+  handleRecordingButton(recordingBuffer, triggerUpdate, micSourceNode.channelCount);
 
   micSourceNode
       .connect(inputGain)
@@ -73,15 +70,15 @@ async function init() {
 /**
  * Creates ScriptProcessor to record and track microphone audio.
  * @param {AudioBuffer} recordingBuffer
- * @param {function} passSampleToVisualizers
+ * @param {function} initVisualizers
  *    Function to pass current samples to visualizers.
  * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
  */
 async function setupRecordingWorkletNode(
     maxLength,
-    passSampleToVisualizers,
+    initVisualizers,
 ) {
-  let recordingBuffer = new SharedArrayBuffer(context.sampleRate*10);
+  let recordingBuffer = new Float32Array(new SharedArrayBuffer(context.sampleRate * maxLength * 4));
   await context.audioWorklet.addModule('recording-processor.js');
   const WorkletRecordingNode = new AudioWorkletNode(
       context,
@@ -93,6 +90,18 @@ async function setupRecordingWorkletNode(
         },
       },
   );
+
+
+  WorkletRecordingNode.port.onmessage = (event) => {
+    if (event.data.message === "PROCESSOR_INIT") {
+      initVisualizers(recordingBuffer, event.data.liveSampleBuffer);
+      console.log('init called');
+    }
+    if (event.data.message === "UPDATE_RECORDING_LENGTH") {
+      recordingLength = event.data.recordingLength;
+    }
+  };
+
 
   /**
    * Message received
@@ -107,7 +116,6 @@ async function setupRecordingWorkletNode(
 
   recordingBuffer = new Float32Array(recordingBuffer);
 
-  console.log("setupRecording finished");
 
   return [WorkletRecordingNode, recordingBuffer, triggerUpdate];
 }
@@ -116,7 +124,7 @@ async function setupRecordingWorkletNode(
  * Set events and define callbacks for recording start/stop events.
  * @param {AudioBuffer} recordingBuffer Buffer of the current recording.
  */
-function handleRecordingButton(recordingBuffer, triggerUpdate) {
+function handleRecordingButton(recordingBuffer, triggerUpdate, channelCount) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
@@ -125,16 +133,12 @@ function handleRecordingButton(recordingBuffer, triggerUpdate) {
 
   // TODO fix prepareClip
   async function prepareClip() {
-    // Create recording file URL for playback and download.
-    const wavUrl = createLinkFromAudioBuffer(recordingBuffer, true);
-
-    player.src = wavUrl;
-    downloadButton.src = wavUrl;
-    downloadButton.download = 'recording.wav';
   }
 
   recordButton.addEventListener('click', (e) => {
     isRecording = !isRecording;
+
+    triggerUpdate();
 
     // When recording is paused, process clip.
     if (!isRecording) {
@@ -143,15 +147,17 @@ function handleRecordingButton(recordingBuffer, triggerUpdate) {
           Math.round(recordingLength / context.sampleRate * 100)/100;
 
       console.log(recordingBuffer.slice(recordingLength-128, recordingLength-1));
-
-      console.log(recordingLength);
+      console.log(recordingBuffer.slice(0, 128));
       console.log(recordingLength/context.sampleRate);
       
       // TODO fix prepare clip fn
-      // prepareClip();
-    }
+      // Create recording file URL for playback and download.
+      const wavUrl = createLinkFromAudioBuffer(recordingBuffer, {sampleRate: context.sampleRate, channels: channelCount, length: recordingLength}, true);
 
-    triggerUpdate();
+      player.src = wavUrl;
+      downloadButton.src = wavUrl;
+      downloadButton.download = 'recording.wav';
+    }
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
   });
@@ -185,26 +191,29 @@ function setupMonitor(monitorNode) {
  * @param {SharedArrayBuffer} recordingBuffer Buffer holding recording channels
  * @param {number} numberOfChannels Number of channels in the recording buffer
  */
-function setupVisualizers(recordingBuffer, numberOfChannels) {
+function setupVisualizers(numberOfChannels) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
 
-  const visToggle = document.querySelector('#viz-toggle');
-  visToggle.addEventListener('click', (e) => {
-    visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML =
-      visualizationEnabled ? 'Pause' : 'Play';
-  });
+  let recordingBuffer = [];
+  let liveBuffer = [];
+
+  const initVisualizer = (recordingBufferReference, liveBufferReference) => {
+    recordingBuffer = recordingBufferReference;
+    liveBuffer = liveBufferReference;
+    console.log(liveBuffer);
+    draw();
+  };
 
   function draw() {
     if (visualizationEnabled) {
       // Calculate current sample's average gain for visualizers to draw with.
       // We only need to calculate this value once per render frame.
       let currentSampleGain = 0;
-      const sampleLength = (128*numberOfChannels);
+      const sampleLength = (128);
 
-      for (let i = recordingLength-sampleLength; i < recordingLength; i++) {
-        currentSampleGain+=recordingBuffer[i];
+      for (let i = 0; i < sampleLength; i++) {
+        currentSampleGain+=liveBuffer[i];
       }
 
       currentSampleGain/=sampleLength;
@@ -215,15 +224,19 @@ function setupVisualizers(recordingBuffer, numberOfChannels) {
       }
     }
 
-    console.log(`found: ${recordingLength}`);
-
     // Request render frame regardless.
     // If visualizers are disabled, function can still wait for enable.
     requestAnimationFrame(draw);
   }
 
-  draw();
+  const visToggle = document.querySelector('#viz-toggle');
+  visToggle.addEventListener('click', (e) => {
+    visualizationEnabled = !visualizationEnabled;
+    visToggle.querySelector('span').innerHTML =
+      visualizationEnabled ? 'Pause' : 'Play';
+  });
 
+  return initVisualizer;
 }
 
 /**

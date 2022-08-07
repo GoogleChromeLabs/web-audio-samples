@@ -28,27 +28,25 @@ function _writeInt32ToArray(aNumber, targetArray, offset) {
 // produces the raw bits; no intepretation of the value is done.
 function _floatBits(f) {
   const buf = new ArrayBuffer(4);
-  (new Float32Array(buf))[0] = f;
-  const bits = (new Uint32Array(buf))[0];
+  new Float32Array(buf)[0] = f;
+  const bits = new Uint32Array(buf)[0];
   // Return as a signed integer.
   return bits | 0;
 }
 
-function _writeAudioBufferToArray(
-    audioBuffer, targetArray, offset, bitDepth) {
-  let index = 0; let channel = 0;
-  const length = audioBuffer.length;
-  const channels = audioBuffer.numberOfChannels;
-  let channelData; let sample;
+function _writeAudioArrayToArray(audioArray, targetArray, offset, bitDepth, options) {
+  let index = 0;
+  let channel = 0;
+  const length = options.length;
+  const channels = options.channels;
+  let sample;
 
   // Clamping samples onto the 16-bit resolution.
   for (index = 0; index < length; ++index) {
     for (channel = 0; channel < channels; ++channel) {
-      channelData = audioBuffer.getChannelData(channel);
-
       // Branches upon the requested bit depth
       if (bitDepth === 16) {
-        sample = channelData[index] * 32768.0;
+        sample = audioArray[index+channel] * 32768.0;
         if (sample < -32768) {
           sample = -32768;
         } else if (sample > 32767) {
@@ -58,11 +56,11 @@ function _writeAudioBufferToArray(
         offset += 2;
       } else if (bitDepth === 32) {
         // This assumes we're going to out 32-float, not 32-bit linear.
-        sample = _floatBits(channelData[index]);
+        sample = _floatBits(audioArray[index+channel]);
         _writeInt32ToArray(sample, targetArray, offset);
         offset += 4;
       } else {
-        console.log('Invalid bit depth for PCM encoding.');
+        console.log("Invalid bit depth for PCM encoding.");
         return;
       }
     }
@@ -70,20 +68,20 @@ function _writeAudioBufferToArray(
 }
 
 /**
-   * [createWaveFileBlobFromAudioBuffer description]
-   * @param  {AudioBuffer} audioBuffer
-   * @param  {Boolean} as32BitFloat
-   * @return {Blob} Resulting binary blob.
-   */
-function _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat) {
+ * [createWaveFileBlobFromAudioBuffer description]
+ * @param  {Float32Array} audioBuffer
+ * @param  {Boolean} as32BitFloat
+ * @return {Blob} Resulting binary blob.
+ */
+function _createWaveFileBlobFromAudioBuffer(audioBuffer, options, as32BitFloat) {
   // Encoding setup.
-  const frameLength = audioBuffer.length;
-  const numberOfChannels = audioBuffer.numberOfChannels;
-  const sampleRate = audioBuffer.sampleRate;
+  const frameLength = options.length;
+  const numberOfChannels = options.channels;
+  const sampleRate = options.sampleRate;
   const bitsPerSample = as32BitFloat ? 32 : 16;
   const bytesPerSample = bitsPerSample / 8;
-  const byteRate = sampleRate * numberOfChannels * bitsPerSample / 8;
-  const blockAlign = numberOfChannels * bitsPerSample / 8;
+  const byteRate = (sampleRate * numberOfChannels * bitsPerSample) / 8;
+  const blockAlign = (numberOfChannels * bitsPerSample) / 8;
   const wavDataByteLength = frameLength * numberOfChannels * bytesPerSample;
   const headerByteLength = 44;
   const totalLength = headerByteLength + wavDataByteLength;
@@ -92,10 +90,10 @@ function _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat) {
   const subChunk2Size = wavDataByteLength;
   const chunkSize = 4 + (8 + subChunk1Size) + (8 + subChunk2Size);
 
-  _writeStringToArray('RIFF', waveFileData, 0);
+  _writeStringToArray("RIFF", waveFileData, 0);
   _writeInt32ToArray(chunkSize, waveFileData, 4);
-  _writeStringToArray('WAVE', waveFileData, 8);
-  _writeStringToArray('fmt ', waveFileData, 12);
+  _writeStringToArray("WAVE", waveFileData, 8);
+  _writeStringToArray("fmt ", waveFileData, 12);
 
   // SubChunk1Size (4)
   _writeInt32ToArray(subChunk1Size, waveFileData, 16);
@@ -111,26 +109,26 @@ function _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat) {
   _writeInt16ToArray(blockAlign, waveFileData, 32);
   // BitsPerSample (4)
   _writeInt32ToArray(bitsPerSample, waveFileData, 34);
-  _writeStringToArray('data', waveFileData, 36);
+  _writeStringToArray("data", waveFileData, 36);
   // SubChunk2Size (4)
   _writeInt32ToArray(subChunk2Size, waveFileData, 40);
 
   // Write actual audio data starting at offset 44.
-  _writeAudioBufferToArray(audioBuffer, waveFileData, 44, bitsPerSample);
+  _writeAudioArrayToArray(audioBuffer, waveFileData, 44, bitsPerSample, options);
 
   return new Blob([waveFileData], {
-    type: 'audio/wave',
+    type: "audio/wave",
   });
 }
 
 /**
-   * [createLinkFromAudioBuffer description]
-   * @param  {[type]} audioBuffer   [description]
-   * @param  {Boolean} as32BitFloat
-* @return {String} file url
-   */
-function createLinkFromAudioBuffer(audioBuffer, as32BitFloat) {
-  const blob = _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat);
+ * [createLinkFromAudioBuffer description]
+ * @param  {[type]} audioBuffer   [description]
+ * @param  {Boolean} as32BitFloat
+ * @return {String} file url
+ */
+function createLinkFromAudioBuffer(audioBuffer, options, as32BitFloat) {
+  const blob = _createWaveFileBlobFromAudioBuffer(audioBuffer, options, as32BitFloat);
   return window.URL.createObjectURL(blob);
 }
 
