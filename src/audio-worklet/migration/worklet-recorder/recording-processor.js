@@ -36,8 +36,11 @@ class RecordingProcessor extends AudioWorkletProcessor {
   process(inputs, outputs, params) {
     for (let input = 0; input < 1; input++) {
       const numberOfChannels = inputs[input].length;
+      
       // Channel
       for (let channel = 0; channel < numberOfChannels; channel++) {
+        const channelOffset = this.recordingLength + channel;
+
         // Sample
         for (let sample = 0; sample < inputs[input][channel].length; sample++) {
           const currentSample = inputs[input][channel][sample];
@@ -49,10 +52,8 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
           // Copy data to recording buffer interleaved
           if (this.isRecording) {
-            const currentIndex =
-                this.recordingLength +
-                (sample * numberOfChannels) +
-                channel;
+            const currentIndex = channelOffset +
+                (sample * numberOfChannels);
 
             if (currentIndex < this._recordingBuffer.length) {
               this._recordingBuffer[currentIndex] =
