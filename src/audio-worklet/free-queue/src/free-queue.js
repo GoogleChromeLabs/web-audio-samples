@@ -81,16 +81,16 @@ class FreeQueue {
     const bufferLength = HEAPU32[queuePointers.bufferLengthPointer / 4];
     const channelCount = HEAPU32[queuePointers.channelCountPointer / 4];
     const states = HEAPU32.subarray(
-      HEAPU32[queuePointers.statePointer / 4] / 4,
-      HEAPU32[queuePointers.statePointer / 4] / 4 + 2
+        HEAPU32[queuePointers.statePointer / 4] / 4,
+        HEAPU32[queuePointers.statePointer / 4] / 4 + 2
     );
     const channelData = [];
     for (let i = 0; i < channelCount; i++) {
       channelData.push(
-        HEAPF32.subarray(
-          HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4,
-          HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4 +
-              bufferLength
+          HEAPF32.subarray(
+              HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4,
+              HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4 +
+                  bufferLength
         )
       );
     }
@@ -124,10 +124,10 @@ class FreeQueue {
         const blockB = this.channelData[channel].subarray(0, nextWrite);
         blockA.set(input[channel].subarray(0, blockA.length));
         blockB.set(
-          input[channel].subarray(
-            blockA.length,
-            blockLength - blockA.length + 1
-          )
+            input[channel].subarray(
+                blockA.length,
+                blockLength - blockA.length + 1
+            )
         );
       }
     } else {
@@ -188,13 +188,20 @@ class FreeQueue {
       availableWrite: this._getAvailableWrite(currentRead, currentWrite),
     });
   }
-
+  /**
+   * 
+   * @returns {number} number of floats available for read
+   */
   getAvailableBytes() {
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     return this._getAvailableRead(currentRead, currentWrite);
   }
-
+  /**
+   * 
+   * @param {number} size 
+   * @returns boolean. if frame of given size is available or not.
+   */
   isFrameAvailable(size) {
     return this.getAvailableBytes() >= size;
   }

@@ -51,7 +51,7 @@ struct FreeQueue *CreateFreeQueue(size_t length, size_t channel_count);
  * Returns if operation was successful or not as boolean.
  */
 EMSCRIPTEN_KEEPALIVE 
-bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t blockLength);
+bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t block_length);
 
 /**
  * Pull data from FreeQueue.
@@ -60,7 +60,7 @@ bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t blockLength);
  * Returns if operation was successful or not as boolean.
  */
 EMSCRIPTEN_KEEPALIVE 
-bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t blockLength);
+bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t block_length);
 
 /**
  * Destroy FreeQueue.
@@ -80,24 +80,24 @@ void *GetFreeQueuePointers(struct FreeQueue *queue, char *data);
 
 static uint32_t _getAvailableRead(
   struct FreeQueue *queue, 
-  uint32_t readIndex, 
-  uint32_t writeIndex
+  uint32_t read_index, 
+  uint32_t write_index
 ) {  
-  if (writeIndex >= readIndex)
-    return writeIndex - readIndex;
+  if (write_index >= read_index)
+    return write_index - read_index;
   
-  return writeIndex + queue->buffer_length - readIndex;
+  return write_index + queue->buffer_length - read_index;
 }
 
 static uint32_t _getAvailableWrite(
   struct FreeQueue *queue, 
-  uint32_t readIndex, 
-  uint32_t writeIndex
+  uint32_t read_index, 
+  uint32_t write_index
 ) {
-  if (writeIndex >= readIndex)
-    return queue->buffer_length - writeIndex + readIndex - 1;
+  if (write_index >= read_index)
+    return queue->buffer_length - write_index + read_index - 1;
   
-  return readIndex - writeIndex - 1;
+  return read_index - write_index - 1;
 }
 
 struct FreeQueue *CreateFreeQueue(size_t length, size_t channel_count) {
@@ -126,47 +126,47 @@ void DestroyFreeQueue(struct FreeQueue *queue) {
   free(queue);
 }
 
-bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t blockLength) {
-  uint32_t currentRead = atomic_load(queue->state + READ);
-  uint32_t currentWrite = atomic_load(queue->state + WRITE);
+bool FreeQueuePush(struct FreeQueue *queue, float **input, size_t block_length) {
+  uint32_t current_read = atomic_load(queue->state + READ);
+  uint32_t current_write = atomic_load(queue->state + WRITE);
 
-  if (_getAvailableWrite(queue, currentRead, currentWrite) < blockLength) {
+  if (_getAvailableWrite(queue, current_read, current_write) < block_length) {
     return false;
   }
 
-  for (uint32_t i = 0; i < blockLength; i++) {
+  for (uint32_t i = 0; i < block_length; i++) {
     for (uint32_t channel = 0; channel < queue->channel_count; channel++) {
-      queue->channel_data[channel][(currentWrite + i) % queue->buffer_length] = 
+      queue->channel_data[channel][(current_write + i) % queue->buffer_length] = 
           input[channel][i];
     }
   }
 
-  uint32_t nextWrite = (currentWrite + blockLength) % queue->buffer_length;
-  atomic_store(queue->state + WRITE, nextWrite);
+  uint32_t next_write = (current_write + block_length) % queue->buffer_length;
+  atomic_store(queue->state + WRITE, next_write);
   return true;
 }
 
-bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t blockLength) {
-  uint32_t currentRead = atomic_load(queue->state + READ);
-  uint32_t currentWrite = atomic_load(queue->state + WRITE);
+bool FreeQueuePull(struct FreeQueue *queue, float **output, size_t block_length) {
+  uint32_t current_read = atomic_load(queue->state + READ);
+  uint32_t current_write = atomic_load(queue->state + WRITE);
 
-  if (_getAvailableRead(queue, currentRead, currentWrite) < blockLength) {
+  if (_getAvailableRead(queue, current_read, current_write) < block_length) {
     return false;
   }
 
-  for (uint32_t i = 0; i < blockLength; i++) {
+  for (uint32_t i = 0; i < block_length; i++) {
     for (uint32_t channel = 0; channel < queue->channel_count; channel++) {
       output[channel][i] = 
-          queue->channel_data[channel][(currentRead + i) % queue->buffer_length];
+          queue->channel_data[channel][(current_read + i) % queue->buffer_length];
     }
   }
 
-  uint32_t nextRead = (currentRead + blockLength) % queue->buffer_length;
+  uint32_t nextRead = (current_read + block_length) % queue->buffer_length;
   atomic_store(queue->state + READ, nextRead);
   return true;
 }
 
-void *GetFreeQueuePointers(struct FreeQueue *queue, char *data) {
+void *GetFreeQueuePointerByMember(struct FreeQueue *queue, char *data) {
   if (strcmp(data, "buffer_length") == 0) {
     return &queue->buffer_length;
   }
@@ -187,7 +187,7 @@ void *GetFreeQueuePointers(struct FreeQueue *queue, char *data) {
  * Helper function for debugging.
  * This function prints current state and data of FreeQueue.
  */
-EMSCRIPTEN_KEEPALIVE void print_data(struct FreeQueue *queue) {
+EMSCRIPTEN_KEEPALIVE void PrintQueueInfo(struct FreeQueue *queue) {
   for (uint32_t channel = 0; channel < queue->channel_count; channel++) {
     printf("channel %d: ", channel);
     for (uint32_t i = 0; i < queue->buffer_length; i++) {
@@ -196,14 +196,14 @@ EMSCRIPTEN_KEEPALIVE void print_data(struct FreeQueue *queue) {
     printf("\n");
   }
 
-  uint32_t currentRead = atomic_load(queue->state + READ);
-  uint32_t currentWrite = atomic_load(queue->state + WRITE);
+  uint32_t current_read = atomic_load(queue->state + READ);
+  uint32_t current_write = atomic_load(queue->state + WRITE);
 
   printf("----------\n");
-  printf("currentRead: %u  | currentWrite: %u\n", currentRead, currentWrite);
-  printf("availabeRead: %u  | availableWrite: %u\n", 
-      _getAvailableRead(queue, currentRead, currentWrite), 
-      _getAvailableWrite(queue, currentRead, currentWrite));
+  printf("current_read: %u  | current_write: %u\n", current_read, current_write);
+  printf("available_read: %u  | available_write: %u\n", 
+      _getAvailableRead(queue, current_read, current_write), 
+      _getAvailableWrite(queue, current_read, current_write));
   printf("----------\n");
 }
 
@@ -211,7 +211,7 @@ EMSCRIPTEN_KEEPALIVE void print_data(struct FreeQueue *queue) {
  * Helper function for debugging.
  * This function prints out addresses and of FreeQueue data members.
  */
-EMSCRIPTEN_KEEPALIVE void free_queue_address(struct FreeQueue *queue) {
+EMSCRIPTEN_KEEPALIVE void PrintQueueAddresses(struct FreeQueue *queue) {
   printf("buffer_length: %p   uint: %zu\n", 
       &queue->buffer_length, (size_t)&queue->buffer_length);
   printf("channel_count: %p   uint: %zu\n", 
