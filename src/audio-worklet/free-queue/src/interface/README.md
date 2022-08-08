@@ -11,7 +11,7 @@ the buffer) and single consumer (a thread pulling data out of the buffer)
 ```C
 // Should be defined in a single source file before including free_queue.h .
 #define FREE_QUEUE_IMPL 
-// Include free_queue.h according to its locatoion in the project.
+// Include free_queue.h according to its location in the project.
 #include "free_queue.h" 
 ```
 
