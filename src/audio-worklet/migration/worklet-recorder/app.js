@@ -39,9 +39,8 @@ async function init() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  // Prepare buffer for recording.
-  // Obtain samples passthrough function for visualizers
-
+  // Visualizers will wait for the processor to
+  // initialize before beginning to render.
   const initVisualizers = setupVisualizers(micSourceNode.channelCount);
 
   const [recordingNode, recordingBuffer, triggerUpdate] =
@@ -94,7 +93,8 @@ async function init() {
 async function setupRecordingWorkletNode(
     maxLength,
 ) {
-  let recordingBuffer = new Float32Array(
+  // A float is 4 bytes, so our length must be 4x
+  const recordingBuffer = new Float32Array(
       new SharedArrayBuffer(context.sampleRate * maxLength * 4));
 
   await context.audioWorklet.addModule('recording-processor.js');
@@ -117,8 +117,6 @@ async function setupRecordingWorkletNode(
       setRecording: isRecording,
     });
   }
-
-  recordingBuffer = new Float32Array(recordingBuffer);
 
   return {
     recordingNode: WorkletRecordingNode,
@@ -220,7 +218,6 @@ function setupVisualizers(numberOfChannels) {
   // Wait for processor to initialize before beginning to render.
   const initVisualizer = (liveBufferReference) => {
     liveBuffer = liveBufferReference;
-    console.log(liveBuffer);
     draw();
   };
 
@@ -306,26 +303,26 @@ function setupRecordingGainVis() {
   canvasContext.fillStyle = 'red';
   canvasContext.fillRect(0, 0, 1, 1);
 
-  let currX = 0;
+  let currentX = 0;
 
   function draw(currentSampleGain) {
     const centerY = ((1 - currentSampleGain) * height) / 2;
     const gainHeight = currentSampleGain * height;
 
     // Clear current Y-axis.
-    canvasContext.clearRect(currX, 0, 1, height);
+    canvasContext.clearRect(currentX, 0, 1, height);
 
     // Draw recording bar 1 ahead.
     canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currX+1, 0, 1, height);
+    canvasContext.fillRect(currentX+1, 0, 1, height);
 
     // Draw current gain.
     canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currX, centerY, 1, gainHeight);
+    canvasContext.fillRect(currentX, centerY, 1, gainHeight);
 
-    if (currX < width - 2) {
+    if (currentX < width - 2) {
       // Keep drawing new waveforms rightwards until canvas is full.
-      currX++;
+      currentX++;
     } else {
       // If the waveform fills the canvas,
       // move it by one pixel to the left to make room.

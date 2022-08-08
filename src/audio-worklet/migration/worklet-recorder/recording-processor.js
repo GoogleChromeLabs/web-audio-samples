@@ -80,6 +80,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
       }
     }
 
+    // Let the rest of the app know the limit was reached.
     if (this.recordingLength >= this._recordingBuffer.length) {
       this.isRecording = false;
       this.port.postMessage({
