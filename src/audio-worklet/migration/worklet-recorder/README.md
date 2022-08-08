@@ -1,3 +1,3 @@
-# ScriptProcessorNode Demo
+# Audio Worklet Recording Demo
 
-This demonstrates a basic recording app using ScriptProcessorNode.
+This demonstrates a basic recording app using Audio Worklet.
