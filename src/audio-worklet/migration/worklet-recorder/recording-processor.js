@@ -1,26 +1,20 @@
-/* eslint-disable no-trailing-spaces */
-/* eslint-disable valid-jsdoc */
-/* eslint-disable quotes */
-/* eslint-disable max-len */
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 class RecordingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
 
-    this.port.onmessage = (event) => {
-      if (
-        event.data.setRecording === false ||
-        event.data.setRecording === true
-      ) {
-        this.isRecording = event.data.setRecording;
-      }
-    };
-
     this._liveSampleBuffer = new Float32Array(new SharedArrayBuffer(512));
 
-    if (options && options.processorOptions.recordingBuffer) {
-      this._recordingBuffer = (options.processorOptions.recordingBuffer);
-      this.sampleRate = options.processorOptions.sampleRate;
+    if (options) {
+      if (options.recordingBuffer) {
+        this._recordingBuffer = (options.processorOptions.recordingBuffer);
+      }
+      if (options.sampleRate) {
+        this.sampleRate = options.processorOptions.sampleRate;
+      }
     }
 
     this.recordingLength = 0;
@@ -31,12 +25,18 @@ class RecordingProcessor extends AudioWorkletProcessor {
       message: 'PROCESSOR_INIT',
       liveSampleBuffer: this._liveSampleBuffer,
     });
+
+    this.port.onmessage = (event) => {
+      if (event.data.message === 'UPDATE_RECORDING_STATE') {
+        this.isRecording = event.data.setRecording;
+      }
+    };
   }
 
   process(inputs, outputs, params) {
     for (let input = 0; input < 1; input++) {
       const numberOfChannels = inputs[input].length;
-      
+
       // Channel
       for (let channel = 0; channel < numberOfChannels; channel++) {
         const channelOffset = this.recordingLength + channel;
@@ -64,12 +64,13 @@ class RecordingProcessor extends AudioWorkletProcessor {
       }
     }
 
-    // TODO think about this bound
-    if (this.isRecording && this.recordingLength < this._recordingBuffer.length) {
+    if (this.isRecording &&
+        this.recordingLength < this._recordingBuffer.length-128) {
       this.recordingLength+=128;
 
-      // Only post a recordingLength update every 1/4 second
-      if (this.recordingLength - this.publishedRecordingLength > this.sampleRate / 60) {
+      // Only post a recordingLength update every 60 seconds
+      if (this.recordingLength - this.publishedRecordingLength >
+          this.sampleRate / 60) {
         this.publishedRecordingLength = this.recordingLength;
 
         this.port.postMessage({
@@ -80,7 +81,10 @@ class RecordingProcessor extends AudioWorkletProcessor {
     }
 
     if (this.recordingLength >= this._recordingBuffer.length) {
-      console.log("length reached");
+      this.isRecording = false;
+      this.port.postMessage({
+        message: 'MAX_RECORDING_LENGTH_REACHED',
+      });
     }
 
     return true;
