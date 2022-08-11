@@ -50,16 +50,16 @@ async function init() {
 
   // We can pass this port across the app
   // and let components handle their relevant messages
-
   const visualizerCallback = setupVisualizers(recordingNode);
   const recordingCallback = handleRecording(recordingNode.port, properties);
   setupMonitor(monitorNode);
 
   recordingNode.port.onmessage = (event) => {
-    if (event.data.message === "UPDATE_VISUALIZERS")
+    if (event.data.message === 'UPDATE_VISUALIZERS') {
       visualizerCallback(event);
-    else
+    } else {
       recordingCallback(event);
+    }
   };
 
   micSourceNode
@@ -94,10 +94,14 @@ async function setupRecordingWorkletNode(properties) {
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {MessagePort} processorPort.port
- *     Recording node to watch for a max recording length event from.
+ * @param {MessagePort} processorPort
+ *     Processor port to send recording state events to
  * @param {object} properties Microphone channel count,
  *     for accurate recording length calculations.
+ * @param {number} properties.numberOfChannels
+ * @param {number} properties.sampleRate
+ * @param {number} properties.maxFrameCount
+ * @return {function} Callback for recording-related events.
  */
 function handleRecording(processorPort, properties) {
   const recordButton = document.querySelector('#record');
@@ -113,21 +117,15 @@ function handleRecording(processorPort, properties) {
 
   // If the max length is reached, we can no longer record.
   const recordingEventCallback = async (event) => {
-
-    console.log("hi from rec");
-
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-      console.log("maxlen");
       isRecording = false;
       recordText.innerHTML = 'Start';
       recordButton.setAttribute.disabled = true;
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
-      console.log(`update len ${event.data.recordingLength}`);
       recordingLength = event.data.recordingLength;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-      console.log("share buffer")
       for (let i = 0; i < properties.numberOfChannels; i++) {
         recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
       }
@@ -194,6 +192,7 @@ function setupMonitor(monitorNode) {
  * Sets up and handles calculations and rendering for all visualizers.
  * @param {MessagePort} processorPort
  *     Message Port to watch for visualizer events from.
+ * @return {function} Callback for visualizer events from the processor.
  */
 function setupVisualizers(processorPort) {
   const drawLiveGain = setupLiveGainVis();
