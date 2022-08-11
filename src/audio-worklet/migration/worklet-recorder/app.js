@@ -8,9 +8,7 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 
 const context = new AudioContext();
 
-let recordingLength = 0;
 let isRecording = false;
-let isMonitoring = false;
 let visualizationEnabled = true;
 
 // Wait for user interaction to initialize audio, as per specification.
@@ -39,33 +37,30 @@ async function init() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  // Visualizers will wait for the processor to
-  // initialize before beginning to render.
-  const initVisualizers = setupVisualizers(micSourceNode.channelCount);
+  const properties = {
+    numberOfChannels: micSourceNode.channelCount,
+    sampleRate: context.sampleRate,
+    maxFrameCount: context.sampleRate*10,
+  };
 
-  const [recordingNode, recordingBuffer, triggerUpdate] =
-      await setupRecordingWorkletNode(10);
-
-  // Interpret messages from the processor.
-  recordingNode.port.addEventListener('message', (event) => {
-    if (event.data.message === 'PROCESSOR_INIT') {
-      initVisualizers(recordingBuffer, event.data.liveSampleBuffer);
-    }
-    if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
-      recordingLength = event.data.recordingLength;
-    }
-  });
-
+  const recordingNode = await setupRecordingWorkletNode(properties);
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
 
+  // We can pass this port across the app
+  // and let components handle their relevant messages
+
+  const visualizerCallback = setupVisualizers(recordingNode);
+  const recordingCallback = handleRecording(recordingNode.port, properties);
   setupMonitor(monitorNode);
-  handleRecordingButton(
-      recordingNode,
-      recordingBuffer,
-      triggerUpdate,
-      micSourceNode.channelCount);
+
+  recordingNode.port.onmessage = (event) => {
+    if (event.data.message === "UPDATE_VISUALIZERS")
+      visualizerCallback(event);
+    else
+      recordingCallback(event);
+  };
 
   micSourceNode
       .connect(inputGain)
@@ -76,86 +71,77 @@ async function init() {
 }
 
 /**
- * @typedef {Object} RecordingComponents
- * @property {AudioWorkletNode} recordingNode The recording worklet node.
- * @property {Float32Array} recordingBuffer
- *    Shared buffer containing recorded samples.
- * @property {function} triggerUpdate
- *    Function to call to trigger recording state updates in the processor.
- */
-
-/**
  * Creates ScriptProcessor to record and track microphone audio.
- * @param {number} maxLength Maximum recording length, in seconds.
- * @return {object} Object containing return components.
- * @return {RecordingComponents} Recording node related components for the app.
+ * @param {object} properties
+ * @param {number} properties.numberOfChannels
+ * @param {number} properties.sampleRate
+ * @param {number} properties.maxFrameCount
+ * @return {AudioWorkletNode} Recording node related components for the app.
  */
-async function setupRecordingWorkletNode(
-    maxLength,
-) {
-  // A float is 4 bytes, so our length must be 4x
-  const recordingBuffer = new Float32Array(
-      new SharedArrayBuffer(context.sampleRate * maxLength * 4));
-
+async function setupRecordingWorkletNode(properties) {
   await context.audioWorklet.addModule('recording-processor.js');
 
   const WorkletRecordingNode = new AudioWorkletNode(
       context,
       'recording-processor',
       {
-        processorOptions: {
-          sampleRate: context.sampleRate,
-          recordingBuffer: recordingBuffer,
-        },
+        processorOptions: properties,
       },
   );
 
-  // Allow other parts of the app to trigger updates in the recording state.
-  function triggerUpdate() {
-    WorkletRecordingNode.port.postMessage({
-      message: 'UPDATE_RECORDING_STATE',
-      setRecording: isRecording,
-    });
-  }
-
-  return {
-    recordingNode: WorkletRecordingNode,
-    recordingBuffer,
-    triggerUpdate,
-  };
+  return WorkletRecordingNode;
 }
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {AudioWorkletNode} recordingNode
- *    Recording node to watch for a max recording length event from.
- * @param {AudioBuffer} recordingBuffer Buffer of the current recording.
- * @param {function} triggerUpdate Function to inform processor of
- *     recording state update.
- * @param {number} channelCount Microphone channel count,
+ * @param {MessagePort} processorPort.port
+ *     Recording node to watch for a max recording length event from.
+ * @param {object} properties Microphone channel count,
  *     for accurate recording length calculations.
  */
-function handleRecordingButton(
-    recordingNode, recordingBuffer, triggerUpdate, channelCount) {
+function handleRecording(processorPort, properties) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
   const downloadButton = document.querySelector('#download');
+  const recordingBuffer = context.createBuffer(
+      properties.numberOfChannels,
+      properties.maxFrameCount,
+      context.sampleRate);
+
+  let recordingLength = 0;
 
   // If the max length is reached, we can no longer record.
-  recordingNode.port.addEventListener('message', (event) => {
+  const recordingEventCallback = async (event) => {
+
+    console.log("hi from rec");
+
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
+      console.log("maxlen");
       isRecording = false;
       recordText.innerHTML = 'Start';
       recordButton.setAttribute.disabled = true;
     }
-  });
+    if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
+      console.log(`update len ${event.data.recordingLength}`);
+      recordingLength = event.data.recordingLength;
+    }
+    if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+      console.log("share buffer")
+      for (let i = 0; i < properties.numberOfChannels; i++) {
+        recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
+      }
+    }
+  };
 
   recordButton.addEventListener('click', (e) => {
     isRecording = !isRecording;
 
-    // Inform the AudioProcessor that the recording state changed.
-    triggerUpdate();
+    // Inform processor that recording was paused.
+    processorPort.postMessage({
+      message: 'UPDATE_RECORDING_STATE',
+      setRecording: isRecording,
+    });
 
     // When recording is paused, process clip.
     if (!isRecording) {
@@ -166,12 +152,8 @@ function handleRecordingButton(
       // Create recording file URL for playback and download.
       const wavUrl = createLinkFromAudioBuffer(
           recordingBuffer,
-          {
-            sampleRate: context.sampleRate,
-            numberOfChannels: channelCount,
-            recordingLength: recordingLength,
-            as32BitFloat: true,
-          });
+          recordingLength,
+          true);
 
       player.src = wavUrl;
       downloadButton.src = wavUrl;
@@ -180,6 +162,8 @@ function handleRecordingButton(
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
   });
+
+  return recordingEventCallback;
 }
 
 /**
@@ -189,6 +173,8 @@ function handleRecordingButton(
 function setupMonitor(monitorNode) {
   // Leave audio volume at zero by default.
   monitorNode.gain.value = 0;
+
+  let isMonitoring = false;
 
   const monitorButton = document.querySelector('#monitor');
   const monitorText = monitorButton.querySelector('span');
@@ -206,37 +192,34 @@ function setupMonitor(monitorNode) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @return {function} Function to set current input samples for visualization.
- * @param {number} numberOfChannels Number of channels in the recording buffer
+ * @param {MessagePort} processorPort
+ *     Message Port to watch for visualizer events from.
  */
-function setupVisualizers(numberOfChannels) {
+function setupVisualizers(processorPort) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
 
-  let liveBuffer = [];
+  let initialized = false;
+  let gain = 0;
 
-  // Wait for processor to initialize before beginning to render.
-  const initVisualizer = (liveBufferReference) => {
-    liveBuffer = liveBufferReference;
-    draw();
+  // Wait for processor to start sending messages before beginning to render.
+  const visualizerEventCallback = async (event) => {
+    if (event.data.message === 'UPDATE_VISUALIZERS') {
+      gain = event.data.gain;
+
+      if (!initialized) {
+        initialized = true;
+        draw();
+      }
+    }
   };
 
   function draw() {
     if (visualizationEnabled) {
-      // Calculate current sample's average gain for visualizers to draw with.
-      // We only need to calculate this value once per render frame.
-      let currentSampleGain = 0;
-      const sampleLength = (128);
-
-      for (let i = 0; i < sampleLength; i++) {
-        currentSampleGain+=liveBuffer[i];
-      }
-
-      currentSampleGain/=sampleLength;
-      drawLiveGain(currentSampleGain);
+      drawLiveGain(gain);
 
       if (isRecording) {
-        drawRecordingGain(currentSampleGain);
+        drawRecordingGain(gain);
       }
     }
 
@@ -252,7 +235,7 @@ function setupVisualizers(numberOfChannels) {
       visualizationEnabled ? 'Pause' : 'Play';
   });
 
-  return initVisualizer;
+  return visualizerEventCallback;
 }
 
 /**

@@ -6,86 +6,105 @@ class RecordingProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
 
-    this._liveSampleBuffer = new Float32Array(new SharedArrayBuffer(512));
+    this.sampleRate = 0;
+    this.maxRecordingFrames = 0;
+    this.numberOfChannels = 0;
 
-    if (options) {
-      if (options.recordingBuffer) {
-        this._recordingBuffer = (options.processorOptions.recordingBuffer);
-      }
-      if (options.sampleRate) {
-        this.sampleRate = options.processorOptions.sampleRate;
-      }
+    if (options && options.processorOptions) {
+      const {
+        numberOfChannels,
+        sampleRate,
+        maxFrameCount,
+      } = options.processorOptions;
+
+      this.sampleRate = sampleRate;
+      this.maxRecordingFrames = maxFrameCount;
+      this.numberOfChannels = numberOfChannels;
     }
 
-    this.recordingLength = 0;
-    this.publishedRecordingLength = 0;
+    this._recordingBuffer = new Array(this.numberOfChannels)
+        .fill(new Float32Array(this.maxRecordingFrames));
+
+    this.recordedFrames = 0;
     this.isRecording = false;
 
-    this.port.postMessage({
-      message: 'PROCESSOR_INIT',
-      liveSampleBuffer: this._liveSampleBuffer,
-    });
+    // We will use a timer to gate our messages; this one will publish at 60hz
+    this.framesSinceLastPublish = 0;
+    this.publishInterval = this.sampleRate / 60;
+
+    this.sampleSum = 0;
 
     this.port.onmessage = (event) => {
       if (event.data.message === 'UPDATE_RECORDING_STATE') {
         this.isRecording = event.data.setRecording;
+
+        if (this.isRecording === false) {
+          this.port.postMessage({
+            message: 'SHARE_RECORDING_BUFFER',
+            buffer: this._recordingBuffer,
+          });
+        }
       }
     };
   }
 
   process(inputs, outputs, params) {
+
     for (let input = 0; input < 1; input++) {
-      const numberOfChannels = inputs[input].length;
-
-      // Channel
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const channelOffset = this.recordingLength + channel;
-
-        // Sample
+      for (let channel = 0; channel < this.numberOfChannels; channel++) {
         for (let sample = 0; sample < inputs[input][channel].length; sample++) {
           const currentSample = inputs[input][channel][sample];
 
-          this._liveSampleBuffer[sample] = currentSample;
-
-          // Handle recording
-          outputs[input][channel][sample] = currentSample;
-
           // Copy data to recording buffer interleaved
           if (this.isRecording) {
-            const currentIndex = channelOffset +
-                (sample * numberOfChannels);
-
-            if (currentIndex < this._recordingBuffer.length) {
-              this._recordingBuffer[currentIndex] =
-                  currentSample;
-            }
+            this._recordingBuffer[channel][sample+this.recordedFrames] =
+                currentSample;
           }
+
+          // Pass data directly to output, unchanged
+          outputs[input][channel][sample] = currentSample;
+
+          // Sum values for visualizer
+          this.sampleSum += currentSample;
         }
       }
     }
 
-    if (this.isRecording &&
-        this.recordingLength < this._recordingBuffer.length-128) {
-      this.recordingLength+=128;
+    const shouldPublish = this.framesSinceLastPublish >= this.publishInterval;
 
-      // Only post a recordingLength update every 60 seconds
-      if (this.recordingLength - this.publishedRecordingLength >
-          this.sampleRate / 60) {
-        this.publishedRecordingLength = this.recordingLength;
+    // Validate that recording hasn't reached its limit.
+    if (this.isRecording) {
+      if (this.recordedFrames + 128 < this.maxRecordingFrames) {
+        this.recordedFrames += 128;
 
+        // Post a recording recording length update on the clock's schedule
+        if (shouldPublish) {
+          this.port.postMessage({
+            message: 'UPDATE_RECORDING_LENGTH',
+            recordingLength: this.recordedFrames,
+          });
+        }
+      } else {
+        // Let the rest of the app know the limit was reached.
+        this.isRecording = false;
         this.port.postMessage({
-          message: 'UPDATE_RECORDING_LENGTH',
-          recordingLength: this.recordingLength,
+          message: 'MAX_RECORDING_LENGTH_REACHED',
         });
+
+        return false;
       }
     }
 
-    // Let the rest of the app know the limit was reached.
-    if (this.recordingLength >= this._recordingBuffer.length) {
-      this.isRecording = false;
+    // Handle message clock; if we should publish, post message and reset clock.
+    if (shouldPublish) {
       this.port.postMessage({
-        message: 'MAX_RECORDING_LENGTH_REACHED',
+        message: 'UPDATE_VISUALIZERS',
+        gain: this.sampleSum / this.framesSinceLastPublish,
       });
+
+      this.framesSinceLastPublish = 0;
+    } else {
+      this.framesSinceLastPublish += 128;
     }
 
     return true;
