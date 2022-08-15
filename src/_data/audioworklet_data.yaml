@@ -48,6 +48,9 @@
     - title: ScriptProcessorNode Recorder
       description: A simple audio recording app using ScriptProcessorNode 
       href: migration/spn-recorder/
+    - title: AudioWorklet Recorder
+      description: A simple audio recording app using AudioWorklet
+      href: migration/worklet-recorder/
 
 - title: Resources
   entries:
