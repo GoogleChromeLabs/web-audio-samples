@@ -102,6 +102,7 @@ class RecordingProcessor extends AudioWorkletProcessor {
       });
 
       this.framesSinceLastPublish = 0;
+      this.sampleSum = 0;
     } else {
       this.framesSinceLastPublish += 128;
     }

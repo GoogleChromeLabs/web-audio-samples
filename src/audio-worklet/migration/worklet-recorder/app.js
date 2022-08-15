@@ -108,10 +108,6 @@ function handleRecording(processorPort, properties) {
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
   const downloadButton = document.querySelector('#download');
-  const recordingBuffer = context.createBuffer(
-      properties.numberOfChannels,
-      properties.maxFrameCount,
-      context.sampleRate);
 
   let recordingLength = 0;
 
@@ -124,11 +120,27 @@ function handleRecording(processorPort, properties) {
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
+
+      document.querySelector('#data-len').innerHTML =
+          Math.round(recordingLength / context.sampleRate * 100)/100;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
+      const recordingBuffer = context.createBuffer(
+          properties.numberOfChannels,
+          recordingLength,
+          context.sampleRate);
+
       for (let i = 0; i < properties.numberOfChannels; i++) {
         recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
       }
+
+      const wavUrl = createLinkFromAudioBuffer(
+          recordingBuffer,
+          true);
+
+      player.src = wavUrl;
+      downloadButton.src = wavUrl;
+      downloadButton.download = 'recording.wav';
     }
   };
 
@@ -140,23 +152,6 @@ function handleRecording(processorPort, properties) {
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-
-    // When recording is paused, process clip.
-    if (!isRecording) {
-      // Display current recording length.
-      document.querySelector('#data-len').innerHTML =
-          Math.round(recordingLength / context.sampleRate * 100)/100;
-
-      // Create recording file URL for playback and download.
-      const wavUrl = createLinkFromAudioBuffer(
-          recordingBuffer,
-          recordingLength,
-          true);
-
-      player.src = wavUrl;
-      downloadButton.src = wavUrl;
-      downloadButton.download = 'recording.wav';
-    }
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
   });

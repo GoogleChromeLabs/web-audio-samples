@@ -35,8 +35,9 @@ function _floatBits(f) {
 }
 
 function _writeAudioBufferToArray(
-    audioBuffer, targetArray, offset, bitDepth, length) {
+    audioBuffer, targetArray, offset, bitDepth) {
   let index = 0; let channel = 0;
+  const length = audioBuffer.length;
   const channels = audioBuffer.numberOfChannels;
   let channelData; let sample;
 
@@ -71,14 +72,12 @@ function _writeAudioBufferToArray(
 /**
    * [createWaveFileBlobFromAudioBuffer description]
    * @param  {AudioBuffer} audioBuffer
-   * @param {number} frameLength
    * @param  {Boolean} as32BitFloat
    * @return {Blob} Resulting binary blob.
    */
-function _createWaveFileBlobFromAudioBuffer(
-    audioBuffer, frameLength, as32BitFloat
-) {
+function _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat) {
   // Encoding setup.
+  const frameLength = audioBuffer.length;
   const numberOfChannels = audioBuffer.numberOfChannels;
   const sampleRate = audioBuffer.sampleRate;
   const bitsPerSample = as32BitFloat ? 32 : 16;
@@ -127,13 +126,11 @@ function _createWaveFileBlobFromAudioBuffer(
 /**
    * [createLinkFromAudioBuffer description]
    * @param  {[type]} audioBuffer   [description]
-   * @param {number} frameLength
    * @param  {Boolean} as32BitFloat
 * @return {String} file url
    */
-function createLinkFromAudioBuffer(audioBuffer, frameLength, as32BitFloat) {
-  const blob = _createWaveFileBlobFromAudioBuffer(
-      audioBuffer, frameLength, as32BitFloat);
+function createLinkFromAudioBuffer(audioBuffer, as32BitFloat) {
+  const blob = _createWaveFileBlobFromAudioBuffer(audioBuffer, as32BitFloat);
   return window.URL.createObjectURL(blob);
 }
 
