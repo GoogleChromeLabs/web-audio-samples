@@ -123,12 +123,7 @@ class FreeQueue {
         const blockA = this.channelData[channel].subarray(currentWrite);
         const blockB = this.channelData[channel].subarray(0, nextWrite);
         blockA.set(input[channel].subarray(0, blockA.length));
-        blockB.set(
-            input[channel].subarray(
-                blockA.length,
-                blockLength - blockA.length + 1
-            )
-        );
+        blockB.set(input[channel].subarray(blockA.length));
       }
     } else {
       for (let channel = 0; channel < this.channelCount; channel++) {
@@ -169,7 +164,7 @@ class FreeQueue {
     } else {
       for (let channel = 0; channel < this.channelCount; ++channel) {
         output[channel].set(
-          this.channelData[channel].subarray(currentRead, nextRead)
+            this.channelData[channel].subarray(currentRead, nextRead)
         );
       }
       if (nextRead === this.bufferLength) {
@@ -179,20 +174,23 @@ class FreeQueue {
     Atomics.store(this.states, this.States.READ, nextRead);
     return true;
   }
-
-  print() {
+  /**
+   * Helper function for debugging.
+   * Prints currently available read and write.
+   */
+  printAvailableReadAndWrite() {
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     console.log(this, {
-      availableRead: this._getAvailableRead(currentRead, currentWrite),
-      availableWrite: this._getAvailableWrite(currentRead, currentWrite),
+        availableRead: this._getAvailableRead(currentRead, currentWrite),
+        availableWrite: this._getAvailableWrite(currentRead, currentWrite),
     });
   }
   /**
    * 
-   * @returns {number} number of floats available for read
+   * @returns {number} number of samples available for read
    */
-  getAvailableBytes() {
+  getAvailableSamples() {
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     return this._getAvailableRead(currentRead, currentWrite);
@@ -203,7 +201,7 @@ class FreeQueue {
    * @returns boolean. if frame of given size is available or not.
    */
   isFrameAvailable(size) {
-    return this.getAvailableBytes() >= size;
+    return this.getAvailableSamples() >= size;
   }
 
   /**
@@ -215,7 +213,7 @@ class FreeQueue {
 
   _getAvailableWrite(readIndex, writeIndex) {
     if (writeIndex >= readIndex)
-      return this.bufferLength - writeIndex + readIndex - 1;
+        return this.bufferLength - writeIndex + readIndex - 1;
     return readIndex - writeIndex - 1;
   }
 
@@ -233,4 +231,4 @@ class FreeQueue {
   }
 }
 
-export {FreeQueue};
+export default FreeQueue;
