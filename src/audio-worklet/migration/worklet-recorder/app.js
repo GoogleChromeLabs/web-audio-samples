@@ -37,21 +37,21 @@ async function init() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  const properties = {
+  const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
     maxFrameCount: context.sampleRate*10,
   };
 
-  const recordingNode = await setupRecordingWorkletNode(properties);
+  const recordingNode = await setupRecordingWorkletNode(recordingProperties);
   const monitorNode = context.createGain();
-  const inputGain = context.createGain();
-  const medianEnd = context.createGain();
 
   // We can pass this port across the app
   // and let components handle their relevant messages
   const visualizerCallback = setupVisualizers(recordingNode);
-  const recordingCallback = handleRecording(recordingNode.port, properties);
+  const recordingCallback = handleRecording(
+      recordingNode.port, recordingProperties);
+
   setupMonitor(monitorNode);
 
   recordingNode.port.onmessage = (event) => {
@@ -63,8 +63,6 @@ async function init() {
   };
 
   micSourceNode
-      .connect(inputGain)
-      .connect(medianEnd)
       .connect(recordingNode)
       .connect(monitorNode)
       .connect(context.destination);
@@ -72,20 +70,20 @@ async function init() {
 
 /**
  * Creates ScriptProcessor to record and track microphone audio.
- * @param {object} properties
+ * @param {object} recordingProperties
  * @param {number} properties.numberOfChannels
  * @param {number} properties.sampleRate
  * @param {number} properties.maxFrameCount
  * @return {AudioWorkletNode} Recording node related components for the app.
  */
-async function setupRecordingWorkletNode(properties) {
+async function setupRecordingWorkletNode(recordingProperties) {
   await context.audioWorklet.addModule('recording-processor.js');
 
   const WorkletRecordingNode = new AudioWorkletNode(
       context,
       'recording-processor',
       {
-        processorOptions: properties,
+        processorOptions: recordingProperties,
       },
   );
 
@@ -96,14 +94,14 @@ async function setupRecordingWorkletNode(properties) {
  * Set events and define callbacks for recording start/stop events.
  * @param {MessagePort} processorPort
  *     Processor port to send recording state events to
- * @param {object} properties Microphone channel count,
+ * @param {object} recordingProperties Microphone channel count,
  *     for accurate recording length calculations.
  * @param {number} properties.numberOfChannels
  * @param {number} properties.sampleRate
  * @param {number} properties.maxFrameCount
  * @return {function} Callback for recording-related events.
  */
-function handleRecording(processorPort, properties) {
+function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
@@ -126,11 +124,11 @@ function handleRecording(processorPort, properties) {
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
       const recordingBuffer = context.createBuffer(
-          properties.numberOfChannels,
+          recordingProperties.numberOfChannels,
           recordingLength,
           context.sampleRate);
 
-      for (let i = 0; i < properties.numberOfChannels; i++) {
+      for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
         recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
       }
 
@@ -185,11 +183,9 @@ function setupMonitor(monitorNode) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {MessagePort} processorPort
- *     Message Port to watch for visualizer events from.
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers(processorPort) {
+function setupVisualizers() {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
 
