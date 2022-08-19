@@ -43,6 +43,12 @@
       description: For high performance large-scale audio applications
       href: design-pattern/shared-buffer/
 
+- title: FreeQueue
+  entries:
+    - title: Simple Passthrough
+      description: Basic example of FreeQueue and a worker thread.
+      href: free-queue/examples/simple-passthrough
+
 - title: Migration from ScriptProcessorNode
   entries: 
     - title: ScriptProcessorNode Recorder
