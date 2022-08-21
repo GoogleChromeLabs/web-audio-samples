@@ -51,6 +51,8 @@ module.exports = function(eleventyConfig) {
     'src/audio-worklet/**/*.html',
     'src/audio-worklet/**/*.js',
     'src/audio-worklet/**/*.mjs',
+    'src/audio-worklet/**/*.data',
+    'src/audio-worklet/**/*.wasm',
     'src/demos/**/*.css',
     'src/demos/**/*.gif',
     'src/demos/**/*.html',

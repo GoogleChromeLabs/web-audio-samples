@@ -70,7 +70,7 @@ class FreeQueue {
    *   bufferLengthPointer: number;
    *   channelCountPointer: number;
    *   statePointer: number;
-   *   channelDataPointer: number;
+   *   channelsPointer: number;
    * }
    * @returns FreeQueue
    */
@@ -88,8 +88,8 @@ class FreeQueue {
     for (let i = 0; i < channelCount; i++) {
       channelData.push(
           HEAPF32.subarray(
-              HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4,
-              HEAPU32[HEAPU32[queuePointers.channelDataPointer / 4] / 4 + i] / 4 +
+              HEAPU32[HEAPU32[queuePointers.channelsPointer / 4] / 4 + i] / 4,
+              HEAPU32[HEAPU32[queuePointers.channelsPointer / 4] / 4 + i] / 4 +
                   bufferLength
         )
       );
