@@ -1,9 +1,6 @@
 import FreeQueue from "../../src/free-queue.js";
 import { FRAME_SIZE } from "./constants.js";
 
-let queue;
-let atomicState;
-
 /**
  * Worker message event handler.
  * This will initialize worker with FreeQueue instance and set loop for audio
