@@ -32,7 +32,9 @@ const createAudioContext = async () => {
         }
       });
   oscillator.connect(processorNode).connect(audioContext.destination);
+  // Initially suspend audioContext so it can be toggled on and off later.
   audioContext.suspend();
+  // Start the oscillator
   oscillator.start();
   console.log('AudioContext created.');
   return audioContext;
@@ -44,24 +46,31 @@ const createAudioContext = async () => {
  * It toggles audio state between playing and paused.
  */
 const toggleButtonClickHandler = async () => {
+  // If AudioContext doesn't exist, try creating one. 
   if (!audioContext) {
     try {
       audioContext = await createAudioContext();
     } catch(error) {
+      // If AudioContext creation fails, disable toggle button and
+      // log error to console
       toggleButton.disabled = true;
       console.error(error);
       return;
     }
   }
-
+  // If the audio is currently not playing, then on button click resume 
+  // playing audio, otherwise if the audio is playing then on button click
+  // suspend playing.
   if (!isPlaying) {
     audioContext.resume();
     isPlaying = true;
     toggleButton.style.backgroundColor = 'red';
+    toggleButton.innerHTML = 'STOP';
   } else {
     audioContext.suspend();
     isPlaying = false;
     toggleButton.style.backgroundColor = 'green';
+    toggleButton.innerHTML = 'START';
   }
 };
 
