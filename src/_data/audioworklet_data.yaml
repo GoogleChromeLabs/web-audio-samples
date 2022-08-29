@@ -47,7 +47,11 @@
   entries:
     - title: Simple Passthrough
       description: Basic example of FreeQueue and a worker thread.
-      href: free-queue/examples/simple-passthrough
+        FreeQueue is a lock-free ring buffer library for high-performance 
+        audio processing designed to be used on top of the Web Audio API.
+        This example demonstrates how this library can be used as a channel
+        between a worker thread and AudioWorklet to send audio data.
+      href: free-queue/examples/simple-passthrough/
 
 - title: Migration from ScriptProcessorNode
   entries: 
