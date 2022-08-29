@@ -12,8 +12,7 @@
     "_site/**/*.wasmmodule.js",
     "_site/archive/",
     "_site/**/build/*",
-    "_site/**/coi-serviceworker.js",
-    "_site/**/build/*.js"
+    "_site/**/coi-serviceworker.js"
   ],
   "parserOptions": {
     "ecmaVersion": 12,
