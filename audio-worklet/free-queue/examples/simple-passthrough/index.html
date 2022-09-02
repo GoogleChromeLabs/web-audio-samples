@@ -2,17 +2,17 @@
 <html lang="en">
   <head>
     <title>
-      Volume Meter | Web Audio Samples
+      Simple Passthrough Example | Web Audio Samples
     </title>
     <meta charset="UTF-8"/>
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta http-equiv="x-ua-compatible" content="ie=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
-    <link rel="stylesheet" href="../../../styles.css"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="../../../favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../../../favicon/favicon-16x16.png">
+    <link rel="stylesheet" href="../../../../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../favicon/favicon-16x16.png">
   </head>
   <body>
 
@@ -25,7 +25,7 @@
 <div class="flex pb-3">
   
     <div class="mr-2">
-      <a href="../../..">
+      <a href="../../../..">
         Home
       </a>
     </div>
@@ -34,7 +34,7 @@
     </span>
   
     <div class="mr-2">
-      <a href="../..">
+      <a href="../../..">
         AudioWorklet
       </a>
     </div>
@@ -43,7 +43,7 @@
     </span>
   
   <div>
-    Volume Meter
+    Simple Passthrough Example
   </div>
 </div>
 
@@ -55,26 +55,28 @@
         <div class="w-full px-6 md:max-w-4xl md:mx-auto">
           
 
-<h1>Volume Meter</h1>
-<p>Measures microphone volume with AudioWorkletProcessor.</p>
+<script src="./coi-serviceworker.js"></script>
+
+<h1>Simple Passthrough Example</h1>
+<p>This example demonstrates how to take advantage of Worker thread and 
+  FreeQueue in conjunction with AudioWorklet. FreeQueue is being used here to 
+  exchange data between AudioWorklet and Worker thread.
+</p>
 <p>See
-  <a href="https://developer.chrome.com/blog/audio-worklet/" target="_blank">
-  Chrome Developers Article: Enter Audio Worklet</a> for more information.</p>
+  <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/"
+    target="_blank">Chrome Developers Article: Audio Worklet Design Pattern</a>
+  for more details.</p>
 
 <div class="demo-box">
-  <div class="p-3 mb-2 bg-slate-100 w-1/3 rounded text-sm">
-    <input id="volume-meter" class="w-full bg-white"
-      type="range" min="0" max="100" value="0" step="1" disabled>
-  </div>
-  <button id="button-start" disabled>START</button>
+  <button id="toggle" disabled>START</button>
   <div class="text-sm text-right">
-  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/audio-worklet/basic/volume-meter/" target="_blank">
+  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/audio-worklet/free-queue/examples/simple-passthrough/" target="_blank">
     source code
   </a>
 </div>
 </div>
 
-<script src="./main.js" type="module"></script>
+<script src="./main.js" type="module" defer></script>
 
 
         </div>
