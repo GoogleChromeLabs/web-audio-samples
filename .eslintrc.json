@@ -10,7 +10,9 @@
   "ignorePatterns": [
     "_site/**/*.wasm.js",
     "_site/**/*.wasmmodule.js",
-    "_site/archive/"
+    "_site/archive/",
+    "_site/**/build/*",
+    "_site/**/coi-serviceworker.js"
   ],
   "parserOptions": {
     "ecmaVersion": 12,

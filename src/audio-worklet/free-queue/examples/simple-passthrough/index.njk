@@ -1,0 +1,32 @@
+---
+eleventyNavigation:
+  key: simple-passthrough
+  title: Simple Passthrough Example
+  parent: audio-worklet
+to_root_dir: ../../../../
+---
+
+{% extends to_root_dir + "_includes/base.njk" %}
+
+{% block content %}
+
+<script src="./coi-serviceworker.js"></script>
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>This example demonstrates how to take advantage of Worker thread and 
+  FreeQueue in conjunction with AudioWorklet. FreeQueue is being used here to 
+  exchange data between AudioWorklet and Worker thread.
+</p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/"
+    target="_blank">Chrome Developers Article: Audio Worklet Design Pattern</a>
+  for more details.</p>
+
+<div class="demo-box">
+  <button id="toggle" disabled>START</button>
+  {% include to_root_dir + "_includes/example-source-code.njk" %}
+</div>
+
+<script src="./main.js" type="module" defer></script>
+
+{% endblock %}
