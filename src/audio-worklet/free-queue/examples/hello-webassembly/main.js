@@ -1,14 +1,15 @@
 import FreeQueue from "../../src/free-queue.js";
-import ExampleModule from "./build/example.js";
+import exampleModule from "./build/example.js";
 
 const toogleButton = document.getElementById("toogle");
 toogleButton.disabled = false;
 
 let audioContext;
-let playing = false;
+let isPlaying = false;
 
 /**
  * Function to create and initialize AudioContext.
+ * @param {FreeQueue} queue FreeQueue instance to pass to AudioWorklet.
  * @returns {Promise<AudioContext>}
  */
 const createAudioContext = async (queue) => {
@@ -34,7 +35,7 @@ const createAudioContext = async (queue) => {
 
 (async () => {
   // Load WebAssembly Module
-  const Module = await ExampleModule({
+  const Module = await exampleModule({
     locateFile: (path, prefix) => {
       if (path.endsWith(".data")) return "./build/" + path;
       return prefix + path;
@@ -45,12 +46,20 @@ const createAudioContext = async (queue) => {
   const queuePointer = Module._getFreeQueue();
   
   // Get addresses of data members of queue.
-  let GetFreeQueuePointerByMember = Module.cwrap("GetFreeQueuePointerByMember", "number", ["number", "string"]);
+  let getFreeQueuePointerByMember = Module.cwrap(
+      "GetFreeQueuePointerByMember", 
+      "number", 
+      ["number", "string"]
+  );
 
-  let bufferLengthPointer = GetFreeQueuePointerByMember(queuePointer, "buffer_length");
-  let channelCountPointer = GetFreeQueuePointerByMember(queuePointer, "channel_count");
-  let statePointer = GetFreeQueuePointerByMember(queuePointer, "state");
-  let channelsPointer = GetFreeQueuePointerByMember(queuePointer, "channel_data");
+  let bufferLengthPointer = 
+      getFreeQueuePointerByMember(queuePointer, "buffer_length");
+  let channelCountPointer = 
+      getFreeQueuePointerByMember(queuePointer, "channel_count");
+  let statePointer = 
+      getFreeQueuePointerByMember(queuePointer, "state");
+  let channelsPointer = 
+      getFreeQueuePointerByMember(queuePointer, "channel_data");
 
   const pointers = {
     memory: Module.wasmMemory,
@@ -61,7 +70,7 @@ const createAudioContext = async (queue) => {
   }
 
   // Create queue from pointers.
-  const queue = FreeQueue.fromPointers(pointers)
+  const queue = FreeQueue.fromPointers(pointers);
   /**
    * Function to run, when toogle button is clicked.
    * It creates AudioContext, first time button is clicked.
@@ -77,12 +86,16 @@ const createAudioContext = async (queue) => {
       }
     }
 
-    if (!playing) {
+    if (!isPlaying) {
       audioContext.resume();
-      playing = true;
+      isPlaying = true;
+      toogleButton.style.backgroundColor = 'red';
+      toogleButton.innerHTML = 'STOP';
     } else {
       audioContext.suspend();
-      playing = false;
+      isPlaying = false;
+      toogleButton.style.backgroundColor = 'green';
+      toogleButton.innerHTML = 'START';
     }
   }
 

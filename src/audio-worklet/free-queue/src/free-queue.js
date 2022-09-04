@@ -14,19 +14,7 @@
  * In a typical pattern is that a worklet pulls the data from the queue and a
  * worker renders audio data to fill in the queue.
  */
-
 class FreeQueue {
-
-  /**
-   * An index set for shared state fields. Requires atomic access.
-   * @enum {number}
-   */
-  States = {
-    /** @type {number} A shared index for reading from the queue. (consumer) */
-    READ: 0,
-    /** @type {number} A shared index for writing into the queue. (producer) */
-    WRITE: 1,  
-  }
   
   /**
    * FreeQueue constructor. A shared buffer created by this constuctor
@@ -38,7 +26,7 @@ class FreeQueue {
   constructor(size, channelCount = 1) {
     this.states = new Uint32Array(
       new SharedArrayBuffer(
-        Object.keys(this.States).length * Uint32Array.BYTES_PER_ELEMENT
+        Object.keys(FreeQueue.States).length * Uint32Array.BYTES_PER_ELEMENT
       )
     );
     /**
@@ -63,6 +51,7 @@ class FreeQueue {
   /**
    * Helper function for creating FreeQueue from pointers.
    * @param {FreeQueuePointers} queuePointers 
+   * 
    * An object containing various pointers required to create FreeQueue
    *
    * interface FreeQueuePointers {
@@ -72,7 +61,7 @@ class FreeQueue {
    *   statePointer: number;
    *   channelsPointer: number;
    * }
-   * @returns FreeQueue
+   * @return {FreeQueue} A FreeQueue instance created from pointers.
    */
   static fromPointers(queuePointers) {
     const queue = new FreeQueue(0, 0);
@@ -111,8 +100,8 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   push(input, blockLength) {
-    const currentRead = Atomics.load(this.states, this.States.READ);
-    const currentWrite = Atomics.load(this.states, this.States.WRITE);
+    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
+    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
     if (this._getAvailableWrite(currentRead, currentWrite) < blockLength) {
       return false;
     }
@@ -133,7 +122,7 @@ class FreeQueue {
       }
       if (nextWrite === this.bufferLength) nextWrite = 0;
     }
-    Atomics.store(this.states, this.States.WRITE, nextWrite);
+    Atomics.store(this.states, FreeQueue.States.WRITE, nextWrite);
     return true;
   }
 
@@ -147,8 +136,8 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   pull(output, blockLength) {
-    const currentRead = Atomics.load(this.states, this.States.READ);
-    const currentWrite = Atomics.load(this.states, this.States.WRITE);
+    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
+    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
     if (this._getAvailableRead(currentRead, currentWrite) < blockLength) {
       return false;
     }
@@ -171,7 +160,7 @@ class FreeQueue {
         nextRead = 0;
       }
     }
-    Atomics.store(this.states, this.States.READ, nextRead);
+    Atomics.store(this.states, FreeQueue.States.READ, nextRead);
     return true;
   }
   /**
@@ -179,8 +168,8 @@ class FreeQueue {
    * Prints currently available read and write.
    */
   printAvailableReadAndWrite() {
-    const currentRead = Atomics.load(this.states, this.States.READ);
-    const currentWrite = Atomics.load(this.states, this.States.WRITE);
+    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
+    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
     console.log(this, {
         availableRead: this._getAvailableRead(currentRead, currentWrite),
         availableWrite: this._getAvailableWrite(currentRead, currentWrite),
@@ -191,14 +180,14 @@ class FreeQueue {
    * @returns {number} number of samples available for read
    */
   getAvailableSamples() {
-    const currentRead = Atomics.load(this.states, this.States.READ);
-    const currentWrite = Atomics.load(this.states, this.States.WRITE);
+    const currentRead = Atomics.load(this.states, FreeQueue.States.READ);
+    const currentWrite = Atomics.load(this.states, FreeQueue.States.WRITE);
     return this._getAvailableRead(currentRead, currentWrite);
   }
   /**
    * 
    * @param {number} size 
-   * @returns boolean. if frame of given size is available or not.
+   * @returns {boolean}. if frame of given size is available or not.
    */
   isFrameAvailable(size) {
     return this.getAvailableSamples() >= size;
@@ -226,9 +215,20 @@ class FreeQueue {
     for (let channel = 0; channel < this.channelCount; channel++) {
       this.channelData[channel].fill(0);
     }
-    Atomics.store(this.states, this.States.READ, 0);
-    Atomics.store(this.states, this.States.WRITE, 0);
+    Atomics.store(this.states, FreeQueue.States.READ, 0);
+    Atomics.store(this.states, FreeQueue.States.WRITE, 0);
   }
+}
+
+/**
+ * An index set for shared state fields. Requires atomic access.
+ * @enum {number}
+ */
+FreeQueue.States = {
+  /** @type {number} A shared index for reading from the queue. (consumer) */
+  READ: 0,
+  /** @type {number} A shared index for writing into the queue. (producer) */
+  WRITE: 1,  
 }
 
 export default FreeQueue;

@@ -52,6 +52,11 @@
         This example demonstrates how this library can be used as a channel
         between a worker thread and AudioWorklet to send audio data.
       href: free-queue/examples/simple-passthrough/
+    - title: Hello WebAssembly
+      description: Example of using FreeQueue with WebAssembly.
+        This example uses a mp3 decoding library to play load and play song
+        from WebAssembly.
+      href: free-queue/examples/hello-webassembly/
 
 - title: Migration from ScriptProcessorNode
   entries: 
