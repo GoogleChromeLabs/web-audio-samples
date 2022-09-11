@@ -1,9 +1,9 @@
 #include <emscripten.h>
 
-/**
- * Include FreeQueue interface library and dr_mp3 library (For loading and
- * decodin mp3 file).
-*/
+ 
+// Include FreeQueue interface library and dr_mp3 library (For loading and
+// decodin mp3 file).
+
 #define FREE_QUEUE_IMPL
 #include "../../src/interface/free_queue.h"
 #define DR_MP3_IMPLEMENTATION
@@ -12,7 +12,7 @@
 struct FreeQueue *queue;
 drmp3 mp3;
 
-// Function we can call from JavaScript to get FreeQueue address in memory.
+// Function to get FreeQueue address in memory from JavaScript.
 EMSCRIPTEN_KEEPALIVE void *getFreeQueue()
 {
     return queue;
@@ -23,8 +23,9 @@ drmp3_uint64 framesRead = 0;
 
 #define FRAME_SIZE 4096
 
+// buffer to store interleaved PCM frames from mp3 
 float buffer[2*FRAME_SIZE];    // 2 channels so 2 * FRAME_SIZE
-// input buffer
+// input buffer to store decoded mp3 channel data.
 float* input[] = {
     (float[FRAME_SIZE]){},
     (float[FRAME_SIZE]){}
@@ -35,6 +36,7 @@ float* input[] = {
 */
 EMSCRIPTEN_KEEPALIVE bool audio_loop()
 {
+    // Here if the last FRAME read was pushed we read more frames from 
     if (lastFramePushed) {
         framesRead = drmp3_read_pcm_frames_f32(&mp3, DRMP3_COUNTOF(buffer)/mp3.channels, buffer);
         // Seperating PCM frames into 2 channels
@@ -44,6 +46,7 @@ EMSCRIPTEN_KEEPALIVE bool audio_loop()
         }
         
     }
+    // Push FRAME to queue.
     lastFramePushed = FreeQueuePush(queue, input, framesRead);
     return lastFramePushed;
 }
