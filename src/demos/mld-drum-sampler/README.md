@@ -5,10 +5,10 @@ International Mother Language Day 2021 from Chrome Developers.
 
 # Web Audio API 드럼머신 만들기
 
-[라이브 데모](https://googlechromelabs.github.io/web-audio-samples/drum-machine/)
+[라이브 데모](https://googlechromelabs.github.io/web-audio-samples/demos/mld-drum-sampler/)
 
 데모의 정상적인 사용을 위해서는 샘플 파일들이 필요하며, 튜토리얼 비디오에 사용된 오디오 샘플들은
-[이 곳](https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/drum-machine/samples)
+[이 곳](https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/demos/mld-drum-sampler)
 에서 다운로드 할 수 있습니다.
 
 로컬 웹서버에서의 실험을 위해서는 이 리포지터리를 `git clone`으로 내려받아 사용하는 것을 추천합니다.
