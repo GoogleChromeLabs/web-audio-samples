@@ -5,6 +5,7 @@ import { FRAME_SIZE } from "./constants.js";
  * Worker message event handler.
  * This will initialize worker with FreeQueue instance and set loop for audio
  * processing. 
+ * @param {MessageEvent} msg
  */
 self.onmessage = (msg) => {
   if (msg.data.type === "init") {

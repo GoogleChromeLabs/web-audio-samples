@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef EMSCRIPTEN_KEEPALIVE
+#define EMSCRIPTEN_KEEPALIVE __attribute__((used))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,7 +78,7 @@ void DestroyFreeQueue(struct FreeQueue *queue);
  * Takes pointer to FreeQueue, and char* string refering to data member to query.
  */
 EMSCRIPTEN_KEEPALIVE 
-void *GetFreeQueuePointers(struct FreeQueue *queue, char *data);
+void *GetFreeQueuePointerByMember(struct FreeQueue *queue, char *data);
 
 #ifdef FREE_QUEUE_IMPL
 

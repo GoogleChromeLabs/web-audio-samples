@@ -1,0 +1,36 @@
+---
+eleventyNavigation:
+  key: hello-webassembly
+  title: Using FreeQueue with WebAssembly
+  parent: audio-worklet
+to_root_dir: ../../../../
+---
+
+{% extends to_root_dir + "_includes/base.njk" %}
+
+{% block content %}
+
+{# Inject the service worker to workaround COOP/COEP restriction on 
+  SharedArrayBuffer. See https://github.com/gzuidhof/coi-serviceworker 
+  for more details. #}
+<script src="./coi-serviceworker.js"></script>
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>This example demonstrates how to use FreeQueue C interface, and how it can
+  be used with WebAssembly. In this example, a music is loaded inside 
+  C (WebAssembly) program, which then pushes samples to the queue. AudioWorklet
+  pulls out samples from the queue and renders it.
+</p>
+<p>See
+  <a href="https://developer.chrome.com/blog/audio-worklet-design-pattern/"
+    target="_blank">Chrome Developers Article: Audio Worklet Design Pattern</a>
+  for more details.</p>
+
+<div class="demo-box">
+  <button id="toogle" disabled>START</button>
+  {% include to_root_dir + "_includes/example-source-code.njk" %}
+</div>
+
+<script src="./main.js" type="module" defer></script>
+
+{% endblock %}
