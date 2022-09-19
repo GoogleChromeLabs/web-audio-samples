@@ -12,11 +12,8 @@ const RENDER_QUANTUM = 128
 class SinkProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
-    // Initialize the Queue.
-    // We have to set prototype of queue, because queue object is passed
-    // using structured cloning algorithm.
-    // See - 
-    // https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+    // Initializes a FreeQueue object with the option passed from the
+    // AudioWorkletNode constructor on the main thread.
     this.queue = options.processorOptions.queue;
     Object.setPrototypeOf(this.queue, FreeQueue.prototype);
   }
@@ -24,15 +21,11 @@ class SinkProcessor extends AudioWorkletProcessor {
   process(inputs, outputs) {
     const output = outputs[0];
 
-    // Pull out render quantum frame from the queue into output.
-    // If failed, print "failed" to console.
     const didPull = this.queue.pull(output, RENDER_QUANTUM);
     didPull ? null : console.log("failed");
 
     return true;
   }
-
 }
-
 
 registerProcessor('sink-processor', SinkProcessor);
