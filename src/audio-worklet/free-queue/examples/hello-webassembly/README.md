@@ -11,6 +11,7 @@ Run `build.sh` for Linux and `build.cmd` for windows to build.
 Refer to build scripts for building instructions.
 
 ### Emscripten Flags
+
 ```
     // To tell emscriptenm to build for worker environment
     
@@ -31,5 +32,4 @@ Refer to build scripts for building instructions.
     
     // Preload mp3 file
     --preload-file moonlight.mp3
-
 ```
