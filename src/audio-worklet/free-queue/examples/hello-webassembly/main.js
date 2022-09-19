@@ -1,7 +1,7 @@
-import FreeQueue from "../../src/free-queue.js";
-import exampleModule from "./build/example.js";
+import FreeQueue from '../../src/free-queue.js';
+import exampleModule from './build/example.js';
 
-const toogleButton = document.getElementById("toogle");
+const toogleButton = document.getElementById('toogle');
 toogleButton.disabled = false;
 
 let audioContext;
@@ -14,52 +14,52 @@ let isPlaying = false;
  */
 const createAudioContext = async (queue) => {
   const audioContext = new AudioContext({
-      sampleRate: 44100
+    sampleRate: 44100
   });
-  await audioContext.audioWorklet.addModule("sink-processor.js");
+  await audioContext.audioWorklet.addModule('sink-processor.js');
   const oscillator = new OscillatorNode(audioContext);
+
   // Create AudioWorkletNode, while passing queue in parameter options
   const processorNode =
       new AudioWorkletNode(audioContext, 'sink-processor', {
-          processorOptions: {
-              queue,
-          },
-          outputChannelCount: [2],
+        processorOptions: {
+          queue,
+        },
+        outputChannelCount: [2],
       });
   oscillator.connect(processorNode).connect(audioContext.destination);
   audioContext.suspend();
   oscillator.start();
-  console.log("AudioContext created.");
+  console.log('AudioContext created.');
   return audioContext;
 }
 
 (async () => {
-  // Load WebAssembly Module
   const Module = await exampleModule({
     locateFile: (path, prefix) => {
-      if (path.endsWith(".data")) return "./build/" + path;
+      if (path.endsWith('.data')) return './build/' + path;
       return prefix + path;
     }
   });
 
-  // Get FreeQueue address from WebAssembly Module.
+  // Get the pointer to the FreeQueue object from the WebAssembly module.
   const queuePointer = Module._getFreeQueue();
   
-  // Get addresses of data members of queue.
+  // The getter function for the FreeQueue pointers
   let getFreeQueuePointerByMember = Module.cwrap(
-      "GetFreeQueuePointerByMember", 
-      "number", 
-      ["number", "string"]
+      'GetFreeQueuePointerByMember', 
+      'number', 
+      ['number', 'string']
   );
 
   let bufferLengthPointer = 
-      getFreeQueuePointerByMember(queuePointer, "buffer_length");
+      getFreeQueuePointerByMember(queuePointer, 'buffer_length');
   let channelCountPointer = 
-      getFreeQueuePointerByMember(queuePointer, "channel_count");
+      getFreeQueuePointerByMember(queuePointer, 'channel_count');
   let statePointer = 
-      getFreeQueuePointerByMember(queuePointer, "state");
+      getFreeQueuePointerByMember(queuePointer, 'state');
   let channelsPointer = 
-      getFreeQueuePointerByMember(queuePointer, "channel_data");
+      getFreeQueuePointerByMember(queuePointer, 'channel_data');
 
   const pointers = {
     memory: Module.wasmMemory,
@@ -67,9 +67,9 @@ const createAudioContext = async (queue) => {
     channelCountPointer,
     statePointer,
     channelsPointer
-  }
+  };
 
-  // Create queue from pointers.
+  // Creates a JS 'queue' object from pointers.
   const queue = FreeQueue.fromPointers(pointers);
   /**
    * Function to run, when toogle button is clicked.
@@ -100,5 +100,4 @@ const createAudioContext = async (queue) => {
   }
 
   toogleButton.onclick = toogleButtonClickHandler;
-
 })();

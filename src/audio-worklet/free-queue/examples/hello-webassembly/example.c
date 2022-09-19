@@ -8,7 +8,9 @@
 #define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
 
+// A pointer to FreeQueue instance.
 struct FreeQueue *queue;
+// A drmp3 struct to load and store audio file.
 drmp3 mp3;
 
 // Function to get FreeQueue address in memory from JavaScript.
@@ -33,9 +35,8 @@ float* input[] = {
   (float[FRAME_SIZE]){}
 };
 
-/**
- * Reads frames from a MP3 file and pushes them to a queue.
-*/
+
+// Reads frames from a MP3 file and pushes them to a queue.
 EMSCRIPTEN_KEEPALIVE void audio_loop() {
   if (isLastFramePushed) {
     framesRead = drmp3_read_pcm_frames_f32(
@@ -51,7 +52,6 @@ EMSCRIPTEN_KEEPALIVE void audio_loop() {
   }
   isLastFramePushed = FreeQueuePush(queue, input, framesRead);
 }
-
 
 int main(int argc, char** argv) {
   queue = CreateFreeQueue(81920, 2);

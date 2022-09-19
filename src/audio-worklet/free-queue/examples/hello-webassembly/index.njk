@@ -10,6 +10,9 @@ to_root_dir: ../../../../
 
 {% block content %}
 
+{# Inject the service worker to workaround COOP/COEP restriction on 
+  SharedArrayBuffer. See https://github.com/gzuidhof/coi-serviceworker 
+  for more details. #}
 <script src="./coi-serviceworker.js"></script>
 
 <h1>{{ eleventyNavigation.title }}</h1>
