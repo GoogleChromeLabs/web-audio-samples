@@ -48,7 +48,7 @@ async function init() {
 
   // We can pass this port across the app
   // and let components handle their relevant messages
-  const visualizerCallback = setupVisualizers(recordingNode);
+  const visualizerCallback = setupVisualizers(monitorNode);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
 
@@ -183,9 +183,10 @@ function setupMonitor(monitorNode) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
+ * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers() {
+function setupVisualizers(monitorNode) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
 
@@ -195,7 +196,7 @@ function setupVisualizers() {
   // Wait for processor to start sending messages before beginning to render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
-      gain = event.data.gain;
+      gain = event.data.gain * monitorNode.gain.value;
 
       if (!initialized) {
         initialized = true;
