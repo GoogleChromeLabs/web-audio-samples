@@ -1,4 +1,5 @@
 import FreeQueue from "./lib/free-queue.js";
+// import GPUProcessor from "./lib/gpu-processor.js"; // TODO
 import { FRAME_SIZE } from "./constants.js";
 
 /**
@@ -23,7 +24,10 @@ self.onmessage = (msg) => {
       if (didPull) {
         // If pulling data out was successfull, process it and push it to
         // outputQueue
-        const output = input.map(sample => 0.1 * sample);
+
+        // const output = input.map(sample => 0.1 * sample);
+        const output = GPUProcessor.processs(input); // TODO
+        
         outputQueue.push([output], FRAME_SIZE);
       } 
 
