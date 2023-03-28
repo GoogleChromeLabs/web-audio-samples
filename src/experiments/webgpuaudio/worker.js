@@ -1,5 +1,5 @@
 import FreeQueue from "./lib/free-queue.js";
-import GPUProcessor from "./gpu-processor.js";
+// import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
 
 /**
@@ -13,12 +13,13 @@ self.onmessage = (msg) => {
     Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
     Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
-    const gpuProcessor = new GPUProcessor();
+    // const gpuProcessor = new GPUProcessor();
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
     // loop for processing data.
     while (Atomics.wait(atomicState, 0, 0) === 'ok') {
+      console.log('Im inside the while');
       
       // pull data out from inputQueue.
       const didPull = inputQueue.pull([input], FRAME_SIZE);
@@ -26,8 +27,8 @@ self.onmessage = (msg) => {
         // If pulling data out was successfull, process it and push it to
         // outputQueue
 
-        // const output = input.map(sample => 0.1 * sample);
-        const output = gpuProcessor.process(input);
+        const output = input.map(sample => 0.1 * sample);
+        // const output = gpuProcessor.process(input);
         
         outputQueue.push([output], FRAME_SIZE);
       } 
