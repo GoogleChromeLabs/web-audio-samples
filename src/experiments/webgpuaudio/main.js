@@ -55,12 +55,14 @@ const onWindowLoaded = async () => {
     startButton.disabled = true;
     await audioContext.resume();
     stopButton.disabled = false;
+    isPlaying = true;
   };
 
   stopButton.onclick = async () => {    
     stopButton.disabled = true;
     await audioContext.suspend();
     startButton.disabled = false;
+    isPlaying = false;
   };
 
   console.log(`[trace] onWindowLoaded`);
