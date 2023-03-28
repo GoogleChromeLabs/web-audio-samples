@@ -1,4 +1,4 @@
-import FreeQueue from "../../src/free-queue.js";
+import FreeQueue from "./lib/free-queue.js";
 import { FRAME_SIZE } from "./constants.js";
 
 /**
