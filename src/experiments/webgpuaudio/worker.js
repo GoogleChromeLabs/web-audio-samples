@@ -1,6 +1,7 @@
 import FreeQueue from "./lib/free-queue.js";
-// import GPUProcessor from "./lib/gpu-processor.js"; // TODO
+import GPUProcessor from "./lib/gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
+import GpuProcessor from "./lib/gpu-processor.js";
 
 /**
  * Worker message event handler.
@@ -26,7 +27,8 @@ self.onmessage = (msg) => {
         // outputQueue
 
         // const output = input.map(sample => 0.1 * sample);
-        const output = GPUProcessor.processs(input); // TODO
+        const gpuProcessor = await new GpuProcessor();
+        const output = await gpuProcessor.processs(input); // TODO
         
         outputQueue.push([output], FRAME_SIZE);
       } 
