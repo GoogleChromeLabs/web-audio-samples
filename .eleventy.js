@@ -63,6 +63,8 @@ module.exports = function(eleventyConfig) {
     'src/demos/**/*.webmanifest',
     'src/demos/**/*.zip',
     'src/demos/wavetable-synth/wave-tables/*',
+    'src/experiments/**/*.html',
+    'src/experiments/**/*.js',
     'src/sounds/drum-samples/**/*.wav',
     'src/sounds/fx/**/*.wav',
     'src/sounds/fx/**/*.mp3',
