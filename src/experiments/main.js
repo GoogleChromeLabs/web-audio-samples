@@ -9,24 +9,29 @@ const atomicState = new Int32Array(
     new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT)
 );
 
-const audioContext = new AudioContext();
-await audioContext.audioWorklet.addModule('bypass-processor.js');
-const oscillator = new OscillatorNode(audioContext);
-const processorNode =
-    new AudioWorkletNode(audioContext, 'bypass-processor', {
-      processorOptions: {
-        inputQueue,
-        outputQueue,
-        atomicState
-      }
-    });
-oscillator.connect(processorNode).connect(audioContext.destination);
-// Initially suspend audioContext so it can be toggled on and off later.
-audioContext.suspend();
-// Start the oscillator
-oscillator.start();
-console.log('AudioContext created.');
-return audioContext;
+let audioContext = null;
+let isPlaying = false;
+
+const createAudioContext = async () => {
+  const audioContext = new AudioContext();
+  await audioContext.audioWorklet.addModule('basic-processor.js');
+  const oscillator = new OscillatorNode(audioContext);
+  const processorNode =
+      new AudioWorkletNode(audioContext, 'basic-processor', {
+        processorOptions: {
+          inputQueue,
+          outputQueue,
+          atomicState
+        }
+      });
+  oscillator.connect(processorNode).connect(audioContext.destination);
+  // Initially suspend audioContext so it can be toggled on and off later.
+  audioContext.suspend();
+  // Start the oscillator
+  oscillator.start();
+  console.log('AudioContext created.');
+  return audioContext;
+};
 
 // Create a WebWorker for Audio Processing.
 const worker = new Worker('worker.js', { type: 'module'});
