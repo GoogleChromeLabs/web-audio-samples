@@ -1,7 +1,6 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
-import GpuProcessor from "./lib/gpu-processor.js";
 
 /**
  * Worker message event handler.
