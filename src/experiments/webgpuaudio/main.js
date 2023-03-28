@@ -1,7 +1,6 @@
 import FreeQueue from './lib/free-queue.js'
 import { QUEUE_SIZE } from './constants.js';
 
-
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
 const inputQueue = new FreeQueue(QUEUE_SIZE, 1);
 const outputQueue = new FreeQueue(QUEUE_SIZE, 1);
