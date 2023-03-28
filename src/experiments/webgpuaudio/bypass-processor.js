@@ -1,4 +1,4 @@
-import FreeQueue from "../../src/free-queue.js";
+import FreeQueue from "./lib/free-queue.js";
 import { FRAME_SIZE, RENDER_QUANTUM } from "./constants.js";
 
 /**
@@ -48,3 +48,4 @@ class BypassProcessor extends AudioWorkletProcessor {
 }
 
 registerProcessor('bypass-processor', BypassProcessor);
+console.log('[trace] BypassProcessor');
