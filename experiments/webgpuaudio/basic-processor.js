@@ -4,10 +4,10 @@ import { FRAME_SIZE, RENDER_QUANTUM } from "./constants.js";
 /**
  * A simple AudioWorkletProcessor node.
  *
- * @class BypassProcessor
+ * @class BasicProcessor
  * @extends AudioWorkletProcessor
  */
-class BypassProcessor extends AudioWorkletProcessor {
+class BasicProcessor extends AudioWorkletProcessor {
   /**
    * Constructor to initialize, input and output FreeQueue instances
    * and atomicState to synchronise Worker with AudioWorklet
@@ -47,5 +47,4 @@ class BypassProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('bypass-processor', BypassProcessor);
-console.log('[trace] BypassProcessor');
+registerProcessor('basic-processor', BasicProcessor);
