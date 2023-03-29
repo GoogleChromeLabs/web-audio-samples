@@ -69,17 +69,7 @@ class GPUProcessor {
     this.device.queue.submit([ encoder.finish() ]);
     console.log("Input fine");
 
-    // return input.map(sample => 0.1 * sample);
-    //   const readArrayBuffer = this.gpuReadBuffer.getMappedRange();
-    //   let output = new Float32Array(readArrayBuffer);
-    //   return output;
-
-    const output = new Float32Array(FRAME_SIZE);
-    await this.gpuReadBuffer.mapAsync(GPUMapMode.READ);
-    output.set(new Float32Array(this.gpuReadBuffer.getMappedRange()));
-    this.gpuReadBuffer.unmap();
-    console.log(output);
-    console.log("output should be fine here");
+    return input.map(sample => 0.1 * sample);
 
     return output;
   }
