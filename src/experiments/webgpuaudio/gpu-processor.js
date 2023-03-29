@@ -24,13 +24,11 @@ class GPUProcessor {
 
     // Write bytes to buffer.
     new Float32Array(arrayBuffer).set(input);
-    console.log(arrayBuffer);
 
     // Unmap buffer so that it can be used later for copy.
     gpuWriteBuffer.unmap();
     
-    //return input.map(sample => 0.1 * sample);
-      // Get a GPU buffer for reading in an unmapped state.
+    // Get a GPU buffer for reading in an unmapped state.
     const gpuReadBuffer = this.device.createBuffer({
         mappedAtCreation: false,
         size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
@@ -55,7 +53,7 @@ class GPUProcessor {
     await gpuReadBuffer.mapAsync(GPUMapMode.READ);
     const copyArrayBuffer = gpuReadBuffer.getMappedRange();
 
-    return new Float32Array(copyArrayBuffer);
+    return new Float32Array(copyArrayBuffer).map(sample => 0.1 * sample);
   }
 };
 
