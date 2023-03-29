@@ -1,57 +1,88 @@
-/**
- * A WebGPU Processor for processing audio data.
- *
- * @typedef GpuProcessor
- * @property {Uint32Array} adapter Adapter.
- * @property {number} device Device.
- * @property {} gpuWriteBuffer
- * @property {} gpuReadBuffer
- */
+import { FRAME_SIZE } from "./constants.js";
 
-class GpuProcessor {
+class GPUProcessor {
+  constructor() {}
 
-  process = async (Float32Array inputs) => {
-      if(!gpuWriteBuffer) {
-          this.gpuWriteBuffer = this.createWriteBuffer(128);
-      }
-      if(!gpuReadBuffer) {
-          this.gpuReadBuffer = this.createReadBuffer(128);
-      }
-      this.writeData(inputs);
-      return this.readData();
-  }
+  init = async () => {
+    if(!navigator.gpu) {
+      console.log("Please enable WebGPU");
+      return;
+    }
 
-  constructor = async () => {
-      this.adapter = await navigator.gpu.requestAdapter();
-      this.device = await adapter.requestDevice();
-  };
+    this.adapter = await navigator.gpu.requestAdapter();
+    this.device = await this.adapter.requestDevice();
 
-  createWriteBuffer(size) {
-      this.gpuWriteBuffer = this.device.CreateBuffer({
-          mappedAtCreation: true,
-          size: size * Float32Array.BYTES_PER_ELEMENT,
-          usage: GPUBufferUsage.MAP_WRITE;
+    this.gpuWriteBuffer = this.device.createBuffer({
+      mappedAtCreation: true,
+      size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+      usage: GPUBufferUsage.MAP_WRITE
+    });
+    this.gpuReadBuffer = this.device.createBuffer({
+      size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+    });
+
+    const noiseShaderModule = this.device.createShaderModule({
+        code: `
+          @group(0) @binding(0)
+          var<storage, read> input: array<f32>;
+
+          @group(0) @binding(1)
+          var<storage, read_write> output: array<f32>;
+
+          @compute @workgroup_size(1)
+          fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
+            output[global_id.x] = input[global_id.x];
+          }
+        `,
+      });
+
+    this.noisePipeline = this.device.createComputePipeline({
+        layout: 'auto',
+        compute: {
+          module: noiseShaderModule,
+          entryPoint: 'computeMain',
+        }
+    });
+
+    this.bindGroup = this.device.createBindGroup({
+        layout: this.noisePipeline.getBindGroupLayout(0),
+        entries: [{
+          binding: 0,
+          resource: { buffer: this.gpuWriteBuffer }
+        }, {
+          binding: 1,
+          resource: { buffer: this.gpuReadBuffer }
+        }]
       });
   }
 
-  createReadBuffer(size) {
-      this.gpuReadBuffer = this.device.CreateBuffer({
-          size: size * Float32Array.BYTES_PER_ELEMENT,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-      });
-  }
+  process = async (input) => {
+    console.log(input);
+    this.device.queue.writeBuffer(this.gpuWriteBuffer, 0, input);
+    const encoder = this.device.createCommandEncoder();
+    const pass = encoder.beginComputePass();
+    pass.setPipeline(this.noisePipeline);
+    pass.setBindGroup(0, this.bindGroup);
+    pass.dispatchWorkgroups(FRAME_SIZE);
+    pass.end();
+    this.device.queue.submit([ encoder.finish() ]);
+    console.log("Input fine");
 
-  writeData(Float32Array inputs) {
-      const arrayBuffer = this.gpuWriteBuffer.getMappedRange();
-      new Float32Array(arrayBuffer);
-      arrayBuffer = inputs;
-  }
+    // return input.map(sample => 0.1 * sample);
+    //   const readArrayBuffer = this.gpuReadBuffer.getMappedRange();
+    //   let output = new Float32Array(readArrayBuffer);
+    //   return output;
 
-  readData = async () => {
-      await this.gpuReadBuffer.mapAsync(GPUMapMode.READ);
-      const copyArrayBuffer = this.gpuReadBuffer.getMappedRange();
-      return new Float32Array(copyArrayBuffer);
+    const output = new Float32Array(FRAME_SIZE);
+    await this.gpuReadBuffer.mapAsync(GPUMapMode.READ);
+    output.set(new Float32Array(this.gpuReadBuffer.getMappedRange()));
+    this.gpuReadBuffer.unmap();
+    console.log(output);
+    console.log("output should be fine here");
+
+    return output;
   }
 };
 
-export default GpuProcessor;
+export default GPUProcessor;

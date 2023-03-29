@@ -33,7 +33,7 @@ const createAudioContext = async () => {
   // Initially suspend audioContext so it can be toggled on and off later.
   audioContext.suspend();
   // Start the oscillator
-  oscillator.start();
+  oscillator.start();  
   console.log('AudioContext created.');
   return audioContext;
 };
@@ -72,7 +72,11 @@ const toggleButtonClickHandler = async () => {
 
 // Create a WebWorker for Audio Processing.
 const worker = new Worker('worker.js', {type: 'module'});
-worker.onerror = function () {console.log("Error creating the worker.js worker!");};
+worker.onerror = function (event) {
+  console.log("Error creating the worker.js worker!");
+  console.log(event);
+  console.error(event.message);
+};
 
 window.addEventListener('load', () => {
   toggleButton = document.getElementById('toggle-audio');
