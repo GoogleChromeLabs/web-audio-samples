@@ -1,5 +1,5 @@
 import FreeQueue from "./lib/free-queue.js";
-import GpuProcessor from "./gpu-processor.js";
+import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
 
 /**
@@ -7,13 +7,14 @@ import { FRAME_SIZE } from "./constants.js";
  * This will initialize worker with FreeQueue instance and set loop for audio
  * processing. 
  */
-self.onmessage = (msg) => {
+self.onmessage = async (msg) => {
   if (msg.data.type === "init") {
     let { inputQueue, outputQueue, atomicState } = msg.data.data;
     Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
     Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
-    const gpuProcessor = new GpuProcessor();
+    const gpuProcessor = new GPUProcessor();
+    await gpuProcessor.init();
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
@@ -25,9 +26,9 @@ self.onmessage = (msg) => {
       const didPull = inputQueue.pull([input], FRAME_SIZE);
       if (didPull) {
         // If pulling data out was successfull, process it and push it to
-        // outputQueue
+        // outputQueue.
 
-        const output = gpuProcessor.process(input);
+        const output = await gpuProcessor.process(input);
         
         outputQueue.push([output], FRAME_SIZE);
       } 
