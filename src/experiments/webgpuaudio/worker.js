@@ -1,5 +1,5 @@
 import FreeQueue from "./lib/free-queue.js";
-import GPUProcessor from "./gpu-processor.js";
+import GpuProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
 
 /**
@@ -13,7 +13,7 @@ self.onmessage = (msg) => {
     Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
     Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
-    const gpuProcessor = new GPUProcessor();
+    const gpuProcessor = new GpuProcessor();
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
