@@ -22,6 +22,7 @@ class GPUProcessor {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
     });
 
+
     const noiseShaderModule = this.device.createShaderModule({
         code: `
           @group(0) @binding(0)
