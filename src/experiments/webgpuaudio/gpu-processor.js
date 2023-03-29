@@ -19,14 +19,14 @@ class GpuProcessor {
       }
       this.writeData(inputs); // bypass
       return this.readData();
-  }
+  };
 
   constructor = async () => {
       this.adapter = await navigator.gpu.requestAdapter();
       this.device = await adapter.requestDevice();
   };
 
-  createWriteBuffer(size) {
+  function createWriteBuffer(size) {
       this.gpuWriteBuffer = this.device.CreateBuffer({
           mappedAtCreation: true,
           size: size * Float32Array.BYTES_PER_ELEMENT,
@@ -34,14 +34,14 @@ class GpuProcessor {
       });
   }
 
-  createReadBuffer(size) {
+  function createReadBuffer(size) {
       this.gpuReadBuffer = this.device.CreateBuffer({
           size: size * Float32Array.BYTES_PER_ELEMENT,
           usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
       });
   }
 
-  writeData(Float32Array inputs) {
+  function writeData(Float32Array inputs) {
       const arrayBuffer = this.gpuWriteBuffer.getMappedRange();
       new Float32Array(arrayBuffer);
       arrayBuffer = inputs;
