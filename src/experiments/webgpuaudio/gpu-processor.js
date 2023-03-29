@@ -58,7 +58,6 @@ class GPUProcessor {
   }
 
   process = async (input) => {
-    console.log(input);
     this.device.queue.writeBuffer(this.gpuWriteBuffer, 0, input);
     const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
