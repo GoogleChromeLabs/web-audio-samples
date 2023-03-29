@@ -30,7 +30,7 @@ class GpuProcessor {
       this.gpuWriteBuffer = this.device.CreateBuffer({
           mappedAtCreation: true,
           size: size * Float32Array.BYTES_PER_ELEMENT,
-          usage: GPUBufferUsage.MAP_WRITE;
+          usage: GPUBufferUsage.MAP_WRITE
       });
   }
 
