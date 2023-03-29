@@ -28,7 +28,7 @@ self.onmessage = async (msg) => {
         // If pulling data out was successfull, process it and push it to
         // outputQueue.
 
-        const output = await gpuProcessor.process(input);
+        const output = await gpuProcessor.processInputAndReturn(input);
         
         outputQueue.push([output], FRAME_SIZE);
       } 
