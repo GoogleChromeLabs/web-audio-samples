@@ -17,7 +17,7 @@ class GpuProcessor {
       if(!gpuReadBuffer) {
           this.gpuReadBuffer = this.createReadBuffer(128);
       }
-      this.writeData(inputs);
+      this.writeData(inputs); // bypass
       return this.readData();
   }
 

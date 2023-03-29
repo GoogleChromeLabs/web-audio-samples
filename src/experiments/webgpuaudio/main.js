@@ -70,13 +70,13 @@ const toggleButtonClickHandler = async () => {
   }
 };
 
-// Create a WebWorker for Audio Processing.
-const worker = new Worker('worker.js', {type: 'module'});
-worker.onerror = function () {console.log("Error creating the worker.js worker!");};
-
 window.addEventListener('load', () => {
   toggleButton = document.getElementById('toggle-audio');
   toggleButton.onclick = toggleButtonClickHandler;
+
+  // Create a WebWorker for Audio Processing.
+  const worker = new Worker('worker.js', {type: 'module'});
+  worker.onerror = (event) => {console.log("Error creating the worker.js worker!", event);};
 
   // Send FreeQueue instance and atomic state to worker.
   worker.postMessage({
