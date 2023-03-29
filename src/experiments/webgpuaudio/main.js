@@ -74,7 +74,6 @@ const toggleButtonClickHandler = async () => {
 const worker = new Worker('worker.js', {type: 'module'});
 worker.onerror = function (event) {
   console.log("Error creating the worker.js worker!");
-  console.log(event);
   console.error(event.message);
 };
 

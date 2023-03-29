@@ -69,8 +69,6 @@ class GPUProcessor {
     console.log("Input fine");
 
     return input.map(sample => 0.1 * sample);
-
-    return output;
   }
 };
 
