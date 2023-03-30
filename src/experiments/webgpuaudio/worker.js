@@ -1,54 +1,81 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
+import IRHelper from "./ir-helper.js"
 import { FRAME_SIZE } from "./constants.js";
-import TestProcessor from "./test/test_gpu_processor.js"
+import TestProcessor from "./test/test_processor.js"
 
-/**
- * Worker message event handler.
- * This will initialize worker with FreeQueue instance and set loop for audio
- * processing. 
- */
-self.onmessage = async (msg) => {
-  if (msg.data.type === "init") {
-    let { inputQueue, outputQueue, atomicState } = msg.data.data;
-    Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
-    Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
+// Harmful globals
+let inputQueue = null;
+let outputQueue = null;
+let atomicState = null;
+let gpuProcessor = null;
+let inputBuffer = null;
+let runTests = false;
 
-    const gpuProcessor = new GPUProcessor();
-    await gpuProcessor.init();
-    
-    // buffer for storing data pulled out from queue.
-    const input = new Float32Array(FRAME_SIZE);
-    const impulse = new Float32Array([1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]);
+// Performance metrics
+let lastCallback = 0;
+let averageTimeSpent = 0;
 
-    // loop for processing data.
-    while (Atomics.wait(atomicState, 0, 0) === 'ok') {      
-      // pull data out from inputQueue.
-      const start = performance.now();
-      const didPull = inputQueue.pull([input], FRAME_SIZE);
-      if (didPull) {
-        // If pulling data out was successfull, process it and push it to
-        // outputQueue.
+// This will initialize worker with FreeQueue instance and set loop for audio
+// processing.
+const initialize = async (messageDataFromMainThread) => {
+  inputQueue = messageDataFromMainThread.inputQueue;
+  outputQueue = messageDataFromMainThread.outputQueue;
+  atomicState = messageDataFromMainThread.atomicState;
+  runTests = messageDataFromMainThread.runTests;
+  Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
+  Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
-        console.log(input);
+  // A local buffer to store data pulled out from `inputQueue`.
+  inputBuffer = new Float32Array(FRAME_SIZE);
 
-        // const output_old = input.map(sample => 0.1 * sample);
-        // const end_old = performance.now();
-        // console.log("Time for output using FIFO Queue "+(end_old - start)+" ms");
+  // Create an instance of GPUProcessor and provide an IR array.
+  gpuProcessor = new GPUProcessor();
+  gpuProcessor.setIRArray(IRHelper.createTestIR());
+  await gpuProcessor.initialize();
 
-        const start_new = performance.now();
-        // Original output.
-        //const output = await gpuProcessor.processInputAndReturn(input);
-        let testProcessor = new TestProcessor();
-        await testProcessor.testConvolution(gpuProcessor);
-        const convoluted_output = await gpuProcessor.processConvolution(input, impulse);
+  if(runTests) {
+    let testProcessor = new TestProcessor();
+    await testProcessor.testConvolution(gpuProcessor);
+  }
 
-        const end_new = performance.now();
-        console.log("Time for GPU Processing "+(end_new - start_new)+" ms.");
-        outputQueue.push([convoluted_output], FRAME_SIZE);
-      } 
+  console.log('[worker.js] initialize()');
+};
 
-      Atomics.store(atomicState, 0, 0);
-    }
+const process = async () => {
+  const processStart = performance.now();
+  
+  if (!inputQueue.pull([inputBuffer], FRAME_SIZE)) {
+    console.error('[worker.js] Pulling from inputQueue failed.');
+    return;
+  }
+
+  // Process convolution
+  const output = await gpuProcessor.processConvolution(inputBuffer);
+  outputQueue.push([output], FRAME_SIZE);
+
+  // Rolling average of process() time.
+  const timeSpent = performance.now() - processStart;
+  averageTimeSpent -= averageTimeSpent / 20;
+  averageTimeSpent += timeSpent / 20;
+
+  console.log(`[worker.js] process() = ${timeSpent.toFixed(2)}ms : ` +
+              `avg = ${averageTimeSpent.toFixed(2)}ms : ` +
+              `interval = ${(processStart - lastCallback).toFixed(2)}ms`);
+  lastCallback = processStart;
+};
+
+self.onmessage = async (message) => {
+  if (message.data.type !== 'init') {
+    console.error(`[worker.js] Invalid message type: ${message.data.type}`);
+    return;
+  }
+
+  await initialize(message.data.data);
+  while (Atomics.wait(atomicState, 0, 0) === 'ok') {
+    await process();
+    Atomics.store(atomicState, 0, 0);
   }
 };
+
+console.log('[worker.js] loaded.');

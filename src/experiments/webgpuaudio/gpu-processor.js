@@ -1,12 +1,9 @@
-import { FRAME_SIZE } from "./constants.js";
-
-const WORKGROUP_SIZE = 4;
-const IMPULSE_SIZE = 10;
+import { FRAME_SIZE, WORKGROUP_SIZE } from "./constants.js";
 
 class GPUProcessor {
   constructor() {}
 
-  init = async () => {
+  initialize = async () => {
     if(!navigator.gpu) {
       console.log("Please enable WebGPU");
       return;
@@ -14,6 +11,11 @@ class GPUProcessor {
 
     this.adapter = await navigator.gpu.requestAdapter();
     this.device = await this.adapter.requestDevice();
+  }
+
+  setIRArray (irFloat32Array) {
+    this._irArray = irFloat32Array;
+    this._irSize = this._irArray.length;
   }
 
   processInputAndReturn = async(input) => {
@@ -116,24 +118,24 @@ class GPUProcessor {
     return new Float32Array(copyArrayBuffer);
   }
 
-  processConvolution = async(input, impulse) => {
+  processConvolution = async(input) => {
     // INPUT
-    const inputMusicBuffer = this.device.createBuffer({
+    const inputDataBuffer = this.device.createBuffer({
         mappedAtCreation: true,
         size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.STORAGE
     });
-    const arrayBuffer = inputMusicBuffer.getMappedRange();
-    new Float32Array(arrayBuffer).set(input);
-    inputMusicBuffer.unmap();
+    const inputArrayBuffer = inputDataBuffer.getMappedRange();
+    new Float32Array(inputArrayBuffer).set(input);
+    inputDataBuffer.unmap();
 
     const gpuImpulseBuffer = this.device.createBuffer({
         mappedAtCreation: true,
-        size: IMPULSE_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        size: this._irSize * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.STORAGE
     });
     const impulseArray = gpuImpulseBuffer.getMappedRange();
-    new Float32Array(impulseArray).set(impulse);
+    new Float32Array(impulseArray).set(this._irArray);
     gpuImpulseBuffer.unmap();
 
     // COMPUTE
@@ -154,7 +156,7 @@ class GPUProcessor {
           @group(0) @binding(2)
           var<storage, read_write> output: array<f32>;
 
-          @compute @workgroup_size(${IMPULSE_SIZE})
+          @compute @workgroup_size(${this._irSize})
           fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
             if(global_id.x > arrayLength(&input_music) - 1) {
                 // Out of bounds.
@@ -191,7 +193,7 @@ class GPUProcessor {
           {
             binding: 0,
             resource: {
-              buffer: inputMusicBuffer
+              buffer: inputDataBuffer
             }
           },
           {
@@ -213,7 +215,7 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    const workgroup_size = Math.ceil(FRAME_SIZE / IMPULSE_SIZE);
+    const workgroup_size = Math.ceil(FRAME_SIZE / this._irSize);
     computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 
