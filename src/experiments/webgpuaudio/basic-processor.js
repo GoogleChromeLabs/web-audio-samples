@@ -1,5 +1,5 @@
-import FreeQueue from "./lib/free-queue.js";
-import { FRAME_SIZE, RENDER_QUANTUM } from "./constants.js";
+import FreeQueue from './lib/free-queue.js';
+import { FRAME_SIZE, RENDER_QUANTUM } from './constants.js';
 
 /**
  * A simple AudioWorkletProcessor node.
@@ -16,33 +16,42 @@ class BasicProcessor extends AudioWorkletProcessor {
    */
   constructor(options) {
     super();
-
     this.inputQueue = options.processorOptions.inputQueue;
     this.outputQueue = options.processorOptions.outputQueue;
     this.atomicState = options.processorOptions.atomicState;
     Object.setPrototypeOf(this.inputQueue, FreeQueue.prototype);
     Object.setPrototypeOf(this.outputQueue, FreeQueue.prototype);
-
   }
 
+  /**
+   * The AudioWorkletProcessor's isochronous callback.
+   * @param {Array<Float32Array>>} inputs
+   * @param {Array<Float32Array>>} outputs
+   * @returns {boolean}
+   */
   process(inputs, outputs) {
     const input = inputs[0];
     const output = outputs[0];
-    
-    // Push data from input into inputQueue.
-    this.inputQueue.push(input, RENDER_QUANTUM);
-    
-    // Try to pull data out of outputQueue and store it in output.
+
+    // Pull processed audio data out of `outputQueue` and pass it in output.
+    // The first few pulls would fail because there's not enough data.
     const didPull = this.outputQueue.pull(output, RENDER_QUANTUM);
     if (!didPull) {
-      console.log("failed to pull.");
+      console.log('[basic-processor.js] Not enough data in outputQueue');
     }
-    
-    // Wake up worker to process a frame of data.
-    if (this.inputQueue.isFrameAvailable(FRAME_SIZE)) {
+
+    // Store incoming audio data `input` into `inputQueue`.
+    const didPush = this.inputQueue.push(input, RENDER_QUANTUM);
+    if (!didPush) {
+      console.log('[basic-processor.js] Not enough space in inputQueue');
+    }
+
+    // Notify worker.js if `inputQueue` has enough data to perform the batch
+    // processing of FRAME_SIZE.
+    if (this.inputQueue.hasEnoughFramesFor(FRAME_SIZE)) {
       Atomics.notify(this.atomicState, 0, 1);
     }
-    
+
     return true;
   }
 }
