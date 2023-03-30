@@ -84,7 +84,7 @@ window.addEventListener('load', () => {
     data: {
       inputQueue,
       outputQueue,
-      atomicState
+      atomicState,
     }
   });
 

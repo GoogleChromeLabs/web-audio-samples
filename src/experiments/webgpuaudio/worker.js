@@ -1,7 +1,8 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
 import IRHelper from "./ir-helper.js"
-import { FRAME_SIZE } from "./constants.js";
+import { FRAME_SIZE, TEST_MODE } from "./constants.js";
+import TestProcessor from "./test/test_processor.js"
 
 // Harmful globals
 let inputQueue = null;
@@ -31,6 +32,11 @@ const initialize = async (messageDataFromMainThread) => {
   gpuProcessor.setIRArray(IRHelper.createTestIR());
   await gpuProcessor.initialize();
 
+  if(TEST_MODE) {
+    let testProcessor = new TestProcessor();
+    await testProcessor.testConvolution();
+  }
+
   console.log('[worker.js] initialize()');
 };
 
@@ -41,7 +47,9 @@ const process = async () => {
     console.error('[worker.js] Pulling from inputQueue failed.');
     return;
   }
-  const output = await gpuProcessor.processInputAndReturn(inputBuffer);
+
+  // Process convolution.
+  const output = await gpuProcessor.processConvolution(inputBuffer);
   outputQueue.push([output], FRAME_SIZE);
 
   // Rolling average of process() time.
