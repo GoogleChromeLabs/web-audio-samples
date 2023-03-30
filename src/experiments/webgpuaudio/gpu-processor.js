@@ -1,5 +1,15 @@
 import { FRAME_SIZE, WORKGROUP_SIZE } from "./constants.js";
 
+/**
+ * A class to perform all WebGPU related activities, like processing data, performing convolution on audio data etc.
+ *
+ * @class GPUProcessor
+ * @property {Float32Array} _irArray The impulse response array for convolution.
+ * @property {number} _irSize The size of the impulse response array.
+ * @property {GPUAdapter} adapter The size of the impulse response array.
+ * @property {GPUDevice} device The size of the impulse response array.
+ * throughout channels.
+ */
 class GPUProcessor {
   constructor() {}
 
