@@ -5,7 +5,7 @@ const WORKGROUP_SIZE = 4;
 class GPUProcessor {
   constructor() {}
 
-  init = async () => {
+  initialize = async () => {
     if(!navigator.gpu) {
       console.log("Please enable WebGPU");
       return;
@@ -13,6 +13,10 @@ class GPUProcessor {
 
     this.adapter = await navigator.gpu.requestAdapter();
     this.device = await this.adapter.requestDevice();
+  }
+
+  setIRArray (irFloat32Array) {
+    this._irArray = irFloat32Array;
   }
 
   processInputAndReturn = async(input) => {
