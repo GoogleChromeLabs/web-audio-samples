@@ -1,6 +1,7 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
+import TestProcessor from "./test/test_gpu_processor.js"
 
 /**
  * Worker message event handler.
@@ -18,7 +19,7 @@ self.onmessage = async (msg) => {
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
-    const impulse = new Float32Array([0.10, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01]);
+    const impulse = new Float32Array([1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]);
 
     // loop for processing data.
     while (Atomics.wait(atomicState, 0, 0) === 'ok') {      
@@ -29,14 +30,19 @@ self.onmessage = async (msg) => {
         // If pulling data out was successfull, process it and push it to
         // outputQueue.
 
-        const output_old = input.map(sample => 0.1 * sample);
-        const end_old = performance.now();
-        console.log("Time for output using FIFO Queue "+(end_old - start)+" ms");
+        console.log(input);
+
+        // const output_old = input.map(sample => 0.1 * sample);
+        // const end_old = performance.now();
+        // console.log("Time for output using FIFO Queue "+(end_old - start)+" ms");
 
         const start_new = performance.now();
         // Original output.
         //const output = await gpuProcessor.processInputAndReturn(input);
+        let testProcessor = new TestProcessor();
+        await testProcessor.testConvolution(gpuProcessor);
         const convoluted_output = await gpuProcessor.processConvolution(input, impulse);
+
         const end_new = performance.now();
         console.log("Time for GPU Processing "+(end_new - start_new)+" ms.");
         outputQueue.push([convoluted_output], FRAME_SIZE);

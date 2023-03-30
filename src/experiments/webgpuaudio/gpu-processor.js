@@ -154,8 +154,17 @@ class GPUProcessor {
           @group(0) @binding(2)
           var<storage, read_write> output: array<f32>;
 
-          @compute @workgroup_size(${WORKGROUP_SIZE})
+          @compute @workgroup_size(${IMPULSE_SIZE})
           fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
+            if(global_id.x > arrayLength(&input_music) - 1) {
+                // Out of bounds.
+                return;
+            }
+
+            if(arrayLength(&impulse) > arrayLength(&input_music)) {
+                return;
+            }
+
             for(var i = 0u; i < arrayLength(&input_music); i = i + 1u) {
                 var result = 0.0;
                 for(var j = 0u; j < arrayLength(&impulse); j = j + 1u) {
@@ -204,7 +213,7 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    const workgroup_size = Math.ceil(FRAME_SIZE / WORKGROUP_SIZE);
+    const workgroup_size = Math.ceil(FRAME_SIZE / IMPULSE_SIZE);
     computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 
