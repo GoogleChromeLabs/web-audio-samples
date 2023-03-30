@@ -1,6 +1,7 @@
 import { FRAME_SIZE } from "./constants.js";
 
 const WORKGROUP_SIZE = 4;
+const IMPULSE_SIZE = 10;
 
 class GPUProcessor {
   constructor() {}
@@ -87,7 +88,124 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    computePass.dispatchWorkgroups(FRAME_SIZE / WORKGROUP_SIZE);
+    const workgroup_size = Math.ceil(FRAME_SIZE / WORKGROUP_SIZE);
+    computePass.dispatchWorkgroups(workgroup_size);
+    computePass.end();
+
+    const gpuReadBuffer = this.device.createBuffer({
+        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+    });
+      
+    // Encode commands for copying from the compute to the read buffer.
+    commandEncoder.copyBufferToBuffer(
+        gpuComputeBuffer /* source buffer */,
+        0 /* source offset */,
+        gpuReadBuffer /* destination buffer */,
+        0 /* destination offset */,
+        FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT
+    );
+
+    // Submit copy commands.
+    const gpuCommandsEnd = commandEncoder.finish();
+    this.device.queue.submit([ gpuCommandsEnd ]);
+
+    // --------------READ STAGE-----------------
+    await gpuReadBuffer.mapAsync(GPUMapMode.READ);
+    const copyArrayBuffer = gpuReadBuffer.getMappedRange();
+    return new Float32Array(copyArrayBuffer);
+  }
+
+  processConvolution = async(input, impulse) => {
+    // INPUT
+    const inputMusicBuffer = this.device.createBuffer({
+        mappedAtCreation: true,
+        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        usage: GPUBufferUsage.STORAGE
+    });
+    const arrayBuffer = inputMusicBuffer.getMappedRange();
+    new Float32Array(arrayBuffer).set(input);
+    inputMusicBuffer.unmap();
+
+    const gpuImpulseBuffer = this.device.createBuffer({
+        mappedAtCreation: true,
+        size: IMPULSE_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        usage: GPUBufferUsage.STORAGE
+    });
+    const impulseArray = gpuImpulseBuffer.getMappedRange();
+    new Float32Array(impulseArray).set(impulse);
+    gpuImpulseBuffer.unmap();
+
+    // COMPUTE
+    const gpuComputeBuffer = this.device.createBuffer({
+        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+    });
+    gpuComputeBuffer.unmap();
+
+    const computeModule = this.device.createShaderModule({
+        code: `
+          @group(0) @binding(0)
+          var<storage, read> input_music: array<f32>;
+
+          @group(0) @binding(1)
+          var<storage, read> impulse: array<f32>;
+
+          @group(0) @binding(2)
+          var<storage, read_write> output: array<f32>;
+
+          @compute @workgroup_size(${WORKGROUP_SIZE})
+          fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
+            for(var i = 0u; i < arrayLength(&input_music); i = i + 1u) {
+                var result = 0.0;
+                for(var j = 0u; j < arrayLength(&impulse); j = j + 1u) {
+                    result = result + input_music[i - j] * impulse[j];
+                }
+                output[i] = result;
+            }
+          }
+        `,
+    });
+
+    // Create a compute pipeline with the layout and compute defined.
+    const computePipeline = this.device.createComputePipeline({
+        layout : "auto",
+        compute: {
+          module: computeModule,
+          entryPoint: "convolute",
+        }
+    });
+
+    const bindGroup = this.device.createBindGroup({
+        layout: computePipeline.getBindGroupLayout(/*index=*/0),
+        entries: [
+          {
+            binding: 0,
+            resource: {
+              buffer: inputMusicBuffer
+            }
+          },
+          {
+            binding: 1,
+            resource: {
+              buffer: gpuImpulseBuffer
+            }
+          },
+          {
+            binding: 2,
+            resource: {
+              buffer: gpuComputeBuffer
+            }
+          }
+        ]
+      });
+      
+    const commandEncoder = this.device.createCommandEncoder();
+    const computePass = commandEncoder.beginComputePass();
+    computePass.setPipeline(computePipeline);
+    computePass.setBindGroup(0, bindGroup);
+    const workgroup_size = Math.ceil(FRAME_SIZE / WORKGROUP_SIZE);
+    computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 
     const gpuReadBuffer = this.device.createBuffer({

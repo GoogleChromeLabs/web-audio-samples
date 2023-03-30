@@ -18,6 +18,8 @@ self.onmessage = async (msg) => {
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
+    const impulse = new Float32Array([0.10, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01]);
+
     // loop for processing data.
     while (Atomics.wait(atomicState, 0, 0) === 'ok') {      
       // pull data out from inputQueue.
@@ -32,10 +34,12 @@ self.onmessage = async (msg) => {
         console.log("Time for output using FIFO Queue "+(end_old - start)+" ms");
 
         const start_new = performance.now();
-        const output = await gpuProcessor.processInputAndReturn(input);
+        // Original output.
+        //const output = await gpuProcessor.processInputAndReturn(input);
+        const convoluted_output = await gpuProcessor.processConvolution(input, impulse);
         const end_new = performance.now();
         console.log("Time for GPU Processing "+(end_new - start_new)+" ms.");
-        outputQueue.push([output], FRAME_SIZE);
+        outputQueue.push([convoluted_output], FRAME_SIZE);
       } 
 
       Atomics.store(atomicState, 0, 0);
