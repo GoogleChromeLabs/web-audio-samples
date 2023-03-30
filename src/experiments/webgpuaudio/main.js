@@ -1,4 +1,5 @@
 import FreeQueue from './lib/free-queue.js'
+import { fetchAudioFileToF32Array } from './ir-helper.js';
 import { QUEUE_SIZE } from './constants.js';
 
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
@@ -21,21 +22,22 @@ let isPlaying = false;
 const createAudioContext = async () => {
   const audioContext = new AudioContext();
   await audioContext.audioWorklet.addModule('./basic-processor.js');
-  const oscillator = new OscillatorNode(audioContext);
-  const processorNode =
-      new AudioWorkletNode(audioContext, 'basic-processor', {
-        processorOptions: {
-          inputQueue,
-          outputQueue,
-          atomicState
-        }
-      });
-  oscillator.connect(processorNode).connect(audioContext.destination);
-  // Initially suspend audioContext so it can be toggled on and off later.
+
+  const oscillatorNode = new OscillatorNode(audioContext);
+  const processorNode = new AudioWorkletNode(audioContext, 'basic-processor', {
+    processorOptions: {inputQueue, outputQueue, atomicState}
+  });
+  
+  // Initially suspend the context to prevent the renderer from hammering the
+  // Worker.
   audioContext.suspend();
-  // Start the oscillator
-  oscillator.start();
-  console.log('AudioContext created.');
+
+  // Form an audio graph and start the source. When the renderer is resumed,
+  // the pipeline will be flowing.
+  oscillatorNode.connect(processorNode).connect(audioContext.destination);
+  oscillatorNode.start();
+
+  console.log('[main.js] createAudioContext()');
   return audioContext;
 };
 
@@ -45,7 +47,6 @@ const createAudioContext = async () => {
  * It toggles audio state between playing and paused.
  */
 const toggleButtonClickHandler = async () => {
-  // If AudioContext doesn't exist, try creating one. 
   if (!audioContext) {
     try {
       audioContext = await createAudioContext();

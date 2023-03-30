@@ -1,6 +1,6 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
-import IRHelper from "./ir-helper.js"
+import { createTestIR } from "./ir-helper.js"
 import { FRAME_SIZE } from "./constants.js";
 
 // Harmful globals
@@ -28,7 +28,7 @@ const initialize = async (messageDataFromMainThread) => {
 
   // Create an instance of GPUProcessor and provide an IR array.
   gpuProcessor = new GPUProcessor();
-  gpuProcessor.setIRArray(IRHelper.createTestIR());
+  gpuProcessor.setIRArray(createTestIR());
   await gpuProcessor.initialize();
 
   console.log('[worker.js] initialize()');
