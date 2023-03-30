@@ -1,28 +1,34 @@
 import GPUProcessor from "../gpu-processor.js";
-import IRHelper from "../ir-helper.js"
+import { createTestIR } from "../ir-helper.js"
 
 class TestProcessor {
 
-    constructor() {}
-    async testConvolution() {
-        const test_ir = IRHelper.createTestIR();
-        let gpuProcessor = new GPUProcessor();
-        gpuProcessor.setIRArray(test_ir);
-        await gpuProcessor.initialize();
+  constructor() {}
 
-        // Create impulse function.
-        const input = new Float32Array(20);
-        input[0] = 1;
+  async testConvolution() {
+    console.log('[test_processor.js] testConvolution()');
+    const test_ir = createTestIR();
+    let gpuProcessor = new GPUProcessor();
+    gpuProcessor.setIRArray(test_ir);
+    await gpuProcessor.initialize();
 
-        // Process convolution.
-        const output_result = await gpuProcessor.processConvolution(input);
+    // Create impulse function.
+    const input = new Float32Array(20);
+    input[0] = 1;
 
-        // Parse outputs.
-        const output_ir_size = output_result.slice(0, test_ir.length);
+    // Process convolution.
+    const output_result = await gpuProcessor.processConvolution(input);
 
-        // Verify.
-        console.assert(output_ir_size.toString() === test_ir.toString(), "Expected: "+test_ir.toString()+" Received: "+output_ir_size.toString());
-    }
+    // Parse outputs.
+    const output_ir_size = output_result.slice(0, test_ir.length);
+
+    // Verify.
+    console.assert(output_ir_size.toString() === test_ir.toString(), 
+                   "Expected: " + test_ir.toString() +
+                   "Actual: " + output_ir_size.toString());
+  }
 };
 
 export default TestProcessor;
+
+console.log('[test_processor.js] loaded.');

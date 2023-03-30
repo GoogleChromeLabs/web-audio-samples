@@ -32,7 +32,7 @@ const initialize = async (messageDataFromMainThread) => {
   gpuProcessor.setIRArray(createTestIR());
   await gpuProcessor.initialize();
 
-  if(TEST_MODE) {
+  if (TEST_MODE) {
     let testProcessor = new TestProcessor();
     await testProcessor.testConvolution();
   }
