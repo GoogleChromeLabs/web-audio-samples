@@ -4,7 +4,7 @@ import IRHelper from "../ir-helper.js"
 class TestProcessor {
 
     constructor() {}
-    testConvolution = async() => {
+    async testConvolution() {
         const test_ir = IRHelper.createTestIR();
         let gpuProcessor = new GPUProcessor();
         gpuProcessor.setIRArray(test_ir);

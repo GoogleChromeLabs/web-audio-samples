@@ -13,10 +13,6 @@ let toggleButton = null;
 let audioContext = null;
 let isPlaying = false;
 
-// Change this value to true to run tests and see test errors on JS console
-// during audio processing. Not intended for production, only for testing.
-let runTests = false;
-
 /**
  * Function to create and initialize AudioContext.
  * @returns {Promise<AudioContext>}
@@ -89,7 +85,6 @@ window.addEventListener('load', () => {
       inputQueue,
       outputQueue,
       atomicState,
-      runTests
     }
   });
 

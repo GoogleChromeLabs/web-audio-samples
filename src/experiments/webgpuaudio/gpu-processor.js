@@ -1,11 +1,11 @@
 import { FRAME_SIZE, WORKGROUP_SIZE } from "./constants.js";
 
 /**
- * A class to perform all WebGPU related activities, like processing data, performing convolution on audio data etc.
+ * A class to perform all WebGPU related activities, like processing data, 
+ * performing convolution on audio data etc.
  *
  * @class GPUProcessor
  * @property {Float32Array} _irArray The impulse response array for convolution.
- * @property {number} _irSize The size of the impulse response array.
  * @property {GPUAdapter} adapter The size of the impulse response array.
  * @property {GPUDevice} device The size of the impulse response array.
  * throughout channels.
@@ -25,7 +25,6 @@ class GPUProcessor {
 
   setIRArray (irFloat32Array) {
     this._irArray = irFloat32Array;
-    this._irSize = this._irArray.length;
   }
 
   processInputAndReturn = async(input) => {
@@ -141,7 +140,7 @@ class GPUProcessor {
 
     const gpuImpulseBuffer = this.device.createBuffer({
         mappedAtCreation: true,
-        size: this._irSize * Float32Array.BYTES_PER_ELEMENT,
+        size: this._irArray.length * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.STORAGE
     });
     const impulseArray = gpuImpulseBuffer.getMappedRange();
@@ -166,7 +165,7 @@ class GPUProcessor {
           @group(0) @binding(2)
           var<storage, read_write> output: array<f32>;
 
-          @compute @workgroup_size(${this._irSize})
+          @compute @workgroup_size(${this._irArray.length})
           fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
             if(global_id.x > arrayLength(&input_music) - 1) {
                 // Out of bounds.
@@ -225,7 +224,7 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    const workgroup_size = Math.ceil(FRAME_SIZE / this._irSize);
+    const workgroup_size = Math.ceil(FRAME_SIZE / this._irArray.length);
     computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 

@@ -1,7 +1,7 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
 import IRHelper from "./ir-helper.js"
-import { FRAME_SIZE } from "./constants.js";
+import { FRAME_SIZE, TEST_MODE } from "./constants.js";
 import TestProcessor from "./test/test_processor.js"
 
 // Harmful globals
@@ -10,7 +10,6 @@ let outputQueue = null;
 let atomicState = null;
 let gpuProcessor = null;
 let inputBuffer = null;
-let runTests = false;
 
 // Performance metrics
 let lastCallback = 0;
@@ -22,7 +21,6 @@ const initialize = async (messageDataFromMainThread) => {
   inputQueue = messageDataFromMainThread.inputQueue;
   outputQueue = messageDataFromMainThread.outputQueue;
   atomicState = messageDataFromMainThread.atomicState;
-  runTests = messageDataFromMainThread.runTests;
   Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
   Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
@@ -34,7 +32,7 @@ const initialize = async (messageDataFromMainThread) => {
   gpuProcessor.setIRArray(IRHelper.createTestIR());
   await gpuProcessor.initialize();
 
-  if(runTests) {
+  if(TEST_MODE) {
     let testProcessor = new TestProcessor();
     await testProcessor.testConvolution();
   }
@@ -50,7 +48,7 @@ const process = async () => {
     return;
   }
 
-  // Process convolution
+  // Process convolution.
   const output = await gpuProcessor.processConvolution(inputBuffer);
   outputQueue.push([output], FRAME_SIZE);
 
