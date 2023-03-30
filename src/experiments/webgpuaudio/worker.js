@@ -10,6 +10,10 @@ let atomicState = null;
 let gpuProcessor = null;
 let inputBuffer = null;
 
+// Performance metrics
+let lastCallback = 0;
+let averageTimeSpent = 0;
+
 // This will initialize worker with FreeQueue instance and set loop for audio
 // processing.
 const initialize = async (messageDataFromMainThread) => {
@@ -40,8 +44,15 @@ const process = async () => {
   const output = await gpuProcessor.processInputAndReturn(inputBuffer);
   outputQueue.push([output], FRAME_SIZE);
 
-  const processEnd = performance.now();
-  console.log(`[worker.js] process() took ${processEnd - processStart}ms.`);
+  // Rolling average of process() time.
+  const timeSpent = performance.now() - processStart;
+  averageTimeSpent -= averageTimeSpent / 20;
+  averageTimeSpent += timeSpent / 20;
+
+  console.log(`[worker.js] process() = ${timeSpent.toFixed(2)}ms : ` +
+              `avg = ${averageTimeSpent.toFixed(2)}ms : ` +
+              `interval = ${(processStart - lastCallback).toFixed(2)}ms`);
+  lastCallback = processStart;
 };
 
 self.onmessage = async (message) => {
