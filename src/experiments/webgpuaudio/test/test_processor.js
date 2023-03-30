@@ -21,8 +21,43 @@ class TestProcessor {
         const output_ir_size = output_result.slice(0, test_ir.length);
 
         // Verify.
-        console.assert(output_ir_size.toString() === test_ir.toString(), "Expected: "+test_ir.toString()+" Received: "+output_ir_size.toString());
+        console.assert(output_ir_size.toString() === test_ir.toString(), "Test: testConvolution, Expected output : "+test_ir.toString()+" Received output: "+output_ir_size.toString());
     }
 };
+
+const toggleButtonClickHandler = async () => {
+    // If AudioContext doesn't exist, try creating one. 
+    if (!audioContext) {
+      try {
+        audioContext = await createAudioContext();
+      } catch(error) {
+        // If AudioContext creation fails, disable toggle button and
+        // log error to console
+        toggleButton.disabled = true;
+        console.error(error);
+        return;
+      }
+    }
+    // If the audio is currently not playing, then on button click resume 
+    // playing audio, otherwise if the audio is playing then on button click
+    // suspend playing.
+    if (!isPlaying) {
+      audioContext.resume();
+      isPlaying = true;
+      toggleButton.innerHTML = 'STOP';
+    } else {
+      audioContext.suspend();
+      isPlaying = false;
+      toggleButton.innerHTML = 'START';
+    }
+  };
+
+window.addEventListener('load', async () => {
+    let testProcessor = new TestProcessor();
+    convolution_test = document.getElementById('test-gpu-convolution');
+    toggleButton.onclick = await testProcessor.testConvolution();
+  
+    toggleButton.disabled = false;
+  });
 
 export default TestProcessor;
