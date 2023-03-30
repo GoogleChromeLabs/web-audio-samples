@@ -4,7 +4,8 @@ import { QUEUE_SIZE } from './constants.js';
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
 const inputQueue = new FreeQueue(QUEUE_SIZE, 1);
 const outputQueue = new FreeQueue(QUEUE_SIZE, 1);
-// Create an atomic state for synchronization between worker and AudioWorklet.
+
+// Create an atomic state for synchronization between Worker and AudioWorklet.
 const atomicState = new Int32Array(
     new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT)
 );
@@ -56,6 +57,7 @@ const toggleButtonClickHandler = async () => {
       return;
     }
   }
+
   // If the audio is currently not playing, then on button click resume 
   // playing audio, otherwise if the audio is playing then on button click
   // suspend playing.
@@ -76,7 +78,9 @@ window.addEventListener('load', () => {
 
   // Create a WebWorker for Audio Processing.
   const worker = new Worker('worker.js', {type: 'module'});
-  worker.onerror = (event) => {console.log("Error creating the worker.js worker!", event);};
+  worker.onerror = (event) => {
+    console.log('[main.js] Error from worker.js: ', event);
+  };
 
   // Send FreeQueue instance and atomic state to worker.
   worker.postMessage({
