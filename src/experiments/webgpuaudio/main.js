@@ -15,7 +15,7 @@ let isPlaying = false;
 
 // Change this value to true to run tests and see test errors on JS console
 // during audio processing. Not intended for production, only for testing.
-let runTests = false;
+let runTests = true;
 
 /**
  * Function to create and initialize AudioContext.

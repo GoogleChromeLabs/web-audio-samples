@@ -36,7 +36,7 @@ const initialize = async (messageDataFromMainThread) => {
 
   if(runTests) {
     let testProcessor = new TestProcessor();
-    await testProcessor.testConvolution(gpuProcessor);
+    await testProcessor.testConvolution();
   }
 
   console.log('[worker.js] initialize()');

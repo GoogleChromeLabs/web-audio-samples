@@ -4,7 +4,12 @@ import IRHelper from "../ir-helper.js"
 class TestProcessor {
 
     constructor() {}
-    testConvolution = async(gpuProcessor) => {
+    testConvolution = async() => {
+        const test_ir = IRHelper.createTestIR();
+        let gpuProcessor = new GPUProcessor();
+        gpuProcessor.setIRArray(test_ir);
+        await gpuProcessor.initialize();
+
         // Create impulse function.
         const input = new Float32Array(20);
         input[0] = 1;
@@ -13,11 +18,10 @@ class TestProcessor {
         const output_result = await gpuProcessor.processConvolution(input);
 
         // Parse outputs.
-        const expected_output = IRHelper.createTestIR();
-        const first_outputs = output_result.slice(0, expected_output.length);
+        const output_ir_size = output_result.slice(0, test_ir.length);
 
         // Verify.
-        console.assert(first_outputs.toString() === expected_output.toString(), "Expected: "+expected_output+" Received: "+first_outputs);
+        console.assert(output_ir_size.toString() === test_ir.toString(), "Expected: "+test_ir.toString()+" Received: "+output_ir_size.toString());
     }
 };
 
