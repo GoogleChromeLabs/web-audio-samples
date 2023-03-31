@@ -13,7 +13,6 @@ const atomicState = new Int32Array(
 
 let toggleButton = null;
 let audioContext = null;
-let worker = null;
 let isPlaying = false;
 
 /**
@@ -63,15 +62,17 @@ window.addEventListener('load', async () => {
   audioContext = await initializeAudio();
 
   // Create a WebWorker for Audio Processing.
-  worker = new Worker('worker.js', {type: 'module'});
+  const worker = new Worker('worker.js', {type: 'module'});
   worker.onerror = (event) => {
     console.log('[main.js] Error from worker.js: ', event);
   };
 
+  // For an actual audio file:
   // const irArray = await fetchAudioFileToF32Array(
   //   audioContext,
   //   '../../sounds/impulse-responses/cardiod-35-10-spread.wav');
 
+  // Or use the test IR (10 samples).
   const irArray = createTestIR();
 
   // Send FreeQueue instance and atomic state to worker.
