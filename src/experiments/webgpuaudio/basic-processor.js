@@ -1,6 +1,8 @@
 import FreeQueue from './lib/free-queue.js';
 import { FRAME_SIZE, RENDER_QUANTUM } from './constants.js';
 
+const ExpectedPrimingCount = FRAME_SIZE / RENDER_QUANTUM;
+
 /**
  * A simple AudioWorkletProcessor node.
  *
@@ -21,6 +23,8 @@ class BasicProcessor extends AudioWorkletProcessor {
     this.atomicState = options.processorOptions.atomicState;
     Object.setPrototypeOf(this.inputQueue, FreeQueue.prototype);
     Object.setPrototypeOf(this.outputQueue, FreeQueue.prototype);
+
+    this.primingCounter = 0;
   }
 
   /**
@@ -33,11 +37,16 @@ class BasicProcessor extends AudioWorkletProcessor {
     const input = inputs[0];
     const output = outputs[0];
 
-    // Pull processed audio data out of `outputQueue` and pass it in output.
-    // The first few pulls would fail because there's not enough data.
-    const didPull = this.outputQueue.pull(output, RENDER_QUANTUM);
-    if (!didPull) {
-      console.log('[basic-processor.js] Not enough data in outputQueue');
+    // The first |ExpectedPrimingCount| number of callbacks won't get any
+    // data from the queue because the it's empty.
+    if (this.primingCounter > ExpectedPrimingCount) {
+      // Pull processed audio data out of `outputQueue` and pass it in output.
+      const didPull = this.outputQueue.pull(output, RENDER_QUANTUM);
+      if (!didPull) {
+        console.log('[basic-processor.js] Not enough data in outputQueue');
+      }
+    } else {
+      this.primingCounter++;
     }
 
     // Store incoming audio data `input` into `inputQueue`.

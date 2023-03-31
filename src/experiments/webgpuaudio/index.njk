@@ -1,0 +1,26 @@
+---
+eleventyNavigation:
+  key: webgpuaudio
+  title: WebGPUAudio Experiment
+  parent: experiments
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<script src="./coi-serviceworker.js"></script>
+
+<h1>{{ eleventyNavigation.title }}</h1>
+
+<p>An experiment to use Web Audio API and WebGPU together to process audio
+  stream with GPU.</p>
+
+<div class="demo-box">
+  <button id="toggle-audio" disabled>START</button>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}

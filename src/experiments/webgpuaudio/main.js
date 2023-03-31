@@ -1,5 +1,5 @@
 import FreeQueue from './lib/free-queue.js'
-import { fetchAudioFileToF32Array } from './ir-helper.js';
+import { createTestIR, fetchAudioFileToF32Array } from './ir-helper.js';
 import { QUEUE_SIZE } from './constants.js';
 
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
@@ -19,7 +19,7 @@ let isPlaying = false;
  * Function to create and initialize AudioContext.
  * @returns {Promise<AudioContext>}
  */
-const createAudioContext = async () => {
+const initializeAudio = async () => {
   const audioContext = new AudioContext();
   await audioContext.audioWorklet.addModule('./basic-processor.js');
 
@@ -37,7 +37,7 @@ const createAudioContext = async () => {
   oscillatorNode.connect(processorNode).connect(audioContext.destination);
   oscillatorNode.start();
 
-  console.log('[main.js] createAudioContext()');
+  console.log('[main.js] initializeAudio()');
   return audioContext;
 };
 
@@ -47,21 +47,6 @@ const createAudioContext = async () => {
  * It toggles audio state between playing and paused.
  */
 const toggleButtonClickHandler = async () => {
-  if (!audioContext) {
-    try {
-      audioContext = await createAudioContext();
-    } catch(error) {
-      // If AudioContext creation fails, disable toggle button and
-      // log error to console
-      toggleButton.disabled = true;
-      console.error(error);
-      return;
-    }
-  }
-
-  // If the audio is currently not playing, then on button click resume 
-  // playing audio, otherwise if the audio is playing then on button click
-  // suspend playing.
   if (!isPlaying) {
     audioContext.resume();
     isPlaying = true;
@@ -73,15 +58,22 @@ const toggleButtonClickHandler = async () => {
   }
 };
 
-window.addEventListener('load', () => {
-  toggleButton = document.getElementById('toggle-audio');
-  toggleButton.onclick = toggleButtonClickHandler;
+window.addEventListener('load', async () => {
+  audioContext = await initializeAudio();
 
   // Create a WebWorker for Audio Processing.
   const worker = new Worker('worker.js', {type: 'module'});
   worker.onerror = (event) => {
     console.log('[main.js] Error from worker.js: ', event);
   };
+
+  // For an actual audio file:
+  // const irArray = await fetchAudioFileToF32Array(
+  //   audioContext,
+  //   '../../sounds/impulse-responses/cardiod-35-10-spread.wav');
+
+  // Or use the test IR (10 samples).
+  const irArray = createTestIR();
 
   // Send FreeQueue instance and atomic state to worker.
   worker.postMessage({
@@ -90,8 +82,13 @@ window.addEventListener('load', () => {
       inputQueue,
       outputQueue,
       atomicState,
+      irArray
     }
   });
 
+  toggleButton = document.getElementById('toggle-audio');
+  toggleButton.onclick = toggleButtonClickHandler;
   toggleButton.disabled = false;
+
+  console.log('[main.js] window onloaded');
 });
