@@ -34,11 +34,11 @@ class TestProcessor {
 
         // Parse outputs.
         const output_ir_size = output_result.slice(0, test_ir.length);
-        const assert_equal = output_ir_size.toString() === test_ir.toString();
+        const assert_outputs = output_ir_size.toString() === test_ir.toString();
 
         // Verify.
-        console.assert(assert_equal, "Test: testConvolution, Expected output: ["+test_ir.toString()+"] \nReceived output: ["+output_ir_size.toString()+"].\n", "See TestProcessor.testConvolution() in test_processor.js for more information.");
-        return assert_equal;
+        console.assert(assert_outputs, "Test: testConvolution, Expected output: ["+test_ir.toString()+"] \nReceived output: ["+output_ir_size.toString()+"].\n", "See TestProcessor.testConvolution() in test_processor.js for more information.");
+        return assert_outputs;
     }
 };
 
