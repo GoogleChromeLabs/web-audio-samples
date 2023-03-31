@@ -1,6 +1,5 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
-import { createTestIR } from "./ir-helper.js"
 import { FRAME_SIZE } from "./constants.js";
 
 // Harmful globals
@@ -9,6 +8,7 @@ let outputQueue = null;
 let atomicState = null;
 let gpuProcessor = null;
 let inputBuffer = null;
+let irArray = null;
 
 // Performance metrics
 let lastCallback = 0;
@@ -20,6 +20,7 @@ const initialize = async (messageDataFromMainThread) => {
   inputQueue = messageDataFromMainThread.inputQueue;
   outputQueue = messageDataFromMainThread.outputQueue;
   atomicState = messageDataFromMainThread.atomicState;
+  irArray = messageDataFromMainThread.irArray;
   Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
   Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
@@ -28,7 +29,7 @@ const initialize = async (messageDataFromMainThread) => {
 
   // Create an instance of GPUProcessor and provide an IR array.
   gpuProcessor = new GPUProcessor();
-  gpuProcessor.setIRArray(createTestIR());
+  gpuProcessor.setIRArray(irArray);
   await gpuProcessor.initialize();
 
   console.log('[worker.js] initialize()');
@@ -62,12 +63,17 @@ const process = async () => {
 };
 
 self.onmessage = async (message) => {
+  console.log('[worker.js] onmessage: ' + message.data.type);
+
   if (message.data.type !== 'init') {
     console.error(`[worker.js] Invalid message type: ${message.data.type}`);
     return;
   }
 
   await initialize(message.data.data);
+
+  // This loop effectively disables the interaction (postMessage) with the
+  // main thread once it kicks off.
   while (Atomics.wait(atomicState, 0, 0) === 'ok') {
     await process();
     Atomics.store(atomicState, 0, 0);
