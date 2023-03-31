@@ -131,9 +131,20 @@ class GPUProcessor {
 
   processConvolution = async(input) => {
     // INPUT
+    console.log(input.length)
+    let modified_input = new Float32Array(input.length + this._irArray.length);
+    for(let i = 0; i < modified_input.length; i++) {
+        if(i < input.length) {
+            modified_input[i] = input[i];
+        } else {
+            modified_input[i] = 0;
+        }
+    }
+    console.log(modified_input);
+
     const inputDataBuffer = this.device.createBuffer({
         mappedAtCreation: true,
-        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        size: modified_input.length * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.STORAGE
     });
     const inputArrayBuffer = inputDataBuffer.getMappedRange();
@@ -151,7 +162,7 @@ class GPUProcessor {
 
     // COMPUTE
     const gpuComputeBuffer = this.device.createBuffer({
-        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        size: modified_input.length * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
     });
     gpuComputeBuffer.unmap();
@@ -159,7 +170,7 @@ class GPUProcessor {
     const computeModule = this.device.createShaderModule({
         code: `
           @group(0) @binding(0)
-          var<storage, read> input_music: array<f32>;
+          var<storage, read_write> input_music: array<f32>;
 
           @group(0) @binding(1)
           var<storage, read> impulse: array<f32>;
@@ -174,16 +185,11 @@ class GPUProcessor {
                 return;
             }
 
-            if(arrayLength(&impulse) > arrayLength(&input_music)) {
-                return;
-            }
-
             for(var i = 0u; i < arrayLength(&input_music); i = i + 1u) {
-                var result = 0.0;
+                output[i] = 0.0;
                 for(var j = 0u; j < arrayLength(&impulse); j = j + 1u) {
-                    result = result + input_music[i - j] * impulse[j];
+                    output[i] = output[i] + input_music[i - j] * impulse[j];
                 }
-                output[i] = result;
             }
           }
         `,
@@ -226,12 +232,12 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    const workgroup_size = Math.ceil(FRAME_SIZE / this._irArray.length);
+    const workgroup_size = Math.ceil(modified_input.length / this._irArray.length);
     computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 
     const gpuReadBuffer = this.device.createBuffer({
-        size: FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT,
+        size: modified_input.length * Float32Array.BYTES_PER_ELEMENT,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
     });
       
@@ -251,6 +257,7 @@ class GPUProcessor {
     // --------------READ STAGE-----------------
     await gpuReadBuffer.mapAsync(GPUMapMode.READ);
     const copyArrayBuffer = gpuReadBuffer.getMappedRange();
+    console.log(new Float32Array(copyArrayBuffer));
     return new Float32Array(copyArrayBuffer);
   }
 };
