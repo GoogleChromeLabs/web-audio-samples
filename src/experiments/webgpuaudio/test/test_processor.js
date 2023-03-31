@@ -21,7 +21,7 @@ class TestProcessor {
      * @returns {boolean}
      */
   async testConvolution() {
-    console.log('[test_processor.js] testConvolution()');
+    console.log('[test_processor.js] Running: testConvolution()');
     const test_ir = createTestIR();
     let gpuProcessor = new GPUProcessor();
     gpuProcessor.setIRArray(test_ir);
@@ -41,7 +41,9 @@ class TestProcessor {
     const asserted_output = output_ir_size.toString() === test_ir.toString();
     console.assert(asserted_output,  "Expected: [" + test_ir.toString() +
                    "]\n Actual: [" + output_ir_size.toString()+"].\n",
-                   "See TestProcessor.testConvolution() in test_processor.js for more info");
+                   "See TestProcessor.testConvolution() in test_processor.js for more info.");
+    console.log('[test_processor.js] Complete: testConvolution()');
+    return asserted_output;
   }
 };
 
