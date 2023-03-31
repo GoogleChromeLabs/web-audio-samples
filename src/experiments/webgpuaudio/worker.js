@@ -1,6 +1,6 @@
 import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
-import IRHelper from "./ir-helper.js"
+import { createTestIR } from "./ir-helper.js"
 import { FRAME_SIZE, TEST_MODE } from "./constants.js";
 import TestProcessor from "./test/test_processor.js"
 
@@ -29,10 +29,10 @@ const initialize = async (messageDataFromMainThread) => {
 
   // Create an instance of GPUProcessor and provide an IR array.
   gpuProcessor = new GPUProcessor();
-  gpuProcessor.setIRArray(IRHelper.createTestIR());
+  gpuProcessor.setIRArray(createTestIR());
   await gpuProcessor.initialize();
 
-  if(TEST_MODE) {
+  if (TEST_MODE) {
     let testProcessor = new TestProcessor();
     await testProcessor.testConvolution();
   }
