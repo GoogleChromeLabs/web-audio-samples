@@ -2,7 +2,7 @@
 export const RENDER_QUANTUM = 128;
 
 // The size multiplier for the batch processing frame size.
-export const KERNEL_LENGTH = 20;
+export const KERNEL_LENGTH = 10;
 
 // The actual batch processing frame size used in Worker.
 export const FRAME_SIZE = KERNEL_LENGTH * RENDER_QUANTUM;

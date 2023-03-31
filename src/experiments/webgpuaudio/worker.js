@@ -42,18 +42,22 @@ const process = async () => {
     return;
   }
 
-  // Process convolution.
-  const output = await gpuProcessor.processConvolution(inputBuffer);
-  outputQueue.push([output], FRAME_SIZE);
+  // Process convolution
+  // const output = await gpuProcessor.processConvolution(inputBuffer);
+  // outputQueue.push([output], FRAME_SIZE);
+
+  // Bypassing example:
+  outputQueue.push([inputBuffer], FRAME_SIZE);
 
   // Rolling average of process() time.
   const timeSpent = performance.now() - processStart;
   averageTimeSpent -= averageTimeSpent / 20;
   averageTimeSpent += timeSpent / 20;
 
-  console.log(`[worker.js] process() = ${timeSpent.toFixed(2)}ms : ` +
-              `avg = ${averageTimeSpent.toFixed(2)}ms : ` +
-              `interval = ${(processStart - lastCallback).toFixed(2)}ms`);
+  console.log(
+      `[worker.js] process() = ${timeSpent.toFixed(3)}ms : ` +
+      `avg = ${averageTimeSpent.toFixed(3)}ms : ` +
+      `callback interval = ${(processStart - lastCallback).toFixed(3)}ms`);
   lastCallback = processStart;
 };
 
