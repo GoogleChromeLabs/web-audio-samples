@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WebGPUAudio Tests</title>
+    <!-- <script src="./coi-serviceworker.js"></script> -->
+  </head>
+  <style>
+    table, th, td {
+      border:1px solid black;
+    }
+    #cross {
+        color: #ff0000;
+    }
+    #check {
+        color: #108A35;
+    }
+    #idle {
+        color: #7B4D0B;
+    }
+    </style>
+  <body>
+    <p>Please click on the test button below to run individual tests. Failures will show up in console</p>
+    <table>
+        <tr>
+            <th>Test Name</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>
+              <button id="test-gpu-convolution" disabled>Test GPUConvolution using Impulse</button>
+            </td>
+            <td>
+              <div class="test-gpu-convolution">
+                <span id="idle"> Not run. </span>
+                <span id="cross" hidden>&#10060 Failed. See console for more information.</span>
+                <span id="check" hidden>&#9989; Passed!</span>
+              </div>
+            </td>
+        </tr>
+    </table>
+    <script type="module" src="./test_page_handler.js"></script>
+  </body>
+</html>

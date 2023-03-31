@@ -13,6 +13,3 @@ export const QUEUE_SIZE = 4096;
 
 // WebGPU parallelization parameter
 export const WORKGROUP_SIZE = 4;
-
-// Set to true to run tests defined in test_processor.js
-export let TEST_MODE = false;

@@ -15,7 +15,9 @@ class GPUProcessor {
 
   initialize = async () => {
     if(!navigator.gpu) {
-      console.log("Please enable WebGPU");
+      console.error("Turns out WebGPU is not enabled. Please use a channel"+
+      " of Chrome like Canary/Dev that supports WebGPU, or turn on the "+
+      "#enable-webgpu-developer-features flag.");
       return;
     }
 
