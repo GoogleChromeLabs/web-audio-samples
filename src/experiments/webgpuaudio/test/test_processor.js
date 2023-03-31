@@ -26,6 +26,9 @@ class TestProcessor {
     let gpuProcessor = new GPUProcessor();
     gpuProcessor.setIRArray(test_ir);
     await gpuProcessor.initialize();
+    if(!navigator.gpu) {
+        return;
+    }
 
     // Create impulse function.
     const input = new Float32Array(20);
