@@ -131,7 +131,7 @@ class GPUProcessor {
 
   processConvolution = async(input) => {
     // INPUT
-    console.log(input.length)
+    console.log(input);
     let modified_input = new Float32Array(input.length + this._irArray.length);
     for(let i = 0; i < modified_input.length; i++) {
         if(i < input.length) {
@@ -148,7 +148,7 @@ class GPUProcessor {
         usage: GPUBufferUsage.STORAGE
     });
     const inputArrayBuffer = inputDataBuffer.getMappedRange();
-    new Float32Array(inputArrayBuffer).set(input);
+    new Float32Array(inputArrayBuffer).set(modified_input);
     inputDataBuffer.unmap();
 
     const gpuImpulseBuffer = this.device.createBuffer({
@@ -170,7 +170,7 @@ class GPUProcessor {
     const computeModule = this.device.createShaderModule({
         code: `
           @group(0) @binding(0)
-          var<storage, read_write> input_music: array<f32>;
+          var<storage, read_write> input: array<f32>;
 
           @group(0) @binding(1)
           var<storage, read> impulse: array<f32>;
@@ -180,15 +180,15 @@ class GPUProcessor {
 
           @compute @workgroup_size(${this._irArray.length})
           fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
-            if(global_id.x > arrayLength(&input_music) - 1) {
+            if(global_id.x > arrayLength(&input) - 1) {
                 // Out of bounds.
                 return;
             }
 
-            for(var i = 0u; i < arrayLength(&input_music); i = i + 1u) {
+            for(var i = 0u; i < arrayLength(&input) - 1; i = i + 1u) {
                 output[i] = 0.0;
                 for(var j = 0u; j < arrayLength(&impulse); j = j + 1u) {
-                    output[i] = output[i] + input_music[i - j] * impulse[j];
+                    output[i] = output[i] + input[i - j] * impulse[j];
                 }
             }
           }
@@ -247,7 +247,7 @@ class GPUProcessor {
         0 /* source offset */,
         gpuReadBuffer /* destination buffer */,
         0 /* destination offset */,
-        FRAME_SIZE * Float32Array.BYTES_PER_ELEMENT
+        modified_input.length * Float32Array.BYTES_PER_ELEMENT
     );
 
     // Submit copy commands.
@@ -257,7 +257,6 @@ class GPUProcessor {
     // --------------READ STAGE-----------------
     await gpuReadBuffer.mapAsync(GPUMapMode.READ);
     const copyArrayBuffer = gpuReadBuffer.getMappedRange();
-    console.log(new Float32Array(copyArrayBuffer));
     return new Float32Array(copyArrayBuffer);
   }
 };

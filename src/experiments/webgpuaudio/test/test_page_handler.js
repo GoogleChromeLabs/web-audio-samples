@@ -37,7 +37,9 @@ import TestProcessor from "./test_processor.js"
  */
 
 let convolutionTestButton = null;
+let randomConvButton = null;
 let convolutionTestElements = [];
+let randomConvTestElements = [];
 let testProcessor = new TestProcessor();
 
 function populateTestResult(tableStatusElements, testPassed) {
@@ -63,9 +65,21 @@ const toggleConvolutionTestHandler = async() => {
     convolutionTestButton.disabled = false;
 };
 
+const toggleRandomConvTestHandler = async() => {
+    randomConvButton.disabled = true;
+    let testPassed = await testProcessor.testRandomConvolution();
+    populateTestResult(randomConvTestElements, testPassed);
+    randomConvButton.disabled = false;
+};
+
 window.addEventListener('load', () => {
     convolutionTestButton = document.getElementById('test-gpu-convolution');
     convolutionTestElements = document.getElementsByClassName('test-gpu-convolution')[0].childNodes;
     convolutionTestButton.onclick = toggleConvolutionTestHandler;
     convolutionTestButton.disabled = false;
+
+    randomConvButton = document.getElementById('test-random-convolution');
+    randomConvTestElements = document.getElementsByClassName('test-random-convolution')[0].childNodes;
+    randomConvButton.onclick = toggleRandomConvTestHandler;
+    randomConvButton.disabled = false;
 })

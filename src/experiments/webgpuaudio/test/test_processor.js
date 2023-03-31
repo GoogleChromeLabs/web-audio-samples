@@ -49,6 +49,32 @@ class TestProcessor {
     console.log('[test_processor.js] Complete: testConvolution()');
     return asserted_output;
   }
+
+  async testRandomConvolution() {
+    console.log('[test_processor.js] Running: testRandomConvolution()');
+    let gpuProcessor = new GPUProcessor();
+    gpuProcessor.setIRArray([1.1, 0.9, 0.2, 0.3, 0.4, 0.5, 1.4]);
+    await gpuProcessor.initialize();
+    if(!navigator.gpu) {
+        return;
+    }
+
+    // Create impulse function.
+    const input = new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2]);
+
+    // Process convolution.
+    const output_result = await gpuProcessor.processConvolution(input);
+
+    // Parse outputs.
+    const expected_output = new Float32Array([0.11,0.31,0.53,0.78,1.07,1.41,1.89,2.37,2.85,3.33,3.81,4.29,3.34,2.54,2.56,2.43,2.14,1.68]);
+
+    // Verify.
+    const asserted_output = expected_output.toString() === output_result.toString();
+    console.assert(asserted_output,  "Expected: [" + expected_output.toString() +
+                   "]\n Actual: [" + output_result.toString()+"].\n",
+                   "See TestProcessor.testRandomConvolution() in test_processor.js for more info.");
+    console.log('[test_processor.js] Complete: testRandomConvolution()');
+  }
 };
 
 export default TestProcessor;
