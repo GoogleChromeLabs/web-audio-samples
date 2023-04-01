@@ -75,8 +75,8 @@ self.onmessage = async (message) => {
     if (Atomics.wait(atomicState, 0, 1) === 'ok') {
       const processStart = performance.now();
       const callbackInterval = processStart - lastCallback;
-      timeElapsed += callbackInterval;
       lastCallback = processStart;
+      timeElapsed += callbackInterval;
 
       // Processes "frames" from inputQueue and pass the result to outputQueue.
       await process();

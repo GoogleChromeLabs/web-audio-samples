@@ -114,6 +114,7 @@ class FreeQueue {
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableWrite(currentRead, currentWrite) < blockLength) {
+      this.printAvailableReadAndWrite();
       return false;
     }
     let nextWrite = currentWrite + blockLength;
@@ -150,6 +151,7 @@ class FreeQueue {
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableRead(currentRead, currentWrite) < blockLength) {
+      this.printAvailableReadAndWrite();
       return false;
     }
     let nextRead = currentRead + blockLength;
@@ -196,15 +198,16 @@ class FreeQueue {
 
   // Returns the number of writable space. 
   _getAvailableWrite(readIndex, writeIndex) {
-    if (writeIndex >= readIndex)
-        return this.bufferLength - writeIndex + readIndex - 1;
-    return readIndex - writeIndex - 1;
+    return (writeIndex >= readIndex)
+        ? this.bufferLength - writeIndex + readIndex - 1
+        : readIndex - writeIndex - 1;
   }
 
   // Returns the number of readable frames. 
   _getAvailableRead(readIndex, writeIndex) {
-    if (writeIndex >= readIndex) return writeIndex - readIndex;
-    return writeIndex + this.bufferLength - readIndex;
+    return (writeIndex >= readIndex)
+        ? writeIndex - readIndex
+        : writeIndex + this.bufferLength - readIndex;
   }
 
   _reset() {
