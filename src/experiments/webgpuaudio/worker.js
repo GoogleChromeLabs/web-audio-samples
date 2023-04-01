@@ -2,25 +2,25 @@ import FreeQueue from "./lib/free-queue.js";
 import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
 
-// Harmful globals
 let inputQueue = null;
 let outputQueue = null;
 let atomicState = null;
 let gpuProcessor = null;
 let inputBuffer = null;
 let irArray = null;
+let sampleRate = null;
 
 // Performance metrics
 let lastCallback = 0;
 let averageTimeSpent = 0;
+let timeElapsed = 0;
+let runningAverageFactor = 1;
 
 // This will initialize worker with FreeQueue instance and set loop for audio
 // processing.
 const initialize = async (messageDataFromMainThread) => {
-  inputQueue = messageDataFromMainThread.inputQueue;
-  outputQueue = messageDataFromMainThread.outputQueue;
-  atomicState = messageDataFromMainThread.atomicState;
-  irArray = messageDataFromMainThread.irArray;
+  ({inputQueue, outputQueue, atomicState, irArray, sampleRate} 
+      = messageDataFromMainThread);
   Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
   Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
@@ -32,34 +32,31 @@ const initialize = async (messageDataFromMainThread) => {
   gpuProcessor.setIRArray(irArray);
   await gpuProcessor.initialize();
 
+  // How many "frames" gets processed over 1 second (1000ms)?
+  runningAverageFactor = sampleRate / FRAME_SIZE;
+
   console.log('[worker.js] initialize()');
 };
 
 const process = async () => {
-  const processStart = performance.now();
-  
   if (!inputQueue.pull([inputBuffer], FRAME_SIZE)) {
     console.error('[worker.js] Pulling from inputQueue failed.');
     return;
   }
 
-  // Process convolution
-  // const output = await gpuProcessor.processConvolution(inputBuffer);
-  // outputQueue.push([output], FRAME_SIZE);
+  // 0. Bypass, no GPU involved.
+  const outputBuffer = inputBuffer;
 
-  // Bypassing example:
-  outputQueue.push([inputBuffer], FRAME_SIZE);
+  // 1. Bypass via GPU
+  // const outputBuffer = await gpuProcessor.processInputAndReturn(inputBuffer);
 
-  // Rolling average of process() time.
-  const timeSpent = performance.now() - processStart;
-  averageTimeSpent -= averageTimeSpent / 20;
-  averageTimeSpent += timeSpent / 20;
+  // 2. Convolution via GPU
+  // const outputBuffer = await gpuProcessor.processConvolution(inputBuffer);
 
-  console.log(
-      `[worker.js] process() = ${timeSpent.toFixed(3)}ms : ` +
-      `avg = ${averageTimeSpent.toFixed(3)}ms : ` +
-      `callback interval = ${(processStart - lastCallback).toFixed(3)}ms`);
-  lastCallback = processStart;
+  if (!outputQueue.push([outputBuffer], FRAME_SIZE)) {
+    console.error('[worker.js] Pushing to outputQueue failed.');
+    return;
+  }
 };
 
 self.onmessage = async (message) => {
@@ -76,7 +73,28 @@ self.onmessage = async (message) => {
   // main thread once it kicks off.
   while (true) {
     if (Atomics.wait(atomicState, 0, 1) === 'ok') {
+      const processStart = performance.now();
+      const callbackInterval = processStart - lastCallback;
+      timeElapsed += callbackInterval;
+      lastCallback = processStart;
+
+      // Processes "frames" from inputQueue and pass the result to outputQueue.
       await process();
+
+      // Approximate running average of process() time.
+      const timeSpent = performance.now() - processStart;
+      averageTimeSpent -= averageTimeSpent / runningAverageFactor;
+      averageTimeSpent += timeSpent / runningAverageFactor;
+
+      // Throttle the log by 1 second.
+      if (timeElapsed >= 1000) {
+        console.log(
+          `[worker.js] process() = ${timeSpent.toFixed(3)}ms : ` +
+          `avg = ${averageTimeSpent.toFixed(3)}ms : ` +
+          `callback interval = ${(callbackInterval).toFixed(3)}ms`);  
+        timeElapsed -= 1000;
+      }
+
       Atomics.store(atomicState, 0, 0);
     }
   }
