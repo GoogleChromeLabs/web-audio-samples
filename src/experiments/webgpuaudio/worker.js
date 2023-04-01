@@ -74,9 +74,11 @@ self.onmessage = async (message) => {
 
   // This loop effectively disables the interaction (postMessage) with the
   // main thread once it kicks off.
-  while (Atomics.wait(atomicState, 0, 0) === 'ok') {
-    await process();
-    Atomics.store(atomicState, 0, 0);
+  while (true) {
+    if (Atomics.wait(atomicState, 0, 1) === 'ok') {
+      await process();
+      Atomics.store(atomicState, 0, 0);
+    }
   }
 };
 
