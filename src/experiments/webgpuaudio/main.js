@@ -8,9 +8,8 @@ const inputQueue = new FreeQueue(QUEUE_SIZE, 1);
 const outputQueue = new FreeQueue(QUEUE_SIZE, 1);
 
 // Create an atomic state for synchronization between Worker and AudioWorklet.
-const atomicState = new Int32Array(
-    new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT)
-);
+const atomicState = 
+    new Int32Array(new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT));
 
 let audioContext = null;
 let worker = null;
@@ -51,8 +50,12 @@ const initializeWorkerIfNecessary = async () => {
     return;
   }
 
+  console.assert(audioContext);
+
+  // When the file path is `TEST` generates a test IR (10 samples). See
+  // `assets.js` for details.
   const filePath = impulseResponseSelect.value;
-  const irArray = (filePath === 'TEST') 
+  const irArray = (filePath === 'TEST')
       ? createTestIR()
       : await fetchAudioFileToF32Array(audioContext, filePath);
 
@@ -63,7 +66,8 @@ const initializeWorkerIfNecessary = async () => {
       inputQueue,
       outputQueue,
       atomicState,
-      irArray
+      irArray,
+      sampleRate: audioContext.sampleRate,
     }
   });
 
@@ -74,21 +78,18 @@ const initializeWorkerIfNecessary = async () => {
   isWorkerInitialized = true;
 };
 
-/**
- * Function to run, when toggle button is clicked.
- * It creates AudioContext, first time button is clicked.
- * It toggles audio state between playing and paused.
- */
+
+// Handles `button` click. It toggles the state between playing and suspended.
 const toggleButtonClickHandler = async () => {
   if (!isPlaying) {
     initializeWorkerIfNecessary();
     audioContext.resume();
     isPlaying = true;
-    toggleButton.innerHTML = 'STOP';
+    toggleButton.textContent = 'STOP';
   } else {
     audioContext.suspend();
     isPlaying = false;
-    toggleButton.innerHTML = 'START';
+    toggleButton.textContent = 'START';
   }
 };
 
@@ -111,6 +112,7 @@ window.addEventListener('load', async () => {
   });
   impulseResponseSelect.disabled = false;
 
+  // Handle `button` with toggle logic.
   toggleButton = document.getElementById('toggle-audio');
   toggleButton.onclick = toggleButtonClickHandler;
   toggleButton.disabled = false;
