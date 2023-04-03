@@ -44,11 +44,12 @@ const process = async () => {
     return;
   }
 
-  // 0. Bypass, no GPU involved.
-  const outputBuffer = inputBuffer;
+  // Process input and return with GPU.
+  const output = await gpuProcessor.processInputAndReturn(inputBuffer);
+  outputQueue.push([output], FRAME_SIZE);
 
-  // 1. Bypass via GPU
-  // const outputBuffer = await gpuProcessor.processInputAndReturn(inputBuffer);
+  // Bypassing example:
+  // outputQueue.push([inputBuffer], FRAME_SIZE);
 
   // 2. Convolution via GPU
   // const outputBuffer = await gpuProcessor.processConvolution(inputBuffer);

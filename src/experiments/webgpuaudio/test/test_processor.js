@@ -36,6 +36,7 @@ class TestProcessor {
 
     // Process convolution.
     const output_result = await gpuProcessor.processConvolution(input);
+    console.log(output_result);
 
     // Parse outputs.
     const output_ir_size = output_result.slice(0, test_ir.length);
