@@ -47,6 +47,10 @@ const process = async () => {
   const output = await gpuProcessor.processInputAndReturn(inputBuffer);
   outputQueue.push([output], FRAME_SIZE);
 
+  // Process convolution with GPU.
+  // const output = await gpuProcessor.processConvolution(inputBuffer);
+  // outputQueue.push([output], FRAME_SIZE);
+
   // Bypassing example:
   // outputQueue.push([inputBuffer], FRAME_SIZE);
 
