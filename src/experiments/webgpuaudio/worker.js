@@ -43,12 +43,12 @@ const process = async () => {
     return;
   }
 
-  // Process convolution
-  // const output = await gpuProcessor.processConvolution(inputBuffer);
-  // outputQueue.push([output], FRAME_SIZE);
+  // Process input and return with GPU.
+  const output = await gpuProcessor.processInputAndReturn(inputBuffer);
+  outputQueue.push([output], FRAME_SIZE);
 
   // Bypassing example:
-  outputQueue.push([inputBuffer], FRAME_SIZE);
+  // outputQueue.push([inputBuffer], FRAME_SIZE);
 
   // Rolling average of process() time.
   const timeSpent = performance.now() - processStart;

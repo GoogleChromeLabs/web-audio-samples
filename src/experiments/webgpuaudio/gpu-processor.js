@@ -178,7 +178,7 @@ class GPUProcessor {
           @group(0) @binding(2)
           var<storage, read_write> output: array<f32>;
 
-          @compute @workgroup_size(${this._irArray.length})
+          @compute @workgroup_size(256)
           fn convolute(@builtin(global_invocation_id) global_id : vec3<u32>) {
             if(global_id.x > arrayLength(&input) - 1) {
                 // Out of bounds.
@@ -232,7 +232,7 @@ class GPUProcessor {
     const computePass = commandEncoder.beginComputePass();
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup);
-    const workgroup_size = Math.ceil(modified_input.length / this._irArray.length);
+    const workgroup_size = Math.ceil(modified_input.length / 256);
     computePass.dispatchWorkgroups(workgroup_size);
     computePass.end();
 
