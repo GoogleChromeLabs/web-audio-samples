@@ -18,7 +18,7 @@ const Assets = [
     path: IRDirPath + 'spatialized2.wav',
   },
   {
-    label: 'Spatialized',
+    label: 'Test IR (10 samples)',
     path: 'TEST',
   }
 ];
