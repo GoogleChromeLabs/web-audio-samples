@@ -58,7 +58,8 @@ class BasicProcessor extends AudioWorkletProcessor {
     // Notify worker.js if `inputQueue` has enough data to perform the batch
     // processing of FRAME_SIZE.
     if (this.inputQueue.hasEnoughFramesFor(FRAME_SIZE)) {
-      Atomics.notify(this.atomicState, 0, 1);
+      Atomics.store(this.atomicState, 0, 1);
+      Atomics.notify(this.atomicState, 0);
     }
 
     return true;
