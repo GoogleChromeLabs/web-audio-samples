@@ -1,70 +1,121 @@
 import FreeQueue from './lib/free-queue.js'
+import { createTestIR, fetchAudioFileToF32Array } from './ir-helper.js';
 import { QUEUE_SIZE } from './constants.js';
+import Assets from './assets.js';
 
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
 const inputQueue = new FreeQueue(QUEUE_SIZE, 1);
 const outputQueue = new FreeQueue(QUEUE_SIZE, 1);
 
-// Create an atomic state for synchronization between worker and AudioWorklet.
-const atomicState =
+// Create an atomic state for synchronization between Worker and AudioWorklet.
+const atomicState = 
     new Int32Array(new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT));
 
 let audioContext = null;
-let audioWorker = null;
+let worker = null;
+let isWorkerInitialized = false;
 
+let toggleButton = null;
 let isPlaying = false;
-let startButton = null;
-let stopButton = null;
+let impulseResponseSelect = null;
 
-const startAudioPipeline = async () => {
-  audioContext = new AudioContext();
-  await audioContext.audioWorklet.addModule('./bypass-processor.js');
+/**
+ * Function to create and initialize AudioContext.
+ * @returns {Promise<AudioContext>}
+ */
+const initializeAudio = async () => {
+  const audioContext = new AudioContext();
+  await audioContext.audioWorklet.addModule('./basic-processor.js');
+
+  const oscillatorNode = new OscillatorNode(audioContext);
+  const processorNode = new AudioWorkletNode(audioContext, 'basic-processor', {
+    processorOptions: {inputQueue, outputQueue, atomicState}
+  });
+  
+  // Initially suspend the context to prevent the renderer from hammering the
+  // Worker.
   audioContext.suspend();
 
-  const oscillator = new OscillatorNode(audioContext);
-  const processorNode =
-      new AudioWorkletNode(audioContext, 'bypass-processor', {
-        processorOptions: {
-          inputQueue,
-          outputQueue,
-          atomicState
-        }
-      });
-  oscillator.connect(processorNode).connect(audioContext.destination);
-  oscillator.start();
+  // Form an audio graph and start the source. When the renderer is resumed,
+  // the pipeline will be flowing.
+  oscillatorNode.connect(processorNode).connect(audioContext.destination);
+  oscillatorNode.start();
 
-  audioWorker = new Worker('worker.js', {type: 'module'});
-  audioWorker.postMessage({
+  console.log('[main.js] initializeAudio()');
+  return audioContext;
+};
+
+const initializeWorkerIfNecessary = async () => {
+  if (isWorkerInitialized) {
+    return;
+  }
+
+  console.assert(audioContext);
+
+  // When the file path is `TEST` generates a test IR (10 samples). See
+  // `assets.js` for details.
+  const filePath = impulseResponseSelect.value;
+  const irArray = (filePath === 'TEST')
+      ? createTestIR()
+      : await fetchAudioFileToF32Array(audioContext, filePath);
+
+  // Send FreeQueue instance and atomic state to worker.
+  worker.postMessage({
     type: 'init',
     data: {
       inputQueue,
       outputQueue,
-      atomicState
+      atomicState,
+      irArray,
+      sampleRate: audioContext.sampleRate,
     }
   });
+
+  // console.assert(irArray instanceof Float32Array);
+  console.log('[main.js] initializeWorkerIfNecessary(): ' + filePath);
+
+  impulseResponseSelect.disabled = true;
+  isWorkerInitialized = true;
 };
 
-const onWindowLoaded = async () => {
-  await startAudioPipeline();
 
-  startButton = document.querySelector('#start-audio');
-  stopButton = document.querySelector('#stop-audio');
-  startButton.disabled = false;
-
-  startButton.onclick = async () => {
-    startButton.disabled = true;
-    await audioContext.resume();
-    stopButton.disabled = false;
-  };
-
-  stopButton.onclick = async () => {    
-    stopButton.disabled = true;
-    await audioContext.suspend();
-    startButton.disabled = false;
-  };
-
-  console.log(`[trace] onWindowLoaded`);
+// Handles `button` click. It toggles the state between playing and suspended.
+const toggleButtonClickHandler = async () => {
+  if (!isPlaying) {
+    initializeWorkerIfNecessary();
+    audioContext.resume();
+    isPlaying = true;
+    toggleButton.textContent = 'STOP';
+  } else {
+    audioContext.suspend();
+    isPlaying = false;
+    toggleButton.textContent = 'START';
+  }
 };
 
-window.addEventListener('load', onWindowLoaded);
-console.log('[trace] main.js parsed');
+window.addEventListener('load', async () => {
+  audioContext = await initializeAudio();
+
+  // Create a WebWorker for Audio Processing.
+  worker = new Worker('worker.js', {type: 'module'});
+  worker.onerror = (event) => {
+    console.log('[main.js] Error from worker.js: ', event);
+  };
+
+  // Handle `select` menu for IRs.
+  impulseResponseSelect = document.getElementById('select-impulse-response');
+  Assets.forEach((asset) => {
+    const optionEl = document.createElement('option');
+    optionEl.value = asset.path;
+    optionEl.textContent = asset.label;
+    impulseResponseSelect.appendChild(optionEl);
+  });
+  impulseResponseSelect.disabled = false;
+
+  // Handle `button` with toggle logic.
+  toggleButton = document.getElementById('toggle-audio');
+  toggleButton.onclick = toggleButtonClickHandler;
+  toggleButton.disabled = false;
+
+  console.log('[main.js] window onloaded');
+});
