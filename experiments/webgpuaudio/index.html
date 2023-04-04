@@ -1,16 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>WebGPUAudio Live Demo</title>
-    <!-- <link rel="stylesheet" href="./style.css" /> -->
-    <script src="./coi-serviceworker.js"></script>
+    <title>
+      WebGPUAudio Experiment | Web Audio Samples
+    </title>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
+    <link rel="stylesheet" href="../../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
   </head>
   <body>
-    <h1>Hello WebGPUAudio!</h1>
-    <p>Write some stuff here.</p>
-    <button id="toggle-audio" disabled>START</button>
-    <script type="module" src="./main.js"></script>
+
+    <div>
+      <div id="header" class="py-12">
+        
+          <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+            
+
+<div class="flex pb-3">
+  
+    <div class="mr-2">
+      <a href="../..">
+        Home
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+    <div class="mr-2">
+      <a href="..">
+        Experiments
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
+  <div>
+    WebGPUAudio Experiment
+  </div>
+</div>
+
+          </div>
+        
+      </div>
+    
+      <div id="content">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          
+
+<script src="./coi-serviceworker.js"></script>
+
+<h1>WebGPUAudio Experiment</h1>
+
+<p>An experiment to use Web Audio API and WebGPU together to process audio
+  stream with GPU.</p>
+
+<div class="demo-box">
+  <div class="p-3 mb-2 bg-slate-100 w-1/2 rounded text-sm">
+    <label for="type" class="mr-1">Impulse Response</label>
+    <select name="type" id="select-impulse-response"
+            class="p-1 rounded font-semibold" disabled>
+    </select>
+  </div>
+  <button id="toggle-audio" disabled>START</button>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+
+        </div>
+      </div>
+
+      <div id="footer" class="py-8">
+        <div class="w-full px-6 md:max-w-4xl md:mx-auto">
+          <div class="footer py-6 text-gray-500">
+  <div class="flex pb-3">
+    
+      <div class="mr-1">
+        <a href="https://googlechromelabs.github.io/web-audio-samples/" target="_blank">Home</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/" target="_blank">Sources</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank">Report issues</a>
+      </div>
+      
+      <span class="mr-1">
+        &#9585;
+      </span>
+      
+    
+      <div class="mr-1">
+        <a href="https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio" target="_blank">Report Chrome issues</a>
+      </div>
+      
+    
+  </div>
+  <div class="pb-3">
+    2010-2023 Chromium authors
+    (610b99f)
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57132539-4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-57132539-4');
+    </script>
   </body>
 </html>

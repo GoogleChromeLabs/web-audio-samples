@@ -1,39 +1,104 @@
 import FreeQueue from "./lib/free-queue.js";
-// import GPUProcessor from "./gpu-processor.js";
+import GPUProcessor from "./gpu-processor.js";
 import { FRAME_SIZE } from "./constants.js";
 
-/**
- * Worker message event handler.
- * This will initialize worker with FreeQueue instance and set loop for audio
- * processing. 
- */
-self.onmessage = (msg) => {
-  if (msg.data.type === "init") {
-    let { inputQueue, outputQueue, atomicState } = msg.data.data;
-    Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
-    Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
+let inputQueue = null;
+let outputQueue = null;
+let atomicState = null;
+let gpuProcessor = null;
+let inputBuffer = null;
+let irArray = null;
+let sampleRate = null;
 
-    // const gpuProcessor = new GPUProcessor();
-    
-    // buffer for storing data pulled out from queue.
-    const input = new Float32Array(FRAME_SIZE);
-    // loop for processing data.
-    while (Atomics.wait(atomicState, 0, 0) === 'ok') {
-      console.log('Im inside the while');
-      
-      // pull data out from inputQueue.
-      const didPull = inputQueue.pull([input], FRAME_SIZE);
-      if (didPull) {
-        // If pulling data out was successfull, process it and push it to
-        // outputQueue
+// Performance metrics
+let lastCallback = 0;
+let averageTimeSpent = 0;
+let timeElapsed = 0;
+let runningAverageFactor = 1;
 
-        const output = input.map(sample => 0.1 * sample);
-        // const output = gpuProcessor.process(input);
-        
-        outputQueue.push([output], FRAME_SIZE);
-      } 
+// This will initialize worker with FreeQueue instance and set loop for audio
+// processing.
+const initialize = async (messageDataFromMainThread) => {
+  ({inputQueue, outputQueue, atomicState, irArray, sampleRate} 
+      = messageDataFromMainThread);
+  Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
+  Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
+
+  // A local buffer to store data pulled out from `inputQueue`.
+  inputBuffer = new Float32Array(FRAME_SIZE);
+
+  // Create an instance of GPUProcessor and provide an IR array.
+  gpuProcessor = new GPUProcessor();
+  gpuProcessor.setIRArray(irArray);
+  await gpuProcessor.initialize();
+
+  // How many "frames" gets processed over 1 second (1000ms)?
+  runningAverageFactor = sampleRate / FRAME_SIZE;
+
+  console.log('[worker.js] initialize()');
+};
+
+const process = async () => {
+  if (!inputQueue.pull([inputBuffer], FRAME_SIZE)) {
+    console.error('[worker.js] Pulling from inputQueue failed.');
+    return;
+  }
+
+  // Process input and return with GPU.
+  const output = await gpuProcessor.processInputAndReturn(inputBuffer);
+  outputQueue.push([output], FRAME_SIZE);
+
+  // Bypassing example:
+  // outputQueue.push([inputBuffer], FRAME_SIZE);
+
+  // 2. Convolution via GPU
+  // const outputBuffer = await gpuProcessor.processConvolution(inputBuffer);
+
+  if (!outputQueue.push([outputBuffer], FRAME_SIZE)) {
+    console.error('[worker.js] Pushing to outputQueue failed.');
+    return;
+  }
+};
+
+self.onmessage = async (message) => {
+  console.log('[worker.js] onmessage: ' + message.data.type);
+
+  if (message.data.type !== 'init') {
+    console.error(`[worker.js] Invalid message type: ${message.data.type}`);
+    return;
+  }
+
+  await initialize(message.data.data);
+
+  // This loop effectively disables the interaction (postMessage) with the
+  // main thread once it kicks off.
+  while (true) {
+    if (Atomics.wait(atomicState, 0, 1) === 'ok') {
+      const processStart = performance.now();
+      const callbackInterval = processStart - lastCallback;
+      lastCallback = processStart;
+      timeElapsed += callbackInterval;
+
+      // Processes "frames" from inputQueue and pass the result to outputQueue.
+      await process();
+
+      // Approximate running average of process() time.
+      const timeSpent = performance.now() - processStart;
+      averageTimeSpent -= averageTimeSpent / runningAverageFactor;
+      averageTimeSpent += timeSpent / runningAverageFactor;
+
+      // Throttle the log by 1 second.
+      if (timeElapsed >= 1000) {
+        console.log(
+          `[worker.js] process() = ${timeSpent.toFixed(3)}ms : ` +
+          `avg = ${averageTimeSpent.toFixed(3)}ms : ` +
+          `callback interval = ${(callbackInterval).toFixed(3)}ms`);  
+        timeElapsed -= 1000;
+      }
 
       Atomics.store(atomicState, 0, 0);
     }
   }
 };
+
+console.log('[worker.js] loaded.');
