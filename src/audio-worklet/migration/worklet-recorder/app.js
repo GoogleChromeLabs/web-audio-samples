@@ -116,7 +116,8 @@ function handleRecording(processorPort, recordingProperties) {
       isRecording = false;
       recordText.innerHTML = 'Ready to download 5 mins';
       recordButton.disabled = true;
-      createRecord(recordingProperties, recordingLength, context.sampleRate, downloadLink, downloadButton, event.data.buffer);
+      createRecord(recordingProperties, recordingLength, context.sampleRate,
+        downloadLink, downloadButton, event.data.buffer, player);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
@@ -125,7 +126,8 @@ function handleRecording(processorPort, recordingProperties) {
           Math.round(recordingLength / context.sampleRate * 100)/100;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-      createRecord(recordingProperties, recordingLength, context.sampleRate, downloadLink, downloadButton, event.data.buffer);
+      createRecord(recordingProperties, recordingLength, context.sampleRate,
+        downloadLink, downloadButton, event.data.buffer, player);
     }
   };
 
@@ -302,8 +304,17 @@ function setupRecordingGainVis() {
 /**
  * Creating the downloadable .wav file for the recorded voice and set
  * the download button clickable.
+ * @param {object} recordingProperties Microphone channel count,
+ *     for accurate recording length calculations.
+ * @param {number} recordingLength The current length of recording
+ * @param {number} sampleRate The sample rate of audio content
+ * @param {object} downloadLink The download link for recording file
+ * @param {object} downloadButton The download button in web
+ * @param {number[]} dataBuffer The dataBuffer of recording
+ * @param {object} player The audio player in the web
  */
-function createRecord(recordingProperties, recordingLength, sampleRate, downloadLink, downloadButton, dataBuffer) {
+function createRecord(recordingProperties, recordingLength, sampleRate,
+  downloadLink, downloadButton, dataBuffer, player) {
   const recordingBuffer = context.createBuffer(
       recordingProperties.numberOfChannels,
       recordingLength,
