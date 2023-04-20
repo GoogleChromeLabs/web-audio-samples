@@ -40,7 +40,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate*10,
+    maxFrameCount: context.sampleRate*300,
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
@@ -105,7 +105,8 @@ function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
-  const downloadButton = document.querySelector('#download');
+  const downloadLink = document.querySelector('#download-link');
+  const downloadButton = document.querySelector('#download-button');
 
   let recordingLength = 0;
 
@@ -113,8 +114,9 @@ function handleRecording(processorPort, recordingProperties) {
   const recordingEventCallback = async (event) => {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
       isRecording = false;
-      recordText.innerHTML = 'Start';
-      recordButton.setAttribute.disabled = true;
+      recordText.innerHTML = 'Ready to download 5 mins';
+      recordButton.disabled = true;
+      createRecord(recordingProperties, recordingLength, context.sampleRate, downloadLink, downloadButton, event.data.buffer);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
@@ -123,22 +125,7 @@ function handleRecording(processorPort, recordingProperties) {
           Math.round(recordingLength / context.sampleRate * 100)/100;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-      const recordingBuffer = context.createBuffer(
-          recordingProperties.numberOfChannels,
-          recordingLength,
-          context.sampleRate);
-
-      for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-        recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
-      }
-
-      const wavUrl = createLinkFromAudioBuffer(
-          recordingBuffer,
-          true);
-
-      player.src = wavUrl;
-      downloadButton.src = wavUrl;
-      downloadButton.download = 'recording.wav';
+      createRecord(recordingProperties, recordingLength, context.sampleRate, downloadLink, downloadButton, event.data.buffer);
     }
   };
 
@@ -152,6 +139,7 @@ function handleRecording(processorPort, recordingProperties) {
     });
 
     recordText.innerHTML = isRecording ? 'Stop' : 'Start';
+    downloadButton.disabled = isRecording ? true : false;
   });
 
   return recordingEventCallback;
@@ -310,3 +298,27 @@ function setupRecordingGainVis() {
 
   return draw;
 }
+
+/**
+ * Creating the downloadable .wav file for the recorded voice and set
+ * the download button clickable.
+ */
+function createRecord(recordingProperties, recordingLength, sampleRate, downloadLink, downloadButton, dataBuffer) {
+  const recordingBuffer = context.createBuffer(
+      recordingProperties.numberOfChannels,
+      recordingLength,
+      sampleRate);
+
+  for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
+    recordingBuffer.copyToChannel(dataBuffer[i], i, 0);
+  }
+
+  const wavUrl = createLinkFromAudioBuffer(
+      recordingBuffer,
+      true);
+
+  player.src = wavUrl;
+  downloadLink.src = wavUrl;
+  downloadLink.download = 'recording.wav';
+  downloadButton.disabled = false;
+};

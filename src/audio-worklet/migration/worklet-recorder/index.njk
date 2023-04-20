@@ -23,7 +23,11 @@ to_root_dir: ../../../
 </style>
 
 <h1>AudioWorklet Recorder</h1>
-<p>Demonstrates a simple recording app using Audio Worklet</p>
+<p>Demonstrates a simple recording app using Audio Worklet. The maximum recording time is 5 mins. After reaching the maximum recording time,
+the recording will be paused automatically and perpare a download link as .wav file. Due to the file size and recording length, it might 
+take a while to perpare the downloadble link and preview recording. Please be patient.</p>
+
+<p>If you want to RERUN the example, please refresh this page.</p>
 
 <h3 class="text-2xl text-bold text-green-500" id="click-to-start">Click anywhere to start!</h3>
 
@@ -58,8 +62,8 @@ to_root_dir: ../../../
       <audio id="player" class="w-full" controls></audio>
 
       <div class="my-2">
-        <a href="" id="download">
-          <button>download file</button>
+        <a href="" id="download-link">
+          <button disabled id="download-button">download file</button>
         </a>
       </div>
     </div>
