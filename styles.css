@@ -558,6 +558,10 @@ button[disabled] {
   flex-wrap: wrap;
 }
 
+.whitespace-pre {
+  white-space: pre;
+}
+
 .rounded {
   border-radius: 0.25rem;
 }

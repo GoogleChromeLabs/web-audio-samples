@@ -13,7 +13,7 @@ import { FRAME_SIZE, WORKGROUP_SIZE } from "./constants.js";
 class GPUProcessor {
   constructor() {}
 
-  initialize = async () => {
+  async initialize () {
     if(!navigator.gpu) {
       console.error("Turns out WebGPU is not enabled. Please use a channel"+
       " of Chrome like Canary/Dev that supports WebGPU, or turn on the "+

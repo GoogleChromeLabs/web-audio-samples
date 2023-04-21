@@ -17,6 +17,7 @@ let isWorkerInitialized = false;
 
 let toggleButton = null;
 let isPlaying = false;
+let messageView = null;
 let impulseResponseSelect = null;
 
 /**
@@ -52,12 +53,18 @@ const initializeWorkerIfNecessary = async () => {
 
   console.assert(audioContext);
 
-  // When the file path is `TEST` generates a test IR (10 samples). See
-  // `assets.js` for details.
-  const filePath = impulseResponseSelect.value;
-  const irArray = (filePath === 'TEST')
-      ? createTestIR()
-      : await fetchAudioFileToF32Array(audioContext, filePath);
+  let filePath = null;
+  let irArray = null;
+  if (impulseResponseSelect) {
+    // When the file path is `TEST` generates a test IR (10 samples). See
+    // `assets.js` for details.
+    filePath = impulseResponseSelect.value;
+    irArray = (filePath === 'TEST')
+        ? createTestIR()
+        : await fetchAudioFileToF32Array(audioContext, filePath);
+
+    impulseResponseSelect.disabled = true;
+  }
 
   // Send FreeQueue instance and atomic state to worker.
   worker.postMessage({
@@ -71,10 +78,8 @@ const initializeWorkerIfNecessary = async () => {
     }
   });
 
-  // console.assert(irArray instanceof Float32Array);
   console.log('[main.js] initializeWorkerIfNecessary(): ' + filePath);
 
-  impulseResponseSelect.disabled = true;
   isWorkerInitialized = true;
 };
 
@@ -93,7 +98,37 @@ const toggleButtonClickHandler = async () => {
   }
 };
 
+// Detect required features.
+const detectFeaturesAndReport = (viewElement) => {
+  let areRequiremensMet = true;
+
+  if (typeof navigator.gpu !== 'object') {
+    viewElement.textContent +=
+        'ERROR: WebGPU is not available on your browser.\r\n';
+    areRequiremensMet = false;
+  }
+
+  if (typeof SharedArrayBuffer !== 'function') {
+    viewElement.textContent +=
+        'ERROR: SharedArrayBuffer is not available on your browser.\r\n';
+    areRequiremensMet = false;
+  }
+
+  if (areRequiremensMet) {
+    viewElement.textContent +=
+        'All requirements have been met. The experiment is ready to run.\r\n';
+  }
+
+  return areRequiremensMet;
+};
+
 window.addEventListener('load', async () => {
+
+  messageView = document.getElementById('message-view');
+  if (!detectFeaturesAndReport(messageView)) {
+    return;
+  }
+
   audioContext = await initializeAudio();
 
   // Create a WebWorker for Audio Processing.
@@ -103,14 +138,18 @@ window.addEventListener('load', async () => {
   };
 
   // Handle `select` menu for IRs.
+  // TODO: Currently the dropdown menu is disabled. Revisit this when the
+  // IR selection is implemented.
   impulseResponseSelect = document.getElementById('select-impulse-response');
-  Assets.forEach((asset) => {
-    const optionEl = document.createElement('option');
-    optionEl.value = asset.path;
-    optionEl.textContent = asset.label;
-    impulseResponseSelect.appendChild(optionEl);
-  });
-  impulseResponseSelect.disabled = false;
+  if (impulseResponseSelect) {
+    Assets.forEach((asset) => {
+      const optionEl = document.createElement('option');
+      optionEl.value = asset.path;
+      optionEl.textContent = asset.label;
+      impulseResponseSelect.appendChild(optionEl);
+    });
+    impulseResponseSelect.disabled = false;
+  }
 
   // Handle `button` with toggle logic.
   toggleButton = document.getElementById('toggle-audio');
