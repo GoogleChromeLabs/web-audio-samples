@@ -117,7 +117,7 @@ function handleRecording(processorPort, recordingProperties) {
       recordText.textContent = 'Ready to download 5 mins';
       recordButton.disabled = true;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-        downloadLink, downloadButton, event.data.buffer, player);
+          downloadLink, downloadButton, event.data.buffer, player);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
@@ -127,7 +127,7 @@ function handleRecording(processorPort, recordingProperties) {
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-        downloadLink, downloadButton, event.data.buffer, player);
+          downloadLink, downloadButton, event.data.buffer, player);
     }
   };
 
@@ -314,7 +314,7 @@ function setupRecordingGainVis() {
  * @param {object} player The audio player in the web
  */
 const createRecord = (recordingProperties, recordingLength, sampleRate,
-  downloadLink, downloadButton, dataBuffer, player) => {
+    downloadLink, downloadButton, dataBuffer, player) => {
   const recordingBuffer = context.createBuffer(
       recordingProperties.numberOfChannels,
       recordingLength,
