@@ -40,7 +40,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate*10,
+    maxFrameCount: context.sampleRate * 300,
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
@@ -105,7 +105,8 @@ function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
   const recordText = recordButton.querySelector('span');
   const player = document.querySelector('#player');
-  const downloadButton = document.querySelector('#download');
+  const downloadLink = document.querySelector('#download-link');
+  const downloadButton = document.querySelector('#download-button');
 
   let recordingLength = 0;
 
@@ -113,32 +114,20 @@ function handleRecording(processorPort, recordingProperties) {
   const recordingEventCallback = async (event) => {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
       isRecording = false;
-      recordText.innerHTML = 'Start';
-      recordButton.setAttribute.disabled = true;
+      recordText.textContent = 'Ready to download 5 mins';
+      recordButton.disabled = true;
+      createRecord(recordingProperties, recordingLength, context.sampleRate,
+          downloadLink, downloadButton, event.data.buffer, player);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
 
-      document.querySelector('#data-len').innerHTML =
+      document.querySelector('#data-len').textContent =
           Math.round(recordingLength / context.sampleRate * 100)/100;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
-      const recordingBuffer = context.createBuffer(
-          recordingProperties.numberOfChannels,
-          recordingLength,
-          context.sampleRate);
-
-      for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
-        recordingBuffer.copyToChannel(event.data.buffer[i], i, 0);
-      }
-
-      const wavUrl = createLinkFromAudioBuffer(
-          recordingBuffer,
-          true);
-
-      player.src = wavUrl;
-      downloadButton.src = wavUrl;
-      downloadButton.download = 'recording.wav';
+      createRecord(recordingProperties, recordingLength, context.sampleRate,
+          downloadLink, downloadButton, event.data.buffer, player);
     }
   };
 
@@ -151,7 +140,8 @@ function handleRecording(processorPort, recordingProperties) {
       setRecording: isRecording,
     });
 
-    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
+    recordText.textContent = isRecording ? 'Stop' : 'Start';
+    downloadButton.disabled = isRecording ? true : false;
   });
 
   return recordingEventCallback;
@@ -177,7 +167,7 @@ function setupMonitor(monitorNode) {
     // Set gain to quickly but smoothly slide to new value.
     monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
 
-    monitorText.innerHTML = isMonitoring ? 'off' : 'on';
+    monitorText.textContent = isMonitoring ? 'off' : 'on';
   });
 }
 
@@ -221,7 +211,7 @@ function setupVisualizers() {
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
     visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML =
+    visToggle.querySelector('span').textContent =
       visualizationEnabled ? 'Pause' : 'Play';
   });
 
@@ -310,3 +300,35 @@ function setupRecordingGainVis() {
 
   return draw;
 }
+
+/**
+ * Creating the downloadable .wav file for the recorded voice and set
+ * the download button clickable.
+ * @param {object} recordingProperties Microphone channel count,
+ *     for accurate recording length calculations.
+ * @param {number} recordingLength The current length of recording
+ * @param {number} sampleRate The sample rate of audio content
+ * @param {object} downloadLink The download link for recording file
+ * @param {object} downloadButton The download button in web
+ * @param {number[]} dataBuffer The dataBuffer of recording
+ * @param {object} player The audio player in the web
+ */
+const createRecord = (recordingProperties, recordingLength, sampleRate,
+    downloadLink, downloadButton, dataBuffer, player) => {
+  const recordingBuffer = context.createBuffer(
+      recordingProperties.numberOfChannels,
+      recordingLength,
+      sampleRate);
+
+  for (let i = 0; i < recordingProperties.numberOfChannels; i++) {
+    recordingBuffer.copyToChannel(dataBuffer[i], i, 0);
+  }
+
+  const recordingUrl = createLinkFromAudioBuffer(recordingBuffer, true);
+
+  player.src = recordingUrl;
+  downloadLink.src = recordingUrl;
+  downloadLink.download =
+    `recording-${new Date().getMilliseconds().toString()}.wav`;
+  downloadButton.disabled = false;
+};
