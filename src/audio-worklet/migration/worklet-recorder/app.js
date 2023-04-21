@@ -328,6 +328,7 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
 
   player.src = recordingUrl;
   downloadLink.src = recordingUrl;
-  downloadLink.download = 'recording-' + new Date().getMilliseconds().toString() + '.wav';
+  downloadLink.download =
+    `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;
 };
