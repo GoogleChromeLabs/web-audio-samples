@@ -68,7 +68,13 @@
 </style>
 
 <h1>AudioWorklet Recorder</h1>
-<p>Demonstrates a simple recording app using Audio Worklet</p>
+<p>This is a simple recording app that uses the AudioWorklet API.
+  The maximum recording time is 5 minutes. After reaching the maximum
+  recording time, the recording will be stopped automatically and a
+  download link for the `.wav` file will be prepared. Due to the file
+  size and recording length, it may take a few moments to prepare the
+  download link and preview the recording. To restart the recording,
+  please click the Refresh button.</p>
 
 <h3 class="text-2xl text-bold text-green-500" id="click-to-start">Click anywhere to start!</h3>
 
@@ -103,8 +109,8 @@
       <audio id="player" class="w-full" controls></audio>
 
       <div class="my-2">
-        <a href="" id="download">
-          <button>download file</button>
+        <a href="" id="download-link">
+          <button disabled id="download-button">download file</button>
         </a>
       </div>
     </div>
@@ -157,7 +163,7 @@
   </div>
   <div class="pb-3">
     2010-2023 Chromium authors
-    (50934ba)
+    (8ef7a2f)
   </div>
 </div>
 
