@@ -40,7 +40,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate*300,
+    maxFrameCount: context.sampleRate * 300,
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
@@ -114,7 +114,7 @@ function handleRecording(processorPort, recordingProperties) {
   const recordingEventCallback = async (event) => {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
       isRecording = false;
-      recordText.innerHTML = 'Ready to download 5 mins';
+      recordText.textContent = 'Ready to download 5 mins';
       recordButton.disabled = true;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
         downloadLink, downloadButton, event.data.buffer, player);
@@ -122,7 +122,7 @@ function handleRecording(processorPort, recordingProperties) {
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
 
-      document.querySelector('#data-len').innerHTML =
+      document.querySelector('#data-len').textContent =
           Math.round(recordingLength / context.sampleRate * 100)/100;
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
@@ -140,7 +140,7 @@ function handleRecording(processorPort, recordingProperties) {
       setRecording: isRecording,
     });
 
-    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
+    recordText.textContent = isRecording ? 'Stop' : 'Start';
     downloadButton.disabled = isRecording ? true : false;
   });
 
@@ -167,7 +167,7 @@ function setupMonitor(monitorNode) {
     // Set gain to quickly but smoothly slide to new value.
     monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
 
-    monitorText.innerHTML = isMonitoring ? 'off' : 'on';
+    monitorText.textContent = isMonitoring ? 'off' : 'on';
   });
 }
 
@@ -211,7 +211,7 @@ function setupVisualizers() {
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (e) => {
     visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML =
+    visToggle.querySelector('span').textContent =
       visualizationEnabled ? 'Pause' : 'Play';
   });
 
@@ -313,8 +313,8 @@ function setupRecordingGainVis() {
  * @param {number[]} dataBuffer The dataBuffer of recording
  * @param {object} player The audio player in the web
  */
-function createRecord(recordingProperties, recordingLength, sampleRate,
-  downloadLink, downloadButton, dataBuffer, player) {
+const createRecord = (recordingProperties, recordingLength, sampleRate,
+  downloadLink, downloadButton, dataBuffer, player) => {
   const recordingBuffer = context.createBuffer(
       recordingProperties.numberOfChannels,
       recordingLength,
@@ -324,12 +324,10 @@ function createRecord(recordingProperties, recordingLength, sampleRate,
     recordingBuffer.copyToChannel(dataBuffer[i], i, 0);
   }
 
-  const wavUrl = createLinkFromAudioBuffer(
-      recordingBuffer,
-      true);
+  const recordingUrl = createLinkFromAudioBuffer(recordingBuffer, true);
 
-  player.src = wavUrl;
-  downloadLink.src = wavUrl;
-  downloadLink.download = 'recording.wav';
+  player.src = recordingUrl;
+  downloadLink.src = recordingUrl;
+  downloadLink.download = 'recording-' + new Date().getMilliseconds().toString() + '.wav';
   downloadButton.disabled = false;
 };
