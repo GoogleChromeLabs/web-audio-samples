@@ -327,7 +327,7 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
   const recordingUrl = createLinkFromAudioBuffer(recordingBuffer, true);
 
   player.src = recordingUrl;
-  downloadLink.src = recordingUrl;
+  downloadLink.href = recordingUrl;
   downloadLink.download =
     `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;

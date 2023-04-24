@@ -6,12 +6,16 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     name: Build and deploy to GitHub Pages
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out this repo
+        uses: actions/checkout@v2
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
