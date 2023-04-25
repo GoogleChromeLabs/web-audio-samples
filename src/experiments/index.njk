@@ -1,0 +1,36 @@
+---
+eleventyNavigation:
+  key: experiments
+  title: Experiments
+  parent: landing
+to_root_dir: ../
+---
+
+{% extends "../_includes/base.njk" %}
+
+{% block content %}
+
+<div class="mb-12">
+  <h1>Experiments</h1>
+  <p>TODO: Experiments</p>
+</div>
+
+{% for section in experiments_data %}
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    {{ section.title }}
+  </h2>
+  <div class="flex flex-wrap">
+    {% for entry in section.entries %}
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="{{ entry.href }}" class="text-xl">
+          {{ entry.title }}
+        </a>
+        <p>{{ entry.description }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

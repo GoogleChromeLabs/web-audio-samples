@@ -89,6 +89,13 @@ class RecordingProcessor extends AudioWorkletProcessor {
         this.isRecording = false;
         this.port.postMessage({
           message: 'MAX_RECORDING_LENGTH_REACHED',
+          buffer: this._recordingBuffer,
+        });
+
+        this.recordedFrames += 128;
+        this.port.postMessage({
+          message: 'UPDATE_RECORDING_LENGTH',
+          recordingLength: this.recordedFrames,
         });
 
         return false;

@@ -1,0 +1,34 @@
+---
+eleventyNavigation:
+  key: webgpuaudio
+  title: WebGPUAudio Experiment
+  parent: experiments
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<script src="./coi-serviceworker.js"></script>
+
+<h1>{{ eleventyNavigation.title }}</h1>
+
+<p>An experiment to use Web Audio API and WebGPU together to process audio
+  stream with GPU.</p>
+
+<div class="demo-box">
+  {# TODO: enable this dropdown when the app supports IR selection. #}
+  {#<div class="p-3 mb-2 bg-slate-100 w-1/2 rounded text-sm">
+    <label for="type" class="mr-1">Impulse Response</label>
+    <select name="type" id="select-impulse-response"
+            class="p-1 rounded font-semibold" disabled>
+    </select>
+  </div>#}
+  <div id="message-view" class="pb-3 text-sm whitespace-pre"></div>
+  <button id="toggle-audio" disabled>START</button>
+</div>
+
+<script src="./main.js" type="module"></script>
+
+{% endblock %}
