@@ -124,8 +124,9 @@ function setupRecording(recordBuffer) {
     const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
 
     player.src = wavUrl;
-    downloadButton.src = wavUrl;
-    downloadButton.download = 'recording.wav';
+    downloadButton.href = wavUrl;
+    downloadButton.download =
+        `recording-${new Date().getMilliseconds().toString()}.wav`;
 
     // Display current recording length.
     document.querySelector('#data-len').innerHTML =
