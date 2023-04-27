@@ -39,7 +39,8 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 300};
+    maxFrameCount: context.sampleRate * 300
+  };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
   const monitorNode = context.createGain();

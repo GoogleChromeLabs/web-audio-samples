@@ -42,7 +42,7 @@ async function init() {
       echoCancellation: false,
       autoGainControl: false,
       noiseSuppression: false,
-      latency: 0,
+      latency: 0
     },
   });
 
@@ -52,7 +52,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: 2,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 300,
+    maxFrameCount: context.sampleRate * 300
   };
 
   // Obtain samples passthrough function for visualizers
