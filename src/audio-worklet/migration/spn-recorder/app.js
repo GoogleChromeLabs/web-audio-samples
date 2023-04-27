@@ -17,7 +17,7 @@ let isMonitoring = false;
 let visualizationEnabled = true;
 
 let recordButton = document.querySelector('#record');
-let recordText = recordButton.querySelector('span');
+let recordText = document.querySelector('#record-text');
 let player = document.querySelector('#player');
 let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
@@ -102,7 +102,8 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       // While recording, feed data to recording buffer at the proper time.
       if (isRecording) {
         let frameNumber = recordingLength / BUFFER_SIZE;
-        recordBuffer[channel][frameNumber] = currentSamples[channel].slice();
+        recordBuffer[channel][frameNumber] = 
+            new Float32Array(currentSamples[channel]);
       }
 
       // Pass audio data through to next node.
@@ -118,13 +119,13 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
-        const wavUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
-        player.src = wavUrl;
-        downloadLink.href = wavUrl;
+        const audioFileUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
+        player.src = audioFileUrl;
+        downloadLink.href = audioFileUrl;
         downloadLink.download =
             `recording-${new Date().getMilliseconds().toString()}.wav`;
         downloadButton.disabled = false;
-        recordText.innerHTML = 'Ready to download 5 mins';
+        recordText.textContent = 'Ready to download 5 mins';
         recordButton.disabled = true;
       }
     }
@@ -142,11 +143,11 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 function setupRecording(recordingProperties) {
   async function prepareClip(finalRecordBuffer) {
     // Create recording file URL for playback and download.
-    const wavUrl =
+    const audioFileUrl =
        createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
 
-    player.src = wavUrl;
-    downloadLink.href = wavUrl;
+    player.src = audioFileUrl;
+    downloadLink.href = audioFileUrl;
     downloadLink.download =
         `recording-${new Date().getMilliseconds().toString()}.wav`;
   }
@@ -160,7 +161,7 @@ function setupRecording(recordingProperties) {
       prepareClip(finalRecordBuffer);
     }
 
-    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
+    recordText.textContent = isRecording ? 'Stop' : 'Start';
     downloadButton.disabled = isRecording ? true: false;
   });
 }
@@ -333,17 +334,18 @@ function setupRecordingGainVis() {
  */
 const createFinalRecordBuffer = (recordingProperties) => {
   const contextRecordBuffer = context.createBuffer(
-      2, recordingLength, context.sampleRate,);
-  let startPos = 0;
+      2, recordingLength, context.sampleRate);
+  //The start index of each 256 float32Array
+  let startIndex = 0;
 
   for (let frame = 0; frame < recordBuffer[0].length; frame++){
     for (let channel = 0; 
-        channel < recordingProperties.numberOfChannels; channel++) {
-
+        channel < recordingProperties.numberOfChannels;
+        channel++) {
       contextRecordBuffer
-          .copyToChannel(recordBuffer[channel][frame], channel, startPos);
+          .copyToChannel(recordBuffer[channel][frame], channel, startIndex);
     }
-    startPos += BUFFER_SIZE;
+    startIndex += BUFFER_SIZE;
   }
   return contextRecordBuffer;
 };

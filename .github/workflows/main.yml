@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out this repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
