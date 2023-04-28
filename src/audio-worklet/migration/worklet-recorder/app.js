@@ -31,8 +31,7 @@ async function init() {
       echoCancellation: false,
       autoGainControl: false,
       noiseSuppression: false,
-      latency: 0,
-    },
+      latency: 0}
   });
 
   const micSourceNode = context.createMediaStreamSource(micStream);
@@ -40,7 +39,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 300,
+    maxFrameCount: context.sampleRate * 300
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
@@ -103,7 +102,7 @@ async function setupRecordingWorkletNode(recordingProperties) {
  */
 function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
-  const recordText = recordButton.querySelector('span');
+  const recordText = document.querySelector('#record-text');
   const player = document.querySelector('#player');
   const downloadLink = document.querySelector('#download-link');
   const downloadButton = document.querySelector('#download-button');
@@ -324,10 +323,10 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
     recordingBuffer.copyToChannel(dataBuffer[i], i, 0);
   }
 
-  const recordingUrl = createLinkFromAudioBuffer(recordingBuffer, true);
+  const audioFileUrl = createLinkFromAudioBuffer(recordingBuffer, true);
 
-  player.src = recordingUrl;
-  downloadLink.href = recordingUrl;
+  player.src = audioFileUrl;
+  downloadLink.href = audioFileUrl;
   downloadLink.download =
       `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;

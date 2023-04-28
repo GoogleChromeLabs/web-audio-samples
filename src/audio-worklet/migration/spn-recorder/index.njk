@@ -23,7 +23,13 @@ to_root_dir: ../../../
 </style>
 
 <h1>ScriptProcessorNode Audio Recorder</h1>
-<p>Demonstrates a simple recording app using ScriptProcessorNode</p>
+<p>Demonstrates a simple recording app using ScriptProcessorNode.
+  The maximum recording time is 5 minutes. After reaching the maximum
+  recording time, the recording will be stopped automatically and a
+  download link for the `.wav` file will be prepared. Due to the file
+  size and recording length, it may take a few moments to prepare the
+  download link and preview the recording. To restart the recording,
+  please click the Refresh button.</p>
 
 <h3 class="text-2xl text-bold text-green-500" id="click-to-start">Click anywhere to start!</h3>
 
@@ -48,7 +54,7 @@ to_root_dir: ../../../
     <div>
       <p>Length: <span id="data-len">0</span>sec</p>
       <button id="record">
-        <span>Start</span> Recording
+        <span id="record-text">Start</span> Recording
       </button>
     </div>
 
@@ -58,8 +64,8 @@ to_root_dir: ../../../
       <audio id="player" class="w-full" controls></audio>
 
       <div class="my-2">
-        <a href="" id="download">
-          <button>download file</button>
+        <a href="" id="download-link">
+          <button disabled id="download-button">download file</button>
         </a>
       </div>
     </div>

@@ -11,9 +11,16 @@ const context = new AudioContext();
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
 let recordingLength = 0;
+let recordBuffer = [[], []];
 let isRecording = false;
 let isMonitoring = false;
 let visualizationEnabled = true;
+
+let recordButton = document.querySelector('#record');
+let recordText = document.querySelector('#record-text');
+let player = document.querySelector('#player');
+let downloadButton = document.querySelector('#download-button');
+let downloadLink = document.querySelector('#download-link');
 
 // Wait for user interaction to initialize audio, as per specification.
 document.addEventListener('click', (element) => {
@@ -35,30 +42,30 @@ async function init() {
       echoCancellation: false,
       autoGainControl: false,
       noiseSuppression: false,
-      latency: 0,
+      latency: 0
     },
   });
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  // Prepare buffer for recording.
-  const recordBuffer = context.createBuffer(
-      2,
-      // 10 seconds seems reasonable for demo purposes.
-      context.sampleRate * 10,
-      context.sampleRate,
-  );
+  // Prepare max recording buffer for recording.
+  const recordingProperties = {
+    numberOfChannels: 2,
+    sampleRate: context.sampleRate,
+    maxFrameCount: context.sampleRate * 300
+  };
 
   // Obtain samples passthrough function for visualizers
   const passSampleToVisualizers = setupVisualizers();
-  const spNode = setupScriptProcessor(recordBuffer, passSampleToVisualizers);
+  const spNode =
+      setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
 
   setupMonitor(monitorNode);
-  setupRecording(recordBuffer);
+  setupRecording(recordingProperties);
 
   micSourceNode
       .connect(inputGain)
@@ -70,17 +77,21 @@ async function init() {
 
 /**
  * Creates ScriptProcessor to record and track microphone audio.
- * @param {AudioBuffer} recordBuffer
+ * @param {Object} recordingProperties The properties of the recording
  * @param {function} passSampleToVisualizers
  *    Function to pass current samples to visualizers.
  * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
  */
-function setupScriptProcessor(recordBuffer, passSampleToVisualizers) {
+function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
-  const currentSamples = new Array(recordBuffer.numberOfChannels).fill([]);
+  const currentSamples =
+     new Array(recordingProperties.numberOfChannels).fill([]);
 
   // Main SPN callback. Handles recording data and tracking recording length.
   processor.onaudioprocess = function(event) {
+    // Display current recording length.
+    document.querySelector('#data-len').textContent =
+        Math.round(recordingLength / recordingProperties.sampleRate * 100)/100;
     // Perform logic on all input channels, regardless of setup.
     for (let channel = 0; channel < currentSamples.length; channel++) {
       const inputData = event.inputBuffer.getChannelData(channel);
@@ -90,8 +101,12 @@ function setupScriptProcessor(recordBuffer, passSampleToVisualizers) {
 
       // While recording, feed data to recording buffer at the proper time.
       if (isRecording) {
-        recordBuffer
-            .copyToChannel(currentSamples[channel], channel, recordingLength);
+        // FrameNumber has to be an INTEGER for using as an index in 2D array.
+        // Since JS don't have INTEGER type, We use Math.floor to ensure the
+        // recordingLength/BUFFER_SIZE is INTEGER.
+        let frameNumber = Math.floor(recordingLength / BUFFER_SIZE);
+        recordBuffer[channel][frameNumber] = 
+            new Float32Array(currentSamples[channel]);
       }
 
       // Pass audio data through to next node.
@@ -101,6 +116,21 @@ function setupScriptProcessor(recordBuffer, passSampleToVisualizers) {
     // Update tracked recording length.
     if (isRecording) {
       recordingLength += BUFFER_SIZE;
+      
+      if (recordingLength > recordingProperties.maxFrameCount) {
+        isRecording = !isRecording;
+
+        const finalRecordBuffer =
+            createFinalRecordBuffer(recordingProperties);
+        const audioFileUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
+        player.src = audioFileUrl;
+        downloadLink.href = audioFileUrl;
+        downloadLink.download =
+            `recording-${new Date().getMilliseconds().toString()}.wav`;
+        downloadButton.disabled = false;
+        recordText.textContent = 'Ready to download 5 mins';
+        recordButton.disabled = true;
+      }
     }
 
     passSampleToVisualizers(currentSamples);
@@ -111,38 +141,38 @@ function setupScriptProcessor(recordBuffer, passSampleToVisualizers) {
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {AudioBuffer} recordBuffer Buffer of the current recording.
+ * @param {object} recordingProperties Buffer of the current recording.
  */
-function setupRecording(recordBuffer) {
-  const recordButton = document.querySelector('#record');
-  const recordText = recordButton.querySelector('span');
-  const player = document.querySelector('#player');
-  const downloadButton = document.querySelector('#download');
-
-  async function prepareClip() {
-    // Create recording file URL for playback and download.
-    const wavUrl = createLinkFromAudioBuffer(recordBuffer, true);
-
-    player.src = wavUrl;
-    downloadButton.href = wavUrl;
-    downloadButton.download =
-        `recording-${new Date().getMilliseconds().toString()}.wav`;
-
-    // Display current recording length.
-    document.querySelector('#data-len').innerHTML =
-        Math.round(recordingLength / recordBuffer.sampleRate * 100)/100;
-  }
-
+function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
     isRecording = !isRecording;
 
     // When recording is paused, process clip.
     if (!isRecording) {
-      prepareClip();
+      const finalRecordBuffer = createFinalRecordBuffer(recordingProperties);
+      prepareClip(finalRecordBuffer);
     }
 
-    recordText.innerHTML = isRecording ? 'Stop' : 'Start';
+    recordText.textContent = isRecording ? 'Stop' : 'Start';
+    downloadButton.disabled = isRecording ? true: false;
   });
+}
+
+/**
+ * An async function to create the audioFileURL and assign URL
+ * to media player and download button.
+ * @param {AudioBuffer} finalRecordBuffer This is the final
+ * audio buffer which is created for audio context.
+ */
+async function prepareClip(finalRecordBuffer) {
+  // Create recording file URL for playback and download.
+  const audioFileUrl =
+     createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
+
+  player.src = audioFileUrl;
+  downloadLink.href = audioFileUrl;
+  downloadLink.download =
+      `recording-${new Date().getMilliseconds().toString()}.wav`;
 }
 
 /**
@@ -163,7 +193,7 @@ function setupMonitor(monitorNode) {
     // Set gain to quickly but smoothly slide to new value.
     monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
 
-    monitorText.innerHTML = isMonitoring ? 'off' : 'on';
+    monitorText.textContent = isMonitoring ? 'off' : 'on';
   });
 }
 
@@ -189,7 +219,7 @@ function setupVisualizers() {
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (event) => {
     visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML =
+    visToggle.querySelector('span').textContent =
        visualizationEnabled ? 'Pause' : 'Play';
   });
 
@@ -305,3 +335,26 @@ function setupRecordingGainVis() {
 
   return draw;
 }
+
+/**
+ * Create the recording buffer with right size
+ * @param {object} recordingProperties Properties of record buffer
+ * @returns {AudioBuffer} Record buffer for current recording
+ */
+const createFinalRecordBuffer = (recordingProperties) => {
+  const contextRecordBuffer = context.createBuffer(
+      2, recordingLength, context.sampleRate);
+  //The start index of each 256 float32Array
+  let startIndex = 0;
+
+  for (let frame = 0; frame < recordBuffer[0].length; frame++){
+    for (let channel = 0; 
+        channel < recordingProperties.numberOfChannels;
+        channel++) {
+      contextRecordBuffer
+          .copyToChannel(recordBuffer[channel][frame], channel, startIndex);
+    }
+    startIndex += BUFFER_SIZE;
+  }
+  return contextRecordBuffer;
+};
