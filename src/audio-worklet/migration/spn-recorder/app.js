@@ -90,8 +90,8 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
   // Main SPN callback. Handles recording data and tracking recording length.
   processor.onaudioprocess = function(event) {
     // Display current recording length.
-    document.querySelector('#data-len').innerHTML =
-    Math.round(recordingLength / recordingProperties.sampleRate * 100)/100;
+    document.querySelector('#data-len').textContent =
+        Math.round(recordingLength / recordingProperties.sampleRate * 100)/100;
     // Perform logic on all input channels, regardless of setup.
     for (let channel = 0; channel < currentSamples.length; channel++) {
       const inputData = event.inputBuffer.getChannelData(channel);
@@ -141,17 +141,6 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
  * @param {object} recordingProperties Buffer of the current recording.
  */
 function setupRecording(recordingProperties) {
-  async function prepareClip(finalRecordBuffer) {
-    // Create recording file URL for playback and download.
-    const audioFileUrl =
-       createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
-
-    player.src = audioFileUrl;
-    downloadLink.href = audioFileUrl;
-    downloadLink.download =
-        `recording-${new Date().getMilliseconds().toString()}.wav`;
-  }
-
   recordButton.addEventListener('click', (event) => {
     isRecording = !isRecording;
 
@@ -164,6 +153,23 @@ function setupRecording(recordingProperties) {
     recordText.textContent = isRecording ? 'Stop' : 'Start';
     downloadButton.disabled = isRecording ? true: false;
   });
+}
+
+/**
+ * An async function to create the audioFileURL and assign URL
+ * to media player and download button.
+ * @param {AudioBuffer} finalRecordBuffer This is the final
+ * audio buffer which is created for audio context.
+ */
+async function prepareClip(finalRecordBuffer) {
+  // Create recording file URL for playback and download.
+  const audioFileUrl =
+     createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
+
+  player.src = audioFileUrl;
+  downloadLink.href = audioFileUrl;
+  downloadLink.download =
+      `recording-${new Date().getMilliseconds().toString()}.wav`;
 }
 
 /**
@@ -184,7 +190,7 @@ function setupMonitor(monitorNode) {
     // Set gain to quickly but smoothly slide to new value.
     monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
 
-    monitorText.innerHTML = isMonitoring ? 'off' : 'on';
+    monitorText.textContent = isMonitoring ? 'off' : 'on';
   });
 }
 
@@ -210,7 +216,7 @@ function setupVisualizers() {
   const visToggle = document.querySelector('#viz-toggle');
   visToggle.addEventListener('click', (event) => {
     visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').innerHTML =
+    visToggle.querySelector('span').textContent =
        visualizationEnabled ? 'Pause' : 'Play';
   });
 
@@ -330,7 +336,7 @@ function setupRecordingGainVis() {
 /**
  * Create the recording buffer with right size
  * @param {object} recordingProperties Properties of record buffer
- * @return {AudioBuffer} Record buffer for current recording
+ * @returns {AudioBuffer} Record buffer for current recording
  */
 const createFinalRecordBuffer = (recordingProperties) => {
   const contextRecordBuffer = context.createBuffer(
