@@ -31,8 +31,7 @@ async function init() {
       echoCancellation: false,
       autoGainControl: false,
       noiseSuppression: false,
-      latency: 0,
-    },
+      latency: 0}
   });
 
   const micSourceNode = context.createMediaStreamSource(micStream);
@@ -40,7 +39,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 300,
+    maxFrameCount: context.sampleRate * 300
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
@@ -48,7 +47,7 @@ async function init() {
 
   // We can pass this port across the app
   // and let components handle their relevant messages
-  const visualizerCallback = setupVisualizers(recordingNode);
+  const visualizerCallback = setupVisualizers(monitorNode);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
 
@@ -103,7 +102,7 @@ async function setupRecordingWorkletNode(recordingProperties) {
  */
 function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
-  const recordText = recordButton.querySelector('span');
+  const recordText = document.querySelector('#record-text');
   const player = document.querySelector('#player');
   const downloadLink = document.querySelector('#download-link');
   const downloadButton = document.querySelector('#download-button');
@@ -173,9 +172,10 @@ function setupMonitor(monitorNode) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
+ * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers() {
+function setupVisualizers(monitorNode) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
 
@@ -185,7 +185,7 @@ function setupVisualizers() {
   // Wait for processor to start sending messages before beginning to render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
-      gain = event.data.gain;
+      gain = event.data.gain * monitorNode.gain.value;
 
       if (!initialized) {
         initialized = true;
@@ -324,11 +324,11 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
     recordingBuffer.copyToChannel(dataBuffer[i], i, 0);
   }
 
-  const recordingUrl = createLinkFromAudioBuffer(recordingBuffer, true);
+  const audioFileUrl = createLinkFromAudioBuffer(recordingBuffer, true);
 
-  player.src = recordingUrl;
-  downloadLink.src = recordingUrl;
+  player.src = audioFileUrl;
+  downloadLink.href = audioFileUrl;
   downloadLink.download =
-    `recording-${new Date().getMilliseconds().toString()}.wav`;
+      `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;
 };
