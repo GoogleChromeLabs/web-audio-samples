@@ -3,8 +3,6 @@
 This branch contains the source codes of the Web Audio Samples site. See the
 actual site built from the source, see `gh-pages` branch.
 
-This is a test.
-
 ## Development
 
 ### Branch structure
