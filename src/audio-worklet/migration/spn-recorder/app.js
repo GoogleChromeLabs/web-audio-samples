@@ -55,14 +55,14 @@ async function init() {
     maxFrameCount: context.sampleRate * 300
   };
 
-  // Obtain samples passthrough function for visualizers
-  const passSampleToVisualizers = setupVisualizers();
-  const spNode =
-      setupScriptProcessor(recordingProperties, passSampleToVisualizers);
-
   const monitorNode = context.createGain();
   const inputGain = context.createGain();
   const medianEnd = context.createGain();
+
+  // Obtain samples passthrough function for visualizers
+  const passSampleToVisualizers = setupVisualizers(monitorNode);
+  const spNode =
+      setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
   setupMonitor(monitorNode);
   setupRecording(recordingProperties);
@@ -199,9 +199,10 @@ function setupMonitor(monitorNode) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
+ * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
  * @return {function} Function to set current input samples for visualization.
  */
-function setupVisualizers() {
+function setupVisualizers(monitorNode) {
   const drawLiveGain = setupLiveGainVis();
   const drawRecordingGain = setupRecordingGainVis();
   let currentSamples = [];
@@ -237,10 +238,14 @@ function setupVisualizers() {
 
       currentSampleGain /= (currentSamples.length * currentSamples[0].length);
 
-      drawLiveGain(currentSampleGain);
+      const liveGain = currentSampleGain * monitorNode.gain.value;
+      // "Times 5" make the visulization more clear to the users
+      drawLiveGain(liveGain * 5);
 
       if (isRecording) {
-        drawRecordingGain(currentSampleGain);
+        const recordGain = currentSampleGain;
+        // "Times 5" make the visulization more clear to the users
+        drawRecordingGain(recordGain * 5);
       }
     }
 

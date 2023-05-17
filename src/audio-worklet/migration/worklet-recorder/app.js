@@ -185,7 +185,7 @@ function setupVisualizers(monitorNode) {
   // Wait for processor to start sending messages before beginning to render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
-      gain = event.data.gain * monitorNode.gain.value;
+      gain = event.data.gain;
 
       if (!initialized) {
         initialized = true;
@@ -196,11 +196,15 @@ function setupVisualizers(monitorNode) {
 
   function draw() {
     if (visualizationEnabled) {
-      drawLiveGain(gain);
+      const liveGain = gain * monitorNode.gain.value;
+      // "Times 5" make the visulization more clear to the users
+      drawLiveGain(liveGain * 5);
+    }
 
-      if (isRecording) {
-        drawRecordingGain(gain);
-      }
+    if (isRecording) {
+      const recordGain = gain;
+      // "Times 5" make the visulization more clear to the users
+      drawRecordingGain(recordGain * 5);
     }
 
     // Request render frame regardless.
