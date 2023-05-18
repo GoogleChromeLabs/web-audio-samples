@@ -8,6 +8,8 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 
 const context = new AudioContext();
 
+// Make the visulization more clear to the users
+const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
 let visualizationEnabled = true;
 
@@ -197,14 +199,12 @@ function setupVisualizers(monitorNode) {
   function draw() {
     if (visualizationEnabled) {
       const liveGain = gain * monitorNode.gain.value;
-      // "Times 5" make the visulization more clear to the users
-      drawLiveGain(liveGain * 5);
+      drawLiveGain(liveGain * WAVEFROM_SCALE_FACTOR);
     }
 
     if (isRecording) {
       const recordGain = gain;
-      // "Times 5" make the visulization more clear to the users
-      drawRecordingGain(recordGain * 5);
+      drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
     }
 
     // Request render frame regardless.

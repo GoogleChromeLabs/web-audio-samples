@@ -10,6 +10,8 @@ const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
+// Make the visulization more clear to the users
+const WAVEFROM_SCALE_FACTOR = 5
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
@@ -239,13 +241,11 @@ function setupVisualizers(monitorNode) {
       currentSampleGain /= (currentSamples.length * currentSamples[0].length);
 
       const liveGain = currentSampleGain * monitorNode.gain.value;
-      // "Times 5" make the visulization more clear to the users
-      drawLiveGain(liveGain * 5);
+      drawLiveGain(liveGain * WAVEFROM_SCALE_FACTOR);
 
       if (isRecording) {
         const recordGain = currentSampleGain;
-        // "Times 5" make the visulization more clear to the users
-        drawRecordingGain(recordGain * 5);
+        drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
       }
     }
 
