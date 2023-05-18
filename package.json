@@ -1,6 +1,6 @@
 {
   "name": "web-audio-samples",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "A collection of projects, examples and resources for Web Audio API. Curated by the Chrome Web Audio team.",
   "main": "index.js",
   "scripts": {
@@ -19,15 +19,15 @@
     "@11ty/eleventy-navigation": "^0.3.3",
     "autoprefixer": "^10.4.4",
     "cssnano": "^5.1.7",
-    "eslint": "^8.17.0",
+    "eslint": "^8.40.0",
     "eslint-config-google": "^0.14.0",
     "html-minifier": "^4.0.0",
     "js-yaml": "^4.1.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.12",
     "postcss-cli": "^9.1.0",
-    "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
+    "prettier": "^2.8.8",
+    "rimraf": "^5.0.1",
     "tailwindcss": "^3.0.23"
   }
 }
