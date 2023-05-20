@@ -2,6 +2,7 @@
 
 h1 {
   @apply text-5xl pb-6;
+  text-align: center
 }
 
 h2 {
