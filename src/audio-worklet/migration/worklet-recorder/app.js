@@ -8,6 +8,8 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 
 const context = new AudioContext();
 
+// Make the visulization more clear to the users
+const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
 let visualizationEnabled = true;
 
@@ -185,7 +187,7 @@ function setupVisualizers(monitorNode) {
   // Wait for processor to start sending messages before beginning to render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
-      gain = event.data.gain * monitorNode.gain.value;
+      gain = event.data.gain;
 
       if (!initialized) {
         initialized = true;
@@ -196,11 +198,13 @@ function setupVisualizers(monitorNode) {
 
   function draw() {
     if (visualizationEnabled) {
-      drawLiveGain(gain);
+      const liveGain = gain * monitorNode.gain.value;
+      drawLiveGain(liveGain * WAVEFROM_SCALE_FACTOR);
+    }
 
-      if (isRecording) {
-        drawRecordingGain(gain);
-      }
+    if (isRecording) {
+      const recordGain = gain;
+      drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
     }
 
     // Request render frame regardless.
