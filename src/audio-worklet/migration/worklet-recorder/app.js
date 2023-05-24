@@ -13,11 +13,7 @@ const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
 let visualizationEnabled = true;
 
-// Wait for user interaction to initialize audio, as per specification.
-document.addEventListener('click', (element) => {
-  init();
-  document.querySelector('#click-to-start').remove();
-}, {once: true});
+init();
 
 /**
  * Defines overall audio chain and initializes all functionality.
