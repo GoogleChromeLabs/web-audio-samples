@@ -32,40 +32,24 @@ to_root_dir: ../../../
   please click the Refresh button.</p>
 
 <div class="demo-box">
-  <div class="Live">
-    <h2>Live</h2>
-    <div>
-      <button id="monitor">
-        Turn monitor <span>on</span>
-      </button>
-      <button id="viz-toggle">
-        <span>Pause</span> visualizer
-      </button>
-    </div>
-
-    <canvas id="live-canvas"></canvas>
-  </div>
-
   <div id="recording">
-    <h2>Recording</h2>
-
     <div>
       <p>Length: <span id="data-len">0</span>sec</p>
       <button id="record">
-        <span id="record-text">Start</span> Recording
+        Start Recording
       </button>
+      <button disabled id="stop">
+        Stop Recording
+      </button>
+      <a href="" id="download-link">
+        <button disabled id="download-button">Download File</button>
+      </a>
     </div>
 
     <canvas id="recording-canvas"></canvas>
 
     <div>
       <audio id="player" class="w-full" controls></audio>
-
-      <div class="my-2">
-        <a href="" id="download-link">
-          <button disabled id="download-button">download file</button>
-        </a>
-      </div>
     </div>
   </div>
 </div>

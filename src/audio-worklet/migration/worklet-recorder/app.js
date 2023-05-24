@@ -11,7 +11,6 @@ const context = new AudioContext();
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
-let visualizationEnabled = true;
 
 init();
 
@@ -41,15 +40,13 @@ async function init() {
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
-  const monitorNode = context.createGain();
+  const gainNode = context.createGain();
 
   // We can pass this port across the app
   // and let components handle their relevant messages
-  const visualizerCallback = setupVisualizers(monitorNode);
+  const visualizerCallback = setupVisualizers();
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
-
-  setupMonitor(monitorNode);
 
   recordingNode.port.onmessage = (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
@@ -59,9 +56,11 @@ async function init() {
     }
   };
 
+  gainNode.gain.value = 0;
+
   micSourceNode
       .connect(recordingNode)
-      .connect(monitorNode)
+      .connect(gainNode)
       .connect(context.destination);
 }
 
@@ -100,7 +99,7 @@ async function setupRecordingWorkletNode(recordingProperties) {
  */
 function handleRecording(processorPort, recordingProperties) {
   const recordButton = document.querySelector('#record');
-  const recordText = document.querySelector('#record-text');
+  const stopButton = document.querySelector('#stop');
   const player = document.querySelector('#player');
   const downloadLink = document.querySelector('#download-link');
   const downloadButton = document.querySelector('#download-button');
@@ -111,8 +110,8 @@ function handleRecording(processorPort, recordingProperties) {
   const recordingEventCallback = async (event) => {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
       isRecording = false;
-      recordText.textContent = 'Ready to download 5 mins';
-      recordButton.disabled = true;
+      stopButton.disabled = true;
+      window.alert("The recording length reach the max limit!");
       createRecord(recordingProperties, recordingLength, context.sampleRate,
           downloadLink, downloadButton, event.data.buffer, player);
     }
@@ -129,52 +128,34 @@ function handleRecording(processorPort, recordingProperties) {
   };
 
   recordButton.addEventListener('click', (e) => {
-    isRecording = !isRecording;
+    isRecording = true;
+    changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton);
+  });
 
-    // Inform processor that recording was paused.
-    processorPort.postMessage({
-      message: 'UPDATE_RECORDING_STATE',
-      setRecording: isRecording,
-    });
-
-    recordText.textContent = isRecording ? 'Stop' : 'Start';
-    downloadButton.disabled = isRecording ? true : false;
+  stopButton.addEventListener('click', (e) => {
+    isRecording = false;
+    changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton);
   });
 
   return recordingEventCallback;
 }
 
-/**
- * Sets up monitor functionality, allowing user to listen to mic audio live.
- * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
- */
-function setupMonitor(monitorNode) {
-  // Leave audio volume at zero by default.
-  monitorNode.gain.value = 0;
-
-  let isMonitoring = false;
-
-  const monitorButton = document.querySelector('#monitor');
-  const monitorText = monitorButton.querySelector('span');
-
-  monitorButton.addEventListener('click', (event) => {
-    isMonitoring = !isMonitoring;
-    const newVal = isMonitoring ? 1 : 0;
-
-    // Set gain to quickly but smoothly slide to new value.
-    monitorNode.gain.setTargetAtTime(newVal, context.currentTime, 0.01);
-
-    monitorText.textContent = isMonitoring ? 'off' : 'on';
+function changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton) {
+  // Inform processor that recording was paused.
+  processorPort.postMessage({
+    message: 'UPDATE_RECORDING_STATE',
+    setRecording: isRecording,
   });
+  recordButton.disabled = isRecording ? true : false;
+  stopButton.disabled = isRecording ? false: true;
+  downloadButton.disabled = isRecording ? true: false;
 }
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {GainNode} monitorNode Gain node to adjust for monitor gain.
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers(monitorNode) {
-  const drawLiveGain = setupLiveGainVis();
+function setupVisualizers() {
   const drawRecordingGain = setupRecordingGainVis();
 
   let initialized = false;
@@ -193,11 +174,6 @@ function setupVisualizers(monitorNode) {
   };
 
   function draw() {
-    if (visualizationEnabled) {
-      const liveGain = gain * monitorNode.gain.value;
-      drawLiveGain(liveGain * WAVEFROM_SCALE_FACTOR);
-    }
-
     if (isRecording) {
       const recordGain = gain;
       drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
@@ -208,49 +184,8 @@ function setupVisualizers(monitorNode) {
     requestAnimationFrame(draw);
   }
 
-  const visToggle = document.querySelector('#viz-toggle');
-  visToggle.addEventListener('click', (e) => {
-    visualizationEnabled = !visualizationEnabled;
-    visToggle.querySelector('span').textContent =
-      visualizationEnabled ? 'Pause' : 'Play';
-  });
-
   return visualizerEventCallback;
 }
-
-/**
- * Prepares and defines render function for the live gain visualizer.
- * @return {function} Draw function to render incoming live audio.
- */
-const setupLiveGainVis = () => {
-  const canvas = document.querySelector('#live-canvas');
-  const canvasContext = canvas.getContext('2d');
-
-  const width = canvas.width;
-  const height = canvas.height;
-
-  const drawStart = width-1;
-
-  function draw(currentSampleGain) {
-    // Determine center and height.
-    const centerY = ((1 - currentSampleGain) * height) / 2;
-    const gainHeight = currentSampleGain * height;
-
-    // Draw gain bar.
-    canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(drawStart, centerY, 1, gainHeight);
-
-    // Copy visualizer left.
-    canvasContext.globalCompositeOperation = 'copy';
-    canvasContext.drawImage(canvas, -1, 0);
-
-    // Return to original state, where new visuals.
-    // are drawn without clearing the canvas.
-    canvasContext.globalCompositeOperation = 'source-over';
-  }
-
-  return draw;
-};
 
 /**
  * Prepares and defines render function for the recording gain visualizer.
