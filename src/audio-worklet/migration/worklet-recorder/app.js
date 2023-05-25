@@ -11,8 +11,25 @@ const context = new AudioContext();
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
+let initCount = 0;
+let recordButton = document.querySelector('#record');
+let recordText = document.querySelector('#record-text');
+let stopButton = document.querySelector('#stop');
+let player = document.querySelector('#player');
+let downloadLink = document.querySelector('#download-link');
+let downloadButton = document.querySelector('#download-button');
 
-init();
+// Wait for user interaction to initialize audio, as per specification.
+if (!initCount){
+  recordButton.disabled = false;
+  recordButton.addEventListener('click', (element) => {
+    init();
+    isRecording = true;
+    changeButtonDisabled();
+    initCount++;
+    recordText.textContent = "Continue";
+  }, {once: true});
+}
 
 /**
  * Defines overall audio chain and initializes all functionality.
@@ -98,12 +115,6 @@ async function setupRecordingWorkletNode(recordingProperties) {
  * @return {function} Callback for recording-related events.
  */
 function handleRecording(processorPort, recordingProperties) {
-  const recordButton = document.querySelector('#record');
-  const stopButton = document.querySelector('#stop');
-  const player = document.querySelector('#player');
-  const downloadLink = document.querySelector('#download-link');
-  const downloadButton = document.querySelector('#download-button');
-
   let recordingLength = 0;
 
   // If the max length is reached, we can no longer record.
@@ -113,7 +124,7 @@ function handleRecording(processorPort, recordingProperties) {
       stopButton.disabled = true;
       window.alert("The recording length reach the max limit!");
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-          downloadLink, downloadButton, event.data.buffer, player);
+          downloadLink, event.data.buffer, player);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
@@ -123,29 +134,43 @@ function handleRecording(processorPort, recordingProperties) {
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-          downloadLink, downloadButton, event.data.buffer, player);
+          event.data.buffer, player);
     }
   };
 
+  if (initCount === 1) {
+    isRecording = true;
+    processorPort.postMessage({
+      message: 'UPDATE_RECORDING_STATE',
+      setRecording: isRecording,
+    });
+    changeButtonDisabled();
+    initCount++;
+  }
+
   recordButton.addEventListener('click', (e) => {
     isRecording = true;
-    changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton);
+    processorPort.postMessage({
+      message: 'UPDATE_RECORDING_STATE',
+      setRecording: isRecording,
+    });
+    changeButtonDisabled();
   });
 
   stopButton.addEventListener('click', (e) => {
     isRecording = false;
-    changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton);
+    processorPort.postMessage({
+      message: 'UPDATE_RECORDING_STATE',
+      setRecording: isRecording,
+    });
+    changeButtonDisabled();
   });
 
   return recordingEventCallback;
 }
 
-function changeButtonDisabled(processorPort, recordButton, stopButton, downloadButton) {
+function changeButtonDisabled() {
   // Inform processor that recording was paused.
-  processorPort.postMessage({
-    message: 'UPDATE_RECORDING_STATE',
-    setRecording: isRecording,
-  });
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
@@ -243,13 +268,10 @@ function setupRecordingGainVis() {
  *     for accurate recording length calculations.
  * @param {number} recordingLength The current length of recording
  * @param {number} sampleRate The sample rate of audio content
- * @param {object} downloadLink The download link for recording file
- * @param {object} downloadButton The download button in web
  * @param {number[]} dataBuffer The dataBuffer of recording
- * @param {object} player The audio player in the web
  */
 const createRecord = (recordingProperties, recordingLength, sampleRate,
-    downloadLink, downloadButton, dataBuffer, player) => {
+    dataBuffer) => {
   const recordingBuffer = context.createBuffer(
       recordingProperties.numberOfChannels,
       recordingLength,

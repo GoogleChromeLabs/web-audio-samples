@@ -15,21 +15,23 @@ const WAVEFROM_SCALE_FACTOR = 5
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
-let firstInit = true;
+let initCount = 0;
 
 let recordButton = document.querySelector('#record');
+let recordText = document.querySelector('#record-text');
 let stopButton = document.querySelector('#stop');
 let player = document.querySelector('#player');
 let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (firstInit){
+if (!initCount){
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    firstInit = false;
+    initCount++;
+    recordText.textContent = "Continue";
     changeButtonDisabled();
   }, {once: true});
 }
@@ -58,7 +60,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: 2,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 10
+    maxFrameCount: context.sampleRate * 300
   };
 
   const gainNode = context.createGain();
