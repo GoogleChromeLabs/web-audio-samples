@@ -253,7 +253,7 @@ function setupRecordingGainVis() {
   let currentX = 0;
   let previousY = height / 2;
   // Adjust the amplitude value to increase or decrease the size of the waveform
-  const amplitude = height * 1.5;
+  const amplitude = height;
 
   function draw(currentSampleGain) {
     const centerY = height / 2 - currentSampleGain * amplitude;

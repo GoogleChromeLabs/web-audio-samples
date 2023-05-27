@@ -11,7 +11,7 @@ const context = new AudioContext();
 // Make the visulization of soundwave more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 10000
+const VU_METER_SCALE_FACTOR = 4000
 let isRecording = false;
 let initCount = 0;
 let recordButton = document.querySelector('#record');
@@ -232,7 +232,7 @@ function setupRecordingGainVis() {
   let currentX = 0;
   let previousY = height / 2;
   // Adjust the amplitude value to increase or decrease the size of the waveform
-  const amplitude = height * 2;
+  const amplitude = height;
 
   function draw(currentSampleGain) {
     const centerY = height / 2 - currentSampleGain * amplitude;
