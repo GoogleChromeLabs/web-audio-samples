@@ -11,14 +11,68 @@ to_root_dir: ../../../
 {% block content %}
 
 <style>
+  .recording-display {
+    display: flex;
+    align-items: center;
+  }
+
   canvas {
-    display: block;
-    height: 80px;
+    flex: 1 95%;
+    height: 200px;
     border: 1px solid rgb(156 163 175 / var(--tw-border-opacity));
     border-radius: 6px;
-
     margin: 1em 0;
+  }
+
+  .vu-meter {
+    flex: 1;
+    width: 20px;
+    height: 200px;
+    background-color: #000;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    position: relative;
+  }
+
+  .meter {
     width: 100%;
+    background-color: #f00;
+    transition: height 0.2s;
+  }
+
+  .marks {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .mark {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #fff;
+    opacity: 0.3;
+  }
+
+  .mark:nth-child(1) {
+    top: 20%;
+  }
+
+  .mark:nth-child(2) {
+    top: 40%;
+  }
+
+  .mark:nth-child(3) {
+    top: 60%;
+  }
+
+  .mark:nth-child(4) {
+    top: 80%;
   }
 </style>
 
@@ -46,9 +100,19 @@ to_root_dir: ../../../
       </a>
     </div>
 
-    <canvas id="recording-canvas"></canvas>
+    <div class="recording-display">
+      <canvas id="recording-canvas"></canvas>
+      <div class="vu-meter">
+        <div class="meter"></div>
+        <div class="marks">
+          <div class="mark"></div>
+          <div class="mark"></div>
+          <div class="mark"></div>
+          <div class="mark"></div>
+        </div>
+      </div>
+    </div>
 
-    <div>
       <audio id="player" class="w-full" controls></audio>
     </div>
   </div>

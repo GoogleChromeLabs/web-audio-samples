@@ -8,8 +8,10 @@ import createLinkFromAudioBuffer from './exporter.mjs';
 
 const context = new AudioContext();
 
-// Make the visulization more clear to the users
+// Make the visulization of soundwave more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
+// Make the visulization of vu meter more clear to the users
+const VU_METER_SCALE_FACTOR = 10000
 let isRecording = false;
 let initCount = 0;
 let recordButton = document.querySelector('#record');
@@ -201,6 +203,7 @@ function setupVisualizers() {
   function draw() {
     if (isRecording) {
       const recordGain = gain;
+      setVolume(recordGain);
       drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
     }
 
@@ -297,3 +300,8 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
       `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;
 };
+
+function setVolume(volume) {
+  var meter = document.querySelector('.meter');
+  meter.style.height = Math.abs(volume * VU_METER_SCALE_FACTOR) + '%';
+}

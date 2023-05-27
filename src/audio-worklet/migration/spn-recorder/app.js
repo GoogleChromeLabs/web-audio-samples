@@ -12,6 +12,8 @@ const context = new AudioContext();
 const BUFFER_SIZE = 256;
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
+// Make the visulization of vu meter more clear to the users
+const VU_METER_SCALE_FACTOR = 4000
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
@@ -221,6 +223,7 @@ function setupVisualizers() {
 
       if (isRecording) {
         const recordGain = currentSampleGain;
+        setVolume(recordGain);
         drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
       }
     }
@@ -250,7 +253,7 @@ function setupRecordingGainVis() {
   let currentX = 0;
   let previousY = height / 2;
   // Adjust the amplitude value to increase or decrease the size of the waveform
-  const amplitude = height * 2;
+  const amplitude = height * 1.5;
 
   function draw(currentSampleGain) {
     const centerY = height / 2 - currentSampleGain * amplitude;
@@ -313,3 +316,8 @@ const createFinalRecordBuffer = (recordingProperties) => {
   }
   return contextRecordBuffer;
 };
+
+function setVolume(volume) {
+  var meter = document.querySelector('.meter');
+  meter.style.height = Math.abs(volume * VU_METER_SCALE_FACTOR) + '%';
+}
