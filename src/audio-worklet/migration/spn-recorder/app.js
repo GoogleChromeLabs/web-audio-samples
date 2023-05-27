@@ -6,6 +6,13 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
+// This enum states the current recording state
+const recordingStates = {
+  notInitialized: 'notInitialized',
+  startIniAndRecording: 'startIniAndRecording',
+  finishRecording: 'finishRecording'
+};
+
 const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
@@ -15,7 +22,7 @@ const WAVEFROM_SCALE_FACTOR = 5
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
-let initCount = 0;
+let recordingState = recordingStates.notInitialized;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -24,15 +31,17 @@ let player = document.querySelector('#player');
 let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
+
+
 // Wait for user interaction to initialize audio, as per specification.
-if (!initCount){
+if (recordingState === recordingStates.notInitialized){
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    initCount++;
-    recordText.textContent = "Continue";
-    changeButtonDisabled();
+    recordingState = recordingStates.startIniAndRecording;
+    recordText.textContent = 'Continue';
+    changeButtonStatusIfNeeded();
   }, {once: true});
 }
 
@@ -60,7 +69,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: 2,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 300
+    maxFrameCount: context.sampleRate * 5
   };
 
   const gainNode = context.createGain();
@@ -121,10 +130,10 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
     // Update tracked recording length.
     if (isRecording) {
       recordingLength += BUFFER_SIZE;
-      
       if (recordingLength > recordingProperties.maxFrameCount) {
         isRecording = !isRecording;
-        window.alert("The recording length reach the max limit!");
+        recordingState = recordingStates.finishRecording;
+        recordText.textContent = 'Reach the maximum length of';
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
         const audioFileUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
@@ -150,7 +159,7 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
     isRecording = true;
-    changeButtonDisabled();
+    changeButtonStatusIfNeeded();
   });
 
   stopButton.addEventListener('click', (event) => {
@@ -158,13 +167,13 @@ function setupRecording(recordingProperties) {
     isRecording = false;
     const finalRecordBuffer = createFinalRecordBuffer(recordingProperties);
     prepareClip(finalRecordBuffer);
-    changeButtonDisabled();
+    changeButtonStatusIfNeeded();
   });
 
 
 }
 
-function changeButtonDisabled() {
+function changeButtonStatusIfNeeded() {
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
