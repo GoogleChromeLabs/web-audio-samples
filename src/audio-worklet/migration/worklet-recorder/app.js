@@ -11,7 +11,7 @@ const context = new AudioContext();
 // Make the visulization of soundwave more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 4000
+const VU_METER_SCALE_FACTOR = 1000
 let isRecording = false;
 let initCount = 0;
 let recordButton = document.querySelector('#record');
