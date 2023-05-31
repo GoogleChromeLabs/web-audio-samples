@@ -7,11 +7,10 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 
 // This enum states the current recording state
-const recordingStates = {
-  notInitialized: 'notInitialized',
-  startInitialized: 'startInitialized',
-  startRecording: 'startRecording',
-  finishRecording: 'finishRecording'
+const recorderState = {
+  UNINITIALIZED: 0,
+  RECORDING: 1,
+  FINISHED: 2,
 };
 
 const context = new AudioContext();
@@ -19,7 +18,7 @@ const context = new AudioContext();
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
-let recordingState = recordingStates.notInitialized;
+let recordingState = recorderState.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -29,13 +28,12 @@ let downloadLink = document.querySelector('#download-link');
 let downloadButton = document.querySelector('#download-button');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recordingStates.notInitialized){
+if (recordingState === recorderState.UNINITIALIZED) {
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    changeButtonStatusIfNeeded();
-    recordingState = recordingStates.startInitialized;
+    changeButtonStatus();
     recordText.textContent = 'Continue';
   }, {once: true});
 }
@@ -132,7 +130,7 @@ function handleRecording(processorPort, recordingProperties) {
       isRecording = false;
       stopButton.disabled = true;
       recordText.textContent = 'Reach the maximum length of';
-      recordingState = recordingStates.finishRecording;
+      recordingState = recorderState.FINISHED;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
           event.data.buffer);
     }
@@ -148,14 +146,14 @@ function handleRecording(processorPort, recordingProperties) {
     }
   };
 
-  if (recordingState === recordingStates.startInitialized) {
+  if (recordingState === recorderState.UNINITIALIZED) {
     isRecording = true;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonStatusIfNeeded();
-    recordingState = recordingStates.startRecording;
+    changeButtonStatus();
+    recordingState = recorderState.RECORDING;
   }
 
   recordButton.addEventListener('click', (e) => {
@@ -164,7 +162,7 @@ function handleRecording(processorPort, recordingProperties) {
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonStatusIfNeeded();
+    changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (e) => {
@@ -173,13 +171,13 @@ function handleRecording(processorPort, recordingProperties) {
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonStatusIfNeeded();
+    changeButtonStatus();
   });
 
   return recordingEventCallback;
 }
 
-function changeButtonStatusIfNeeded() {
+function changeButtonStatus() {
   // Inform processor that recording was paused.
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
@@ -279,6 +277,7 @@ function setupRecordingGainVis() {
 
   return draw;
 }
+
 /**
  * Creating the downloadable .wav file for the recorded voice and set
  * the download button clickable.

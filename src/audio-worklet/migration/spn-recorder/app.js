@@ -7,10 +7,10 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 
 // This enum states the current recording state
-const recordingStates = {
-  notInitialized: 'notInitialized',
-  startIniAndRecording: 'startIniAndRecording',
-  finishRecording: 'finishRecording'
+const recorderState = {
+  UNINITIALIZED: 0,
+  RECORDING: 1,
+  FINISHED: 2,
 };
 
 const context = new AudioContext();
@@ -22,7 +22,7 @@ const WAVEFROM_SCALE_FACTOR = 5
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
-let recordingState = recordingStates.notInitialized;
+let recordingState = recorderState.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -31,17 +31,15 @@ let player = document.querySelector('#player');
 let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
-
-
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recordingStates.notInitialized){
+if (recordingState === recorderState.UNINITIALIZED) {
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    recordingState = recordingStates.startIniAndRecording;
+    recordingState = recorderState.RECORDING;
     recordText.textContent = 'Continue';
-    changeButtonStatusIfNeeded();
+    changeButtonStatus();
   }, {once: true});
 }
 
@@ -69,7 +67,7 @@ async function init() {
   const recordingProperties = {
     numberOfChannels: 2,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 5
+    maxFrameCount: context.sampleRate * 300
   };
 
   const gainNode = context.createGain();
@@ -132,7 +130,7 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       recordingLength += BUFFER_SIZE;
       if (recordingLength > recordingProperties.maxFrameCount) {
         isRecording = !isRecording;
-        recordingState = recordingStates.finishRecording;
+        recordingState = recorderState.FINISHED;
         recordText.textContent = 'Reach the maximum length of';
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
@@ -159,7 +157,7 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
     isRecording = true;
-    changeButtonStatusIfNeeded();
+    changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (event) => {
@@ -167,13 +165,13 @@ function setupRecording(recordingProperties) {
     isRecording = false;
     const finalRecordBuffer = createFinalRecordBuffer(recordingProperties);
     prepareClip(finalRecordBuffer);
-    changeButtonStatusIfNeeded();
+    changeButtonStatus();
   });
 
 
 }
 
-function changeButtonStatusIfNeeded() {
+function changeButtonStatus() {
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
@@ -262,7 +260,7 @@ function setupRecordingGainVis() {
   const amplitude = height * 2;
 
   function draw(currentSampleGain) {
-    const centerY = height / 2 - currentSampleGain * amplitude;
+    const currentY = height / 2 - currentSampleGain * amplitude;
 
     // Clear current Y-axis.
     canvasContext.clearRect(currentX, 0, 1, height);
@@ -274,13 +272,13 @@ function setupRecordingGainVis() {
     // Draw line plot.
     canvasContext.beginPath();
     canvasContext.moveTo(currentX, previousY);
-    canvasContext.lineTo(currentX + 1, centerY);
+    canvasContext.lineTo(currentX + 1, currentY);
     canvasContext.strokeStyle = 'black';
     // Decrease the line width for better visibility
     canvasContext.lineWidth = 0.8;
     canvasContext.stroke();
 
-    previousY = centerY;
+    previousY = currentY;
 
     if (currentX < width - 2) {
       // Keep drawing new waveforms rightwards until the canvas is full.
@@ -311,7 +309,7 @@ const createFinalRecordBuffer = (recordingProperties) => {
   //The start index of each 256 float32Array
   let startIndex = 0;
 
-  for (let frame = 0; frame < recordBuffer[0].length; frame++){
+  for (let frame = 0; frame < recordBuffer[0].length; frame++) {
     for (let channel = 0; 
         channel < recordingProperties.numberOfChannels;
         channel++) {
@@ -322,3 +320,4 @@ const createFinalRecordBuffer = (recordingProperties) => {
   }
   return contextRecordBuffer;
 };
+
