@@ -6,6 +6,13 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
+// This enum states the current recording state
+const recorderState = {
+  UNINITIALIZED: 0,
+  RECORDING: 1,
+  FINISHED: 2,
+};
+
 const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
@@ -17,7 +24,7 @@ const VU_METER_SCALE_FACTOR = 1000
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
-let initCount = 0;
+let recordingState = recorderState.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -27,14 +34,14 @@ let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (!initCount){
+if (recordingState === recorderState.UNINITIALIZED) {
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    initCount++;
-    recordText.textContent = "Continue";
-    changeButtonDisabled();
+    recordingState = recorderState.RECORDING;
+    recordText.textContent = 'Continue';
+    changeButtonStatus();
   }, {once: true});
 }
 
@@ -123,10 +130,10 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
     // Update tracked recording length.
     if (isRecording) {
       recordingLength += BUFFER_SIZE;
-      
       if (recordingLength > recordingProperties.maxFrameCount) {
         isRecording = !isRecording;
-        window.alert("The recording length reach the max limit!");
+        recordingState = recorderState.FINISHED;
+        recordText.textContent = 'Reach the maximum length of';
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
         const audioFileUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
@@ -152,7 +159,7 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
     isRecording = true;
-    changeButtonDisabled();
+    changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (event) => {
@@ -160,13 +167,13 @@ function setupRecording(recordingProperties) {
     isRecording = false;
     const finalRecordBuffer = createFinalRecordBuffer(recordingProperties);
     prepareClip(finalRecordBuffer);
-    changeButtonDisabled();
+    changeButtonStatus();
   });
 
 
 }
 
-function changeButtonDisabled() {
+function changeButtonStatus() {
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
@@ -253,10 +260,10 @@ function setupRecordingGainVis() {
   let currentX = 0;
   let previousY = height / 2;
   // Adjust the amplitude value to increase or decrease the size of the waveform
-  const amplitude = height;
+  const amplitude = height * 2;
 
   function draw(currentSampleGain) {
-    const centerY = height / 2 - currentSampleGain * amplitude;
+    const currentY = height / 2 - currentSampleGain * amplitude;
 
     // Clear current Y-axis.
     canvasContext.clearRect(currentX, 0, 1, height);
@@ -268,13 +275,13 @@ function setupRecordingGainVis() {
     // Draw line plot.
     canvasContext.beginPath();
     canvasContext.moveTo(currentX, previousY);
-    canvasContext.lineTo(currentX + 1, centerY);
+    canvasContext.lineTo(currentX + 1, currentY);
     canvasContext.strokeStyle = 'black';
     // Decrease the line width for better visibility
     canvasContext.lineWidth = 0.8;
     canvasContext.stroke();
 
-    previousY = centerY;
+    previousY = currentY;
 
     if (currentX < width - 2) {
       // Keep drawing new waveforms rightwards until the canvas is full.
@@ -305,7 +312,7 @@ const createFinalRecordBuffer = (recordingProperties) => {
   //The start index of each 256 float32Array
   let startIndex = 0;
 
-  for (let frame = 0; frame < recordBuffer[0].length; frame++){
+  for (let frame = 0; frame < recordBuffer[0].length; frame++) {
     for (let channel = 0; 
         channel < recordingProperties.numberOfChannels;
         channel++) {
