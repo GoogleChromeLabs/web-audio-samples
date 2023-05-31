@@ -245,19 +245,15 @@ function setupRecordingGainVis() {
   function draw(currentSampleGain) {
     const centerY = height / 2 - currentSampleGain * amplitude;
 
-    // Clear current Y-axis.
     canvasContext.clearRect(currentX, 0, 1, height);
 
-    // Draw recording bar 1 ahead.
     canvasContext.fillStyle = 'red';
     canvasContext.fillRect(currentX + 1, 0, 1, height);
 
-    // Draw line plot.
     canvasContext.beginPath();
     canvasContext.moveTo(currentX, previousY);
     canvasContext.lineTo(currentX + 1, centerY);
     canvasContext.strokeStyle = 'black';
-    // Decrease the line width for better visibility
     canvasContext.lineWidth = 0.8;
     canvasContext.stroke();
 
