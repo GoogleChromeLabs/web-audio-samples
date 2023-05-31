@@ -20,7 +20,7 @@ const BUFFER_SIZE = 256;
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 1000
+const VU_METER_SCALE_FACTOR = 4000
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
