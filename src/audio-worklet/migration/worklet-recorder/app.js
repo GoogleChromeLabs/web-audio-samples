@@ -6,12 +6,20 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
+// This enum states the current recording state
+const recorderState = {
+  UNINITIALIZED: 0,
+  RECORDING: 1,
+  FINISHED: 2,
+};
+
 const context = new AudioContext();
 
 // Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5
 let isRecording = false;
-let initCount = 0;
+let recordingState = recorderState.UNINITIALIZED;
+
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
 let stopButton = document.querySelector('#stop');
@@ -20,14 +28,13 @@ let downloadLink = document.querySelector('#download-link');
 let downloadButton = document.querySelector('#download-button');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (!initCount){
+if (recordingState === recorderState.UNINITIALIZED){
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
     isRecording = true;
-    changeButtonDisabled();
-    initCount++;
-    recordText.textContent = "Continue";
+    changeButtonStatus();
+    recordText.textContent = 'Continue';
   }, {once: true});
 }
 
@@ -122,9 +129,10 @@ function handleRecording(processorPort, recordingProperties) {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
       isRecording = false;
       stopButton.disabled = true;
-      window.alert("The recording length reach the max limit!");
+      recordText.textContent = 'Reach the maximum length of';
+      recordingState = recorderState.FINISHED;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-          downloadLink, event.data.buffer, player);
+          event.data.buffer);
     }
     if (event.data.message === 'UPDATE_RECORDING_LENGTH') {
       recordingLength = event.data.recordingLength;
@@ -134,18 +142,18 @@ function handleRecording(processorPort, recordingProperties) {
     }
     if (event.data.message === 'SHARE_RECORDING_BUFFER') {
       createRecord(recordingProperties, recordingLength, context.sampleRate,
-          event.data.buffer, player);
+          event.data.buffer);
     }
   };
 
-  if (initCount === 1) {
+  if (recordingState === recorderState.UNINITIALIZED) {
     isRecording = true;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonDisabled();
-    initCount++;
+    changeButtonStatus();
+    recordingState = recorderState.RECORDING;
   }
 
   recordButton.addEventListener('click', (e) => {
@@ -154,7 +162,7 @@ function handleRecording(processorPort, recordingProperties) {
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonDisabled();
+    changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (e) => {
@@ -163,13 +171,13 @@ function handleRecording(processorPort, recordingProperties) {
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
-    changeButtonDisabled();
+    changeButtonStatus();
   });
 
   return recordingEventCallback;
 }
 
-function changeButtonDisabled() {
+function changeButtonStatus() {
   // Inform processor that recording was paused.
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
