@@ -28,7 +28,7 @@ let downloadLink = document.querySelector('#download-link');
 let downloadButton = document.querySelector('#download-button');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recorderState.UNINITIALIZED){
+if (recordingState === recorderState.UNINITIALIZED) {
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();

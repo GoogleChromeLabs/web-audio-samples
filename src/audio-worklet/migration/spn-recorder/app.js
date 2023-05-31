@@ -32,7 +32,7 @@ let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recorderState.UNINITIALIZED){
+if (recordingState === recorderState.UNINITIALIZED) {
   recordButton.disabled = false;
   recordButton.addEventListener('click', (element) => {
     init();
@@ -300,7 +300,7 @@ const createFinalRecordBuffer = (recordingProperties) => {
   //The start index of each 256 float32Array
   let startIndex = 0;
 
-  for (let frame = 0; frame < recordBuffer[0].length; frame++){
+  for (let frame = 0; frame < recordBuffer[0].length; frame++) {
     for (let channel = 0; 
         channel < recordingProperties.numberOfChannels;
         channel++) {
