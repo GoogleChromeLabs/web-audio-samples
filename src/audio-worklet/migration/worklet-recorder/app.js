@@ -16,7 +16,7 @@ const RecorderState = {
 const context = new AudioContext();
 
 // Make the visulization more clear to the users
-const WAVEFROM_SCALE_FACTOR = 5
+const WAVEFROM_SCALE_FACTOR = 5;
 let isRecording = false;
 let recordingState = RecorderState.UNINITIALIZED;
 

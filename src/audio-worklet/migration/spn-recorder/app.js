@@ -11,7 +11,7 @@ const context = new AudioContext();
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
 // Make the visulization more clear to the users
-const WAVEFROM_SCALE_FACTOR = 5
+const WAVEFROM_SCALE_FACTOR = 5;
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
@@ -56,7 +56,7 @@ async function initializeAudio() {
   const recordingProperties = {
     numberOfChannels: 2,
     sampleRate: context.sampleRate,
-    maxFrameCount: context.sampleRate * 5
+    maxFrameCount: context.sampleRate * 300
   };
 
   const gainNode = context.createGain();
