@@ -6,25 +6,17 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
-// This enum states the current recording state
-const recorderState = {
-  UNINITIALIZED: 0,
-  RECORDING: 1,
-  FINISHED: 2,
-};
-
 const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
 // Make the visulization more clear to the users
-const WAVEFROM_SCALE_FACTOR = 5
+const WAVEFROM_SCALE_FACTOR = 5;
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 4000
+const VU_METER_SCALE_FACTOR = 4000;
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let isRecording = false;
-let recordingState = recorderState.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -33,22 +25,20 @@ let player = document.querySelector('#player');
 let downloadButton = document.querySelector('#download-button');
 let downloadLink = document.querySelector('#download-link');
 
+recordButton.disabled = false;
+
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recorderState.UNINITIALIZED) {
-  recordButton.disabled = false;
-  recordButton.addEventListener('click', (element) => {
-    init();
-    isRecording = true;
-    recordingState = recorderState.RECORDING;
-    recordText.textContent = 'Continue';
-    changeButtonStatus();
-  }, {once: true});
-}
+recordButton.addEventListener('click', (element) => {
+  initializeAudio();
+  isRecording = true;
+  recordText.textContent = 'Continue';
+  changeButtonStatus();
+}, {once: true});
 
 /**
  * Defines overall audio chain and initializes all functionality.
  */
-async function init() {
+async function initializeAudio() {
   if (context.state === 'suspended') {
     await context.resume();
   }
@@ -132,7 +122,6 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       recordingLength += BUFFER_SIZE;
       if (recordingLength > recordingProperties.maxFrameCount) {
         isRecording = !isRecording;
-        recordingState = recorderState.FINISHED;
         recordText.textContent = 'Reach the maximum length of';
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
@@ -169,8 +158,6 @@ function setupRecording(recordingProperties) {
     prepareClip(finalRecordBuffer);
     changeButtonStatus();
   });
-
-
 }
 
 function changeButtonStatus() {

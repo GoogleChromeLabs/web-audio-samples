@@ -7,7 +7,7 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 
 // This enum states the current recording state
-const recorderState = {
+const RecorderState = {
   UNINITIALIZED: 0,
   RECORDING: 1,
   FINISHED: 2,
@@ -16,11 +16,11 @@ const recorderState = {
 const context = new AudioContext();
 
 // Make the visulization more clear to the users
-const WAVEFROM_SCALE_FACTOR = 5
+const WAVEFROM_SCALE_FACTOR = 5;
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 4000
+const VU_METER_SCALE_FACTOR = 4000;
 let isRecording = false;
-let recordingState = recorderState.UNINITIALIZED;
+let recordingState = RecorderState.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -29,21 +29,20 @@ let player = document.querySelector('#player');
 let downloadLink = document.querySelector('#download-link');
 let downloadButton = document.querySelector('#download-button');
 
+recordButton.disabled = false;
+
 // Wait for user interaction to initialize audio, as per specification.
-if (recordingState === recorderState.UNINITIALIZED) {
-  recordButton.disabled = false;
-  recordButton.addEventListener('click', (element) => {
-    init();
-    isRecording = true;
-    changeButtonStatus();
-    recordText.textContent = 'Continue';
-  }, {once: true});
-}
+recordButton.addEventListener('click', (element) => {
+  initializeAudio();
+  isRecording = true;
+  changeButtonStatus();
+  recordText.textContent = 'Continue';
+}, {once: true});
 
 /**
  * Defines overall audio chain and initializes all functionality.
  */
-async function init() {
+async function initializeAudio() {
   if (context.state === 'suspended') {
     await context.resume();
   }
@@ -132,7 +131,7 @@ function handleRecording(processorPort, recordingProperties) {
       isRecording = false;
       stopButton.disabled = true;
       recordText.textContent = 'Reach the maximum length of';
-      recordingState = recorderState.FINISHED;
+      recordingState = RecorderState.FINISHED;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
           event.data.buffer);
     }
@@ -148,14 +147,14 @@ function handleRecording(processorPort, recordingProperties) {
     }
   };
 
-  if (recordingState === recorderState.UNINITIALIZED) {
+  if (recordingState === RecorderState.UNINITIALIZED) {
     isRecording = true;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
       setRecording: isRecording,
     });
     changeButtonStatus();
-    recordingState = recorderState.RECORDING;
+    recordingState = RecorderState.RECORDING;
   }
 
   recordButton.addEventListener('click', (e) => {
