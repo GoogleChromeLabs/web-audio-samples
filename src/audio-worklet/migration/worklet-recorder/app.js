@@ -16,15 +16,10 @@ const RecorderStates = {
 
 const context = new AudioContext();
 
-// Make the visulization more clear to the users
 const WAVEFROM_SCALE_FACTOR = 5;
-let recordingState = RecorderStates.UNINITIALIZED;
-
-const WAVEFROM_SCALE_FACTOR = 5;
-// Make the visulization of vu meter more clear to the users
+// Make the visulization of vu meter clearer to the users
 const VU_METER_SCALE_FACTOR = 4000;
-let isRecording = false;
-let recordingState = RecorderState.UNINITIALIZED;
+let recordingState = RecorderStates.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');

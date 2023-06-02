@@ -18,7 +18,7 @@ const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
-// Make the visulization more clear to the users
+// Make the visulization clearer to the users
 const WAVEFROM_SCALE_FACTOR = 5;
 // Make the visulization of vu meter more clear to the users
 const VU_METER_SCALE_FACTOR = 4000;
@@ -318,3 +318,7 @@ const createFinalRecordBuffer = (recordingProperties) => {
   return contextRecordBuffer;
 };
 
+function setVolume(volume) {
+  var meter = document.querySelector('.meter');
+  meter.style.height = Math.abs(volume * VU_METER_SCALE_FACTOR) + '%';
+}
