@@ -7,15 +7,19 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 
 // This enum states the current recording state
-const RecorderState = {
+const RecorderStates = {
   UNINITIALIZED: 0,
   RECORDING: 1,
-  FINISHED: 2,
+  PAUSED: 2,
+  FINISHED: 3,
 };
 
 const context = new AudioContext();
 
 // Make the visulization more clear to the users
+const WAVEFROM_SCALE_FACTOR = 5;
+let recordingState = RecorderStates.UNINITIALIZED;
+
 const WAVEFROM_SCALE_FACTOR = 5;
 // Make the visulization of vu meter more clear to the users
 const VU_METER_SCALE_FACTOR = 4000;
@@ -32,9 +36,9 @@ let downloadButton = document.querySelector('#download-button');
 recordButton.disabled = false;
 
 // Wait for user interaction to initialize audio, as per specification.
+recordButton.disabled = false;
 recordButton.addEventListener('click', (element) => {
   initializeAudio();
-  isRecording = true;
   changeButtonStatus();
   recordText.textContent = 'Continue';
 }, {once: true});
@@ -128,10 +132,9 @@ function handleRecording(processorPort, recordingProperties) {
   // If the max length is reached, we can no longer record.
   const recordingEventCallback = async (event) => {
     if (event.data.message === 'MAX_RECORDING_LENGTH_REACHED') {
-      isRecording = false;
       stopButton.disabled = true;
-      recordText.textContent = 'Reach the maximum length of';
-      recordingState = RecorderState.FINISHED;
+      recordText.textContent = 'Reached the maximum length of';
+      recordingState = RecorderStates.FINISHED;
       createRecord(recordingProperties, recordingLength, context.sampleRate,
           event.data.buffer);
     }
@@ -147,30 +150,29 @@ function handleRecording(processorPort, recordingProperties) {
     }
   };
 
-  if (recordingState === RecorderState.UNINITIALIZED) {
-    isRecording = true;
+  if (recordingState === RecorderStates.UNINITIALIZED) {
+    recordingState = RecorderStates.RECORDING;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
-      setRecording: isRecording,
+      setRecording: true,
     });
     changeButtonStatus();
-    recordingState = RecorderState.RECORDING;
   }
 
   recordButton.addEventListener('click', (e) => {
-    isRecording = true;
+    recordingState = RecorderStates.RECORDING;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
-      setRecording: isRecording,
+      setRecording: true,
     });
     changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (e) => {
-    isRecording = false;
+    recordingState = RecorderStates.PAUSED;
     processorPort.postMessage({
       message: 'UPDATE_RECORDING_STATE',
-      setRecording: isRecording,
+      setRecording: false,
     });
     changeButtonStatus();
   });
@@ -179,7 +181,7 @@ function handleRecording(processorPort, recordingProperties) {
 }
 
 function changeButtonStatus() {
-  // Inform processor that recording was paused.
+  let isRecording = recordingState === RecorderStates.RECORDING;
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
@@ -208,7 +210,7 @@ function setupVisualizers() {
   };
 
   function draw() {
-    if (isRecording) {
+    if (recordingState === RecorderStates.RECORDING) {
       const recordGain = gain;
       setVolume(recordGain);
       drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
