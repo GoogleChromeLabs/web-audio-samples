@@ -251,24 +251,29 @@ function setupRecordingGainVis() {
   canvasContext.fillRect(0, 0, 1, 1);
 
   let currentX = 0;
+  let previousY = height / 2;
+  // Adjust the amplitude value to increase the size of the waveform
+  const amplitude = height * 2;
 
   function draw(currentSampleGain) {
-    const centerY = ((1 - currentSampleGain) * height) / 2;
-    const gainHeight = currentSampleGain * height;
+    const currentY = height / 2 - currentSampleGain * amplitude;
 
-    // Clear current Y-axis.
     canvasContext.clearRect(currentX, 0, 1, height);
 
-    // Draw recording bar 1 ahead.
     canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currentX+1, 0, 1, height);
+    canvasContext.fillRect(currentX + 1, 0, 1, height);
 
-    // Draw current gain.
-    canvasContext.fillStyle = 'black';
-    canvasContext.fillRect(currentX, centerY, 1, gainHeight);
+    canvasContext.beginPath();
+    canvasContext.moveTo(currentX, previousY);
+    canvasContext.lineTo(currentX + 1, currentY);
+    canvasContext.strokeStyle = 'black';
+    canvasContext.lineWidth = 0.8;
+    canvasContext.stroke();
+
+    previousY = currentY;
 
     if (currentX < width - 2) {
-      // Keep drawing new waveforms rightwards until canvas is full.
+      // Keep drawing new waveforms rightwards until the canvas is full.
       currentX++;
     } else {
       // If the waveform fills the canvas,
@@ -276,7 +281,7 @@ function setupRecordingGainVis() {
       canvasContext.globalCompositeOperation = 'copy';
       canvasContext.drawImage(canvas, -1, 0);
 
-      // Return to original state, where new visuals
+      // Return to the original state, where new visuals
       // are drawn without clearing the canvas.
       canvasContext.globalCompositeOperation = 'source-over';
     }
@@ -307,3 +312,4 @@ const createFinalRecordBuffer = (recordingProperties) => {
   }
   return contextRecordBuffer;
 };
+
