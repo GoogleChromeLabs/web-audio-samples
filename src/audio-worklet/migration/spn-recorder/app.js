@@ -19,9 +19,10 @@ const context = new AudioContext();
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
 // Make the visulization clearer to the users
-const WAVEFROM_SCALE_FACTOR = 5;
+const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
-const VU_METER_SCALE_FACTOR = 4000;
+const GAIN_NODE_MAX_VALUE = 1;
+
 let recordingLength = 0;
 let recordBuffer = [[], []];
 let recordingState = RecorderStates.UNINITIALIZED;
@@ -228,8 +229,8 @@ function setupVisualizers() {
 
       if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
-        setVolume(recordGain);
-        drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
+        drawVUMeter(recordGain);
+        drawRecordingGain(recordGain);
       }
     }
 
@@ -257,11 +258,17 @@ function setupRecordingGainVis() {
 
   let currentX = 0;
   let previousY = height / 2;
-  // Adjust the amplitude value to increase the size of the waveform
-  const amplitude = height * 2;
 
   function draw(currentSampleGain) {
-    const currentY = height / 2 - currentSampleGain * amplitude;
+    // This formula is design based on this logic:
+    // Middle line of canvas: height / 2
+    // Current sound wave gain value range is -1 to 1
+    // We want use current gain value divide by gain value range and
+    // time half of canvas height, therefore, we can get the
+    // accurate wave size.
+    // At the end, use scale_factor to make is clearer for users
+    const currentY = height / 2 - height / 2 * (currentSampleGain
+        / GAIN_NODE_MAX_VALUE) * SCALE_FACTOR;
 
     canvasContext.clearRect(currentX, 0, 1, height);
 
@@ -318,7 +325,33 @@ const createFinalRecordBuffer = (recordingProperties) => {
   return contextRecordBuffer;
 };
 
-function setVolume(volume) {
-  var meter = document.querySelector('.meter');
-  meter.style.height = Math.abs(volume * VU_METER_SCALE_FACTOR) + '%';
+function drawVUMeter(volume) {
+  var canvas = document.getElementById('vu-meter');
+  var ctx = canvas.getContext('2d');
+  
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  var meterHeight = canvas.height *
+      (volume / GAIN_NODE_MAX_VALUE) * SCALE_FACTOR;
+  
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(0, canvas.height - meterHeight, canvas.width, meterHeight);
+  
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height * 0.2);
+  ctx.lineTo(canvas.width, canvas.height * 0.2);
+  ctx.moveTo(0, canvas.height * 0.4);
+  ctx.lineTo(canvas.width, canvas.height * 0.4);
+  ctx.moveTo(0, canvas.height * 0.6);
+  ctx.lineTo(canvas.width, canvas.height * 0.6);
+  ctx.moveTo(0, canvas.height * 0.8);
+  ctx.lineTo(canvas.width, canvas.height * 0.8);
+  ctx.stroke();
 }
