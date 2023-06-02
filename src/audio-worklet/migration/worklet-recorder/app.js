@@ -313,7 +313,6 @@ function drawVUMeter(volume) {
   var canvas = document.getElementById('vu-meter');
   var ctx = canvas.getContext('2d');
   
-  // Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   ctx.fillStyle = '#000';
