@@ -6,6 +6,14 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 
+// This enum states the current recording state
+const RecorderStates = {
+  UNINITIALIZED: 0,
+  RECORDING: 1,
+  PAUSED: 2,
+  FINISHED: 3,
+};
+
 const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
@@ -14,7 +22,7 @@ const BUFFER_SIZE = 256;
 const WAVEFROM_SCALE_FACTOR = 5;
 let recordingLength = 0;
 let recordBuffer = [[], []];
-let isRecording = false;
+let recordingState = RecorderStates.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -27,7 +35,7 @@ let downloadLink = document.querySelector('#download-link');
 recordButton.disabled = false;
 recordButton.addEventListener('click', (element) => {
   initializeAudio();
-  isRecording = true;
+  recordingState = RecorderStates.RECORDING;
   recordText.textContent = 'Continue';
   changeButtonStatus();
 }, {once: true});
@@ -101,7 +109,7 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       currentSamples[channel] = inputData;
 
       // While recording, feed data to recording buffer at the proper time.
-      if (isRecording) {
+      if (recordingState === RecorderStates.RECORDING) {
         // FrameNumber has to be an INTEGER for using as an index in 2D array.
         // Since JS don't have INTEGER type, We use Math.floor to ensure the
         // recordingLength/BUFFER_SIZE is INTEGER.
@@ -115,11 +123,11 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
     }
 
     // Update tracked recording length.
-    if (isRecording) {
+    if (recordingState === RecorderStates.RECORDING) {
       recordingLength += BUFFER_SIZE;
       if (recordingLength > recordingProperties.maxFrameCount) {
-        isRecording = !isRecording;
-        recordText.textContent = 'Reach the maximum length of';
+        recordingState = RecorderStates.FINISHED;
+        recordText.textContent = 'Reached the maximum length of';
         const finalRecordBuffer =
             createFinalRecordBuffer(recordingProperties);
         const audioFileUrl = createLinkFromAudioBuffer(finalRecordBuffer, true);
@@ -144,13 +152,13 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
  */
 function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
-    isRecording = true;
+    recordingState = RecorderStates.RECORDING;
     changeButtonStatus();
   });
 
   stopButton.addEventListener('click', (event) => {
     // When recording is paused, process clip.
-    isRecording = false;
+    recordingState = RecorderStates.PAUSED;
     const finalRecordBuffer = createFinalRecordBuffer(recordingProperties);
     prepareClip(finalRecordBuffer);
     changeButtonStatus();
@@ -159,6 +167,7 @@ function setupRecording(recordingProperties) {
 }
 
 function changeButtonStatus() {
+  let isRecording = recordingState === RecorderStates.RECORDING;
   recordButton.disabled = isRecording ? true : false;
   stopButton.disabled = isRecording ? false: true;
   downloadButton.disabled = isRecording ? true: false;
@@ -213,7 +222,7 @@ function setupVisualizers() {
 
       currentSampleGain /= (currentSamples.length * currentSamples[0].length);
 
-      if (isRecording) {
+      if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
         drawRecordingGain(recordGain * WAVEFROM_SCALE_FACTOR);
       }
