@@ -21,7 +21,7 @@ const BUFFER_SIZE = 256;
 // Make the visulization clearer to the users
 const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
-const GAIN_NODE_MAX_VALUE = 1;
+const MAX_GAIN = 1;
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -268,7 +268,7 @@ function setupRecordingGainVis() {
     // accurate wave size.
     // At the end, use scale_factor to make is clearer for users
     const currentY = height / 2 - height / 2 * (currentSampleGain
-        / GAIN_NODE_MAX_VALUE) * SCALE_FACTOR;
+        / MAX_GAIN) * SCALE_FACTOR;
 
     canvasContext.clearRect(currentX, 0, 1, height);
 
@@ -335,7 +335,7 @@ function drawVUMeter(volume) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
   var meterHeight = canvas.height *
-      (volume / GAIN_NODE_MAX_VALUE) * SCALE_FACTOR;
+      (volume / MAX_GAIN) * SCALE_FACTOR;
   
   ctx.fillStyle = '#f00';
   ctx.fillRect(0, canvas.height - meterHeight, canvas.width, meterHeight);
