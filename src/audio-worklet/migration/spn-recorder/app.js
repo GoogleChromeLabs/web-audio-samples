@@ -267,8 +267,7 @@ function setupRecordingGainVis() {
     // time half of canvas height, therefore, we can get the
     // accurate wave size.
     // At the end, use scale_factor to make is clearer for users
-    const currentY = height / 2 - height / 2 * (currentSampleGain
-        / MAX_GAIN) * SCALE_FACTOR;
+    const currentY = height / 2 * (1 - currentSampleGain * SCALE_FACTOR);
 
     canvasContext.clearRect(currentX, 0, 1, height);
 
