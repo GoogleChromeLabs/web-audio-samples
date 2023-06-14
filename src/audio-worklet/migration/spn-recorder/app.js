@@ -5,6 +5,7 @@
 'use strict';
 
 import createLinkFromAudioBuffer from './exporter.mjs';
+import WaveformDrawer from '../../../library/waveform.js';
 
 // This enum states the current recording state
 const RecorderStates = {
@@ -22,6 +23,7 @@ const BUFFER_SIZE = 256;
 const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
 const MAX_GAIN = 1;
+const waveformDrawer = new WaveformDrawer('#recording-canvas');
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -65,6 +67,8 @@ async function initializeAudio() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
+  const analyser = context.createAnalyser();
+
   // Prepare max recording buffer for recording.
   const recordingProperties = {
     numberOfChannels: 2,
@@ -75,7 +79,7 @@ async function initializeAudio() {
   const gainNode = context.createGain();
 
   // Obtain samples passthrough function for visualizers
-  const passSampleToVisualizers = setupVisualizers();
+  const passSampleToVisualizers = setupVisualizers(analyser);
   const spNode =
       setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
@@ -84,6 +88,7 @@ async function initializeAudio() {
   gainNode.gain.value = 0;
   
   micSourceNode
+      .connect(analyser)
       .connect(spNode)
       .connect(gainNode)
       .connect(context.destination);
@@ -197,10 +202,12 @@ async function prepareClip(finalRecordBuffer) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
+ * @param {AnalyserNode} analyser The analyser node will then capture 
+ * audio data using a Fast Fourier Transform (fft) in a certain frequency domain
+ * depending on what you specify as the AnalyserNode.fftSize property value
  * @return {function} Function to set current input samples for visualization.
  */
-function setupVisualizers() {
-  const drawRecordingGain = setupRecordingGainVis();
+function setupVisualizers(analyser) {
   let currentSamples = [];
   let firstSamplesReceived = false;
 
@@ -230,7 +237,7 @@ function setupVisualizers() {
       if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
         drawVUMeter(recordGain);
-        drawRecordingGain(recordGain);
+        waveformDrawer.drawWaveform(analyser);
       }
     }
 
@@ -242,64 +249,64 @@ function setupVisualizers() {
   return setCurrentSamples;
 }
 
-/**
- * Prepares and defines render function for the recording gain visualizer.
- * @return {function} Draw function to render incoming recorded audio.
- */
-function setupRecordingGainVis() {
-  const canvas = document.querySelector('#recording-canvas');
-  const canvasContext = canvas.getContext('2d');
+// /**
+//  * Prepares and defines render function for the recording gain visualizer.
+//  * @return {function} Draw function to render incoming recorded audio.
+//  */
+// function setupRecordingGainVis() {
+//   const canvas = document.querySelector('#recording-canvas');
+//   const canvasContext = canvas.getContext('2d');
 
-  const width = canvas.width;
-  const height = canvas.height;
+//   const width = canvas.width;
+//   const height = canvas.height;
 
-  canvasContext.fillStyle = 'red';
-  canvasContext.fillRect(0, 0, 1, 1);
+//   canvasContext.fillStyle = 'red';
+//   canvasContext.fillRect(0, 0, 1, 1);
 
-  let currentX = 0;
-  let previousY = height / 2;
+//   let currentX = 0;
+//   let previousY = height / 2;
 
-  function draw(currentSampleGain) {
-    // This formula is design based on this logic:
-    // Middle line of canvas: height / 2
-    // Current sound wave gain value range is -1 to 1
-    // We want use current gain value divide by gain value range and
-    // time half of canvas height, therefore, we can get the
-    // accurate wave size.
-    // At the end, use scale_factor to make is clearer for users
-    const currentY = height / 2 * (1 - currentSampleGain * SCALE_FACTOR);
+//   function draw(currentSampleGain) {
+//     // This formula is design based on this logic:
+//     // Middle line of canvas: height / 2
+//     // Current sound wave gain value range is -1 to 1
+//     // We want use current gain value divide by gain value range and
+//     // time half of canvas height, therefore, we can get the
+//     // accurate wave size.
+//     // At the end, use scale_factor to make is clearer for users
+//     const currentY = height / 2 * (1 - currentSampleGain * SCALE_FACTOR);
 
-    canvasContext.clearRect(currentX, 0, 1, height);
+//     canvasContext.clearRect(currentX, 0, 1, height);
 
-    canvasContext.fillStyle = 'red';
-    canvasContext.fillRect(currentX + 1, 0, 1, height);
+//     canvasContext.fillStyle = 'red';
+//     canvasContext.fillRect(currentX + 1, 0, 1, height);
 
-    canvasContext.beginPath();
-    canvasContext.moveTo(currentX, previousY);
-    canvasContext.lineTo(currentX + 1, currentY);
-    canvasContext.strokeStyle = 'black';
-    canvasContext.lineWidth = 0.8;
-    canvasContext.stroke();
+//     canvasContext.beginPath();
+//     canvasContext.moveTo(currentX, previousY);
+//     canvasContext.lineTo(currentX + 1, currentY);
+//     canvasContext.strokeStyle = 'black';
+//     canvasContext.lineWidth = 0.8;
+//     canvasContext.stroke();
 
-    previousY = currentY;
+//     previousY = currentY;
 
-    if (currentX < width - 2) {
-      // Keep drawing new waveforms rightwards until the canvas is full.
-      currentX++;
-    } else {
-      // If the waveform fills the canvas,
-      // move it by one pixel to the left to make room.
-      canvasContext.globalCompositeOperation = 'copy';
-      canvasContext.drawImage(canvas, -1, 0);
+//     if (currentX < width - 2) {
+//       // Keep drawing new waveforms rightwards until the canvas is full.
+//       currentX++;
+//     } else {
+//       // If the waveform fills the canvas,
+//       // move it by one pixel to the left to make room.
+//       canvasContext.globalCompositeOperation = 'copy';
+//       canvasContext.drawImage(canvas, -1, 0);
 
-      // Return to the original state, where new visuals
-      // are drawn without clearing the canvas.
-      canvasContext.globalCompositeOperation = 'source-over';
-    }
-  }
+//       // Return to the original state, where new visuals
+//       // are drawn without clearing the canvas.
+//       canvasContext.globalCompositeOperation = 'source-over';
+//     }
+//   }
 
-  return draw;
-}
+//   return draw;
+// }
 
 /**
  * Create the recording buffer with right size
