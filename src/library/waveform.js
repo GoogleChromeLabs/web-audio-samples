@@ -1,4 +1,8 @@
-class WaveformDrawer {
+// This is the library for creating the waveform
+class Waveform {
+    /** This is the constructor for initializing waveform
+     * @param {String} canvasId The HTML id where waveform is located.
+     */
     constructor(canvasId) {
         this.canvas = document.querySelector(canvasId);
         this.canvasContext = this.canvas.getContext('2d');
@@ -7,10 +11,13 @@ class WaveformDrawer {
         this.currentX = 0;
         this.previousY = this.height / 2;
     }
-
-    drawWaveform(analyser) {
-        analyser.fftSize = 32;
-        const bufferLength = analyser.frequencyBinCount;
+    /** This is the create function for creating waveform
+     * @param {AnalyserNode} analyserNode The analysis node
+     *     which connect with the audio context.
+     */
+    create(analyserNode) {
+        analyserNode.fftSize = 32;
+        const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
         this.canvasContext.fillStyle = 'red';
@@ -18,7 +25,7 @@ class WaveformDrawer {
 
         this.canvasContext.clearRect(this.currentX, 0, 1, this.height);
 
-        analyser.getByteTimeDomainData(dataArray);
+        analyserNode.getByteTimeDomainData(dataArray);
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
 
         const currentY = average / 128.0 * (this.height / 2);
@@ -45,4 +52,4 @@ class WaveformDrawer {
     }
 }
 
-export default WaveformDrawer;
+export default Waveform;

@@ -5,7 +5,7 @@
 'use strict';
 
 import createLinkFromAudioBuffer from './exporter.mjs';
-import WaveformDrawer from '../../../library/waveform.js';
+import Waveform from '../../../library/waveform.js';
 
 // This enum states the current recording state
 const RecorderStates = {
@@ -23,7 +23,7 @@ const BUFFER_SIZE = 256;
 const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
 const MAX_GAIN = 1;
-const waveformDrawer = new WaveformDrawer('#recording-canvas');
+const waveform = new Waveform('#recording-canvas');
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -67,7 +67,7 @@ async function initializeAudio() {
 
   const micSourceNode = context.createMediaStreamSource(micStream);
 
-  const analyser = context.createAnalyser();
+  const analyserNode = context.createAnalyser();
 
   // Prepare max recording buffer for recording.
   const recordingProperties = {
@@ -79,7 +79,7 @@ async function initializeAudio() {
   const gainNode = context.createGain();
 
   // Obtain samples passthrough function for visualizers
-  const passSampleToVisualizers = setupVisualizers(analyser);
+  const passSampleToVisualizers = setupVisualizers(analyserNode);
   const spNode =
       setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
@@ -88,7 +88,7 @@ async function initializeAudio() {
   gainNode.gain.value = 0;
   
   micSourceNode
-      .connect(analyser)
+      .connect(analyserNode)
       .connect(spNode)
       .connect(gainNode)
       .connect(context.destination);
@@ -202,12 +202,12 @@ async function prepareClip(finalRecordBuffer) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {AnalyserNode} analyser The analyser node will then capture 
+ * @param {AnalyserNode} analyserNode The analyserNode will then capture 
  * audio data using a Fast Fourier Transform (fft) in a certain frequency domain
  * depending on what you specify as the AnalyserNode.fftSize property value
  * @return {function} Function to set current input samples for visualization.
  */
-function setupVisualizers(analyser) {
+function setupVisualizers(analyserNode) {
   let currentSamples = [];
   let firstSamplesReceived = false;
 
@@ -237,7 +237,7 @@ function setupVisualizers(analyser) {
       if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
         drawVUMeter(recordGain);
-        waveformDrawer.drawWaveform(analyser);
+        waveform.create(analyserNode);
       }
     }
 

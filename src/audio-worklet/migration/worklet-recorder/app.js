@@ -5,7 +5,7 @@
 'use strict';
 
 import createLinkFromAudioBuffer from './exporter.mjs';
-import WaveformDrawer from '../../../library/waveform.js';
+import Waveform from '../../../library/waveform.js';
 
 // This enum states the current recording state
 const RecorderStates = {
@@ -22,7 +22,7 @@ const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
 const MAX_GAIN = 1;
 let recordingState = RecorderStates.UNINITIALIZED;
-const waveformDrawer = new WaveformDrawer('#recording-canvas');
+const waveform = new Waveform('#recording-canvas');
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -68,11 +68,11 @@ async function initializeAudio() {
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
   const gainNode = context.createGain();
-  const analyser = context.createAnalyser();
+  const analyserNode = context.createAnalyser();
 
   // We can pass this port across the app
   // and let components handle their relevant messages
-  const visualizerCallback = setupVisualizers(analyser);
+  const visualizerCallback = setupVisualizers(analyserNode);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
 
@@ -87,7 +87,7 @@ async function initializeAudio() {
   gainNode.gain.value = 0;
 
   micSourceNode
-      .connect(analyser)
+      .connect(analyserNode)
       .connect(recordingNode)
       .connect(gainNode)
       .connect(context.destination);
@@ -189,12 +189,12 @@ function changeButtonStatus() {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {AnalyserNode} analyser The analyser node will then capture 
+ * @param {AnalyserNode} analyserNode The analyser node will then capture 
  * audio data using a Fast Fourier Transform (fft) in a certain frequency domain
  * depending on what you specify as the AnalyserNode.fftSize property value
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers(analyser) {
+function setupVisualizers(analyserNode) {
   let initialized = false;
   let gain = 0;
 
@@ -214,7 +214,7 @@ function setupVisualizers(analyser) {
     if (recordingState === RecorderStates.RECORDING) {
       const recordGain = gain;
       drawVUMeter(recordGain);
-      waveformDrawer.drawWaveform(analyser);
+      waveform.create(analyserNode);
     }
 
     // Request render frame regardless.
