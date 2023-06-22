@@ -1,8 +1,20 @@
-// This is the library for creating the waveform
+/**
+ * This is the library for creating the waveform. 
+ * It requires the ID of canvas element where the waveform
+ * will be rendered as initialization input. When the waveform
+ * is created, it requires the analyserNode as real-time audio 
+ * input data for drawing the correct waveform.
+ * 
+ * There is no library dependence, this entire waveform is
+ * created based on the canvas element.
+ */
+
 class Waveform {
 
-  /** This is the constructor for initializing waveform
-   * @param {String} canvasId The HTML id where waveform is located.
+  /**
+   * This is the constructor for initializing waveform
+   * @param {String} canvasId  An ID of a canvas element where
+   *     the waveform will be rendered.
    */
   constructor(canvasId) {
     this.canvas = document.querySelector(canvasId);
@@ -13,7 +25,8 @@ class Waveform {
     this.previousY = this.height / 2;
   }
 
-  /** This is the create function for creating waveform
+  /**
+   * This is the create function for creating waveform
    * @param {AnalyserNode} analyserNode The analysis node
    *     which connect with the audio context.
    */
