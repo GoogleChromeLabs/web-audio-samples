@@ -31,6 +31,8 @@ class Waveform {
    *     which connect with the audio context.
    */
   initialize(analyserNode) {
+    // This is the minimum fftSize which we are able to have. By
+    // using size 32, we can collect the most accurate data.
     analyserNode.fftSize = 32;
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
