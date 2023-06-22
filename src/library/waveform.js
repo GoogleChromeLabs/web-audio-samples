@@ -26,11 +26,11 @@ class Waveform {
   }
 
   /**
-   * This is the create function for creating waveform
+   * This is the initialize function for creating waveform
    * @param {AnalyserNode} analyserNode The analysis node
    *     which connect with the audio context.
    */
-  create(analyserNode) {
+  initialize(analyserNode) {
     analyserNode.fftSize = 32;
     const bufferLength = analyserNode.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);

@@ -214,7 +214,7 @@ function setupVisualizers(analyserNode) {
     if (recordingState === RecorderStates.RECORDING) {
       const recordGain = gain;
       drawVUMeter(recordGain);
-      waveform.create(analyserNode);
+      waveform.initialize(analyserNode);
     }
 
     // Request render frame regardless.

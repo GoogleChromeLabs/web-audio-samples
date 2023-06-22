@@ -237,7 +237,7 @@ function setupVisualizers(analyserNode) {
       if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
         drawVUMeter(recordGain);
-        waveform.create(analyserNode);
+        waveform.initialize(analyserNode);
       }
     }
 
