@@ -23,7 +23,6 @@ const BUFFER_SIZE = 256;
 const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
 const MAX_GAIN = 1;
-const waveform = new Waveform('#recording-canvas');
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -66,8 +65,9 @@ async function initializeAudio() {
   });
 
   const micSourceNode = context.createMediaStreamSource(micStream);
-
   const analyserNode = context.createAnalyser();
+
+  const waveform = new Waveform('#recording-canvas', analyserNode);
 
   // Prepare max recording buffer for recording.
   const recordingProperties = {
@@ -79,7 +79,7 @@ async function initializeAudio() {
   const gainNode = context.createGain();
 
   // Obtain samples passthrough function for visualizers
-  const passSampleToVisualizers = setupVisualizers(analyserNode);
+  const passSampleToVisualizers = setupVisualizers(waveform);
   const spNode =
       setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
@@ -202,12 +202,10 @@ async function prepareClip(finalRecordBuffer) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {AnalyserNode} analyserNode The analyserNode will then capture 
- * audio data using a Fast Fourier Transform (fft) in a certain frequency domain
- * depending on what you specify as the AnalyserNode.fftSize property value
+ * @param {Waveform} waveform The waveform for visulization
  * @return {function} Function to set current input samples for visualization.
  */
-function setupVisualizers(analyserNode) {
+function setupVisualizers(waveform) {
   let currentSamples = [];
   let firstSamplesReceived = false;
 
@@ -237,7 +235,7 @@ function setupVisualizers(analyserNode) {
       if (recordingState === RecorderStates.RECORDING) {
         const recordGain = currentSampleGain;
         drawVUMeter(recordGain);
-        waveform.initialize(analyserNode);
+        waveform.draw();
       }
     }
 

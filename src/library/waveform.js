@@ -10,61 +10,61 @@
  */
 
 class Waveform {
-
   /**
    * This is the constructor for initializing waveform
    * @param {String} canvasId  An ID of a canvas element where
    *     the waveform will be rendered.
+   * @param {AnalyserNode} analyserNode The analysis node
+   *    which connect with the audio context.
    */
-  constructor(canvasId) {
-    this.canvas = document.querySelector(canvasId);
-    this.canvasContext = this.canvas.getContext('2d');
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
-    this.currentX = 0;
-    this.previousY = this.height / 2;
+  constructor(canvasId, analyserNode) {
+    this.canvas_ = document.querySelector(canvasId);
+    this.canvasContext_ = this.canvas_.getContext('2d');
+    this.width_ = this.canvas_.width;
+    this.height_ = this.canvas_.height;
+    this.currentX_ = 0;
+    this.previousY_ = this.height_ / 2;
+    this.analyser_ = analyserNode;
+    // This is the minimum fftSize which we are able to have. By
+    // using size 32, we can collect the most accurate data.
+    this.analyser_.fftSize = 32;
+    this.bufferLength_ = this.analyser_.frequencyBinCount;
   }
 
   /**
-   * This is the initialize function for creating waveform
-   * @param {AnalyserNode} analyserNode The analysis node
-   *     which connect with the audio context.
+   * This is the initialize function for creating waveform.
    */
-  initialize(analyserNode) {
-    // This is the minimum fftSize which we are able to have. By
-    // using size 32, we can collect the most accurate data.
-    analyserNode.fftSize = 32;
-    const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+  draw() {
+    const dataArray = new Uint8Array(this.bufferLength_);
 
-    this.canvasContext.fillStyle = 'red';
-    this.canvasContext.fillRect(0, 0, 1, 1);
+    this.canvasContext_.fillStyle = 'red';
+    this.canvasContext_.fillRect(0, 0, 1, 1);
 
-    this.canvasContext.clearRect(this.currentX, 0, 1, this.height);
+    this.canvasContext_.clearRect(this.currentX_, 0, 1, this.height_);
 
-    analyserNode.getByteTimeDomainData(dataArray);
+    this.analyser_.getByteTimeDomainData(dataArray);
     const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
 
-    const currentY = average / 128.0 * (this.height / 2);
+    const currentY = average / 128.0 * (this.height_ / 2);
 
-    this.canvasContext.fillStyle = 'red';
-    this.canvasContext.fillRect(this.currentX + 2, 0, 1, this.height);
+    this.canvasContext_.fillStyle = 'red';
+    this.canvasContext_.fillRect(this.currentX_ + 2, 0, 1, this.height_);
 
-    this.canvasContext.beginPath();
-    this.canvasContext.moveTo(this.currentX, this.previousY);
-    this.canvasContext.lineTo(this.currentX + 2, currentY);
-    this.canvasContext.strokeStyle = 'black';
-    this.canvasContext.lineWidth = 0.8;
-    this.canvasContext.stroke();
+    this.canvasContext_.beginPath();
+    this.canvasContext_.moveTo(this.currentX_, this.previousY_);
+    this.canvasContext_.lineTo(this.currentX_ + 2, currentY);
+    this.canvasContext_.strokeStyle = 'black';
+    this.canvasContext_.lineWidth = 0.8;
+    this.canvasContext_.stroke();
 
-    this.previousY = currentY;
+    this.previousY_ = currentY;
 
-    if (this.currentX < this.width - 2) {
-        this.currentX += 2;
+    if (this.currentX_ < this.width_ - 2) {
+        this.currentX_ += 2;
     } else {
-        this.canvasContext.globalCompositeOperation = 'copy';
-        this.canvasContext.drawImage(this.canvas, -2, 0);
-        this.canvasContext.globalCompositeOperation = 'source-over';
+        this.canvasContext_.globalCompositeOperation = 'copy';
+        this.canvasContext_.drawImage(this.canvas_, -2, 0);
+        this.canvasContext_.globalCompositeOperation = 'source-over';
     }
   }
 }

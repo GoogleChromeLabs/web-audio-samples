@@ -22,7 +22,6 @@ const SCALE_FACTOR = 10;
 // Make the visulization of vu meter more clear to the users
 const MAX_GAIN = 1;
 let recordingState = RecorderStates.UNINITIALIZED;
-const waveform = new Waveform('#recording-canvas');
 
 let recordButton = document.querySelector('#record');
 let recordText = document.querySelector('#record-text');
@@ -70,9 +69,11 @@ async function initializeAudio() {
   const gainNode = context.createGain();
   const analyserNode = context.createAnalyser();
 
+  const waveform = new Waveform('#recording-canvas', analyserNode);
+
   // We can pass this port across the app
   // and let components handle their relevant messages
-  const visualizerCallback = setupVisualizers(analyserNode);
+  const visualizerCallback = setupVisualizers(waveform);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
 
@@ -189,12 +190,10 @@ function changeButtonStatus() {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {AnalyserNode} analyserNode The analyser node will then capture 
- * audio data using a Fast Fourier Transform (fft) in a certain frequency domain
- * depending on what you specify as the AnalyserNode.fftSize property value
+ * @param {Waveform} waveform The waveform for visulization
  * @return {function} Callback for visualizer events from the processor.
  */
-function setupVisualizers(analyserNode) {
+function setupVisualizers(waveform) {
   let initialized = false;
   let gain = 0;
 
@@ -214,7 +213,7 @@ function setupVisualizers(analyserNode) {
     if (recordingState === RecorderStates.RECORDING) {
       const recordGain = gain;
       drawVUMeter(recordGain);
-      waveform.initialize(analyserNode);
+      waveform.draw();
     }
 
     // Request render frame regardless.
