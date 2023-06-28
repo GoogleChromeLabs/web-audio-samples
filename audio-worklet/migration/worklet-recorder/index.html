@@ -81,13 +81,11 @@
 </style>
 
 <h1>AudioWorklet Recorder</h1>
-<p>This is a simple recording app that uses the AudioWorklet API.
-  The maximum recording time is 5 minutes. After reaching the maximum
-  recording time, the recording will be stopped automatically and a
-  download link for the `.wav` file will be prepared. Due to the file
-  size and recording length, it may take a few moments to prepare the
-  download link and preview the recording. To restart the recording,
-  please click the Refresh button.</p>
+<p>A simple audio recorder built with AudioWorkletNode that
+  can record up to 5 minutes and stops automatically. Upon completion, it 
+  provides a downloadable link for the recorded audio file (PCM Wave). It 
+  may take a few seconds to build and preview the recording. Click Refresh 
+  to start a new recording.</p>
 
 <div class="demo-box">
   <div id="recording">
@@ -160,7 +158,7 @@
   </div>
   <div class="pb-3">
     2010-2023 Chromium authors
-    (0d979a5)
+    (4878cf9)
   </div>
 </div>
 
