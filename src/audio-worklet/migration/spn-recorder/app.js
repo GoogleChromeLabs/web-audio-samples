@@ -19,9 +19,9 @@ const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason
 const BUFFER_SIZE = 256;
-// Make the visulization clearer to the users
+// Make the visualization clearer to the users
 const SCALE_FACTOR = 10;
-// Make the visulization of vu meter more clear to the users
+// Make the visualization of vu meter more clear to the users
 const MAX_GAIN = 1;
 
 let recordingLength = 0;
@@ -202,7 +202,7 @@ async function prepareClip(finalRecordBuffer) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {Waveform} waveform The waveform for visulization
+ * @param {Waveform} waveform An instance of the Waveform object for visualization.
  * @return {function} Function to set current input samples for visualization.
  */
 function setupVisualizers(waveform) {

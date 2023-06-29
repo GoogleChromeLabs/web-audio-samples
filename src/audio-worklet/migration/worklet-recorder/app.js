@@ -17,9 +17,9 @@ const RecorderStates = {
 
 const context = new AudioContext();
 
-// Make the visulization clearer to the users
+// Make the visualization clearer to the users
 const SCALE_FACTOR = 10;
-// Make the visulization of vu meter more clear to the users
+// Make the visualization of vu meter more clear to the users
 const MAX_GAIN = 1;
 let recordingState = RecorderStates.UNINITIALIZED;
 
@@ -190,7 +190,7 @@ function changeButtonStatus() {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {Waveform} waveform The waveform for visulization
+ * @param {Waveform} waveform An instance of the Waveform object for visualization.
  * @return {function} Callback for visualizer events from the processor.
  */
 function setupVisualizers(waveform) {
