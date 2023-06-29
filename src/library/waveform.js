@@ -13,40 +13,52 @@ class Waveform {
 
   /**
    * @constructor This is the constructor for initializing waveform
+   * Since width and height is initialized in contructor, the
+   * waveform's width and height can not be changed after initialization
    * @param {String} canvasId  An ID of a canvas element where
    *     the waveform will be rendered.
    * @param {AnalyserNode} analyserNode The analysis node
    *    which connect with the audio context.
+   * @param {Number} fftSize The window size in samples that is used 
+   *    when performing a Fast Fourier Transform (FFT) to get frequency
+   *    domain data in the AnalyserNode.
    */
-  constructor(canvasId, analyserNode) {
+  constructor(canvasId, analyserNode, fftSize) {
+    /** @private @const {!canvas} canvas Selected waveform canvas element */
     this.canvas_ = document.querySelector(canvasId);
+    /** @private @const {!canvasContext} canvasContext Canvas context */
     this.canvasContext_ = this.canvas_.getContext('2d');
+    /** @private @const {!width} width Selected waveform canvas width */
     this.width_ = this.canvas_.width;
+    /** @private @const {!height} height Selected waveform canvas height */
     this.height_ = this.canvas_.height;
+    /** @private @const {!currentX} currentX Current X axis in waveform */
     this.currentX_ = 0;
+    /** @private @const {!previousY} previousY Previous Y axis in waveform */
     this.previousY_ = this.height_ / 2;
+    /** @private @const {!analyser} analyser AnalyserNode of audio context */
     this.analyser_ = analyserNode;
-    // This is the minimum fftSize which we are able to have. By
-    // using size 32, we can collect the most accurate data.
-    this.analyser_.fftSize = 32;
+    this.analyser_.fftSize = fftSize;
+    /** @private @const {!bufferLength} bufferLength Total number of data 
+     *     points avliable to AudioContext sampleRate */
     this.bufferLength_ = this.analyser_.frequencyBinCount;
+    /** @private @const {!dataArray} dataArray AnalyserNode of audio context */
+    this.dataArray_ = new Float32Array(this.bufferLength_);
   }
 
   /**
-   * This is the initialize function for creating waveform.
+   * This is the draw function for creating waveform.
    */
   draw() {
-    const dataArray = new Uint8Array(this.bufferLength_);
-
     this.canvasContext_.fillStyle = 'red';
     this.canvasContext_.fillRect(0, 0, 1, 1);
 
     this.canvasContext_.clearRect(this.currentX_, 0, 1, this.height_);
 
-    this.analyser_.getByteTimeDomainData(dataArray);
-    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    this.analyser_.getFloatTimeDomainData(this.dataArray_);
+    const average = this.dataArray_.reduce((a, b) => a + b) / this.dataArray_.length;
 
-    const currentY = average / 128.0 * (this.height_ / 2);
+    const currentY = (average + 1) * (this.height_ / 2);
 
     this.canvasContext_.fillStyle = 'red';
     this.canvasContext_.fillRect(this.currentX_ + 2, 0, 1, this.height_);

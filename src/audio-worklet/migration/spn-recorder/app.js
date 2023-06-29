@@ -68,7 +68,7 @@ async function initializeAudio() {
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
 
-  const waveform = new Waveform('#recording-canvas', analyserNode);
+  const waveform = new Waveform('#recording-canvas', analyserNode, 32);
 
   // Prepare max recording buffer for recording.
   const recordingProperties = {
