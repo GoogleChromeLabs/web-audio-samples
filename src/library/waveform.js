@@ -10,8 +10,9 @@
  */
 
 class Waveform {
+
   /**
-   * This is the constructor for initializing waveform
+   * @constructor This is the constructor for initializing waveform
    * @param {String} canvasId  An ID of a canvas element where
    *     the waveform will be rendered.
    * @param {AnalyserNode} analyserNode The analysis node

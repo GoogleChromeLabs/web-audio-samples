@@ -5,7 +5,7 @@
 'use strict';
 
 import createLinkFromAudioBuffer from './exporter.mjs';
-import Waveform from '../../../library/waveform.js';
+import Waveform from '../../../library/Waveform.js';
 
 // This enum states the current recording state
 const RecorderStates = {
@@ -66,8 +66,8 @@ async function initializeAudio() {
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
-  const gainNode = context.createGain();
-  const analyserNode = context.createAnalyser();
+  const gainNode = new GainNode(context);
+  const analyserNode = new AnalyserNode(context);
 
   const waveform = new Waveform('#recording-canvas', analyserNode);
 
