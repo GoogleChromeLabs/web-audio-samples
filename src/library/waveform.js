@@ -13,15 +13,15 @@ class Waveform {
 
   /**
    * @constructor This is the constructor for initializing waveform
-   * Since width and height is initialized in contructor, the
-   * waveform's width and height can not be changed after initialization.
+   *   Since width and height is initialized in contructor, the
+   *   waveform's width and height can not be changed after initialization.
    * @param {String} canvasId  An ID of a canvas element where
-   *     the waveform will be rendered.
+   *   the waveform will be rendered.
    * @param {AnalyserNode} analyserNode The analysis node
-   *    which connect with the audio context.
+   *   which connect with the audio context.
    * @param {Number} fftSize The window size in samples that is used 
-   *    when performing a Fast Fourier Transform (FFT) to get frequency
-   *    domain data in the AnalyserNode.
+   *   when performing a Fast Fourier Transform (FFT) to get frequency
+   *   domain data in the AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
     /** @private @const {!canvas} Selected waveform canvas element */
