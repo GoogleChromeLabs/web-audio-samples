@@ -1,50 +1,49 @@
 /**
- * This is the library for creating the waveform. 
- * It requires the ID of canvas element where the waveform
- * will be rendered as initialization input. When the waveform
- * is created, it requires the analyserNode as real-time audio 
- * input data for drawing the correct waveform.
- * 
- * There is no library dependence, this entire waveform is
- * created based on the canvas element.
+ * This Waveform class implements a Waveform UI. To initialize
+ * it, you need to provide the ID of the canvas element where the waveform 
+ * will be rendered, and the fftSize value for the analyserNode. 
+ * The fftSize value defines the window size in samples that is used 
+ * when performing a Fast Fourier Transform (FFT) to get frequency
+ * domain data in the AnalyserNode. When the waveform is created, it requires
+ * an AnalyserNode for real-time audio input data. This class only requires
+ * a canvas element, and there is no additional dependency.
  */
 
 class Waveform {
 
   /**
-   * @constructor This is the constructor for initializing waveform
-   *   Since width and height is initialized in contructor, the
-   *   waveform's width and height can not be changed after initialization.
-   * @param {String} canvasId  An ID of a canvas element where
-   *   the waveform will be rendered.
-   * @param {AnalyserNode} analyserNode The analysis node
-   *   which connect with the audio context.
-   * @param {Number} fftSize The window size in samples that is used 
-   *   when performing a Fast Fourier Transform (FFT) to get frequency
-   *   domain data in the AnalyserNode.
+   * @constructor Constructs a Waveform object for rendering waveform visuals.
+   *   The width and height of the waveform canvas are initialized in the 
+   *   constructor and cannot be changed after initialization.
+   * @param {String} canvasId The ID of the canvas element where the waveform
+   *   will be rendered.
+   * @param {AnalyserNode} analyserNode The AnalyserNode used for visualization.
+   * @param {Number} fftSize The window size in samples used for Fast Fourier 
+   *   Transform (FFT) to obtain frequency domain data in the AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
-    /** @private @const {!canvas} Selected waveform canvas element */
+    /** @private @const {!HTMLCanvasElement} Selected waveform canvas element */
     this.canvas_ = document.querySelector(canvasId);
-    /** @private @const {!canvasContext} Canvas context */
+    /** @private @const {!CanvasRenderingContext2D} Canvas context */
     this.canvasContext_ = this.canvas_.getContext('2d');
-    /** @private @const {!width} Selected waveform canvas width */
+    /** @private @const {!number} Selected waveform canvas width */
     this.width_ = this.canvas_.width;
-    /** @private @const {!height} Selected waveform canvas height */
+    /** @private @const {!number} Selected waveform canvas height */
     this.height_ = this.canvas_.height;
-    /** @private @const {!currentX} Current X axis in waveform */
+    /** @private @const {!number} Current X axis in the waveform */
     this.currentX_ = 0;
-    /** @private @const {!previousY} Previous Y axis in waveform */
+    /** @private @const {!number} Previous Y axis in the waveform */
     this.previousY_ = this.height_ / 2;
-    /** @private @const {!analyser} AnalyserNode of audio context */
+    /** @private @const {!AnalyserNode} AnalyserNode of the audio context */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
-    /** @private @const {!bufferLength} Total number of data 
-     *     points avliable to AudioContext sampleRate. */
+    /** @private @const {!number} Total number of data points available at the 
+     * AudioContext sample rate */
     this.bufferLength_ = this.analyser_.frequencyBinCount;
-    /** @private @const {!dataArray} AnalyserNode of audio context */
+    /** @private @const {!Float32Array} AnalyserNode of the audio context */
     this.dataArray_ = new Float32Array(this.bufferLength_);
   }
+  
 
   /**
    * This is the draw function for creating waveform.

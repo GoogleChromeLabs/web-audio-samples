@@ -192,7 +192,7 @@ function changeButtonStatus() {
 async function prepareClip(finalRecordBuffer) {
   // Create recording file URL for playback and download.
   const audioFileUrl =
-     createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
+    createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
 
   player.src = audioFileUrl;
   downloadLink.href = audioFileUrl;
@@ -202,8 +202,10 @@ async function prepareClip(finalRecordBuffer) {
 
 /**
  * Sets up and handles calculations and rendering for all visualizers.
- * @param {Waveform} waveform An instance of the Waveform object for visualization.
- * @return {function} Function to set current input samples for visualization.
+ * @param {Waveform} waveform An instance of the Waveform object for
+ *   visualization.
+ * @return {function} Function to set current input samples for
+ *   visualization.
  */
 function setupVisualizers(waveform) {
   let currentSamples = [];
@@ -220,8 +222,9 @@ function setupVisualizers(waveform) {
 
   function draw() {
     if (currentSamples) {
-      // Calculate current sample's average gain for visualizers to draw with.
-      // We only need to calculate this value once per render frame.
+      // Calculate current sample's average gain for visualizers to 
+      // draw with. We only need to calculate this value once per
+      // render frame.
       let currentSampleGain = 0;
 
       for (let i = 0; i < currentSamples.length; i++) {
