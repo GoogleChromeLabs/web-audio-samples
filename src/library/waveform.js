@@ -14,7 +14,7 @@ class Waveform {
   /**
    * @constructor This is the constructor for initializing waveform
    * Since width and height is initialized in contructor, the
-   * waveform's width and height can not be changed after initialization
+   * waveform's width and height can not be changed after initialization.
    * @param {String} canvasId  An ID of a canvas element where
    *     the waveform will be rendered.
    * @param {AnalyserNode} analyserNode The analysis node
@@ -24,25 +24,25 @@ class Waveform {
    *    domain data in the AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
-    /** @private @const {!canvas} canvas Selected waveform canvas element */
+    /** @private @const {!canvas} Selected waveform canvas element */
     this.canvas_ = document.querySelector(canvasId);
-    /** @private @const {!canvasContext} canvasContext Canvas context */
+    /** @private @const {!canvasContext} Canvas context */
     this.canvasContext_ = this.canvas_.getContext('2d');
-    /** @private @const {!width} width Selected waveform canvas width */
+    /** @private @const {!width} Selected waveform canvas width */
     this.width_ = this.canvas_.width;
-    /** @private @const {!height} height Selected waveform canvas height */
+    /** @private @const {!height} Selected waveform canvas height */
     this.height_ = this.canvas_.height;
-    /** @private @const {!currentX} currentX Current X axis in waveform */
+    /** @private @const {!currentX} Current X axis in waveform */
     this.currentX_ = 0;
-    /** @private @const {!previousY} previousY Previous Y axis in waveform */
+    /** @private @const {!previousY} Previous Y axis in waveform */
     this.previousY_ = this.height_ / 2;
-    /** @private @const {!analyser} analyser AnalyserNode of audio context */
+    /** @private @const {!analyser} AnalyserNode of audio context */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
-    /** @private @const {!bufferLength} bufferLength Total number of data 
-     *     points avliable to AudioContext sampleRate */
+    /** @private @const {!bufferLength} Total number of data 
+     *     points avliable to AudioContext sampleRate. */
     this.bufferLength_ = this.analyser_.frequencyBinCount;
-    /** @private @const {!dataArray} dataArray AnalyserNode of audio context */
+    /** @private @const {!dataArray} AnalyserNode of audio context */
     this.dataArray_ = new Float32Array(this.bufferLength_);
   }
 
