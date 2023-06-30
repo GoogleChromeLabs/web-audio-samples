@@ -64,7 +64,7 @@ async function initializeAudio() {
     },
   });
 
-  const micSourceNode = context.createMediaStreamSource(micStream);
+  const micSourceNode = new MediaStreamAudioSourceNode(context, { mediaStream: micStream });
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
 

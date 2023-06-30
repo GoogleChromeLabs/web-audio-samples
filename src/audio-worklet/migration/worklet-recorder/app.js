@@ -56,8 +56,10 @@ async function initializeAudio() {
       noiseSuppression: false,
       latency: 0}
   });
-
-  const micSourceNode = context.createMediaStreamSource(micStream);
+  
+  const micSourceNode = new MediaStreamAudioSourceNode(context, { mediaStream: micStream });
+  const gainNode = new GainNode(context);
+  const analyserNode = new AnalyserNode(context);
 
   const recordingProperties = {
     numberOfChannels: micSourceNode.channelCount,
@@ -66,8 +68,6 @@ async function initializeAudio() {
   };
 
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
-  const gainNode = new GainNode(context);
-  const analyserNode = new AnalyserNode(context);
 
   const waveform = new Waveform('#recording-canvas', analyserNode, 32);
 

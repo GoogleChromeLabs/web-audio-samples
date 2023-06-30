@@ -46,7 +46,10 @@ class Waveform {
   
 
   /**
-   * This is the draw function for creating waveform.
+   * Render the Waveform on the canvas.
+   * This function is called periodically to update the Waveform display.
+   * This class doesn't have a timer or a render loop; it requires an external
+   * driver for the actual rendering.
    */
   draw() {
     this.canvasContext_.fillStyle = 'red';
