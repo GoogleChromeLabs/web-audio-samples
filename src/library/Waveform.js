@@ -1,29 +1,33 @@
 /**
- * This Waveform class implements a Waveform UI. To initialize
- * it, you need to provide the ID of the canvas element where the waveform 
- * will be rendered, and the fftSize value for the analyserNode. 
- * The fftSize value defines the window size in samples that is used 
- * when performing a Fast Fourier Transform (FFT) to get frequency
- * domain data in the AnalyserNode. When the waveform is created, it requires
- * an AnalyserNode for real-time audio input data. This class only requires
- * a canvas element, and there is no additional dependency.
+ * This Waveform class implements a Waveform UI. To initialize it, you
+ * need to provide the ID of the canvas element where the waveform
+ * will be rendered, and the fftSize value for the analyserNode.  The
+ * fftSize value defines the window size in samples that is used when
+ * performing a Fast Fourier Transform (FFT) to get frequency domain
+ * data in the AnalyserNode. When the waveform is created, it requires
+ * an AnalyserNode for real-time audio input data. This class only
+ * requires a canvas element, and there is no additional dependency.
  * @class
  */
 
 class Waveform {
 
   /**
-   * @constructor Constructs a Waveform object for rendering waveform visuals.
-   * The width and height of the waveform canvas are initialized in the
-   * constructor and cannot be changed after initialization.
-   * @param {String} canvasId The ID of the canvas element where the waveform
-   * will be rendered.
-   * @param {AnalyserNode} analyserNode The AnalyserNode used for visualization.
-   * @param {Number} fftSize The window size in samples used for Fast Fourier
-   * Transform (FFT) to obtain frequency domain data in the AnalyserNode.
+   * @constructor Constructs a Waveform object for rendering waveform
+   * visuals.  The width and height of the waveform canvas are
+   * initialized in the constructor and cannot be changed after
+   * initialization.
+   * @param {String} canvasId A canvas element ID where the
+   * visualization is drawn to.
+   * @param {AnalyserNode} analyserNode The AnalyserNode used for
+   * visualization.
+   * @param {Number} fftSize The window size in samples used for Fast
+   * Fourier Transform (FFT) to obtain frequency domain data in the
+   * AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
-    /** @private @const {!HTMLCanvasElement} Selected waveform canvas element */
+    /** @private @const {!HTMLCanvasElement} Selected waveform canvas
+     * element */
     this.canvas_ = document.querySelector(canvasId);
     /** @private @const {!CanvasRenderingContext2D} Canvas context */
     this.canvasContext_ = this.canvas_.getContext('2d');
@@ -35,8 +39,8 @@ class Waveform {
     this.currentX_ = 0;
     /** @private {!number} Previous Y axis in the waveform */
     this.previousY_ = this.height_ / 2;
-    /** @private @const {!AnalyserNode} AnalyserNode that
-     * will be used for visualization. */
+    /** @private @const {!AnalyserNode} AnalyserNode that will be used
+     * for visualization. */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
     /** @private @const {!Float32Array} The array that the time domain
@@ -45,10 +49,10 @@ class Waveform {
   }
   
   /**
-   * Render the Waveform on the canvas.
-   * This function is called periodically to update the Waveform display.
-   * This class doesn't have a timer or a render loop; it requires an external
-   * driver for the actual rendering.
+   * Render the Waveform on the canvas.  This function is called
+   * periodically to update the Waveform display.  This class doesn't
+   * have a timer or a render loop; it requires an external driver for
+   * the actual rendering.
    */
   draw() {
     this.canvasContext_.fillStyle = 'red';
