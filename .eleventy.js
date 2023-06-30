@@ -45,6 +45,7 @@ module.exports = function(eleventyConfig) {
   
   // Passthrough files via these glob patterns.
   [
+    'src/library/**.js',
     'src/archive/**/*.css',
     'src/archive/**/*.html',
     'src/archive/**/*.js',
