@@ -47,7 +47,7 @@ recordButton.addEventListener('click', (element) => {
 }, {once: true});
 
 /**
- * Defines overall audio chain and initializes all functionality.
+ * Define overall audio chain and initializes all functionality.
  */
 async function initializeAudio() {
   if (context.state === 'suspended') {
@@ -95,7 +95,7 @@ async function initializeAudio() {
 }
 
 /**
- * Creates ScriptProcessor to record and track microphone audio.
+ * Create ScriptProcessor to record and track microphone audio.
  * @param {Object} recordingProperties The properties of the recording
  * @param {function} passSampleToVisualizers
  *    Function to pass current samples to visualizers.
@@ -201,7 +201,7 @@ async function prepareClip(finalRecordBuffer) {
 }
 
 /**
- * Sets up and handles calculations and rendering for all visualizers.
+ * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
  *   visualization.
  * @return {function} Function to set current input samples for
