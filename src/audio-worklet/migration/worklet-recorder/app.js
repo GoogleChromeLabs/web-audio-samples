@@ -57,7 +57,8 @@ async function initializeAudio() {
       latency: 0}
   });
 
-  const micSourceNode = new MediaStreamAudioSourceNode(context, { mediaStream: micStream });
+  const micSourceNode = new MediaStreamAudioSourceNode(context, 
+      { mediaStream: micStream });
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
 
@@ -190,7 +191,8 @@ function changeButtonStatus() {
 
 /**
  * Set up and handles calculations and rendering for all visualizers.
- * @param {Waveform} waveform An instance of the Waveform object for visualization.
+ * @param {Waveform} waveform An instance of the Waveform object 
+ *   for visualization.
  * @return {function} Callback for visualizer events from the processor.
  */
 function setupVisualizers(waveform) {

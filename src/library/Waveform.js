@@ -7,19 +7,20 @@
  * domain data in the AnalyserNode. When the waveform is created, it requires
  * an AnalyserNode for real-time audio input data. This class only requires
  * a canvas element, and there is no additional dependency.
+ * @class
  */
 
 class Waveform {
 
   /**
    * @constructor Constructs a Waveform object for rendering waveform visuals.
-   *   The width and height of the waveform canvas are initialized in the 
-   *   constructor and cannot be changed after initialization.
+   * The width and height of the waveform canvas are initialized in the
+   * constructor and cannot be changed after initialization.
    * @param {String} canvasId The ID of the canvas element where the waveform
-   *   will be rendered.
+   * will be rendered.
    * @param {AnalyserNode} analyserNode The AnalyserNode used for visualization.
-   * @param {Number} fftSize The window size in samples used for Fast Fourier 
-   *   Transform (FFT) to obtain frequency domain data in the AnalyserNode.
+   * @param {Number} fftSize The window size in samples used for Fast Fourier
+   * Transform (FFT) to obtain frequency domain data in the AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
     /** @private @const {!HTMLCanvasElement} Selected waveform canvas element */
@@ -30,21 +31,19 @@ class Waveform {
     this.width_ = this.canvas_.width;
     /** @private @const {!number} Selected waveform canvas height */
     this.height_ = this.canvas_.height;
-    /** @private @const {!number} Current X axis in the waveform */
+    /** @private {!number} Current X axis in the waveform */
     this.currentX_ = 0;
-    /** @private @const {!number} Previous Y axis in the waveform */
+    /** @private {!number} Previous Y axis in the waveform */
     this.previousY_ = this.height_ / 2;
-    /** @private @const {!AnalyserNode} AnalyserNode of the audio context */
+    /** @private @const {!AnalyserNode} AnalyserNode that
+     * will be used for visualization. */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
-    /** @private @const {!number} Total number of data points available at the 
-     * AudioContext sample rate */
-    this.bufferLength_ = this.analyser_.frequencyBinCount;
-    /** @private @const {!Float32Array} AnalyserNode of the audio context */
-    this.dataArray_ = new Float32Array(this.bufferLength_);
+    /** @private @const {!Float32Array} The array that the time domain
+     * data will be copied to */
+    this.dataArray_ = new Float32Array(this.analyser_.frequencyBinCount);
   }
   
-
   /**
    * Render the Waveform on the canvas.
    * This function is called periodically to update the Waveform display.
