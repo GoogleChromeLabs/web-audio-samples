@@ -41,7 +41,7 @@ recordButton.addEventListener('click', (element) => {
 }, {once: true});
 
 /**
- * Defines overall audio chain and initializes all functionality.
+ * Define overall audio chain and initializes all functionality.
  */
 async function initializeAudio() {
   if (context.state === 'suspended') {
@@ -56,7 +56,7 @@ async function initializeAudio() {
       noiseSuppression: false,
       latency: 0}
   });
-  
+
   const micSourceNode = new MediaStreamAudioSourceNode(context, { mediaStream: micStream });
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
@@ -189,7 +189,7 @@ function changeButtonStatus() {
 }
 
 /**
- * Sets up and handles calculations and rendering for all visualizers.
+ * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for visualization.
  * @return {function} Callback for visualizer events from the processor.
  */
@@ -225,7 +225,7 @@ function setupVisualizers(waveform) {
 }
 
 /**
- * Creating the downloadable .wav file for the recorded voice and set
+ * Create the downloadable .wav file for the recorded voice and set
  * the download button clickable.
  * @param {object} recordingProperties Microphone channel count,
  *     for accurate recording length calculations.
