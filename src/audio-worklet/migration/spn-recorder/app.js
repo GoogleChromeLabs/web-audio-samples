@@ -1,5 +1,5 @@
-// Copyright (c) 2022 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.  Use
+// of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 'use strict';
@@ -7,7 +7,7 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 import Waveform from '../../../library/Waveform.js';
 
-// This enum states the current recording state
+// This enum states the current recording state.
 const RecorderStates = {
   UNINITIALIZED: 0,
   RECORDING: 1,
@@ -17,11 +17,11 @@ const RecorderStates = {
 
 const context = new AudioContext();
 
-// Arbitrary buffer size, not specific for a reason
+// Arbitrary buffer size, not specific for a reason.
 const BUFFER_SIZE = 256;
-// Make the visualization clearer to the users
+// Make the visualization clearer to the users.
 const SCALE_FACTOR = 10;
-// Make the visualization of vu meter more clear to the users
+// Make the visualization of vu meter more clear to the users.
 const MAX_GAIN = 1;
 
 let recordingLength = 0;
@@ -37,7 +37,8 @@ let downloadLink = document.querySelector('#download-link');
 
 recordButton.disabled = false;
 
-// Wait for user interaction to initialize audio, as per specification.
+// Wait for user interaction to initialize audio, as per
+// specification.
 recordButton.disabled = false;
 recordButton.addEventListener('click', (element) => {
   initializeAudio();
@@ -65,7 +66,7 @@ async function initializeAudio() {
   });
 
   const micSourceNode = new MediaStreamAudioSourceNode(context, 
-      { mediaStream: micStream });
+      {mediaStream: micStream});
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
 
@@ -79,7 +80,7 @@ async function initializeAudio() {
   };
 
 
-  // Obtain samples passthrough function for visualizers
+  // Obtain samples passthrough function for visualizers.
   const passSampleToVisualizers = setupVisualizers(waveform);
   const spNode =
       setupScriptProcessor(recordingProperties, passSampleToVisualizers);
@@ -96,18 +97,22 @@ async function initializeAudio() {
 }
 
 /**
- * Create ScriptProcessor to record and track microphone audio.
- * @param {Object} recordingProperties The properties of the recording
- * @param {function} passSampleToVisualizers
- *    Function to pass current samples to visualizers.
- * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio into.
+ * Create and set up a ScriptProcessorNode to record audio from a
+ * microphone.
+ * @param {Object} recordingProperties The properties of the
+ * recording.
+ * @param {function} passSampleToVisualizers Function to pass current
+ * samples to visualizers.
+ * @return {ScriptProcessorNode} ScriptProcessorNode to pass audio
+ * into.
  */
 function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
   const processor = context.createScriptProcessor(BUFFER_SIZE);
   const currentSamples =
      new Array(recordingProperties.numberOfChannels).fill([]);
 
-  // Main SPN callback. Handles recording data and tracking recording length.
+  // Main SPN callback. Handles recording data and tracking recording
+  // length.
   processor.onaudioprocess = function(event) {
     // Display current recording length.
     document.querySelector('#data-len').textContent =
@@ -119,11 +124,13 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       // Provide current sample to visualizers.
       currentSamples[channel] = inputData;
 
-      // While recording, feed data to recording buffer at the proper time.
+      // While recording, feed data to recording buffer at the proper
+      // time.
       if (recordingState === RecorderStates.RECORDING) {
-        // FrameNumber has to be an INTEGER for using as an index in 2D array.
-        // Since JS don't have INTEGER type, We use Math.floor to ensure the
-        // recordingLength/BUFFER_SIZE is INTEGER.
+        // FrameNumber has to be an INTEGER for using as an index in
+        // 2D array.  Since JS don't have INTEGER type, We use
+        // Math.floor to ensure the recordingLength/BUFFER_SIZE is
+        // INTEGER.
         let frameNumber = Math.floor(recordingLength / BUFFER_SIZE);
         recordBuffer[channel][frameNumber] = 
             new Float32Array(currentSamples[channel]);
@@ -159,7 +166,8 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {object} recordingProperties Buffer of the current recording.
+ * @param {object} recordingProperties Buffer of the current
+ * recording.
  */
 function setupRecording(recordingProperties) {
   recordButton.addEventListener('click', (event) => {
@@ -185,15 +193,15 @@ function changeButtonStatus() {
 }
 
 /**
- * An async function to create the audioFileURL and assign URL
- * to media player and download button.
- * @param {AudioBuffer} finalRecordBuffer This is the final
- * audio buffer which is created for audio context.
+ * An async function to create the audioFileURL and assign URL to
+ * media player and download button.
+ * @param {AudioBuffer} finalRecordBuffer This is the final audio
+ * buffer which is created for audio context.
  */
 async function prepareClip(finalRecordBuffer) {
   // Create recording file URL for playback and download.
   const audioFileUrl =
-    createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
+      createLinkFromAudioBuffer(finalRecordBuffer, true, recordingLength);
 
   player.src = audioFileUrl;
   downloadLink.href = audioFileUrl;
@@ -204,9 +212,9 @@ async function prepareClip(finalRecordBuffer) {
 /**
  * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
- *   visualization.
+ * visualization.
  * @return {function} Function to set current input samples for
- *   visualization.
+ * visualization.
  */
 function setupVisualizers(waveform) {
   let currentSamples = [];
@@ -223,9 +231,8 @@ function setupVisualizers(waveform) {
 
   function draw() {
     if (currentSamples) {
-      // Calculate current sample's average gain for visualizers to 
-      // draw with. We only need to calculate this value once per
-      // render frame.
+      // Calculate the average gain of collected samples for the
+      // visualization. This needs to be done once per frame.
       let currentSampleGain = 0;
 
       for (let i = 0; i < currentSamples.length; i++) {
@@ -243,8 +250,8 @@ function setupVisualizers(waveform) {
       }
     }
 
-    // Request render frame regardless.
-    // If visualizers are disabled, function can still wait for enable.
+    // Request render frame regardless.  If visualizers are disabled,
+    // function can still wait for enable.
     requestAnimationFrame(draw);
   }
 
@@ -252,14 +259,14 @@ function setupVisualizers(waveform) {
 }
 
 /**
- * Create the recording buffer with right size
- * @param {object} recordingProperties Properties of record buffer
- * @returns {AudioBuffer} Record buffer for current recording
+ * Create the recording buffer with right size.
+ * @param {object} recordingProperties Properties of record buffer.
+ * @returns {AudioBuffer} Record buffer for current recording.
  */
 const createFinalRecordBuffer = (recordingProperties) => {
   const contextRecordBuffer = context.createBuffer(
       2, recordingLength, context.sampleRate);
-  //The start index of each 256 float32Array
+  // The start index of each 256 float32Array.
   let startIndex = 0;
 
   for (let frame = 0; frame < recordBuffer[0].length; frame++) {

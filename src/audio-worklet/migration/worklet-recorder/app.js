@@ -1,5 +1,5 @@
-// Copyright (c) 2022 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
+// Copyright (c) 2022 The Chromium Authors. All rights reserved.  Use
+// of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 'use strict';
@@ -7,7 +7,7 @@
 import createLinkFromAudioBuffer from './exporter.mjs';
 import Waveform from '../../../library/Waveform.js';
 
-// This enum states the current recording state
+// This enum states the current recording state.
 const RecorderStates = {
   UNINITIALIZED: 0,
   RECORDING: 1,
@@ -17,9 +17,9 @@ const RecorderStates = {
 
 const context = new AudioContext();
 
-// Make the visualization clearer to the users
+// Make the visualization clearer to the users.
 const SCALE_FACTOR = 10;
-// Make the visualization of vu meter more clear to the users
+// Make the visualization of vu meter more clear to the users.
 const MAX_GAIN = 1;
 let recordingState = RecorderStates.UNINITIALIZED;
 
@@ -32,7 +32,8 @@ let downloadButton = document.querySelector('#download-button');
 
 recordButton.disabled = false;
 
-// Wait for user interaction to initialize audio, as per specification.
+// Wait for user interaction to initialize audio, as per
+// specification.
 recordButton.disabled = false;
 recordButton.addEventListener('click', (element) => {
   initializeAudio();
@@ -58,7 +59,7 @@ async function initializeAudio() {
   });
 
   const micSourceNode = new MediaStreamAudioSourceNode(context, 
-      { mediaStream: micStream });
+      {mediaStream: micStream});
   const gainNode = new GainNode(context);
   const analyserNode = new AnalyserNode(context);
 
@@ -72,8 +73,8 @@ async function initializeAudio() {
 
   const waveform = new Waveform('#recording-canvas', analyserNode, 32);
 
-  // We can pass this port across the app
-  // and let components handle their relevant messages
+  // We can pass this port across the app and let components handle
+  // their relevant messages.
   const visualizerCallback = setupVisualizers(waveform);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
@@ -96,12 +97,13 @@ async function initializeAudio() {
 }
 
 /**
- * Creates ScriptProcessor to record and track microphone audio.
+ * Create and set up a WorkletNode to record audio from a microphone.
  * @param {object} recordingProperties
  * @param {number} properties.numberOfChannels
  * @param {number} properties.sampleRate
  * @param {number} properties.maxFrameCount
- * @return {AudioWorkletNode} Recording node related components for the app.
+ * @return {AudioWorkletNode} Recording node related components for
+ * the app.
  */
 async function setupRecordingWorkletNode(recordingProperties) {
   await context.audioWorklet.addModule('recording-processor.js');
@@ -119,10 +121,10 @@ async function setupRecordingWorkletNode(recordingProperties) {
 
 /**
  * Set events and define callbacks for recording start/stop events.
- * @param {MessagePort} processorPort
- *     Processor port to send recording state events to
- * @param {object} recordingProperties Microphone channel count,
- *     for accurate recording length calculations.
+ * @param {MessagePort} processorPort Processor port to send recording
+ * state events to.
+ * @param {object} recordingProperties Microphone channel count, for
+ * accurate recording length calculations.
  * @param {number} properties.numberOfChannels
  * @param {number} properties.sampleRate
  * @param {number} properties.maxFrameCount
@@ -191,15 +193,17 @@ function changeButtonStatus() {
 
 /**
  * Set up and handles calculations and rendering for all visualizers.
- * @param {Waveform} waveform An instance of the Waveform object 
- *   for visualization.
- * @return {function} Callback for visualizer events from the processor.
+ * @param {Waveform} waveform An instance of the Waveform object for
+ * visualization.
+ * @return {function} Callback for visualizer events from the
+ * processor.
  */
 function setupVisualizers(waveform) {
   let initialized = false;
   let gain = 0;
 
-  // Wait for processor to start sending messages before beginning to render.
+  // Wait for processor to start sending messages before beginning to
+  // render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
       gain = event.data.gain;
@@ -218,8 +222,8 @@ function setupVisualizers(waveform) {
       waveform.draw();
     }
 
-    // Request render frame regardless.
-    // If visualizers are disabled, function can still wait for enable.
+    // Request render frame regardless.  If visualizers are disabled,
+    // function can still wait for enable.
     requestAnimationFrame(draw);
   }
 
@@ -229,11 +233,11 @@ function setupVisualizers(waveform) {
 /**
  * Create the downloadable .wav file for the recorded voice and set
  * the download button clickable.
- * @param {object} recordingProperties Microphone channel count,
- *     for accurate recording length calculations.
- * @param {number} recordingLength The current length of recording
- * @param {number} sampleRate The sample rate of audio content
- * @param {number[]} dataBuffer The dataBuffer of recording
+ * @param {object} recordingProperties Microphone channel count, for
+ * accurate recording length calculations.
+ * @param {number} recordingLength The current length of recording.
+ * @param {number} sampleRate The sample rate of audio content.
+ * @param {number[]} dataBuffer The dataBuffer of recording.
  */
 const createRecord = (recordingProperties, recordingLength, sampleRate,
     dataBuffer) => {
