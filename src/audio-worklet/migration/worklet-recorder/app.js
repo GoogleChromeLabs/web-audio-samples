@@ -6,6 +6,7 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 import Waveform from '../../../library/Waveform.js';
+import VUMeter from '../../../library/VUMeter.js';
 
 // This enum states the current recording state.
 const RecorderStates = {
@@ -72,10 +73,11 @@ async function initializeAudio() {
   const recordingNode = await setupRecordingWorkletNode(recordingProperties);
 
   const waveform = new Waveform('#recording-canvas', analyserNode, 32);
+  const vuMeter = new VUMeter('#vu-meter', -40, analyserNode, 32, 6);
 
   // We can pass this port across the app and let components handle
   // their relevant messages.
-  const visualizerCallback = setupVisualizers(waveform);
+  const visualizerCallback = setupVisualizers(waveform, vuMeter);
   const recordingCallback = handleRecording(
       recordingNode.port, recordingProperties);
 
@@ -195,10 +197,11 @@ function changeButtonStatus() {
  * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
  * visualization.
+ * @param {VUMeter} vuMeter An instance of the Waveform object for visualization.
  * @return {function} Callback for visualizer events from the
  * processor.
  */
-function setupVisualizers(waveform) {
+function setupVisualizers(waveform, vuMeter) {
   let initialized = false;
   let gain = 0;
 
@@ -218,7 +221,7 @@ function setupVisualizers(waveform) {
   function draw() {
     if (recordingState === RecorderStates.RECORDING) {
       const recordGain = gain;
-      drawVUMeter(recordGain);
+      vuMeter.draw();
       waveform.draw();
     }
 

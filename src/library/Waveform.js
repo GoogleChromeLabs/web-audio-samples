@@ -13,7 +13,7 @@
 class Waveform {
 
   /**
-   * @constructor Constructs a Waveform object for rendering waveform
+   * @constructor
    * visuals. The width and height of the waveform canvas are
    * initialized in the constructor and cannot be changed after
    * initialization.
