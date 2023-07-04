@@ -101,9 +101,6 @@ async function initializeAudio() {
 /**
  * Create and set up a WorkletNode to record audio from a microphone.
  * @param {object} recordingProperties
- * @param {number} properties.numberOfChannels
- * @param {number} properties.sampleRate
- * @param {number} properties.maxFrameCount
  * @return {AudioWorkletNode} Recording node related components for
  * the app.
  */
@@ -127,9 +124,6 @@ async function setupRecordingWorkletNode(recordingProperties) {
  * state events to.
  * @param {object} recordingProperties Microphone channel count, for
  * accurate recording length calculations.
- * @param {number} properties.numberOfChannels
- * @param {number} properties.sampleRate
- * @param {number} properties.maxFrameCount
  * @return {function} Callback for recording-related events.
  */
 function handleRecording(processorPort, recordingProperties) {
