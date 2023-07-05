@@ -6,6 +6,7 @@
 
 import createLinkFromAudioBuffer from './exporter.mjs';
 import Waveform from '../../../library/Waveform.js';
+import VUMeter from '../../../library/VUMeter.js';
 
 // This enum states the current recording state.
 const RecorderStates = {
@@ -19,10 +20,6 @@ const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason.
 const BUFFER_SIZE = 256;
-// Make the visualization clearer to the users.
-const SCALE_FACTOR = 10;
-// Make the visualization of vu meter more clear to the users.
-const MAX_GAIN = 1;
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -71,6 +68,7 @@ async function initializeAudio() {
   const analyserNode = new AnalyserNode(context);
 
   const waveform = new Waveform('#recording-canvas', analyserNode, 32);
+  const vuMeter = new VUMeter('#vu-meter', -40, analyserNode, 32, 6);
 
   // Prepare max recording buffer for recording.
   const recordingProperties = {
@@ -81,7 +79,7 @@ async function initializeAudio() {
 
 
   // Obtain samples passthrough function for visualizers.
-  const passSampleToVisualizers = setupVisualizers(waveform);
+  const passSampleToVisualizers = setupVisualizers(waveform, vuMeter);
   const spNode =
       setupScriptProcessor(recordingProperties, passSampleToVisualizers);
 
@@ -213,10 +211,12 @@ async function prepareClip(finalRecordBuffer) {
  * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
  * visualization.
+ * @param {VUMeter} vuMeter An instance of the Waveform object for
+ * visualization.
  * @return {function} Function to set current input samples for
  * visualization.
  */
-function setupVisualizers(waveform) {
+function setupVisualizers(waveform, vuMeter) {
   let currentSamples = [];
   let firstSamplesReceived = false;
 
@@ -231,21 +231,8 @@ function setupVisualizers(waveform) {
 
   function draw() {
     if (currentSamples) {
-      // Calculate the average gain of collected samples for the
-      // visualization. This needs to be done once per frame.
-      let currentSampleGain = 0;
-
-      for (let i = 0; i < currentSamples.length; i++) {
-        for (let j = 0; j < currentSamples[i].length; j++) {
-          currentSampleGain += currentSamples[i][j];
-        }
-      }
-
-      currentSampleGain /= (currentSamples.length * currentSamples[0].length);
-
       if (recordingState === RecorderStates.RECORDING) {
-        const recordGain = currentSampleGain;
-        drawVUMeter(recordGain);
+        vuMeter.draw();
         waveform.draw();
       }
     }
@@ -280,33 +267,3 @@ const createFinalRecordBuffer = (recordingProperties) => {
   }
   return contextRecordBuffer;
 };
-
-function drawVUMeter(volume) {
-  var canvas = document.getElementById('vu-meter');
-  var ctx = canvas.getContext('2d');
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  var meterHeight = canvas.height *
-      (volume / MAX_GAIN) * SCALE_FACTOR;
-  
-  ctx.fillStyle = '#f00';
-  ctx.fillRect(0, canvas.height - meterHeight, canvas.width, meterHeight);
-  
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.3;
-  ctx.beginPath();
-  ctx.moveTo(0, canvas.height * 0.2);
-  ctx.lineTo(canvas.width, canvas.height * 0.2);
-  ctx.moveTo(0, canvas.height * 0.4);
-  ctx.lineTo(canvas.width, canvas.height * 0.4);
-  ctx.moveTo(0, canvas.height * 0.6);
-  ctx.lineTo(canvas.width, canvas.height * 0.6);
-  ctx.moveTo(0, canvas.height * 0.8);
-  ctx.lineTo(canvas.width, canvas.height * 0.8);
-  ctx.stroke();
-}
