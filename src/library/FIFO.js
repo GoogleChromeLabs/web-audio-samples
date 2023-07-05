@@ -1,9 +1,8 @@
 /**
- * A First-In-First-Out (FIFO) class that only design for vu-meter to
- * maintains a queue of elements. In class does not has pull,
- * getBufferLength function. It includes the getMinValue function for
- * tracking the minimum value in the FIFO class.
- * @class
+ * @classdesc A FIFO (First-In-First-Out) class that is specifically
+ * designed for the VUMeter class in the library directory. This class
+ * does not have a method to get or drop a head value, but it includes
+ * one for getting a minimum value form the queue.
  */
 class FIFO {
   

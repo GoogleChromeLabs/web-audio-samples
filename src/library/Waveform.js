@@ -1,14 +1,13 @@
 /**
- * This Waveform class implements a waveform UI. To initialize it, you
- * need to provide the ID of the canvas element where the waveform
- * will be rendered and the fftSize value for the analyserNode. The
- * fftSize value defines the window size in samples used when
- * performing a Fast Fourier Transform (FFT) to obtain frequency
- * domain data in the AnalyserNode. When the waveform is created, it
- * requires an AnalyserNode for real-time audio input data. This class
- * only requires a canvas element, and there are no additional
- * dependencies.
- * @class
+ * @classdesc This Waveform class implements a waveform UI. To
+ * initialize it, you need to provide the ID of the canvas element
+ * where the waveform will be rendered and the fftSize value for the
+ * analyserNode. The fftSize value defines the window size in samples
+ * used when performing a Fast Fourier Transform (FFT) to obtain
+ * frequency domain data in the AnalyserNode. When the waveform is
+ * created, it requires an AnalyserNode for real-time audio input
+ * data. This class only requires a canvas element, and there are no
+ * additional dependencies.
  */
 class Waveform {
 
@@ -26,8 +25,7 @@ class Waveform {
    * AnalyserNode.
    */
   constructor(canvasId, analyserNode, fftSize) {
-    /** @private @const {!canvas} Selected waveform canvas
-     * element */
+    /** @private @const {!canvas} Selected waveform canvas element */
     this.canvas_ = document.querySelector(canvasId);
     /** @private @const {!canvasContext} Canvas context */
     this.canvasContext_ = this.canvas_.getContext('2d');
@@ -39,8 +37,8 @@ class Waveform {
     this.currentX_ = 0;
     /** @private {!previousY} Previous Y axis in the waveform */
     this.previousY_ = this.height_ / 2;
-    /** @private @const {!analyser} AnalyserNode that will be used
-     * for visualization */
+    /** @private @const {!analyser} AnalyserNode that will be used for
+     * visualization */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
     /** @private @const {!dataArray} The array that the time domain

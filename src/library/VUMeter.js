@@ -1,8 +1,8 @@
 import FIFO from './FIFO.js';
 
 /**
- * This VUMeter class implements a volume level meter UI. To
- * initialize it, developers need to provide the ID of the canvas
+ * @classdesc This VUMeter class implements a volume level meter UI.
+ * To initialize it, developers need to provide the ID of the canvas
  * element where the VUMeter will be rendered, the minimum decibel
  * value for the VUMeter, an AnalyserNode, fftSize of the
  * analyserNode, and fifoSize to control the VMMeter update speed. The
@@ -10,9 +10,8 @@ import FIFO from './FIFO.js';
  * considered silent. When the VUMeter is created, it requires an
  * AnalyserNode for real-time audio input data. This class requires a
  * canvas element and FIFO class. The FIFO class is used to determine
- * how fast the VUMeter gets updated. The height of vu-meter bar is
+ * how fast the VUMeter gets updated. The height of the VUMeter is
  * determined by the minimum number in the FIFO class.
- * @class
  */
 class VUMeter {
 
@@ -49,8 +48,8 @@ class VUMeter {
     /** @private @const {!fifo} An instance of FIFO class for caching
      * RMS values and extracting a minimum value over time. */
     this.fifo_ = new FIFO(fifoSize);
-    /** @private @const {!analyser} AnalyserNode that will be used
-     * for visualization */
+    /** @private @const {!analyser} AnalyserNode that will be used for
+     * visualization */
     this.analyser_ = analyserNode;
     this.analyser_.fftSize = fftSize;
     /** @private @const {!dataArray} Array to store the frequency data
