@@ -10,7 +10,7 @@ import FIFO from './FIFO.js';
  * considered silent. When the VUMeter is created, it requires an
  * AnalyserNode for real-time audio input data. This class requires a
  * canvas element and FIFO class. The FIFO class is used to determine
- * how fast the VUMeter gets updated. The Waveform bar size is
+ * how fast the VUMeter gets updated. The height of vu-meter bar is
  * determined by the minimum number in the FIFO class.
  * @class
  */

@@ -1,12 +1,10 @@
 /**
- * A First-In-First-Out (FIFO) class that maintains a queue of
- * elements.  New elements are added to the tail, and the oldest
- * element is removed from the head when the FIFO is full.  If the
- * size of the queue is 1, it will always contain the newest element
- * that was inserted.
+ * A First-In-First-Out (FIFO) class that only design for vu-meter to
+ * maintains a queue of elements. In class does not has pull,
+ * getBufferLength function. It includes the getMinValue function for
+ * tracking the minimum value in the FIFO class.
  * @class
  */
-
 class FIFO {
   
   /**
@@ -19,11 +17,9 @@ class FIFO {
     this.size_ = size;
     /** @private @const {!data} The actual data array for the FIFO. */
     this.data_ = new Float32Array(size);
-    /** @private {!head} The index of the first element in the FIFO
-     * */
+    /** @private {!head} The index of the first element in the FIFO */
     this.head_ = 0;
-    /** @private {!tail} The index of the last element in the FIFO
-     * */
+    /** @private {!tail} The index of the last element in the FIFO */
     this.tail_ = 0;
     /** @private {!count} The actual number of elements in the FIFO */
     this.count_ = 0;
@@ -31,7 +27,8 @@ class FIFO {
 
   /**
    * Push a new value to the tail index of the queue. If the FIFO is
-   * full, it removes the element at the head index (the oldest).
+   * full, it removes the element at the head index (the oldest) and
+   * insert the new element at the tail index (the newest).
    * @param {Number} value The new value to be added to the FIFO.
    */
   push(value) {
@@ -45,7 +42,7 @@ class FIFO {
   }
 
   /**
-   * This method is designed for debugging purposes.
+   * Helper function for debugging.
    * @returns {Array} A newly created array contains the elements of
    * the FIFO in the order in which they were added.
    */
