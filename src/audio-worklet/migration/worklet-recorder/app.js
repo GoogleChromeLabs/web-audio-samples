@@ -18,10 +18,6 @@ const RecorderStates = {
 
 const context = new AudioContext();
 
-// Make the visualization clearer to the users.
-const SCALE_FACTOR = 10;
-// Make the visualization of vu meter more clear to the users.
-const MAX_GAIN = 1;
 let recordingState = RecorderStates.UNINITIALIZED;
 
 let recordButton = document.querySelector('#record');
@@ -191,19 +187,18 @@ function changeButtonStatus() {
  * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
  * visualization.
- * @param {VUMeter} vuMeter An instance of the Waveform object for visualization.
+ * @param {VUMeter} vuMeter An instance of the Waveform object for
+ * visualization.
  * @return {function} Callback for visualizer events from the
  * processor.
  */
 function setupVisualizers(waveform, vuMeter) {
   let initialized = false;
-  let gain = 0;
 
   // Wait for processor to start sending messages before beginning to
   // render.
   const visualizerEventCallback = async (event) => {
     if (event.data.message === 'UPDATE_VISUALIZERS') {
-      gain = event.data.gain;
 
       if (!initialized) {
         initialized = true;
@@ -214,7 +209,6 @@ function setupVisualizers(waveform, vuMeter) {
 
   function draw() {
     if (recordingState === RecorderStates.RECORDING) {
-      const recordGain = gain;
       vuMeter.draw();
       waveform.draw();
     }
@@ -255,33 +249,3 @@ const createRecord = (recordingProperties, recordingLength, sampleRate,
       `recording-${new Date().getMilliseconds().toString()}.wav`;
   downloadButton.disabled = false;
 };
-
-function drawVUMeter(volume) {
-  var canvas = document.getElementById('vu-meter');
-  var ctx = canvas.getContext('2d');
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  var meterHeight = canvas.height *
-      (volume / MAX_GAIN) * SCALE_FACTOR;
-  
-  ctx.fillStyle = '#f00';
-  ctx.fillRect(0, canvas.height - meterHeight, canvas.width, meterHeight);
-  
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.3;
-  ctx.beginPath();
-  ctx.moveTo(0, canvas.height * 0.2);
-  ctx.lineTo(canvas.width, canvas.height * 0.2);
-  ctx.moveTo(0, canvas.height * 0.4);
-  ctx.lineTo(canvas.width, canvas.height * 0.4);
-  ctx.moveTo(0, canvas.height * 0.6);
-  ctx.lineTo(canvas.width, canvas.height * 0.6);
-  ctx.moveTo(0, canvas.height * 0.8);
-  ctx.lineTo(canvas.width, canvas.height * 0.8);
-  ctx.stroke();
-}

@@ -20,10 +20,6 @@ const context = new AudioContext();
 
 // Arbitrary buffer size, not specific for a reason.
 const BUFFER_SIZE = 256;
-// Make the visualization clearer to the users.
-const SCALE_FACTOR = 10;
-// Make the visualization of vu meter more clear to the users.
-const MAX_GAIN = 1;
 
 let recordingLength = 0;
 let recordBuffer = [[], []];
@@ -215,7 +211,8 @@ async function prepareClip(finalRecordBuffer) {
  * Set up and handles calculations and rendering for all visualizers.
  * @param {Waveform} waveform An instance of the Waveform object for
  * visualization.
- * @param {VUMeter} vuMeter An instance of the Waveform object for visualization.
+ * @param {VUMeter} vuMeter An instance of the Waveform object for
+ * visualization.
  * @return {function} Function to set current input samples for
  * visualization.
  */
@@ -234,20 +231,7 @@ function setupVisualizers(waveform, vuMeter) {
 
   function draw() {
     if (currentSamples) {
-      // Calculate the average gain of collected samples for the
-      // visualization. This needs to be done once per frame.
-      let currentSampleGain = 0;
-
-      for (let i = 0; i < currentSamples.length; i++) {
-        for (let j = 0; j < currentSamples[i].length; j++) {
-          currentSampleGain += currentSamples[i][j];
-        }
-      }
-
-      currentSampleGain /= (currentSamples.length * currentSamples[0].length);
-
       if (recordingState === RecorderStates.RECORDING) {
-        const recordGain = currentSampleGain;
         vuMeter.draw();
         waveform.draw();
       }
