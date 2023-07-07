@@ -73,6 +73,8 @@ module.exports = function(eleventyConfig) {
     'src/sounds/hyper-reality/**/*.wav',
     'src/sounds/impulse-responses/**/*.wav',
     'src/sounds/loops/**/*.wav',
+    'src/tests/**/*.html',
+    'src/tests/**/*.js',
     'src/robots.txt',
     'src/README.md',
     'src/sitemap.xml',

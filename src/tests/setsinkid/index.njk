@@ -1,0 +1,36 @@
+---
+eleventyNavigation:
+  key: test-setsinkid
+  title: Manual test for AudioContext.setSinkId()
+  parent: tests
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<h1>AudioContext.setSinkId(): Manual Test</h1>
+<p>NOTE: This test requires a permission for microphone to access the available
+  audio devices in the system.</p>
+
+<div class="demo-box">
+  <div class="p-3 mb-2 bg-slate-100 w-1/2 rounded text-sm text-right">
+    <label for="type" class="mr-1 w-1/3">Output Device</label>
+    <select id="device-dropdown" disabled
+      class="p-1 rounded w-2/3 font-semibold">
+      <option value="">Getting device information...</option>
+    </select>
+  </div>
+  <button id="device-change" disabled>CHANGE</button>
+</div>
+
+<div id="view"
+  class="mt-6 p-3 rounded text-xs text-slate-600 border font-mono">
+  <div id="log"></div>
+  <div id="inspector"></div>
+</div>
+
+<script type="module" src="app.js"></script>
+
+{% endblock %}

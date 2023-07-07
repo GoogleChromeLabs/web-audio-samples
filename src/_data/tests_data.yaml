@@ -1,0 +1,5 @@
+- title: Tests
+  entries:
+    - title: AudioContext.setSinkId()
+      description: A manual test for setSinkId() API
+      href: setsinkid/
