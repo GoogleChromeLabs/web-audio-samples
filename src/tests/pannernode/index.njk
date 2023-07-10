@@ -1,0 +1,41 @@
+---
+eleventyNavigation:
+  key: test-pannernode
+  title: Glitches in PannerNode
+  parent: tests
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>Press "Start Audio" button to start the test. The test will play 3 segments
+  (3 seconds each) of the ConstantSourceNode with a DC offset of 0.5. This
+  source is spatialized by the PannerNode with HRTF. Ideally, the spatialization
+  should not cause any artifacts. (e.g. glitches, sudden changes)</p>
+<ul class="pl-3 mb-3 list-inside list-disc">
+  <li>
+    <a href="https://webaudio.github.io/web-audio-api/#Spatialization"
+      target=_blank>
+      Specification: Spatialization</a>
+    <a href=""></a>
+  </li>
+</ul>
+<p>Refresh the page to run the test again.</p>
+
+<div class="demo-box">
+  <button id="btn-start-test" disabled>START TEST</button>
+  {% include "../../_includes/example-source-code.njk" %}
+</div>
+
+<div id="view"
+  class="mt-6 p-3 rounded border">
+  <div id="log" class="text-xs text-slate-600 font-mono whitespace-pre"></div>
+  <div id="inspector"></div>
+</div>
+
+<script type="module" src="app.js"></script>
+
+{% endblock %}
