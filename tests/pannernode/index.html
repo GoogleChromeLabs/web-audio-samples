@@ -2,17 +2,17 @@
 <html lang="en">
   <head>
     <title>
-      Various tests for Web Audio API | Web Audio Samples
+      Glitches in PannerNode | Web Audio Samples
     </title>
     <meta charset="UTF-8"/>
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta http-equiv="x-ua-compatible" content="ie=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"/>
-    <link rel="stylesheet" href="../styles.css"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../favicon/favicon-16x16.png">
+    <link rel="stylesheet" href="../../styles.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon/favicon-16x16.png">
   </head>
   <body>
 
@@ -25,7 +25,7 @@
 <div class="flex pb-3">
   
     <div class="mr-2">
-      <a href="..">
+      <a href="../..">
         Home
       </a>
     </div>
@@ -33,8 +33,17 @@
       &#9656;
     </span>
   
+    <div class="mr-2">
+      <a href="..">
+        Various tests for Web Audio API
+      </a>
+    </div>
+    <span class="mr-2">
+      &#9656;
+    </span>
+  
   <div>
-    Various tests for Web Audio API
+    Glitches in PannerNode
   </div>
 </div>
 
@@ -46,35 +55,37 @@
         <div class="w-full px-6 md:max-w-4xl md:mx-auto">
           
 
-<div class="mb-12">
-  <h1>Tests</h1>
-  <p>TODO: Various tests for Chrome Web Audio API</p>
+<h1>Glitches in PannerNode</h1>
+<p>Press "Start Audio" button to start the test. The test will play 3 segments
+  (3 seconds each) of the ConstantSourceNode with a DC offset of 0.5. This
+  source is spatialized by the PannerNode with HRTF. Ideally, the spatialization
+  should not cause any artifacts. (e.g. glitches, sudden changes)</p>
+<ul class="pl-3 mb-3 list-inside list-disc">
+  <li>
+    <a href="https://webaudio.github.io/web-audio-api/#Spatialization"
+      target=_blank>
+      Specification: Spatialization</a>
+    <a href=""></a>
+  </li>
+</ul>
+<p>Refresh the page to run the test again.</p>
+
+<div class="demo-box">
+  <button id="btn-start-test" disabled>START TEST</button>
+  <div class="text-sm text-right">
+  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/tests/pannernode/" target="_blank">
+    source code
+  </a>
+</div>
 </div>
 
-
-<div class="my-6">
-  <h2 class="text-3xl pb-6">
-    Tests
-  </h2>
-  <div class="flex flex-wrap">
-    
-      <div class="w-full md:w-1/2 pb-6">
-        <a href="setsinkid/" class="text-xl">
-          AudioContext.setSinkId()
-        </a>
-        <p>A manual test for setSinkId() API</p>
-      </div>
-    
-      <div class="w-full md:w-1/2 pb-6">
-        <a href="pannernode/" class="text-xl">
-          Performance of PannerNode and AudioListener
-        </a>
-        <p>Manual test for performance of PannerNode and AudioListener</p>
-      </div>
-    
-  </div>
+<div id="view"
+  class="mt-6 p-3 rounded border">
+  <div id="log" class="text-xs text-slate-600 font-mono whitespace-pre"></div>
+  <div id="inspector"></div>
 </div>
 
+<script type="module" src="app.js"></script>
 
 
         </div>
