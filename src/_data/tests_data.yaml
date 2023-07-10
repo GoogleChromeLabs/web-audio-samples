@@ -3,3 +3,6 @@
     - title: AudioContext.setSinkId()
       description: A manual test for setSinkId() API
       href: setsinkid/
+    - title: Performance of PannerNode and AudioListener
+      description: Manual test for performance of PannerNode and AudioListener
+      href: pannernode/
