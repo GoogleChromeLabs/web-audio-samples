@@ -1,0 +1,36 @@
+---
+eleventyNavigation:
+  key: tests
+  title: Various tests for Web Audio API
+  parent: landing
+to_root_dir: ../
+---
+
+{% extends "../_includes/base.njk" %}
+
+{% block content %}
+
+<div class="mb-12">
+  <h1>Tests</h1>
+  <p>TODO: Various tests for Chrome Web Audio API</p>
+</div>
+
+{% for section in tests_data %}
+<div class="my-6">
+  <h2 class="text-3xl pb-6">
+    {{ section.title }}
+  </h2>
+  <div class="flex flex-wrap">
+    {% for entry in section.entries %}
+      <div class="w-full md:w-1/2 pb-6">
+        <a href="{{ entry.href }}" class="text-xl">
+          {{ entry.title }}
+        </a>
+        <p>{{ entry.description }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
