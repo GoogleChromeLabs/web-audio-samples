@@ -24,6 +24,7 @@ build: $(DEPS)
 		-s SINGLE_FILE=1 \
 		-s WASM=1 \
 		-s WASM_ASYNC_COMPILATION=0 \
+		-s EXPORTED_FUNCTIONS="['_malloc']" \
 		-o ./synth.wasm.js \
 		./synth_src/synth_bind.cc $(DEPS)
 
