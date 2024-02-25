@@ -216,13 +216,11 @@ class RingBuffer {
     // Transfer data from the |arraySequence| storage to the internal buffer.
     const sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
-      const writeIndex = (this._writeIndex + i) % this._length;
+      this._writeIndex = (this._writeIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
-        this._channelData[channel][writeIndex] = arraySequence[channel][i];
+        this._channelData[channel][this._writeIndex] = arraySequence[channel][i];
       }
     }
-
-    this._writeIndex = (this._writeIndex + sourceLength) % this._length;
 
     // For excessive frames, the buffer will be overwritten.
     this._framesAvailable += sourceLength;
@@ -249,13 +247,11 @@ class RingBuffer {
 
     // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      const readIndex = (this._readIndex + i) % this._length;
+      this._readIndex = (this._readIndex + i) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
-        arraySequence[channel][i] = this._channelData[channel][readIndex];
+        arraySequence[channel][i] = this._channelData[channel][this._readIndex];
       }
     }
-
-    this._readIndex = (this._readIndex + destinationLength) % this._length;
 
     this._framesAvailable -= destinationLength;
     if (this._framesAvailable < 0) {
