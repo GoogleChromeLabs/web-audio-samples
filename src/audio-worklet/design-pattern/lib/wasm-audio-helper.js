@@ -216,7 +216,8 @@ class RingBuffer {
     // Transfer data from the |arraySequence| storage to the internal buffer.
     const sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
-      this._writeIndex = (this._writeIndex + i) % this._length;
+      //updating index directly instead of making new temporary every iteration
+      this._writeIndex = (this._writeIndex + 1) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         this._channelData[channel][this._writeIndex] = arraySequence[channel][i];
       }
@@ -247,7 +248,8 @@ class RingBuffer {
 
     // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      this._readIndex = (this._readIndex + i) % this._length;
+      //updating index directly instead of making new temporary every iteration
+      this._readIndex = (this._readIndex + 1) % this._length;
       for (let channel = 0; channel < this._channelCount; ++channel) {
         arraySequence[channel][i] = this._channelData[channel][this._readIndex];
       }
