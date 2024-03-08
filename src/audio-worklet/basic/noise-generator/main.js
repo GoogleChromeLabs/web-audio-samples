@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isPlaying = false;
+let noiseGenerator;
 
 const startAudio = async (context) => {
   await context.audioWorklet.addModule('noise-generator.js');
   const modulator = new OscillatorNode(context);
   const modGain = new GainNode(context);
-  const noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
+  noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
   noiseGenerator.connect(context.destination);
 
   // Connect the oscillator to 'amplitude' AudioParam.
@@ -20,15 +22,28 @@ const startAudio = async (context) => {
   modulator.start();
 };
 
-// A simplem onLoad handler. It also handles user gesture to unlock the audio
+const stopAudio = () => {
+  if (noiseGenerator) {
+    noiseGenerator.disconnect();
+    isPlaying = false;
+  }
+};
+
+// A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
+
   buttonEl.addEventListener('click', async () => {
-    await startAudio(audioContext);
-    audioContext.resume();
-    buttonEl.disabled = true;
-    buttonEl.textContent = 'Playing...';
-  }, false);
+    if (!isPlaying) { // If not playing, start audio
+      await startAudio(audioContext);
+      audioContext.resume();
+      isPlaying = true;
+      buttonEl.textContent = 'Playing...';
+    } else { // If playing, stop audio
+      stopAudio();
+      buttonEl.textContent = 'START';
+    }
+  });
 });
