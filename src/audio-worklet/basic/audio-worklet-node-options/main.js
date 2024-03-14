@@ -6,21 +6,16 @@ const audioContext = new AudioContext();
 let oscillatorProcessor;
 
 const startAudio = async (context, options) => {
-  await context.audioWorklet.addModule('oscillator-processor.js');
-  oscillatorProcessor =
-    new AudioWorkletNode(context, 'oscillator-processor', {
-      processorOptions: {
-        waveformType: options.waveformType,
-        frequency: options.frequency,
-      }
-    });
-  oscillatorProcessor.connect(context.destination);
-};
-
-const stopAudio = () => {
-  if (oscillatorProcessor) {
-    oscillatorProcessor.disconnect();
-    oscillatorProcessor = null;
+  if (!oscillatorProcessor) {
+    await context.audioWorklet.addModule('oscillator-processor.js');
+    oscillatorProcessor =
+      new AudioWorkletNode(context, 'oscillator-processor', {
+        processorOptions: {
+          waveformType: options.waveformType,
+          frequency: options.frequency,
+        }
+      });
+    oscillatorProcessor.connect(context.destination);
   }
 };
 
@@ -32,14 +27,14 @@ window.addEventListener('load', async () => {
 
   buttonEl.addEventListener('click', async () => {
     if (!oscillatorProcessor) { // If audio is not playing, start audio
-      const waveformType =
-        document.querySelector('#demo-select-waveform-type').value;
+      const waveformType = document.querySelector('#demo-select-waveform-type').value;
       const frequency = document.querySelector('#demo-input-frequency').value;
       await startAudio(audioContext, { waveformType, frequency });
       audioContext.resume();
       buttonEl.textContent = 'STOP';
     } else { // If audio is playing, stop audio
-      stopAudio();
+      oscillatorProcessor.disconnect();
+      oscillatorProcessor = null;
       buttonEl.textContent = 'START';
     }
   }, false);

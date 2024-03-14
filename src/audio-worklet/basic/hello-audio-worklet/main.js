@@ -3,21 +3,22 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let oscillator; 
+let oscillatorNode; 
 let isPlaying = false; 
 
 const startAudio = async (context) => {
-  await context.audioWorklet.addModule('bypass-processor.js');
-  oscillator = new OscillatorNode(context);
-  const bypasser = new AudioWorkletNode(context, 'bypass-processor');
-  oscillator.connect(bypasser).connect(context.destination);
-  oscillator.start();
+  if (!oscillatorNode) {
+    await context.audioWorklet.addModule('bypass-processor.js');
+    oscillatorNode = new OscillatorNode(context);
+    const bypasser = new AudioWorkletNode(context, 'bypass-processor');
+    oscillatorNode.connect(bypasser).connect(context.destination);
+    oscillatorNode.start();
+  }
 };
 
 const stopAudio = () => {
-  if (oscillator) {
-    oscillator.stop();
-    oscillator.disconnect();
+  if (audioContext.state === 'running') {
+    audioContext.suspend();
   }
 };
 
