@@ -259,4 +259,5 @@ class RingBuffer {
   }
 }
 
-export { FreeQueue, RingBuffer };
+export { MAX_CHANNEL_COUNT,
+  RENDER_QUANTUM_FRAMES,FreeQueue, RingBuffer };
