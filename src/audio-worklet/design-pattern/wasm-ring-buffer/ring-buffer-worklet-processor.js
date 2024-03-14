@@ -15,7 +15,8 @@
  */
 
 import Module from './variable-buffer-kernel.wasmmodule.js';
-import {HeapAudioBuffer, RingBuffer} from '../lib/wasm-audio-helper.js';
+import {FreeQueue} from '../lib/ring-buffer.js';
+
 
 /**
  * An example of AudioWorkletProcessor that uses RingBuffer inside. If your
@@ -41,16 +42,14 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
     this._channelCount = options.processorOptions.channelCount;
 
     // RingBuffers for input and output.
-    this._inputRingBuffer =
-        new RingBuffer(this._kernelBufferSize, this._channelCount);
-    this._outputRingBuffer =
-        new RingBuffer(this._kernelBufferSize, this._channelCount);
+    this._buffer = new FreeQueue(this._kernelBufferSize, this._channelCount);
 
     // For WASM memory, also for input and output.
     this._heapInputBuffer =
-        new HeapAudioBuffer(Module, this._kernelBufferSize, this._channelCount);
+      new Float32Array(Module.instance.exports.memory.buffer, 0, this._kernelBufferSize * this._channelCount);
     this._heapOutputBuffer =
-        new HeapAudioBuffer(Module, this._kernelBufferSize, this._channelCount);
+      new Float32Array(Module.instance.exports.memory.buffer, this._kernelBufferSize * this._channelCount, this._kernelBufferSize * this._channelCount);
+
 
     // WASM audio processing kernel.
     this._kernel = new Module.VariableBufferKernel(this._kernelBufferSize);
@@ -72,29 +71,36 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
 
     // AudioWorkletProcessor always gets 128 frames in and 128 frames out. Here
     // we push 128 frames into the ring buffer.
-    this._inputRingBuffer.push(input);
+    this._buffer.push(input, this._kernelBufferSize);
 
     // Process only if we have enough frames for the kernel.
-    if (this._inputRingBuffer.framesAvailable >= this._kernelBufferSize) {
-      // Get the queued data from the input ring buffer.
-      this._inputRingBuffer.pull(this._heapInputBuffer.getChannelData());
+    if (this._buffer.isFrameAvailable(this._kernelBufferSize)) {
+      // Pull the queued data from the combined buffer.
+      this._buffer.pull(this._heapInputBuffer, this._kernelBufferSize);
+
+      // Process the data using the kernel.
+      this._kernel.process(
+        this._heapInputBuffer.byteOffset,
+        this._heapOutputBuffer.byteOffset,
+        this._channelCount
+      );
+
+      // Push the processed data back into the combined buffer.
+      this._buffer.push(this._heapOutputBuffer, this._kernelBufferSize);
+    }
+    // if (this._inputRingBuffer.framesAvailable >= this._kernelBufferSize) {
+    //   // Get the queued data from the input ring buffer.
+    //   this._inputRingBuffer.pull(this._heapInputBuffer.getChannelData());
 
       // This WASM process function can be replaced with ScriptProcessor's
       // |onaudioprocess| callback funciton. However, if the event handler
       // touches DOM in the main scope, it needs to be translated with the
       // async messaging via MessagePort.
-      this._kernel.process(
-          this._heapInputBuffer.getHeapAddress(),
-          this._heapOutputBuffer.getHeapAddress(),
-          this._channelCount);
 
-      // Fill the output ring buffer with the processed data.
-      this._outputRingBuffer.push(this._heapOutputBuffer.getChannelData());
-    }
 
     // Always pull 128 frames out. If the ring buffer does not have enough
     // frames, the output will be silent.
-    this._outputRingBuffer.pull(output);
+    this._buffer.pull(output, this._kernelBufferSize);
 
     return true;
   }
