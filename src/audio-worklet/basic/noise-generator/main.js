@@ -36,7 +36,8 @@ window.addEventListener('load', async () => {
   buttonEl.disabled = false;
 
   buttonEl.addEventListener('click', async () => {
-    if (!isPlaying) { // If not playing, start audio
+    if (!isPlaying) { 
+      // If not playing, start the audio.
       await startAudio(audioContext);
       audioContext.resume();
       isPlaying = true;
