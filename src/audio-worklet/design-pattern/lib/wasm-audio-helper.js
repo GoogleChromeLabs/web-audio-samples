@@ -189,11 +189,13 @@ class RingBuffer {
 
     this._channelCount = channelCount;
     this._length = length;
-    this._channelData = [];
-    for (let i = 0; i < this._channelCount; ++i) {
-      this._channelData[i] = new Float32Array(length);
-    }
+    this._data = new Float32Array(length * channelCount);
   }
+
+  get framesAvailable() {
+    return this._framesAvailable;
+  }
+
 
   /**
    * Getter for Available frames in buffer.
@@ -215,20 +217,23 @@ class RingBuffer {
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
     const sourceLength = arraySequence[0].length;
+    const dataArray = this._data;
+    const channelCount = this._channelCount;
+    const length = this._length;
+
     for (let i = 0; i < sourceLength; ++i) {
-      for (let channel = 0; channel < this._channelCount; ++channel) {
-        this._channelData[channel][this._writeIndex] = arraySequence[channel][i];
+      for (let channel = 0; channel < channelCount; ++channel) {
+        const index = (this._writeIndex + i) % length;
+        dataArray[index * channelCount + channel] = arraySequence[channel][i];
       }
-      this._writeIndex = (this._writeIndex + 1) % this._length;
     }
 
-    // For excessive frames, the buffer will be overwritten.
+    this._writeIndex = (this._writeIndex + sourceLength) % length;
     this._framesAvailable += sourceLength;
-    if (this._framesAvailable > this._length) {
-      this._framesAvailable = this._length;
+    if (this._framesAvailable > length) {
+      this._framesAvailable = length;
     }
   }
-
   /**
    * Pull data out of buffer and fill a given sequence of Float32Arrays.
    *
@@ -244,15 +249,18 @@ class RingBuffer {
     }
 
     const destinationLength = arraySequence[0].length;
+    const dataArray = this._data;
+    const channelCount = this._channelCount;
+    const length = this._length;
 
-    // Transfer data from the internal buffer to the |arraySequence| storage.
     for (let i = 0; i < destinationLength; ++i) {
-      for (let channel = 0; channel < this._channelCount; ++channel) {
-        arraySequence[channel][i] = this._channelData[channel][this._readIndex];
+      for (let channel = 0; channel < channelCount; ++channel) {
+        const index = (this._readIndex + i) % length;
+        arraySequence[channel][i] = dataArray[index * channelCount + channel];
       }
-      this._readIndex = (this._readIndex + 1) % this._length;
     }
 
+    this._readIndex = (this._readIndex + destinationLength) % length;
     this._framesAvailable -= destinationLength;
     if (this._framesAvailable < 0) {
       this._framesAvailable = 0;
