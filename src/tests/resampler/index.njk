@@ -1,0 +1,33 @@
+---
+eleventyNavigation:
+  key: test-resampler-bug
+  title: Resampler Verificaiton
+  parent: tests
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>Press "Start Audio" button to start the test. Check if you can hear any
+  audio glitches from your eadbuds or a headset. See
+  <a href="https://crbug.com/331682035">Issue 331682035</a> for more details.
+  </p>
+<p>Refresh the page to run the test again.</p>
+
+<div class="demo-box">
+  <button id="btn-start-test" disabled>START TEST</button>
+  {% include "../../_includes/example-source-code.njk" %}
+</div>
+
+<div id="view"
+  class="mt-6 p-3 rounded border">
+  <div id="log" class="text-xs text-slate-600 font-mono whitespace-pre"></div>
+  <div id="inspector"></div>
+</div>
+
+<script type="module" src="app.js"></script>
+
+{% endblock %}
