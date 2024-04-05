@@ -198,66 +198,6 @@ class FreeQueue {
   }
 }
 
-/**
- * Improved RingBuffer implementation for audio worklets.
- * This implementation is optimized for single-threaded operation.
- */
-class RingBuffer {
-  constructor(length, channelCount) {
-    this._readIndex = 0;
-    this._writeIndex = 0;
-    this._framesAvailable = 0;
-    this._channelCount = channelCount;
-    this._length = length;
-    this._channelData = [];
-    // Initialize channel data arrays
-    for (let i = 0; i < this._channelCount; ++i) {
-      this._channelData[i] = new Float32Array(length);
-    }
-  }
-
-  // Getter for frames available in the buffer
-  get framesAvailable() {
-    return this._framesAvailable;
-  }
-
-  // Method to push data into the buffer
-  push(arraySequence) {
-    const sourceLength = arraySequence[0].length;
-    for (let i = 0; i < sourceLength; ++i) {
-      const writeIndex = (this._writeIndex + i) % this._length;
-      for (let channel = 0; channel < this._channelCount; ++channel) {
-        this._channelData[channel][writeIndex] = arraySequence[channel][i];
-      }
-    }
-    this._writeIndex = (this._writeIndex + sourceLength) % this._length;
-    this._framesAvailable += sourceLength;
-    // Limit frames available to buffer length
-    if (this._framesAvailable > this._length) {
-      this._framesAvailable = this._length;
-    }
-  }
-
-  // Method to pull data from the buffer
-  pull(arraySequence) {
-    if (this._framesAvailable === 0) {
-      return;
-    }
-    const destinationLength = arraySequence[0].length;
-    for (let i = 0; i < destinationLength; ++i) {
-      const readIndex = (this._readIndex + i) % this._length;
-      for (let channel = 0; channel < this._channelCount; ++channel) {
-        arraySequence[channel][i] = this._channelData[channel][readIndex];
-      }
-    }
-    this._readIndex = (this._readIndex + destinationLength) % this._length;
-    this._framesAvailable -= destinationLength;
-    // Ensure frames available does not become negative
-    if (this._framesAvailable < 0) {
-      this._framesAvailable = 0;
-    }
-  }
-}
 
 export { MAX_CHANNEL_COUNT,
-  RENDER_QUANTUM_FRAMES,FreeQueue, RingBuffer };
+  RENDER_QUANTUM_FRAMES,FreeQueue };

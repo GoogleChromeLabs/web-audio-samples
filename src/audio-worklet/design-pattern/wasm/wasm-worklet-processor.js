@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import Module from './simple-kernel.wasmmodule.js';
-import {RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT,FreeQueue} from '../lib/ring-buffer.js';
+import { RENDER_QUANTUM_FRAMES , MAX_CHANNEL_COUNT , FreeQueue } from '../lib/FreeQueue.js';
 
 /**
  * A simple demonstration of WASM-powered AudioWorkletProcessor.
@@ -20,7 +20,7 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
 
     // Allocate the buffer for the heap access. Start with stereo, but it can
     // be expanded up to 32 channels.
-    this._buffer = new FreeQueue(RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT);
+    this._freeQueue = new FreeQueue(RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT);
     this._kernel = new Module.SimpleKernel();
   }
 
@@ -44,15 +44,15 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
 
     // Prepare HeapAudioBuffer for the channel count change in the current
     // render quantum.
-    this._buffer.adaptChannel(channelCount);
+    this._freeQueue.adaptChannel(channelCount);
 
     // Copy-in, process and copy-out.
     for (let channel = 0; channel < channelCount; ++channel) {
-      this._buffer.push(input[channel], RENDER_QUANTUM_FRAMES);
+      this._freeQueue.push(input[channel], RENDER_QUANTUM_FRAMES);
     }
-    this._kernel.process(this._buffer, channelCount);
+    this._kernel.process(this._freeQueue, channelCount);
     for (let channel = 0; channel < channelCount; ++channel) {
-      this._buffer.pull(output[channel], RENDER_QUANTUM_FRAMES);
+      this._freeQueue.pull(output[channel], RENDER_QUANTUM_FRAMES);
     }
 
     return true;

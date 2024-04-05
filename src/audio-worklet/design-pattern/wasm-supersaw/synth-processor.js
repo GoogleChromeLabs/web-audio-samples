@@ -15,8 +15,7 @@ class SynthProcessor extends AudioWorkletProcessor {
     super();
     // Create an instance of Synthesizer and WASM memory helper. Then set up an
     // event handler for MIDI data from the main thread.
-    this._synth = new Module.Synthesizer(sampleRate);
-    // this._wasmHeapBuffer = new HeapAudioBuffer(Module, NUM_FRAMES, 1, 1);
+    this._freeQueue = new Module.Synthesizer(sampleRate);
     this._combinedBuffer = new FreeQueue(NUM_FRAMES, 1);
     this.port.onmessage = this._playTone.bind(this);
   }
@@ -28,9 +27,7 @@ class SynthProcessor extends AudioWorkletProcessor {
     // Call the render function to write into the WASM buffer. Then clone the
     // rendered data in the first channel to process() callback's output
     // buffer.
-    // this._synth.render(this._wasmHeapBuffer.getHeapAddress(), NUM_FRAMES);
-    // outputBuffer.set(this._wasmHeapBuffer.getChannelData(0));
-    this._synth.render(this._combinedBuffer.getChannelData(), NUM_FRAMES);
+    this._freeQueue.render(this._combinedBuffer.getChannelData(), NUM_FRAMES);
     outputBuffer.set(this._combinedBuffer.getChannelData());
 
     return true;
@@ -38,7 +35,7 @@ class SynthProcessor extends AudioWorkletProcessor {
 
   _playTone(event) {
     const isDown = event.data;
-    isDown ? this._synth.noteOn(60) : this._synth.noteOff(60);
+    isDown ? this._freeQueue.noteOn(60) : this._freeQueue.noteOff(60);
   }
 }
 
