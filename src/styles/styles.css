@@ -28,6 +28,11 @@ button[disabled] {
   @apply cursor-not-allowed opacity-50;
 }
 
+/* CSS for stop button */
+#button-start:hover {
+  @apply bg-blue-600 opacity-50;
+}
+
 .inactive {
   @apply fill-blue-400;
 }
