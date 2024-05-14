@@ -4,6 +4,7 @@
 
 const audioContext = new AudioContext();
 let isPlaying = false;
+let isModuleLoaded = false;
 let noiseGenerator;
 
 const startAudio = async (context) => {
@@ -21,8 +22,6 @@ const startAudio = async (context) => {
   modGain.gain.value = 0.75;
   modulator.start();
 };
-
-
 // A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
 window.addEventListener('load', async () => {
@@ -32,15 +31,28 @@ window.addEventListener('load', async () => {
   buttonEl.addEventListener('click', async () => {
     if (!isPlaying) {
       // If not playing, start the audio.
-      await startAudio(audioContext);
+      if (!isModuleLoaded) {
+        await startAudio(audioContext);
+        isModuleLoaded = true;
+      }
       audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
-    } else { // If playing, stop audio
-      // stopAudio();
+    } else { // If playing, susupend audio
       audioContext.suspend();
       isPlaying = false;
       buttonEl.textContent = 'START';
+    }
+  });
+  buttonEl.addEventListener('mouseenter', () => {
+    if (isPlaying) {
+      buttonEl.textContent = 'STOP';
+    }
+  });
+
+  buttonEl.addEventListener('mouseleave', () => {
+    if (isPlaying) {
+      buttonEl.textContent = 'Playing...';
     }
   });
 });
