@@ -24,10 +24,11 @@ const startAudio = async (context, options) => {
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
-  const waveformType = document.querySelector('#demo-select-waveform-type').value;
-  const frequency = document.querySelector('#demo-input-frequency').value;
+
 
   buttonEl.addEventListener('click', async () => {
+    const waveformType = document.querySelector('#demo-select-waveform-type').value;
+    const frequency = document.querySelector('#demo-input-frequency').value;
     if (!isPlaying) {
       // If audio is not playing, start the audio.
       if (!isModuleLoaded) {
