@@ -22,13 +22,6 @@ const startAudio = async (context) => {
   modulator.start();
 };
 
-/*
-const stopAudio = () => {
-  if (noiseGenerator) {
-    noiseGenerator.disconnect();
-    isPlaying = false;
-  }
-};*/
 
 // A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
