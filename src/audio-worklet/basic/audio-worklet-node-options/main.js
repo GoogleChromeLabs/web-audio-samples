@@ -4,6 +4,8 @@
 
 const audioContext = new AudioContext();
 let oscillatorProcessor;
+let isPlaying= false;
+let isModuleLoaded = false;
 
 const startAudio = async (context, options) => {
   await context.audioWorklet.addModule('oscillator-processor.js');
@@ -22,19 +24,24 @@ const startAudio = async (context, options) => {
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
+  const waveformType = document.querySelector('#demo-select-waveform-type').value;
+  const frequency = document.querySelector('#demo-input-frequency').value;
 
   buttonEl.addEventListener('click', async () => {
-    if (!oscillatorProcessor) {
+    if (!isPlaying) {
       // If audio is not playing, start the audio.
-      const waveformType = document.querySelector('#demo-select-waveform-type').value;
-      const frequency = document.querySelector('#demo-input-frequency').value;
-      await startAudio(audioContext, { waveformType, frequency });
+      if (!isModuleLoaded) {
+        await startAudio(audioContext, {waveformType, frequency});
+        isModuleLoaded = true;
+      }
+      isPlaying = true;
       audioContext.resume();
       buttonEl.textContent = 'STOP';
     } else {
       // If audio is playing, stop the audio.
       audioContext.suspend();
       buttonEl.textContent = 'START';
+      isPlaying = false;
     }
   }, false);
 });

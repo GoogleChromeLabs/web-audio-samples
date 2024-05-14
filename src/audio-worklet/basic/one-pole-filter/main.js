@@ -36,7 +36,7 @@ window.addEventListener('load', async () => {
       }
       audioContext.resume();
       isPlaying = true;
-      buttonEl.textContent = 'Playing...'; 
+      buttonEl.textContent = 'Playing...';
       buttonEl.classList.remove('start-button');
     } else {
       audioContext.suspend();
