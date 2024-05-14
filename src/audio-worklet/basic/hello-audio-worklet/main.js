@@ -5,6 +5,7 @@
 const audioContext = new AudioContext();
 let oscillatorNode;
 let isPlaying = false;
+let isModuleLoaded = false;
 
 const startAudio = async (context) => {
   await context.audioWorklet.addModule('bypass-processor.js');
@@ -22,7 +23,10 @@ window.addEventListener('load', async () => {
 
   buttonEl.addEventListener('click', async () => {
     if (!isPlaying) {
-      await startAudio(audioContext);
+      if (!isModuleLoaded) {
+        await startAudio(audioContext);
+        isModuleLoaded = true;
+      }
       audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
