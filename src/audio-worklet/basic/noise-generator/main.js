@@ -22,12 +22,13 @@ const startAudio = async (context) => {
   modulator.start();
 };
 
+/*
 const stopAudio = () => {
   if (noiseGenerator) {
     noiseGenerator.disconnect();
     isPlaying = false;
   }
-};
+};*/
 
 // A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
@@ -36,14 +37,16 @@ window.addEventListener('load', async () => {
   buttonEl.disabled = false;
 
   buttonEl.addEventListener('click', async () => {
-    if (!isPlaying) { 
+    if (!isPlaying) {
       // If not playing, start the audio.
       await startAudio(audioContext);
       audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
     } else { // If playing, stop audio
-      stopAudio();
+      // stopAudio();
+      audioContext.suspend();
+      isPlaying = false;
       buttonEl.textContent = 'START';
     }
   });

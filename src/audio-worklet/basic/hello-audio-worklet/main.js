@@ -21,7 +21,7 @@ window.addEventListener('load', async () => {
   buttonEl.disabled = false;
 
   buttonEl.addEventListener('click', async () => {
-    if (!oscillatorNode) {
+    if (!isPlaying) {
       await startAudio(audioContext);
       audioContext.resume();
       isPlaying = true;
