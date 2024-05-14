@@ -3,8 +3,9 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let oscillator; 
-let isPlaying = false; 
+let oscillator;
+let isPlaying = false;
+let isModuleLoaded = false;
 
 const startAudio = async (context) => {
   await context.audioWorklet.addModule('one-pole-processor.js');
@@ -21,14 +22,6 @@ const startAudio = async (context) => {
       .exponentialRampToValueAtTime(0.01, 8.0);
 };
 
-const stopAudio = () => {
-  if (oscillator) {
-    oscillator.stop();
-    oscillator.disconnect();
-  }
-};
-
-
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
 // playback.
 window.addEventListener('load', async () => {
@@ -36,28 +29,31 @@ window.addEventListener('load', async () => {
   buttonEl.disabled = false;
 
   buttonEl.addEventListener('click', async () => {
-    if (!isPlaying) { 
-      await startAudio(audioContext);
+    if (!isPlaying) {
+      if (!isModuleLoaded) {
+        await startAudio(audioContext);
+        isModuleLoaded = true;
+      }
       audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...'; 
       buttonEl.classList.remove('start-button');
-    } else { 
-      stopAudio();
+    } else {
+      audioContext.suspend();
       isPlaying = false;
       buttonEl.textContent = 'START';
-      buttonEl.classList.add('start-button'); 
+      buttonEl.classList.add('start-button');
     }
   });
 
   buttonEl.addEventListener('mouseenter', () => {
-    if (isPlaying) { 
+    if (isPlaying) {
       buttonEl.textContent = 'STOP';
     }
   });
 
   buttonEl.addEventListener('mouseleave', () => {
-    if (isPlaying) { 
+    if (isPlaying) {
       buttonEl.textContent = 'Playing...';
     }
   });
