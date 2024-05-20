@@ -5,7 +5,7 @@
 const audioContext = new AudioContext();
 let isPlaying = false;
 let isModuleLoaded = false;
-let noiseGenerator;
+let noiseGenerator = null;
 
 const startAudio = async (context) => {
   await context.audioWorklet.addModule('noise-generator.js');

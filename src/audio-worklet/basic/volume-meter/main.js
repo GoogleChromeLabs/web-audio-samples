@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let mediaStream;
-let volumeMeterNode;
+let mediaStream = null;
+let volumeMeterNode = null;
 let isPlaying = false;
 let isModuleLoaded = false;
 

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let oscillator;
+let oscillator = null;
 let isPlaying = false;
 let isModuleLoaded = false;
 

@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let oscillatorProcessor;
-let isPlaying= false;
+let oscillatorProcessor = null;
+let isPlaying = false;
 let isModuleLoaded = false;
 
 const startAudio = async (context, options) => {
@@ -14,7 +14,7 @@ const startAudio = async (context, options) => {
       processorOptions: {
         waveformType: options.waveformType,
         frequency: options.frequency,
-      }
+      },
     });
   oscillatorProcessor.connect(context.destination);
 };
