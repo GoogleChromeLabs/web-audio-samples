@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let oscillatorProcessor = null;
-let isPlaying = false;
 let isModuleLoaded = false;
+let isPlaying = false;
+let oscillatorProcessor = null;
 
 const startAudio = async (context, options) => {
   if (!isModuleLoaded) {

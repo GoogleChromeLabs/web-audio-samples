@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isModuleLoaded = false;
+let isPlaying = false;
 let mediaStream = null;
 let volumeMeterNode = null;
-let isPlaying = false;
-let isModuleLoaded = false;
 
 const startAudio = async (context, meterElement) => {
   if (!isModuleLoaded) {

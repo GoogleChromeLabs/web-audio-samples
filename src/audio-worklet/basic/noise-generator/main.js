@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
-let isPlaying = false;
 let isModuleLoaded = false;
+let isPlaying = false;
 let noiseGenerator = null;
 
 const startAudio = async (context) => {
