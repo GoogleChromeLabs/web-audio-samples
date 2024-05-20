@@ -19,6 +19,7 @@ const startAudio = async (context, options) => {
       });
     oscillatorProcessor.connect(context.destination);
     isModuleLoaded = true;
+    context.resume();
   } else context.resume();
 };
 
