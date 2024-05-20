@@ -15,7 +15,7 @@ const startAudio = async (context) => {
     oscillatorNode.connect(bypasser).connect(context.destination);
     oscillatorNode.start();
     isModuleLoaded = true;
-  } else audioContext.resume();
+  } else context.resume();
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio

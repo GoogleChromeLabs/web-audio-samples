@@ -20,7 +20,7 @@ const startAudio = async (context) => {
         .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
         .exponentialRampToValueAtTime(0.01, 8.0);
     isModuleLoaded = true;
-  } else audioContext.resume();
+  } else context.resume();
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio

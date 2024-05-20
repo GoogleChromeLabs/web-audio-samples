@@ -21,7 +21,7 @@ const startAudio = async (context) => {
     modGain.gain.value = 0.75;
     modulator.start();
     isModuleLoaded = true;
-  } else audioContext.resume();
+  } else context.resume();
 };
 // A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
@@ -34,7 +34,7 @@ window.addEventListener('load', async () => {
       await startAudio(audioContext);
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
-    } else { // If playing, susupend audio
+    } else { // If playing, suspend audio
       audioContext.suspend();
       isPlaying = false;
       buttonEl.textContent = 'START';

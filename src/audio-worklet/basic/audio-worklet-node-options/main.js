@@ -19,7 +19,7 @@ const startAudio = async (context, options) => {
       });
     oscillatorProcessor.connect(context.destination);
     isModuleLoaded = true;
-  } else audioContext.resume();
+  } else context.resume();
 };
 
 // A simple onLoad handler. It also handles user gesture to unlock the audio
