@@ -28,7 +28,6 @@ const startAudio = async (context) => {
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
-
   buttonEl.addEventListener('click', async () => {
     if (!isPlaying) {
       await startAudio(audioContext);

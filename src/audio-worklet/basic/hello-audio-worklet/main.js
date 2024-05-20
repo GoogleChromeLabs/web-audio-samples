@@ -8,11 +8,14 @@ let isPlaying = false;
 let isModuleLoaded = false;
 
 const startAudio = async (context) => {
-  await context.audioWorklet.addModule('bypass-processor.js');
-  oscillatorNode = new OscillatorNode(context);
-  const bypasser = new AudioWorkletNode(context, 'bypass-processor');
-  oscillatorNode.connect(bypasser).connect(context.destination);
-  oscillatorNode.start();
+  if (!isModuleLoaded) {
+    await context.audioWorklet.addModule('bypass-processor.js');
+    oscillatorNode = new OscillatorNode(context);
+    const bypasser = new AudioWorkletNode(context, 'bypass-processor');
+    oscillatorNode.connect(bypasser).connect(context.destination);
+    oscillatorNode.start();
+    isModuleLoaded = true;
+  } else audioContext.resume();
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
@@ -23,11 +26,7 @@ window.addEventListener('load', async () => {
 
   buttonEl.addEventListener('click', async () => {
     if (!isPlaying) {
-      if (!isModuleLoaded) {
-        await startAudio(audioContext);
-        isModuleLoaded = true;
-      }
-      audioContext.resume();
+      await startAudio(audioContext);
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
       buttonEl.classList.remove('start-button');
