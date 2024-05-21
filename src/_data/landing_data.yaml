@@ -18,6 +18,9 @@
     - title: Canopy
       description: Web Audio code editor and visual debugger
       href: https://hoch.github.io/canopy/
+#    - title: Audio Worklets Playground
+#      description: Audio Worklet playground
+#      href: \#
 
 - title: Demos
   entries:
@@ -40,12 +43,16 @@
       description: For smoke testing
       href: demos/stress-box/
     - title: Wavetable Synthesizer
+      description: Wavetable synthesis and sequencer
       href: demos/wavetable-synth/
     - title: AnalyserNode with visualization 
+      description: Spectrum and waveform visualization with the Canvas API
       href: demos/visualizer/
     - title: Panning and Reverberation
+      description: Spatial and binaural acoustic simulation
       href: demos/panning-reverberation/
     - title: WebGL Pool with 3D audio
+      description: Play pool in your browser
       href: demos/pool/
 
 - title: Selected Projects
