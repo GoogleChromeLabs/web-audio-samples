@@ -3,20 +3,25 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isModuleLoaded = false;
+let isPlaying = false;
+let oscillator = null;
+
 
 const startAudio = async (context) => {
-  await context.audioWorklet.addModule('one-pole-processor.js');
-  const oscillator = new OscillatorNode(context);
-  const filter = new AudioWorkletNode(context, 'one-pole-processor');
-  const frequencyParam = filter.parameters.get('frequency');
-
-  oscillator.connect(filter).connect(context.destination);
-  oscillator.start();
-
-  frequencyParam
-      .setValueAtTime(0.01, 0)
-      .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
-      .exponentialRampToValueAtTime(0.01, 8.0);
+  if (!isModuleLoaded) {
+    await context.audioWorklet.addModule('one-pole-processor.js');
+    oscillator = new OscillatorNode(context);
+    const filter = new AudioWorkletNode(context, 'one-pole-processor');
+    const frequencyParam = filter.parameters.get('frequency');
+    oscillator.connect(filter).connect(context.destination);
+    oscillator.start();
+    frequencyParam
+        .setValueAtTime(0.01, 0)
+        .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
+        .exponentialRampToValueAtTime(0.01, 8.0);
+    isModuleLoaded = true;
+  } else context.resume();
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
@@ -25,9 +30,29 @@ window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
   buttonEl.addEventListener('click', async () => {
-    await startAudio(audioContext);
-    audioContext.resume();
-    buttonEl.disabled = true;
-    buttonEl.textContent = 'Playing...';
-  }, false);
+    if (!isPlaying) {
+      await startAudio(audioContext);
+      isPlaying = true;
+      buttonEl.textContent = 'Playing...';
+      buttonEl.classList.remove('start-button');
+    } else {
+      audioContext.suspend();
+      isPlaying = false;
+      buttonEl.textContent = 'START';
+      buttonEl.classList.add('start-button');
+    }
+  });
+
+  buttonEl.addEventListener('mouseenter', () => {
+    if (isPlaying) {
+      buttonEl.textContent = 'STOP';
+    }
+  });
+
+  buttonEl.addEventListener('mouseleave', () => {
+    if (isPlaying) {
+      buttonEl.textContent = 'Playing...';
+    }
+  });
 });
+
