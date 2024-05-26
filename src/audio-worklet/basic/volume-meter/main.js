@@ -5,9 +5,15 @@
 const audioContext = new AudioContext();
 let mediaStream;
 let volumeMeterNode;
+let moduleAdded = false;
 
 const startAudio = async (context, meterElement) => {
-  await context.audioWorklet.addModule('volume-meter-processor.js');
+
+  if (!moduleAdded) {
+    await context.audioWorklet.addModule('volume-meter-processor.js');
+    moduleAdded = true;
+  }
+  
   mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const micNode = context.createMediaStreamSource(mediaStream);
   volumeMeterNode = new AudioWorkletNode(context, 'volume-meter');
@@ -39,7 +45,7 @@ window.addEventListener('load', async () => {
   buttonEl.addEventListener('click', async () => {
     if (!mediaStream) { // If audio is not playing, start audio
       await startAudio(audioContext, meterEl);
-      audioContext.resume();
+      await audioContext.resume();
       buttonEl.textContent = 'STOP';
     } else { // If audio is playing, stop audio
       stopAudio();

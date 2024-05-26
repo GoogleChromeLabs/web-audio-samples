@@ -23,12 +23,17 @@ window.addEventListener('load', async () => {
   buttonEl.addEventListener('click', async () => {
     if (!oscillatorNode) {
       await startAudio(audioContext);
-      audioContext.resume();
+      await audioContext.resume();
+      isPlaying = true;
+      buttonEl.textContent = 'Playing...';
+      buttonEl.classList.remove('start-button');
+    } else if (audioContext.state === 'suspended') {
+      await audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
       buttonEl.classList.remove('start-button');
     } else {
-      audioContext.suspend();
+      await audioContext.suspend();
       isPlaying = false;
       buttonEl.textContent = 'START';
       buttonEl.classList.add('start-button');

@@ -5,9 +5,15 @@
 const audioContext = new AudioContext();
 let isPlaying = false;
 let noiseGenerator;
+let moduleAdded = false;
 
 const startAudio = async (context) => {
-  await context.audioWorklet.addModule('noise-generator.js');
+
+  if(!moduleAdded) {
+    await context.audioWorklet.addModule('noise-generator.js');
+    moduleAdded = true;
+  }
+  
   const modulator = new OscillatorNode(context);
   const modGain = new GainNode(context);
   noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
@@ -39,7 +45,7 @@ window.addEventListener('load', async () => {
     if (!isPlaying) { 
       // If not playing, start the audio.
       await startAudio(audioContext);
-      audioContext.resume();
+      await audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
     } else { // If playing, stop audio

@@ -5,9 +5,15 @@
 const audioContext = new AudioContext();
 let oscillator; 
 let isPlaying = false; 
+let moduleAdded = false;
 
 const startAudio = async (context) => {
-  await context.audioWorklet.addModule('one-pole-processor.js');
+
+  if(!moduleAdded) {
+    await context.audioWorklet.addModule('one-pole-processor.js');
+    moduleAdded = true;
+  }
+  
   oscillator = new OscillatorNode(context);
   const filter = new AudioWorkletNode(context, 'one-pole-processor');
   const frequencyParam = filter.parameters.get('frequency');
@@ -38,7 +44,7 @@ window.addEventListener('load', async () => {
   buttonEl.addEventListener('click', async () => {
     if (!isPlaying) { 
       await startAudio(audioContext);
-      audioContext.resume();
+      await audioContext.resume();
       isPlaying = true;
       buttonEl.textContent = 'Playing...'; 
       buttonEl.classList.remove('start-button');
