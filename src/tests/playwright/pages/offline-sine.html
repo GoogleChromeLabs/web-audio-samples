@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Sine Test</title>
+  </head>
+  <body>
+    <h1>Offline Sine Test</h1>
+    <p>Write 441Hz sine wave for 1 second to AudioBuffer using OfflineAudioContext, sampleRate: 44100</p>
+
+    <script>
+      const sampleRate = 44100.0;
+      const length = 1;
+      const numChannels = 1;
+      const freq = 441;
+
+      const offlineContext = new OfflineAudioContext(numChannels, length * sampleRate, sampleRate);
+      const osc = offlineContext.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(offlineContext.destination);
+
+      const bufferData = new Promise((resolve, reject) => {
+        osc.start();
+        offlineContext.startRendering().then((buffer) => {
+          resolve(buffer.getChannelData(0));
+        });
+      });
+    </script>
+  </body>
+</html>
