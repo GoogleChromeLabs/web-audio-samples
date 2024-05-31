@@ -12,10 +12,10 @@
     "start:eleventy": "eleventy --serve",
     "start:postcss": "postcss src/styles/*.css --dir _site --watch",
     "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html",
-    "test-server": "npx http-server",
     "test": "npx playwright test",
-    "ui": "npx playwright test --ui",
-    "headed": "npx playwright test --debug"
+    "test-server": "npx http-server",
+    "test-ui": "npx playwright test --ui",
+    "test-headed": "npx playwright test --debug"
   },
   "license": "MIT",
   "dependencies": {

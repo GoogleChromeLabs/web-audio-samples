@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test('Hello Sine Test (realtime)', async ({ page }) => {
-  await page.goto("pages/realtime-sine.html");
+test('Hello Sine (realtime)', async ({ page }) => {
+  await page.goto('pages/realtime-sine.html');
 
   const h1 = await page.$('h1');
   const text = await h1?.textContent();
@@ -24,13 +24,13 @@ test('Hello Sine Test (realtime)', async ({ page }) => {
   expect(await f2Val.jsonValue()).toBe(880);
 });
 
-test('Hello Sine Test (offline)', async ({ page }) => {
+test('Hello Sine (offline)', async ({ page }) => {
   const sampleRate = 44100;
   const length = 1;
   const numChannels = 1;
   const freq = 441;
 
-  await page.goto("pages/offline-sine.html");
+  await page.goto('pages/offline-sine.html');
 
   // Await promise from bufferData containing float32Array but 
   // playwright evaluates only to Object
@@ -41,4 +41,24 @@ test('Hello Sine Test (offline)', async ({ page }) => {
   expect(bufferData[0]).toBe(0); 
   expect(bufferData[1]).not.toBe(0); // sine wave should now be non-zero
   expect(bufferData[sampleRate / freq]).toBe(0); // 1 period, back to 0
+});
+
+test('AudioWorklet Add Module Resolution', async ({ page }) => {
+  await page.goto('pages/audioworklet-addmodule-resolution.html');
+
+  const addModulesPromise = await page.evaluate(() => addModulesPromise);
+
+  // module loading after realtime context creation
+  const realtimeDummyWorkletLoaded = await page.evaluate(boolean => realtimeDummyWorkletLoaded);
+  expect(
+    realtimeDummyWorkletLoaded, 
+    'dummyWorkletNode is an instance of AudioWorkletNode from realtime context')
+    .toBe(true);
+
+  // module loading after offline context creation
+  const offlineDummyWorkletLoaded = await page.evaluate(boolean => offlineDummyWorkletLoaded);
+  expect(
+    offlineDummyWorkletLoaded, 
+    'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
+    .toBe(true);
 });

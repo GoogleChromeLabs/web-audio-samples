@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Sine Test</title>
+  </head>
+  <body>
+    <h1>Audioworklet Add Module Resolution</h1>
+    <p>Test if browser doesn't crash upon addModule() call in realtime and offline context construction</p>
+    <p>Port of <a href="https://wpt.fyi/results/webaudio/the-audio-api/the-audioworklet-interface/audioworklet-addmodule-resolution.https.html?label=experimental&label=master&aligned">audioworklet-addmodule-resolution.https.html</a></p>
+
+    <script>
+      const sampleRate = 48000;
+      const realtimeContext = new AudioContext();
+      const offlineContext = new OfflineAudioContext(1, sampleRate, sampleRate);
+
+      const filePath = 'processors/dummy-processor.js';
+
+      const addModulesPromise = Promise.all([
+        realtimeContext.audioWorklet.addModule(filePath),
+        offlineContext.audioWorklet.addModule(filePath)
+      ]).then(() => {
+        return new Promise((resolve, reject) => {
+          try {
+            // Test if the browser does not crash upon addModule() call after the
+            // realtime context construction.
+            let realtimeDummyWorklet = new AudioWorkletNode(realtimeContext, 'dummy');
+            realtimeDummyWorklet.connect(realtimeContext.destination);
+            window.realtimeDummyWorkletLoaded = realtimeDummyWorklet instanceof AudioWorkletNode;
+
+            // Test if the browser does not crash upon addModule() call after the
+            // offline context construction.
+            let offlineDummyWorklet = new AudioWorkletNode(offlineContext, 'dummy');
+            offlineDummyWorklet.connect(offlineContext.destination);
+            window.offlineDummyWorkletLoaded = offlineDummyWorklet instanceof AudioWorkletNode;
+
+            resolve();
+          } catch(error) {
+            reject(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
