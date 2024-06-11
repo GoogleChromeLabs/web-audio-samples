@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Sine Test</title>
+  </head>
+  <body>
+    <h1>Realtime Sine Test</h1>
+    <p>Play 440Hz sine wave for 1 second, 880Hz for 1 second, then stop</p>
+    <button id="start">Run</button>
+
+    <script>
+      const audioContext = new AudioContext();
+      const osc = audioContext.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 440;
+      osc.connect(audioContext.destination);
+
+      let updateFrequencyPromise;
+      document.getElementById('start').addEventListener('click', () => {
+        osc.start();
+
+        // Update frequency after 1 second
+        updateFrequencyPromise = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            osc.frequency.value = 880;
+            osc.stop(audioContext.currentTime + 1);
+            resolve();
+          }, 1000);
+        });
+      });
+    </script>
+  </body>
+</html>
