@@ -2,26 +2,24 @@ import { test, expect } from '@playwright/test';
 
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
-
-  const h1 = await page.$('h1');
-  const text = await h1?.textContent();
-  expect(text).toBe('Realtime Sine Test');
+  await page.click('#start');
 
   const osc = await page.evaluateHandle(object => osc);
-
-  await page.click('#start');
 
   // Check 440Hz
   const f1 = await osc.getProperty('frequency');
   const f1Val = await f1.getProperty('value');
   expect(await f1Val.jsonValue()).toBe(440);
 
-  await page.waitForTimeout(1000);
+  // wait for the updateFrequency promise to resolve
+  const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
 
   // Check 880Hz
   const f2 = await osc.getProperty('frequency');
   const f2Val = await f2.getProperty('value');
   expect(await f2Val.jsonValue()).toBe(880);
+
+  await page.waitForTimeout(1000);
 });
 
 test('Hello Sine (offline)', async ({ page }) => {

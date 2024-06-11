@@ -16,18 +16,20 @@
       osc.type = 'sine';
       osc.frequency.value = 440;
       osc.connect(audioContext.destination);
-      const startButton = document.getElementById('start');
 
-      startButton.addEventListener('click', () => {
-        startButton.disabled = true;
+      let updateFrequencyPromise;
+      document.getElementById('start').addEventListener('click', () => {
         osc.start();
 
-        // after 1 second, change to 880 Hz
-        setTimeout(() => {
-          osc.frequency.value = 880;
-          osc.stop(audioContext.currentTime + 1);
-        }, 1000);
-      }, { once: true });
+        // Update frequency after 1 second
+        updateFrequencyPromise = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            osc.frequency.value = 880;
+            osc.stop(audioContext.currentTime + 1);
+            resolve();
+          }, 1000);
+        });
+      });
     </script>
   </body>
 </html>
