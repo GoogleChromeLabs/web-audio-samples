@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import Module from './simple-kernel.wasmmodule.js';
-import {RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, HeapAudioBuffer}
-  from '../lib/wasm-audio-helper.js';
+import {RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, FreeQueue}
+  from '../../../lib/free-queue/free-queue.js';
 
 /**
  * A simple demonstration of WASM-powered AudioWorkletProcessor.
@@ -21,9 +21,9 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
 
     // Allocate the buffer for the heap access. Start with stereo, but it can
     // be expanded up to 32 channels.
-    this._heapInputBuffer = new HeapAudioBuffer(
+    this._heapInputBuffer = new FreeQueue(
         Module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
-    this._heapOutputBuffer = new HeapAudioBuffer(
+    this._heapOutputBuffer = new FreeQueue(
         Module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
     this._kernel = new Module.SimpleKernel();
   }

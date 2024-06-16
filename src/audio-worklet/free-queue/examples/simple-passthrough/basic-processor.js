@@ -1,4 +1,4 @@
-import FreeQueue from "../../src/free-queue.js";
+import { FreeQueueSAB } from "../../../../lib/free-queue/free-queue-sab.js";
 import { FRAME_SIZE, RENDER_QUANTUM } from "./constants.js";
 
 /**
@@ -20,8 +20,8 @@ class BasicProcessor extends AudioWorkletProcessor {
     this.inputQueue = options.processorOptions.inputQueue;
     this.outputQueue = options.processorOptions.outputQueue;
     this.atomicState = options.processorOptions.atomicState;
-    Object.setPrototypeOf(this.inputQueue, FreeQueue.prototype);
-    Object.setPrototypeOf(this.outputQueue, FreeQueue.prototype);
+    Object.setPrototypeOf(this.inputQueue, FreeQueueSAB.prototype);
+    Object.setPrototypeOf(this.outputQueue, FreeQueueSAB.prototype);
 
   }
 
