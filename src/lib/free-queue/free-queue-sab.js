@@ -231,4 +231,4 @@ class FreeQueueSAB {
     }
   }
   
-  export default FreeQueueSAB;
+  export { FreeQueueSAB };
