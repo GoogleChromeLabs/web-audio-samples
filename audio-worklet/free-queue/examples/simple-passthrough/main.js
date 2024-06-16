@@ -1,12 +1,12 @@
-import FreeQueue from '../../src/free-queue.js'
+import { FreeQueueSAB } from '../../../../lib/free-queue/free-queue-sab.js'
 import { QUEUE_SIZE } from './constants.js';
 
 const toggleButton = document.getElementById('toggle');
 toggleButton.disabled = false;
 
 // Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
-const inputQueue = new FreeQueue(QUEUE_SIZE, 1);
-const outputQueue = new FreeQueue(QUEUE_SIZE, 1);
+const inputQueue = new FreeQueueSAB(QUEUE_SIZE, 1);
+const outputQueue = new FreeQueueSAB(QUEUE_SIZE, 1);
 // Create an atomic state for synchronization between worker and AudioWorklet.
 const atomicState = new Int32Array(
     new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT)
