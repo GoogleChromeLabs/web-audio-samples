@@ -1,24 +1,25 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
 
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
 
-  const osc = await page.evaluateHandle(object => osc);
-
-  // Check 440Hz
-  const f1 = await osc.getProperty('frequency');
-  const f1Val = await f1.getProperty('value');
-  expect(await f1Val.jsonValue()).toBe(440);
-
   // wait for the updateFrequency promise to resolve
   const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
+  const bufferData = new Float32Array(Object.values(updateFrequencyPromise.buffer));
 
-  // Check 880Hz
-  const f2 = await osc.getProperty('frequency');
-  const f2Val = await f2.getProperty('value');
-  expect(await f2Val.jsonValue()).toBe(880);
+  // load in reference json file
+  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/ref/sine.json', 'utf8'));
+  const myRefData = new Float32Array(myRef);
 
-  await page.waitForTimeout(1000);
+  // compare all samples
+  let numCorrect = 0;
+  for (let i = 0; i < myRefData.length; i++) {
+    if (Math.abs(bufferData[i] - myRefData[i]) < 0.0002) {
+      numCorrect++;
+    }
+  }
+  expect(numCorrect / myRefData.length).toBeGreaterThan(.9999);
 });
 
 test('Hello Sine (offline)', async ({ page }) => {

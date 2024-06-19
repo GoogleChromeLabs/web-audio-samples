@@ -7,7 +7,7 @@ export default async (ctx, scheduleNode) => {
   const mutex = new Promise((resolve) =>
     scheduleNode.addEventListener('ended', resolve));
 
-  await ctx.audioWorklet.addModule('./scripts/recorder/worker.js');
+  await ctx.audioWorklet.addModule('./src/recorder/worker.js');
 
   const recorder = new AudioWorkletNode(ctx, 'recorder');
 
@@ -31,7 +31,7 @@ export default async (ctx, scheduleNode) => {
 
     res.forEach((array, i) => buf.copyToChannel(array, i));
 
-    resolve(buf);
+    resolve(res[0]);
   });
 
   return {recorder, buffer};
