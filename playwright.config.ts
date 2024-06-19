@@ -32,6 +32,17 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // {
+    //   name: 'chromium',
+    //   use: { 
+    //     ...devices['Desktop Chrome'], 
+    //     launchOptions: { 
+    //       ignoreDefaultArgs: ['--mute-audio'],
+    //       args: ['--autoplay-policy=no-user-gesture-required']
+    //     },
+    //   }
+    // },
+
     {
       name: 'chromium',
       use: { 
@@ -68,28 +79,30 @@ export default defineConfig({
     //   name: 'Microsoft Edge',
     //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
     // },
-    {
-      name: 'Google Chrome',
-      use: { 
-        ...devices['Desktop Chrome'], 
-        channel: 'chrome',
-        launchOptions: {
-          ignoreDefaultArgs: ['--mute-audio'],
-          args: ['--autoplay-policy=no-user-gesture-required']
-       },
-      },
-    },
-    {
-      name: 'Google Chrome Canary',
-      use: { 
-        ...devices['Desktop Chrome'], 
-        channel: 'chrome-canary',
-        launchOptions: {
-          ignoreDefaultArgs: ['--mute-audio'],
-          args: ['--autoplay-policy=no-user-gesture-required']
-       },
-      },
-    }
+
+    // // Chrome
+    // {
+    //   name: 'Google Chrome',
+    //   use: { 
+    //     ...devices['Desktop Chrome'], 
+    //     channel: 'chrome',
+    //     launchOptions: {
+    //       ignoreDefaultArgs: ['--mute-audio'],
+    //       args: ['--autoplay-policy=no-user-gesture-required']
+    //    },
+    //   },
+    // },
+    // {
+    //   name: 'Google Chrome Canary',
+    //   use: { 
+    //     ...devices['Desktop Chrome'], 
+    //     channel: 'chrome-canary',
+    //     launchOptions: {
+    //       ignoreDefaultArgs: ['--mute-audio'],
+    //       args: ['--autoplay-policy=no-user-gesture-required']
+    //    },
+    //   },
+    // }
   ],
 
   /* Run your local dev server before starting the tests */

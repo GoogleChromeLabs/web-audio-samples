@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
-  await page.click('#start');
 
   const osc = await page.evaluateHandle(object => osc);
 
