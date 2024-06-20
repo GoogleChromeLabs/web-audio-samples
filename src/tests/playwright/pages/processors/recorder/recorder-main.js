@@ -1,4 +1,4 @@
-import concat from '../concat.js';
+import concat from '../../util/concat.js';
 
 export default async (ctx, scheduleNode) => {
   console.assert(ctx instanceof AudioContext);
@@ -7,7 +7,7 @@ export default async (ctx, scheduleNode) => {
   const mutex = new Promise((resolve) =>
     scheduleNode.addEventListener('ended', resolve));
 
-  await ctx.audioWorklet.addModule('./src/recorder/worker.js');
+  await ctx.audioWorklet.addModule('./processors/recorder/recorder-processor.js');
 
   const recorder = new AudioWorkletNode(ctx, 'recorder');
 
