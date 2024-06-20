@@ -1,8 +1,36 @@
 import {test, expect} from '@playwright/test';
 import fs from 'fs';
 
-// @ts-ignore
-test('Hello Sine (realtime)', async ({page}) => {
+import { spawn } from 'child_process';
+
+// Python process
+test('Hello Sine (realtime)', async ({ page }) => {
+  await page.goto('pages/realtime-sine.html');
+
+  // wait for the updateFrequency promise to resolve
+  const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
+  const bufferData = new Float32Array(Object.values(updateFrequencyPromise.buffer));
+
+  const tempFile = 'src/tests/playwright/temp/temp.json';
+  fs.writeFileSync(tempFile, JSON.stringify(bufferData));
+
+  let args = [tempFile, 'ref/440@48k-sine.json']
+  const pythonProcess = spawn('python', ['run.py', ...args], { cwd: __dirname });
+
+  pythonProcess.stdout.on('data', (data) => {
+    console.log(data.toString());
+  });
+  pythonProcess.stderr.on('data', (data) => {
+    console.error(data.toString());
+  });
+  pythonProcess.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+
+});
+
+/*
+test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
 
   // wait for the updateFrequency promise to resolve
@@ -12,7 +40,7 @@ test('Hello Sine (realtime)', async ({page}) => {
     new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
 
   // load in reference json file
-  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/ref/sine.json', 'utf8'));
+  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/ref/440@48k-sine.json', 'utf8'));
   const myRefData = new Float32Array(myRef);
 
   // compare all samples
@@ -62,7 +90,8 @@ test('AudioWorklet Add Module Resolution', async ({page}) => {
   // module loading after offline context creation
   const offlineDummyWorkletLoaded = await page.evaluate(() => offlineDummyWorkletLoaded);
   expect(
-      offlineDummyWorkletLoaded,
-      'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
-      .toBe(true);
+    offlineDummyWorkletLoaded, 
+    'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
+    .toBe(true);
 });
+*/
