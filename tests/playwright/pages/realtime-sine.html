@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import record from './processors/recorder/recorder-main.js';
+
+      // eslint-disable-next-line no-async-promise-executor
+      window.updateFrequencyPromise = new Promise(async (resolve) => {
+        const ctx = new AudioContext({sampleRate: 48000});
+        const helloSine = new OscillatorNode(ctx);
+        const {recorder, buffer} = await record(ctx, helloSine);
+
+        helloSine.connect(recorder).connect(ctx.destination);
+
+        helloSine.start();
+        helloSine.stop(ctx.currentTime + 1);
+
+        const recordBuffer = await buffer;
+
+        await ctx.close();
+
+        resolve({buffer: recordBuffer});
+      });
+    </script>
+    <title></title>
+  </head>
+  <body></body>
+</html>
