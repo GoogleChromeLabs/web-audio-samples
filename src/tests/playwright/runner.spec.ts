@@ -1,7 +1,11 @@
 import {test, expect} from '@playwright/test';
 import fs from 'fs';
 
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
+
+// exec('python3 src/tests/playwright/run.py', (error, stdout, stderr) => {
+//   fs.writeFileSync('src/tests/playwright/temp/hello.txt', stdout);
+// });
 
 // Python process
 test('Hello Sine (realtime)', async ({ page }) => {
@@ -9,24 +13,10 @@ test('Hello Sine (realtime)', async ({ page }) => {
 
   // wait for the updateFrequency promise to resolve
   const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
-  const bufferData = new Float32Array(Object.values(updateFrequencyPromise.buffer));
+  const bufferData = new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
 
   const tempFile = 'src/tests/playwright/temp/temp.json';
   fs.writeFileSync(tempFile, JSON.stringify(bufferData));
-
-  let args = [tempFile, 'ref/440@48k-sine.json']
-  const pythonProcess = spawn('python', ['run.py', ...args], { cwd: __dirname });
-
-  pythonProcess.stdout.on('data', (data) => {
-    console.log(data.toString());
-  });
-  pythonProcess.stderr.on('data', (data) => {
-    console.error(data.toString());
-  });
-  pythonProcess.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-
 });
 
 /*
@@ -90,7 +80,7 @@ test('AudioWorklet Add Module Resolution', async ({page}) => {
   // module loading after offline context creation
   const offlineDummyWorkletLoaded = await page.evaluate(() => offlineDummyWorkletLoaded);
   expect(
-    offlineDummyWorkletLoaded, 
+    offlineDummyWorkletLoaded,
     'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
     .toBe(true);
 });
