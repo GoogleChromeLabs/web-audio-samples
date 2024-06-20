@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import {test, expect} from '@playwright/test';
 import fs from 'fs';
 
 import { spawn } from 'child_process';
@@ -34,8 +34,10 @@ test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
 
   // wait for the updateFrequency promise to resolve
-  const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
-  const bufferData = new Float32Array(Object.values(updateFrequencyPromise.buffer));
+  const updateFrequencyPromise =
+    await page.evaluate(() => updateFrequencyPromise);
+  const bufferData =
+    new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
 
   // load in reference json file
   const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/ref/440@48k-sine.json', 'utf8'));
@@ -51,7 +53,8 @@ test('Hello Sine (realtime)', async ({ page }) => {
   expect(numCorrect / myRefData.length).toBeGreaterThan(.9999);
 });
 
-test('Hello Sine (offline)', async ({ page }) => {
+// @ts-ignore
+test('Hello Sine (offline)', async ({page}) => {
   const sampleRate = 44100;
   const length = 1;
   const numChannels = 1;
@@ -59,31 +62,33 @@ test('Hello Sine (offline)', async ({ page }) => {
 
   await page.goto('pages/offline-sine.html');
 
-  // Await promise from bufferData containing float32Array but 
+  // Await promise from bufferData containing float32Array but
   // playwright evaluates only to Object
-  const bufferObject = await page.evaluate(object => bufferData);
-  const bufferData = new Float32Array(Object.values(bufferObject));
+  const bufferObject = await page.evaluate(() => bufferData);
+  const bufferData =
+    new Float32Array((Object as any).values(bufferObject));
 
   expect(bufferData.length).toBe(sampleRate * length * numChannels);
-  expect(bufferData[0]).toBe(0); 
+  expect(bufferData[0]).toBe(0);
   expect(bufferData[1]).not.toBe(0); // sine wave should now be non-zero
   expect(bufferData[sampleRate / freq]).toBe(0); // 1 period, back to 0
 });
 
-test('AudioWorklet Add Module Resolution', async ({ page }) => {
+// @ts-ignore
+test('AudioWorklet Add Module Resolution', async ({page}) => {
   await page.goto('pages/audioworklet-addmodule-resolution.html');
 
   const addModulesPromise = await page.evaluate(() => addModulesPromise);
 
   // module loading after realtime context creation
-  const realtimeDummyWorkletLoaded = await page.evaluate(boolean => realtimeDummyWorkletLoaded);
+  const realtimeDummyWorkletLoaded = await page.evaluate(() => realtimeDummyWorkletLoaded);
   expect(
-    realtimeDummyWorkletLoaded, 
-    'dummyWorkletNode is an instance of AudioWorkletNode from realtime context')
-    .toBe(true);
+      realtimeDummyWorkletLoaded,
+      'dummyWorkletNode is an instance of AudioWorkletNode from realtime context')
+      .toBe(true);
 
   // module loading after offline context creation
-  const offlineDummyWorkletLoaded = await page.evaluate(boolean => offlineDummyWorkletLoaded);
+  const offlineDummyWorkletLoaded = await page.evaluate(() => offlineDummyWorkletLoaded);
   expect(
     offlineDummyWorkletLoaded, 
     'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
