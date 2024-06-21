@@ -1,16 +1,26 @@
 export default async tests => {
   const htmls = await Promise.all(tests.map(async t => (await fetch(t)).text()));
 
-  htmls.forEach(html => {
+  const scripts = [];
+  
+  for (let html of htmls) {
     const dom = new DOMParser().parseFromString(html, 'text/html');
-
+    const scriptContent = dom.querySelector('script').innerText;
+  
+    const blob = new Blob([scriptContent], { type: 'text/javascript' });
+    const blobUrl = URL.createObjectURL(blob);
+  
     const script = document.createElement('script');
     script.defer = true;
     script.type = 'module';
-    script.textContent = dom.querySelector('script').innerText;
+    script.src = blobUrl;
+  
     document.head.appendChild(script);
-  });
-
+    scripts.push(new Promise(resolve => script.onload = resolve));
+  }
+  
+  await Promise.all(scripts);
+  
   const template = document.querySelector('#row');
   Object.entries(window.tests).forEach(([name, t]) => {
     const tr = template.content.cloneNode(true);
