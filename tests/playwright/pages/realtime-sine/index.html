@@ -5,24 +5,27 @@
       import record from './processors/recorder/recorder-main.js';
 
       // eslint-disable-next-line no-async-promise-executor
-      window.updateFrequencyPromise = new Promise(async (resolve) => {
-        const ctx = new AudioContext({sampleRate: 48000});
-        const helloSine = new OscillatorNode(ctx);
-        const {recorder, buffer} = await record(ctx, helloSine);
+      window.tests = {
+        ...window.tests,
+        updateFrequencyPromise: new Promise(async (resolve) => {
+          const ctx = new AudioContext({sampleRate: 48000});
+          const helloSine = new OscillatorNode(ctx);
+          const {recorder, buffer} = await record(ctx, helloSine);
+          helloSine.connect(recorder).connect(ctx.destination);
 
-        helloSine.connect(recorder).connect(ctx.destination);
+          helloSine.start();
+          helloSine.stop(ctx.currentTime + 1);
+          const recordBuffer = await buffer;
 
-        helloSine.start();
-        helloSine.stop(ctx.currentTime + 1);
-
-        const recordBuffer = await buffer;
-
-        await ctx.close();
-
-        resolve({buffer: recordBuffer});
-      });
+          await ctx.close();
+          resolve({buffer: recordBuffer});
+        })
+      }
     </script>
-    <title></title>
+    <title>Realtime Sine</title>
   </head>
-  <body></body>
+  <body>
+    <h1>Realtime Sine Test</h1>
+    <p>Play a sine wave at 440Hz for 1 second, sampleRate: 48000</p>
+  </body>
 </html>

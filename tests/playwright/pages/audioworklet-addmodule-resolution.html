@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AudioWorklet Add Module Resolution</title>
-  </head>
-  <body>
-    <h1>Audioworklet Add Module Resolution</h1>
-    <p>Test if browser doesn't crash upon addModule() call in realtime and offline context construction</p>
-    <p>Port of <a href="https://wpt.fyi/results/webaudio/the-audio-api/the-audioworklet-interface/audioworklet-addmodule-resolution.https.html?label=experimental&label=master&aligned">audioworklet-addmodule-resolution.https.html</a></p>
-
     <script>
       const sampleRate = 48000;
       const realtimeContext = new AudioContext();
@@ -17,11 +8,12 @@
 
       const filePath = 'processors/dummy-processor.js';
 
-      const addModulesPromise = Promise.all([
-        realtimeContext.audioWorklet.addModule(filePath),
-        offlineContext.audioWorklet.addModule(filePath)
-      ]).then(() => {
-        return new Promise((resolve, reject) => {
+      window.tests = {
+        ...window.tests,
+        addModulesPromise: new Promise(async (resolve, reject) => {
+          await realtimeContext.audioWorklet.addModule(filePath);
+          await offlineContext.audioWorklet.addModule(filePath);
+
           try {
             // Test if the browser does not crash upon addModule() call after the
             // realtime context construction.
@@ -39,8 +31,14 @@
           } catch(error) {
             reject(error);
           }
-        });
-      });
+        })
+      };
     </script>
+    <title>AudioWorklet Add Module Resolution</title>
+  </head>
+  <body>
+    <h1>Audioworklet Add Module Resolution</h1>
+    <p>Test if browser doesn't crash upon addModule() call in realtime and offline context construction</p>
+    <p>Port of <a href="https://wpt.fyi/results/webaudio/the-audio-api/the-audioworklet-interface/audioworklet-addmodule-resolution.https.html?label=experimental&label=master&aligned">audioworklet-addmodule-resolution.https.html</a></p>
   </body>
 </html>
