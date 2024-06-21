@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Sine Test</title>
-  </head>
-  <body>
-    <h1>Offline Sine Test</h1>
-    <p>Write 441Hz sine wave for 1 second to AudioBuffer using OfflineAudioContext, sampleRate: 44100</p>
-
-    <script>
+    <script defer type="module">
       const sampleRate = 44100;
       const length = 1;
       const numChannels = 1;
       const freq = 441;
 
-      const offlineContext = new OfflineAudioContext(numChannels, length * sampleRate, sampleRate);
-      const osc = offlineContext.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      osc.connect(offlineContext.destination);
+      !('tests' in window) && (window.tests = {});
 
-      const bufferData = new Promise((resolve, reject) => {
+      window.tests.bufferDataPromise = new Promise((resolve, reject) => {
+        const offlineContext = new OfflineAudioContext(numChannels, length * sampleRate, sampleRate);
+        const osc = offlineContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.connect(offlineContext.destination);
+
         osc.start();
         offlineContext.startRendering().then((buffer) => {
           resolve(buffer.getChannelData(0));
         });
       });
     </script>
+    <title>Offline Sine</title>
+  </head>
+  <body>
+    <h1>Offline Sine Test</h1>
+    <p>Write a 441Hz sine wave for 1 second to AudioBuffer using OfflineAudioContext, sampleRate: 44100</p>
   </body>
 </html>

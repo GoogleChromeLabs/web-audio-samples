@@ -7,6 +7,7 @@ import { exec } from 'child_process';
 //   fs.writeFileSync('src/tests/playwright/temp/hello.txt', stdout);
 // });
 
+/*
 // Python process
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
@@ -18,14 +19,14 @@ test('Hello Sine (realtime)', async ({ page }) => {
   const tempFile = 'src/tests/playwright/temp/temp.json';
   fs.writeFileSync(tempFile, JSON.stringify(bufferData));
 });
+*/
 
-/*
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
 
   // wait for the updateFrequency promise to resolve
   const updateFrequencyPromise =
-    await page.evaluate(() => updateFrequencyPromise);
+    await page.evaluate(() => (window as any).tests.updateFrequencyPromise);
   const bufferData =
     new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
 
@@ -54,7 +55,7 @@ test('Hello Sine (offline)', async ({page}) => {
 
   // Await promise from bufferData containing float32Array but
   // playwright evaluates only to Object
-  const bufferObject = await page.evaluate(() => bufferData);
+  const bufferObject = await page.evaluate(() => (window as any).tests.bufferDataPromise);
   const bufferData =
     new Float32Array((Object as any).values(bufferObject));
 
@@ -68,7 +69,7 @@ test('Hello Sine (offline)', async ({page}) => {
 test('AudioWorklet Add Module Resolution', async ({page}) => {
   await page.goto('pages/audioworklet-addmodule-resolution.html');
 
-  const addModulesPromise = await page.evaluate(() => addModulesPromise);
+  const addModulesPromise = await page.evaluate(() => (window as any).tests.addModulesPromise);
 
   // module loading after realtime context creation
   const realtimeDummyWorkletLoaded = await page.evaluate(() => realtimeDummyWorkletLoaded);
@@ -84,4 +85,3 @@ test('AudioWorklet Add Module Resolution', async ({page}) => {
     'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
     .toBe(true);
 });
-*/
