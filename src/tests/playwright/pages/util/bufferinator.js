@@ -1,6 +1,6 @@
 import record from "../processors/recorder/recorder-main";
 
-export default async (ctx, length, graph) => {
+export const bufferinator = async (ctx, length, graph) => {
   if (ctx instanceof AudioContext) {
     const {recorder, buffer} = await record(ctx, length);
     recorder.connect(ctx.destination);
