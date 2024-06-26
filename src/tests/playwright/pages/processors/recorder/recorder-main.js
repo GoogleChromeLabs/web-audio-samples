@@ -2,7 +2,7 @@ import concat from '../../util/concat.js';
 
 export default async (ctx, length) => {
   console.assert(ctx instanceof AudioContext);
-  console.assert(length instanceof Number);
+  console.assert(typeof length === 'number' && length > 0);
 
   const mutex = new Promise((resolve) =>
     setTimeout(resolve, 1000 * length));
@@ -24,14 +24,13 @@ export default async (ctx, length) => {
     arrays.forEach((array, i) => res[i] = concat(...array));
 
     const buf = new AudioBuffer({
-      length: res[0].byteLength,
+      length: res[0].length,
       sampleRate: ctx.sampleRate,
       numberOfChannels: res.length,
     });
 
     res.forEach((array, i) => buf.copyToChannel(array, i));
-
-    resolve(res[0]);
+    resolve(buf);
   });
 
   return {recorder, buffer};
