@@ -1,6 +1,6 @@
 const graph = new Map();
 
-export default () => {
+export const createGraphCache = () => {
   const connect = AudioNode.prototype.connect;
   const disconnect = AudioNode.prototype.disconnect;
 
