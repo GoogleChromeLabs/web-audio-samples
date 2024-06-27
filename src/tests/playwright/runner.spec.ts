@@ -11,7 +11,7 @@ test('Hello Sine (realtime)', async ({ page }) => {
   const bufferData = new Float32Array((Object as any).values(recordBufferPromise.buffer));
 
   // load in reference samples (python numpy generated)
-  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/reference/440@48k-sine.json', 'utf8'));
+  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/reference/440@48k-sine-octx.json', 'utf8'));
   const myRefData = new Float32Array(myRef);
 
   // compare bufferData samples to reference

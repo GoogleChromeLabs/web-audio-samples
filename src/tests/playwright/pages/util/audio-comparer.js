@@ -73,10 +73,11 @@ export async function evaluateGraph(ctxGraph, length = 1) {
     ctxGraph(offlineAudioContext);
 
     // render graphs to audio buffer
-    const realtimeBuffer = await bufferinator(audioContext, length, cache)
     const offlineBuffer = await bufferinator(offlineAudioContext)
+    const realtimeBuffer = await bufferinator(audioContext, length, cache)
 
     const score = bufferCompare(realtimeBuffer, offlineBuffer);
+    console.log(score)
 
     return score;
 }
