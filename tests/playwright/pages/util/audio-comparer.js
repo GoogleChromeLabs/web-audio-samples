@@ -4,9 +4,11 @@ import { createGraphCache } from './graph.js';
 const SAMPLE_RATE = 48000;
 const NUM_CHANNELS = 1;
 
-// CREATE DSP GRAPH HERE!!!
+
+// HOW TO CREATE A DSP GRAPH
+/*
 const createGraph = ctx => {
-    // My Graph
+    // My DSP Graph
     const osc = new OscillatorNode(ctx);
     osc.type = 'sawtooth';
     const gain = new GainNode(ctx);
@@ -17,20 +19,22 @@ const createGraph = ctx => {
     biq.Q.value = 10;
     osc.connect(gain).connect(biq).connect(ctx.destination);
 
-    // My render time
+    // My Render Length (seconds)
     const length = 1;
 
     osc.start();
     osc.stop(ctx.currentTime + length);
 }
+*/
+
 
 /**
- * Compares two audio buffers for equality.
+ * Compares two audio buffers for equality
  * @param {AudioBuffer} myBuf 
  * @param {AudioBuffer} refBuf 
- * @returns {number} returns the percentage of samples that are equal
+ * @returns {number} percentage of samples that are equal
  */
-function bufferComparer(myBuf, refBuf) {
+function bufferCompare(myBuf, refBuf) {
     let numCorrect = 0;
     const numChannels = myBuf.numberOfChannels;
     for (let c = 0; c < numChannels; c++) {
@@ -47,14 +51,12 @@ function bufferComparer(myBuf, refBuf) {
 }
 
 /**
- * Takes in an dsp graph to build for realtime and offline context + length of buffer to render.
- * Records output of both contexts as audio buffers.
- * Compares the real time buffer and the offline buffer for equality.
- * @param {(ctx: AudioContext) => void} ctxGraph dsp graph to build in context
+ * Evaluate dsp graph comparing output buffer from realtime and offline context
+ * @param {(ctx: AudioContext) => void} ctxGraph dsp graph to build
  * @param {number} length length of buffer to render in seconds
- * @returns {boolean} true if buffers are equal
+ * @returns {boolean} if buffers are equal
  */
-async function evaluateGraph(ctxGraph, length = 1) {
+export async function evaluateGraph(ctxGraph, length = 1) {
     const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     audioContext.suspend();
     const offlineAudioContext = new OfflineAudioContext({
@@ -74,9 +76,7 @@ async function evaluateGraph(ctxGraph, length = 1) {
     const realtimeBuffer = await bufferinator(audioContext, length, cache)
     const offlineBuffer = await bufferinator(offlineAudioContext)
 
-    const score = bufferComparer(realtimeBuffer, offlineBuffer);
+    const score = bufferCompare(realtimeBuffer, offlineBuffer);
 
     return score;
 }
-
-console.log(await evaluateGraph(createGraph, 1));

@@ -1,4 +1,4 @@
-export default (...arrays) => {
+export default (arrays) => {
   // Calculate the total length of the new Float32Array
   const totalLength = arrays.reduce((acc, curr) => acc + curr.length, 0);
 
