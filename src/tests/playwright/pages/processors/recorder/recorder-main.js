@@ -21,7 +21,7 @@ export default async (ctx, length) => {
   const buffer = new Promise(async (resolve) => {
     await mutex;
     const res = [];
-    arrays.forEach((array, i) => res[i] = concat(...array));
+    arrays.forEach((array, i) => res[i] = concat(array));
 
     const buf = new AudioBuffer({
       length: res[0].length,

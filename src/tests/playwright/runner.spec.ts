@@ -1,47 +1,27 @@
-import {test, expect} from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { beCloseTo } from './resources/audit';
 import fs from 'fs';
 
-import { exec } from 'child_process';
-
-// exec('python3 src/tests/playwright/run.py', (error, stdout, stderr) => {
-//   fs.writeFileSync('src/tests/playwright/temp/hello.txt', stdout);
-// });
-
-/*
-// Python process
 test('Hello Sine (realtime)', async ({ page }) => {
   await page.goto('pages/realtime-sine.html');
 
-  // wait for the updateFrequency promise to resolve
-  const updateFrequencyPromise = await page.evaluate(() => updateFrequencyPromise);
-  const bufferData = new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
+  // wait for the recordBufferPromise to resolve to recorded audio buffer
+  const recordBufferPromise =
+    await page.evaluate(() => (window as any).tests.recordBufferPromise);
+  const bufferData = new Float32Array((Object as any).values(recordBufferPromise.buffer));
 
-  const tempFile = 'src/tests/playwright/temp/temp.json';
-  fs.writeFileSync(tempFile, JSON.stringify(bufferData));
-});
-*/
-
-test('Hello Sine (realtime)', async ({ page }) => {
-  await page.goto('pages/realtime-sine.html');
-
-  // wait for the updateFrequency promise to resolve
-  const updateFrequencyPromise =
-    await page.evaluate(() => (window as any).tests.updateFrequencyPromise);
-  const bufferData =
-    new Float32Array((Object as any).values(updateFrequencyPromise.buffer));
-
-  // load in reference json file
-  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/ref/440@48k-sine.json', 'utf8'));
+  // load in reference samples (python numpy generated)
+  const myRef = JSON.parse(fs.readFileSync('src/tests/playwright/reference/440@48k-sine.json', 'utf8'));
   const myRefData = new Float32Array(myRef);
 
-  // compare all samples
+  // compare bufferData samples to reference
   let numCorrect = 0;
-  for (let i = 0; i < myRefData.length; i++) {
-    if (Math.abs(bufferData[i] - myRefData[i]) < 0.0002) {
-      numCorrect++;
-    }
+  for (let i = 0; i < bufferData.length; i++) {
+    numCorrect += beCloseTo(bufferData[i], myRefData[i], 0.001) ? 1 : 0;
   }
-  expect(numCorrect / myRefData.length).toBeGreaterThan(.9999);
+
+  // expect 99.99% 
+  expect(numCorrect / bufferData.length).toBeGreaterThan(.9999); 
 });
 
 // @ts-ignore
@@ -53,15 +33,15 @@ test('Hello Sine (offline)', async ({page}) => {
 
   await page.goto('pages/offline-sine.html');
 
-  // Await promise from bufferData containing float32Array but
-  // playwright evaluates only to Object
+  // Await promise from bufferData containing float32Array
   const bufferObject = await page.evaluate(() => (window as any).tests.bufferDataPromise);
   const bufferData =
     new Float32Array((Object as any).values(bufferObject));
 
+  // Check bufferData period / frequency
   expect(bufferData.length).toBe(sampleRate * length * numChannels);
   expect(bufferData[0]).toBe(0);
-  expect(bufferData[1]).not.toBe(0); // sine wave should now be non-zero
+  expect(bufferData[1]).not.toBe(0); // sine wave first elem should be non-zero
   expect(bufferData[sampleRate / freq]).toBe(0); // 1 period, back to 0
 });
 
@@ -84,4 +64,10 @@ test('AudioWorklet Add Module Resolution', async ({page}) => {
     offlineDummyWorkletLoaded,
     'dummyWorkletNode is an instance of AudioWorkletNode from offline context')
     .toBe(true);
+});
+
+test('DSP Graph Evaluation', async ({page}) => {
+  await page.goto('pages/dsp-graph-evaluation.html');
+  const graphEvalPromise = await page.evaluate(() => (window as any).tests.graphEvalPromise);
+  expect(graphEvalPromise.score).toBeGreaterThan(.9999);
 });

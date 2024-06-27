@@ -32,17 +32,6 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // {
-    //   name: 'chromium',
-    //   use: { 
-    //     ...devices['Desktop Chrome'], 
-    //     launchOptions: { 
-    //       ignoreDefaultArgs: ['--mute-audio'],
-    //       args: ['--autoplay-policy=no-user-gesture-required']
-    //     },
-    //   }
-    // },
-
     {
       name: 'chromium',
       use: { 
@@ -53,6 +42,18 @@ export default defineConfig({
         },
       }
     },
+
+    {
+      name: 'chromium custom',
+      use: {
+        ...devices['Desktop Chrome'], 
+        launchOptions: {
+          executablePath: './chromium-browsers/chrome-123-0-6296-0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+          ignoreDefaultArgs: ['--mute-audio'],
+          args: ['--autoplay-policy=no-user-gesture-required']
+        }
+      }
+    }
 
     // {
     //   name: 'firefox',
