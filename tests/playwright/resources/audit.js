@@ -11,5 +11,6 @@ export function beCloseTo(actual, expected, threshold) {
     // it is absolute.
     const absExpected = expected ? Math.abs(expected) : 1;
     let error = Math.abs(actual - expected) / absExpected;
+    console.assert(error <= threshold, `${actual} vs ${expected} | ${Math.abs(actual - expected)} diff`);
     return error <= threshold;
 }
