@@ -7,9 +7,8 @@
       const numChannels = 1;
       const freq = 441;
 
-      !('tests' in window) && (window.tests = {});
-
-      window.tests.bufferDataPromise = new Promise((resolve, reject) => {
+      // noinspection JSConstantReassignment,JSValidateTypes
+      window.test = new Promise((resolve) => {
         const offlineContext = new OfflineAudioContext(numChannels, length * sampleRate, sampleRate);
         const osc = offlineContext.createOscillator();
         osc.type = 'sine';
@@ -18,7 +17,7 @@
 
         osc.start();
         offlineContext.startRendering().then((buffer) => {
-          resolve(buffer.getChannelData(0));
+          resolve({buffer: buffer.getChannelData(0)});
         });
       });
     </script>
