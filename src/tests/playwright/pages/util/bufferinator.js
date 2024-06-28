@@ -10,7 +10,7 @@ export const bufferinator = async (ctx, length, graph) => {
       }
     });
 
-    recorder.connect(ctx.destination);
+    recorder._WAS_connect(ctx.destination);
     ctx.resume();
 
     // for realtime
