@@ -3,9 +3,10 @@
  * @description A map of AudioContexts to a set of connected nodes.
  * Build graph to track connections between nodes.
  */
-const graph = new Map();
 
 export const createGraphCache = () => {
+  const graph = new Map();
+
   const connect = AudioNode.prototype.connect;
   const disconnect = AudioNode.prototype.disconnect;
 
