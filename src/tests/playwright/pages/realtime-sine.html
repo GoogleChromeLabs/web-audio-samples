@@ -5,24 +5,22 @@
       import record from './processors/recorder/recorder-main.js';
 
       // eslint-disable-next-line no-async-promise-executor
-      window.tests = {
-        ...window.tests,
-        recordBufferPromise: new Promise(async (resolve) => {
-          const ctx = new AudioContext({sampleRate: 48000});
-          const helloSine = new OscillatorNode(ctx);
-          const length = 1; // second
-          const {recorder, buffer} = await record(ctx, length);
-          helloSine.connect(recorder).connect(ctx.destination);
+      // noinspection JSConstantReassignment,JSValidateTypes
+      window.test = new Promise(async (resolve) => {
+        const ctx = new AudioContext({sampleRate: 48000});
+        const helloSine = new OscillatorNode(ctx);
+        const length = 1; // second
+        const {recorder, buffer} = await record(ctx, length);
+        helloSine.connect(recorder).connect(ctx.destination);
 
-          helloSine.start();
-          helloSine.stop(ctx.currentTime + 1);
-          const audioBuffer = await buffer;
-          const float32Buffer = audioBuffer.getChannelData(0);
-          
-          await ctx.close();
-          resolve({buffer: float32Buffer});
-        })
-      }
+        helloSine.start();
+        helloSine.stop(ctx.currentTime + 1);
+        const audioBuffer = await buffer;
+        const float32Buffer = audioBuffer.getChannelData(0);
+
+        await ctx.close();
+        resolve({buffer: float32Buffer});
+      });
     </script>
     <title>Realtime Sine</title>
   </head>

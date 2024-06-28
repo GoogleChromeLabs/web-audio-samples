@@ -7,7 +7,7 @@ test('Hello Sine (realtime)', async ({ page }) => {
 
   // wait for the recordBufferPromise to resolve to recorded audio buffer
   const recordBufferPromise =
-    await page.evaluate(() => (window as any).tests.recordBufferPromise);
+    await page.evaluate(() => (window as any).test);
   const bufferData = new Float32Array((Object as any).values(recordBufferPromise.buffer));
 
   // load in reference samples (python numpy generated)
@@ -20,8 +20,8 @@ test('Hello Sine (realtime)', async ({ page }) => {
     numCorrect += beCloseTo(bufferData[i], myRefData[i], 0.001) ? 1 : 0;
   }
 
-  // expect 99.99% 
-  expect(numCorrect / bufferData.length).toBeGreaterThan(.9999); 
+  // expect 99.99%
+  expect(numCorrect / bufferData.length).toBeGreaterThan(.9999);
 });
 
 // @ts-ignore
@@ -34,9 +34,9 @@ test('Hello Sine (offline)', async ({page}) => {
   await page.goto('pages/offline-sine.html');
 
   // Await promise from bufferData containing float32Array
-  const bufferObject = await page.evaluate(() => (window as any).tests.bufferDataPromise);
+  const bufferObject = await page.evaluate(() => (window as any).test);
   const bufferData =
-    new Float32Array((Object as any).values(bufferObject));
+    new Float32Array((Object as any).values(bufferObject.buffer));
 
   // Check bufferData period / frequency
   expect(bufferData.length).toBe(sampleRate * length * numChannels);
@@ -49,7 +49,7 @@ test('Hello Sine (offline)', async ({page}) => {
 test('AudioWorklet Add Module Resolution', async ({page}) => {
   await page.goto('pages/audioworklet-addmodule-resolution.html');
 
-  const addModulesPromise = await page.evaluate(() => (window as any).tests.addModulesPromise);
+  const addModulesPromise = await page.evaluate(() => (window as any).test);
 
   // module loading after realtime context creation
   const realtimeDummyWorkletLoaded = await page.evaluate(() => realtimeDummyWorkletLoaded);
@@ -68,6 +68,6 @@ test('AudioWorklet Add Module Resolution', async ({page}) => {
 
 test('DSP Graph Evaluation', async ({page}) => {
   await page.goto('pages/dsp-graph-evaluation.html');
-  const graphEvalPromise = await page.evaluate(() => (window as any).tests.graphEvalPromise);
+  const graphEvalPromise = await page.evaluate(() => (window as any).test);
   expect(graphEvalPromise.score).toBeGreaterThan(.9999);
 });

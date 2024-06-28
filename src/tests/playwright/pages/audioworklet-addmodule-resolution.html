@@ -8,31 +8,28 @@
 
       const filePath = 'processors/dummy-processor.js';
 
-      window.tests = {
-        ...window.tests,
-        addModulesPromise: new Promise(async (resolve, reject) => {
-          await realtimeContext.audioWorklet.addModule(filePath);
-          await offlineContext.audioWorklet.addModule(filePath);
+      window.tests = new Promise(async (resolve, reject) => {
+        await realtimeContext.audioWorklet.addModule(filePath);
+        await offlineContext.audioWorklet.addModule(filePath);
 
-          try {
-            // Test if the browser does not crash upon addModule() call after the
-            // realtime context construction.
-            let realtimeDummyWorklet = new AudioWorkletNode(realtimeContext, 'dummy');
-            realtimeDummyWorklet.connect(realtimeContext.destination);
-            window.realtimeDummyWorkletLoaded = realtimeDummyWorklet instanceof AudioWorkletNode;
+        try {
+          // Test if the browser does not crash upon addModule() call after the
+          // realtime context construction.
+          let realtimeDummyWorklet = new AudioWorkletNode(realtimeContext, 'dummy');
+          realtimeDummyWorklet.connect(realtimeContext.destination);
+          window.realtimeDummyWorkletLoaded = realtimeDummyWorklet instanceof AudioWorkletNode;
 
-            // Test if the browser does not crash upon addModule() call after the
-            // offline context construction.
-            let offlineDummyWorklet = new AudioWorkletNode(offlineContext, 'dummy');
-            offlineDummyWorklet.connect(offlineContext.destination);
-            window.offlineDummyWorkletLoaded = offlineDummyWorklet instanceof AudioWorkletNode;
+          // Test if the browser does not crash upon addModule() call after the
+          // offline context construction.
+          let offlineDummyWorklet = new AudioWorkletNode(offlineContext, 'dummy');
+          offlineDummyWorklet.connect(offlineContext.destination);
+          window.offlineDummyWorkletLoaded = offlineDummyWorklet instanceof AudioWorkletNode;
 
-            resolve();
-          } catch(error) {
-            reject(error);
-          }
-        })
-      };
+          resolve();
+        } catch(error) {
+          reject(error);
+        }
+      });
     </script>
     <title>AudioWorklet Add Module Resolution</title>
   </head>
