@@ -3,10 +3,11 @@
   <head>
     <script defer type="module">
       import record from './processors/recorder/recorder-main.js';
+      import { beCloseTo, test, evaluate } from './util/audit.js';
 
       // eslint-disable-next-line no-async-promise-executor
       // noinspection JSConstantReassignment,JSValidateTypes
-      window.test = new Promise(async (resolve) => {
+      test(new Promise(async (resolve) => {
         const ctx = new AudioContext({sampleRate: 48000});
         const helloSine = new OscillatorNode(ctx);
         const length = 1; // second
@@ -15,11 +16,26 @@
 
         helloSine.start();
         helloSine.stop(ctx.currentTime + 1);
+
         const audioBuffer = await buffer;
         const float32Buffer = audioBuffer.getChannelData(0);
 
         await ctx.close();
         resolve({buffer: float32Buffer});
+      }));
+
+      evaluate(async () => {
+        const bufferData = (await window.test).buffer;
+        const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
+
+        // compare bufferData samples to reference
+        let numCorrect = 0;
+        for (let i = 0; i < bufferData.length; i++) {
+          numCorrect += beCloseTo(bufferData[i], myRefData[i], 0) ? 1 : 0;
+        }
+
+        // expect 99.99%
+        return numCorrect / bufferData.length > .9999;
       });
     </script>
     <title>Realtime Sine</title>
