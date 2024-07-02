@@ -5,9 +5,7 @@
       import record from './processors/recorder/recorder-main.js';
       import { beCloseTo, test, evaluate } from './util/audit.js';
 
-      // eslint-disable-next-line no-async-promise-executor
-      // noinspection JSConstantReassignment,JSValidateTypes
-      test(new Promise(async (resolve) => {
+      test((async () => {
         const ctx = new AudioContext({sampleRate: 48000});
         const helloSine = new OscillatorNode(ctx);
         const length = 1; // second
@@ -21,8 +19,8 @@
         const float32Buffer = audioBuffer.getChannelData(0);
 
         await ctx.close();
-        resolve({buffer: float32Buffer});
-      }));
+        return {buffer: float32Buffer};
+      })());
 
       evaluate(async () => {
         const bufferData = (await window.test).buffer;

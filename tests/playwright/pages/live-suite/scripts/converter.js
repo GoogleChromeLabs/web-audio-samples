@@ -1,3 +1,5 @@
+import {output} from './console.js';
+
 export default async tests => {
   const htmls = await Promise.all(tests.map(async t => (await fetch(t)).text()));
 
@@ -11,7 +13,7 @@ export default async tests => {
     tr.childNodes[1].id = id;
     tr.querySelector('slot[name=name]').textContent = dom.title;
     tr.querySelector('button').addEventListener('click', async () => {
-      const start = performance.now();
+      document.querySelectorAll('button').forEach(b => b.disabled = true);
 
       const script = document.createElement('script');
       script.defer = true;
@@ -19,20 +21,25 @@ export default async tests => {
       script.textContent = scriptContent;
       document.head.appendChild(script);
 
+      const start = performance.now();
       // TODO: hacky
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      const t = await window.test;
-
+      await window.test;
       const diff = performance.now() - start;
 
       document.querySelector(`#${id} slot[name=result]`).textContent = await window.evaluate() ? '✅': '❌';
       document.querySelector(`#${id} slot[name=time]`).textContent = `${(diff).toFixed(2)}ms`;
-      document.querySelector(`#${id} slot[name=output]`).textContent = 'output';
+      document.querySelector(`#${id} pre slot[name=output]`).textContent =
+        output.map(({method, args}) => `${method}: ${args}`).join('\n') || '---';
 
-      console.log(t);
+      output.length = 0;
 
+      delete window.test;
+      // noinspection JSConstantReassignment
+      delete window.evaluate;
       document.head.removeChild(script);
+
+      document.querySelectorAll('button').forEach(b => b.disabled = false);
     });
 
     document.querySelector('tbody').appendChild(tr);
