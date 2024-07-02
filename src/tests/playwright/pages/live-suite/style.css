@@ -20,6 +20,17 @@ body {
   margin: 1vh 10vw;
 }
 
+button[disabled], button[disabled]:hover {
+  background: var(--secondary-color);
+  cursor: not-allowed;
+}
+
+pre {
+  font-size: 8pt;
+  max-height: 40vh;
+  overflow: auto;
+}
+
 td {
   vertical-align: middle !important;
 }
