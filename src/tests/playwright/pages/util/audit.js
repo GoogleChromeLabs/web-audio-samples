@@ -14,3 +14,7 @@ export function beCloseTo(actual, expected, threshold) {
     console.assert(error <= threshold, `${actual} vs ${expected} | ${Math.abs(actual - expected)} diff`);
     return error <= threshold;
 }
+
+export const test = test => window.test = test;
+
+export const evaluate = fun => window.evaluate = window.liveSuite ? fun : fun();
