@@ -26,7 +26,7 @@ export default async tests => {
 
       const diff = performance.now() - start;
 
-      document.querySelector(`#${id} slot[name=result]`).textContent = 'done';
+      document.querySelector(`#${id} slot[name=result]`).textContent = await window.evaluate() ? '✅': '❌';
       document.querySelector(`#${id} slot[name=time]`).textContent = `${(diff).toFixed(2)}ms`;
       document.querySelector(`#${id} slot[name=output]`).textContent = 'output';
 
