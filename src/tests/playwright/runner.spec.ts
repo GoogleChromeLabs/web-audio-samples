@@ -28,3 +28,10 @@ test('Hello Sine (offline)', async ({page}) => {
 test('DSP Graph Evaluation', async ({page}) => {
   await page.goto('pages/dsp-graph-evaluation.html');
 });
+
+//-----------------------------------------------------------------------------
+// Performance Suite
+//-----------------------------------------------------------------------------
+test('Gain Performance', async ({page}) => {
+  await page.goto('pages/perf-gain.html');
+});
