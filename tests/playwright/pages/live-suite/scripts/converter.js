@@ -30,7 +30,7 @@ export default async tests => {
       document.querySelector(`#${id} slot[name=result]`).textContent = await window.evaluate() ? '✅': '❌';
       document.querySelector(`#${id} slot[name=time]`).textContent = `${(diff).toFixed(2)}ms`;
       document.querySelector(`#${id} pre slot[name=output]`).textContent =
-        output.map(({method, args}) => `${method}: ${args}`).join('\n') || '---';
+        output.map(({method, args}) => `${method}: ${args.join(' ')}`).join('\n') || '---';
 
       output.length = 0;
 
