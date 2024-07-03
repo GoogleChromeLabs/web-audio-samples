@@ -40,7 +40,7 @@ function bufferCompare(myBuf, refBuf) {
     for (let c = 0; c < numChannels; c++) {
         const myChannel = myBuf.getChannelData(c);
         const refChannel = refBuf.getChannelData(c);
-        console.log(myChannel.length, refChannel.length)
+        console.log("recorded", myChannel.length, "| reference", refChannel.length)
         for (let i = 0; i < myChannel.length; i++) {
             if (myChannel[i] === refChannel[i]) {
                 numCorrect++;
@@ -77,7 +77,7 @@ export async function evaluateGraph(ctxGraph, length = 1) {
     const realtimeBuffer = await bufferinator(audioContext, length, cache)
 
     const score = bufferCompare(realtimeBuffer, offlineBuffer);
-    console.log(score)
+    console.info("% match", score)
 
     return score;
 }

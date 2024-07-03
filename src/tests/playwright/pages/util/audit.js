@@ -33,7 +33,7 @@ export const test = test => window.test = test;
  * @param {Function} fun - The function to evaluate.
  */
 export const evaluate = fun => window.evaluate = window.liveSuite ? fun : fun();
-``
+
 const tests = [];
 /**
  * A function that asserts a condition and logs a message if the condition is not met.
@@ -44,7 +44,7 @@ const tests = [];
  */
 export const assert = (condition = undefined, message = undefined) => {
   if (condition === undefined && message === undefined) {
-    const res = tests.some(t => !t);
+    const res = tests.every(t => t);
     tests.length = 0;
     return res;
   }
