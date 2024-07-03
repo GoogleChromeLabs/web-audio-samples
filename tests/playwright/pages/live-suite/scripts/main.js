@@ -5,7 +5,8 @@ window.liveSuite = true;
 const files = [
   'realtime-sine.html',
   'offline-sine.html',
-  'dsp-graph-evaluation.html'
+  'dsp-graph-evaluation.html',
+  'perf-gain.html'
 ];
 
 convert(files);
