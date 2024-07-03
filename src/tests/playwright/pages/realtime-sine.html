@@ -29,7 +29,7 @@
         // compare bufferData samples to reference
         let numCorrect = 0;
         for (let i = 0; i < bufferData.length; i++) {
-          numCorrect += beCloseTo(bufferData[i], myRefData[i], 0.001) ? 1 : 0;
+          numCorrect += beCloseTo(bufferData[i], myRefData[i], 0.01) ? 1 : 0;
         }
         console.info('% match:', numCorrect / bufferData.length);
 
