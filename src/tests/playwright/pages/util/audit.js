@@ -9,12 +9,12 @@
  * @returns {boolean} if |actual| is within |threshold| of |expected|
  */
 export function beCloseTo(actual, expected, threshold) {
-    // The threshold is relative except when |expected| is zero, in which case
-    // it is absolute.
-    const absExpected = expected ? Math.abs(expected) : 1;
-    let error = Math.abs(actual - expected) / absExpected;
-    console.assert(error <= threshold, `${actual} vs ${expected} | ${Math.abs(actual - expected)} diff`);
-    return error <= threshold;
+  // The threshold is relative except when |expected| is zero, in which case
+  // it is absolute.
+  const absExpected = expected ? Math.abs(expected) : 1;
+  let error = Math.abs(actual - expected) / absExpected;
+  console.assert(error <= threshold, `${ actual } vs ${ expected } | ${ Math.abs(actual - expected) } diff`);
+  return error <= threshold;
 }
 
 /**
@@ -33,3 +33,21 @@ export const test = test => window.test = test;
  * @param {Function} fun - The function to evaluate.
  */
 export const evaluate = fun => window.evaluate = window.liveSuite ? fun : fun();
+``
+const tests = [];
+/**
+ * A function that asserts a condition and logs a message if the condition is not met.
+ *
+ * @param {boolean} condition - The condition to be checked.
+ * @param {string} message - The message to be logged if the condition is not met.
+ * @return {boolean} The result of the assertion.
+ */
+export const assert = (condition = undefined, message = undefined) => {
+  if (condition === undefined && message === undefined) {
+    const res = tests.some(t => !t);
+    tests.length = 0;
+    return res;
+  }
+  console.assert(condition, message);
+  tests.push(condition);
+};
