@@ -1,36 +1,36 @@
-import concat from '../../util/concat.js';
-
 export default async (ctx, length) => {
   console.assert(ctx instanceof AudioContext);
   console.assert(typeof length === 'number' && length > 0);
 
-  const mutex = new Promise((resolve) =>
-    setTimeout(resolve, 1000 * length));
+  const maxSamps = length * ctx.sampleRate;
 
   await ctx.audioWorklet.addModule('./processors/recorder/recorder-processor.js');
 
-  const recorder = new AudioWorkletNode(ctx, 'recorder');
+  const recorder = new AudioWorkletNode(ctx, 'recorder', {
+    processorOptions: {
+      maxSamps
+    }
+  });
 
-  const arrays = [];
+  let bufferResolve;
   recorder.port.onmessage = (e) => {
-    !(e.data.channel in arrays) && (arrays[e.data.channel] = []);
-    arrays[e.data.channel].push(e.data.data);
+    if (e.data.message === 'RECORD_DONE') {
+      // Resolve bufferData to buffer
+      const bufferData = e.data.buffer;
+      const audioBuffer = new AudioBuffer({
+        length: maxSamps,
+        sampleRate: ctx.sampleRate,
+        numberOfChannels: bufferData.length
+      })
+      bufferData.forEach((array, i) => audioBuffer.copyToChannel(array, i));
+
+      bufferResolve(audioBuffer)
+    }
   };
 
   // eslint-disable-next-line no-async-promise-executor
   const buffer = new Promise(async (resolve) => {
-    await mutex;
-    const res = [];
-    arrays.forEach((array, i) => res[i] = concat(array));
-
-    const buf = new AudioBuffer({
-      length: res[0].length,
-      sampleRate: ctx.sampleRate,
-      numberOfChannels: res.length,
-    });
-
-    res.forEach((array, i) => buf.copyToChannel(array, i));
-    resolve(buf);
+    bufferResolve = resolve;
   });
 
   return {recorder, buffer};
