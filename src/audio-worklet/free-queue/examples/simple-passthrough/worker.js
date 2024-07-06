@@ -1,4 +1,4 @@
-import FreeQueue from "../../src/free-queue.js";
+import { FreeQueueSAB } from "../../../../lib/free-queue/free-queue-sab.js";
 import { FRAME_SIZE } from "./constants.js";
 
 /**
@@ -9,8 +9,8 @@ import { FRAME_SIZE } from "./constants.js";
 self.onmessage = (msg) => {
   if (msg.data.type === "init") {
     let { inputQueue, outputQueue, atomicState } = msg.data.data;
-    Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
-    Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
+    Object.setPrototypeOf(inputQueue, FreeQueueSAB.prototype);
+    Object.setPrototypeOf(outputQueue, FreeQueueSAB.prototype);
     
     // buffer for storing data pulled out from queue.
     const input = new Float32Array(FRAME_SIZE);
