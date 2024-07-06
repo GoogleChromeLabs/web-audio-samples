@@ -13,7 +13,7 @@
         helloSine.connect(recorder).connect(ctx.destination);
 
         helloSine.start();
-        helloSine.stop(ctx.currentTime + 1);
+        // helloSine.stop(ctx.currentTime + 1);
 
         const audioBuffer = await buffer;
         const float32Buffer = audioBuffer.getChannelData(0);
