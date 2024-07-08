@@ -2,20 +2,19 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import record from './processors/recorder/recorder-main.js';
+      import { record } from './processors/recorder/recorder-main.js';
       import { beCloseTo, test, evaluate } from './util/audit.js';
 
       test((async () => {
         const ctx = new AudioContext({sampleRate: 48000});
         const helloSine = new OscillatorNode(ctx);
-        const length = 1; // second
-        const {recorder, buffer} = await record(ctx, length);
+        const recordLength = 1; // second
+        const {recorder, bufferPromise} = await record(ctx, recordLength);
         helloSine.connect(recorder).connect(ctx.destination);
 
         helloSine.start();
-        // helloSine.stop(ctx.currentTime + 1);
 
-        const audioBuffer = await buffer;
+        const audioBuffer = await bufferPromise;
         const float32Buffer = audioBuffer.getChannelData(0);
 
         await ctx.close();

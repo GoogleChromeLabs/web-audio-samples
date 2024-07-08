@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import record from './processors/recorder/recorder-main.js';
+      import { record } from './processors/recorder/recorder-main.js';
       import { beCloseTo, test, evaluate } from './util/audit.js';
 
       test((async () => {
@@ -10,7 +10,7 @@
         const src = new ConstantSourceNode(ctx);
         const gs = Array(100).fill().map(() => new GainNode(ctx));
         const length = 1; // second
-        const {recorder, buffer} = await record(ctx, length);
+        const {recorder, bufferPromise} = await record(ctx, length);
         gs.forEach((g, i) => i !== 0 && gs[i - 1].connect(g));
         src.connect(gs[0]);
         gs.at(-1).connect(recorder).connect(ctx.destination);
@@ -18,7 +18,7 @@
         src.start();
         src.stop(ctx.currentTime + 1);
 
-        const audioBuffer = await buffer;
+        const audioBuffer = await bufferPromise;
         const float32Buffer = audioBuffer.getChannelData(0);
 
         await ctx.close();
