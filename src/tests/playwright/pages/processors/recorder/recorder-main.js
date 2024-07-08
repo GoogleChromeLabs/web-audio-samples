@@ -1,37 +1,49 @@
-export default async (ctx, length) => {
-  console.assert(ctx instanceof AudioContext);
-  console.assert(typeof length === 'number' && length > 0);
+/**
+ * @fileoverview AudioWorklet Recorder Node to record raw PCM data from 
+ * Web Audio Graph. 
+ */
 
-  const maxSamps = length * ctx.sampleRate;
+/**
+ * Creates an AudioWorklet recorder node to record input for a specified 
+ * length of time (seconds). Passes audio through to output. 
+ * @param {AudioContext} context - The AudioContext to create the recorder node.
+ * @param {number} recordLength - The length in seconds to record for.
+ * @returns {Object} An object containing:
+ *   - {AudioWorkletNode} recorder: The recorder AudioWorkletNode.
+ *   - {Promise<AudioBuffer>} bufferPromise: A promise that resolves to an AudioBuffer once filled.
+ */
+export const record = async (context, recordLength) => {
+  console.assert(context instanceof AudioContext);
+  console.assert(typeof recordLength === 'number' && recordLength > 0);
 
-  await ctx.audioWorklet.addModule('./processors/recorder/recorder-processor.js');
+  const maxSamples = recordLength * context.sampleRate;
 
-  const recorder = new AudioWorkletNode(ctx, 'recorder', {
+  await context.audioWorklet.addModule('./processors/recorder/recorder-processor.js');
+
+  const recorder = new AudioWorkletNode(context, 'recorder', {
     processorOptions: {
-      maxSamps
+      maxSamples
     }
   });
 
   let bufferResolve;
   recorder.port.onmessage = (e) => {
     if (e.data.message === 'RECORD_DONE') {
-      // Resolve bufferData to buffer
-      const bufferData = e.data.buffer;
+      const channelBuffers = e.data.buffer;
       const audioBuffer = new AudioBuffer({
-        length: maxSamps,
-        sampleRate: ctx.sampleRate,
-        numberOfChannels: bufferData.length
+        length: maxSamples,
+        sampleRate: context.sampleRate,
+        numberOfChannels: channelBuffers.length
       })
-      bufferData.forEach((array, i) => audioBuffer.copyToChannel(array, i));
+      channelBuffers.forEach((array, i) => audioBuffer.copyToChannel(array, i));
 
       bufferResolve(audioBuffer)
     }
   };
 
-  // eslint-disable-next-line no-async-promise-executor
-  const buffer = new Promise(async (resolve) => {
+  const bufferPromise = new Promise((resolve) => {
     bufferResolve = resolve;
   });
 
-  return {recorder, buffer};
+  return {recorder, bufferPromise};
 };

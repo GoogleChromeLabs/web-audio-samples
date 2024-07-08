@@ -1,37 +1,39 @@
 const MAX_RENDER_QUANTUM = 128;
 
-// bypass-processor.js
+/**
+ * @classdesc The AudioWorklet RecorderProcessor records raw PCM samples 
+ * from node input into a fixed-length recording buffer. Data is posted once 
+ * the buffer is filled. Will also pass-through audio from input to output.
+ */
 class RecorderProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
-    this._pos = 0;
-    this._maxSamps = options.processorOptions.maxSamps;
+    this._position = 0;
+    this._maxSamples = options.processorOptions.maxSamples;
     this._recordingBuffer = new Array(this.numberOfChannels)
-      .fill(new Float32Array(this._maxSamps));
+        .fill(new Float32Array(this._maxSamples));
   }
 
   process(inputs, outputs) {
     const input = inputs[0];
     const output = outputs[0];
 
-    // how many samps to record
-    const advance = Math.min(MAX_RENDER_QUANTUM, this._maxSamps - this._pos);
+    const samplesToRecord = Math.min(MAX_RENDER_QUANTUM, this._maxSamples - this._position);
 
-    for (let channel = 0; channel < input.length; channel++) {
-      // pass-through
-      output[channel].set(input[channel]);
-      // record `advance` samps
-      this._recordingBuffer[channel].set(input[channel].subarray(0, advance), this._pos)
+    for (let channel = 0; channel < input.length; ++channel) {
+      output[channel].set(input[channel]); // pass-through
+      this._recordingBuffer[channel].set(input[channel].subarray(0, samplesToRecord), 
+          this._position)
     }
 
-    this._pos += advance;
-    if (this._pos >= this._maxSamps) {
+    this._position += samplesToRecord;
+    if (this._position == this._maxSamples) {
       this.port.postMessage({
         message: 'RECORD_DONE',
         buffer: this._recordingBuffer
       })
+      return false;
     }
-    
 
     return true;
   }
