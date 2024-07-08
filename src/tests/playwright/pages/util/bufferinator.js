@@ -1,8 +1,8 @@
-import record from "../processors/recorder/recorder-main.js";
+import { record } from "../processors/recorder/recorder-main.js";
 
 export const bufferinator = async (ctx, length, graph) => {
   if (ctx instanceof AudioContext) {
-    const {recorder, buffer} = await record(ctx, length);
+    const {recorder, bufferPromise} = await record(ctx, length);
     graph.get(ctx)?.forEach(([from, to]) => {
       if (to instanceof AudioDestinationNode) {
         from._WAS_disconnect(to);
@@ -14,7 +14,7 @@ export const bufferinator = async (ctx, length, graph) => {
     ctx.resume();
 
     // for realtime
-    return await buffer;
+    return await bufferPromise;
   }
 
   // for offline
