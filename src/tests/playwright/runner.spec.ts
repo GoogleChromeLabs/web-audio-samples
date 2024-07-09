@@ -9,7 +9,8 @@ test.beforeEach(async ({ page }) =>
 
 // Check if test passed
 test.afterEach(async ({ page }) => {
-  const result = await page.evaluate(() => (window as any).evaluate);
+  // @ts-ignore
+  const result = await page.evaluate(() => webAudioEvaluate);
   expect(result).toBeTruthy();
 });
 
@@ -25,8 +26,8 @@ test('Hello Sine (offline)', async ({page}) => {
   await page.goto('pages/offline-sine.html');
 });
 
-test('DSP Graph Evaluation', async ({page}) => {
-  await page.goto('pages/dsp-graph-evaluation.html');
+test('Web Audio Graph Evaluation', async ({page}) => {
+  await page.goto('pages/web-audio-graph-evaluation.html');
 });
 
 //-----------------------------------------------------------------------------
