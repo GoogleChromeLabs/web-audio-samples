@@ -1,9 +1,9 @@
 const MAX_RENDER_QUANTUM = 128;
 
 /**
- * @classdesc The AudioWorklet RecorderProcessor records raw PCM samples 
- * from node input into a fixed-length recording buffer. Data is posted once 
- * the buffer is filled. Will also pass-through audio from input to output.
+ * @classdesc The AudioWorklet RecorderProcessor records raw PCM samples
+ * from node input into a fixed-length recording buffer. Data is posted once
+ * the buffer is filled. Will also pass through audio from input to output.
  */
 class RecorderProcessor extends AudioWorkletProcessor {
   constructor(options) {
@@ -22,12 +22,12 @@ class RecorderProcessor extends AudioWorkletProcessor {
 
     for (let channel = 0; channel < input.length; ++channel) {
       output[channel].set(input[channel]); // pass-through
-      this._recordingBuffer[channel].set(input[channel].subarray(0, samplesToRecord), 
+      this._recordingBuffer[channel].set(input[channel].subarray(0, samplesToRecord),
           this._position)
     }
 
     this._position += samplesToRecord;
-    if (this._position == this._maxSamples) {
+    if (this._position === this._maxSamples) {
       this.port.postMessage({
         message: 'RECORD_DONE',
         buffer: this._recordingBuffer

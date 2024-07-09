@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import { record } from './processors/recorder/recorder-main.js';
+      import { record } from './util/recorder/recorder-main.js';
       import { beCloseTo, test, evaluate } from './util/audit.js';
 
       test((async () => {
@@ -21,19 +21,19 @@
         return {buffer: float32Buffer};
       })());
 
-      evaluate(async () => {
-        const bufferData = (await window.test).buffer;
+      evaluate(async testResult => {
+        const bufferData = (await testResult).buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
         // compare bufferData samples to reference
-        let numCorrect = 0;
+        let numberOfAcceptableSamples = 0;
         for (let i = 0; i < bufferData.length; i++) {
-          numCorrect += beCloseTo(bufferData[i], myRefData[i], 0.01) ? 1 : 0;
+          numberOfAcceptableSamples += beCloseTo(bufferData[i], myRefData[i], 0.01) ? 1 : 0;
         }
-        console.info('% match:', numCorrect / bufferData.length);
+        console.info('% match:', numberOfAcceptableSamples / bufferData.length);
 
         // return true if 99.8% pass
-        return numCorrect / bufferData.length > .998;
+        return numberOfAcceptableSamples / bufferData.length > .998;
       });
     </script>
     <title>Realtime Sine</title>

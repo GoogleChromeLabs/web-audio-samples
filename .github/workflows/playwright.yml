@@ -18,8 +18,9 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
     - name: Run Playwright tests
-      # run: npx playwright test
       # Only test on Chromium
+      # Each version of playwright is tied to the latest version of Chromium (at the time). The version is listed here:
+      # https://github.com/microsoft/playwright?tab=readme-ov-file#documentation--api-reference
       run: npx playwright test --project=chromium
     - uses: actions/upload-artifact@v4
       if: always()

@@ -1,10 +1,13 @@
 .DS_Store
 node_modules/
 _site/
+
+## Playwright-specific ignores
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+## IDE and runtime ignores
 /.idea
 bun.lockb
-chromium-browsers/*

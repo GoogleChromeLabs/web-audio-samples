@@ -25,7 +25,6 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://127.0.0.1:8080/src/tests/playwright/',
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
@@ -34,76 +33,14 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'], 
-        launchOptions: { 
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
           ignoreDefaultArgs: ['--mute-audio'],
           args: ['--autoplay-policy=no-user-gesture-required']
         },
       }
-    },
-
-    {
-      name: 'chromium custom',
-      use: {
-        ...devices['Desktop Chrome'], 
-        launchOptions: {
-          executablePath: './chromium-browsers/chrome-123-0-6296-0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
-          ignoreDefaultArgs: ['--mute-audio'],
-          args: ['--autoplay-policy=no-user-gesture-required']
-        }
-      }
     }
-
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-
-    // // Chrome
-    // {
-    //   name: 'Google Chrome',
-    //   use: { 
-    //     ...devices['Desktop Chrome'], 
-    //     channel: 'chrome',
-    //     launchOptions: {
-    //       ignoreDefaultArgs: ['--mute-audio'],
-    //       args: ['--autoplay-policy=no-user-gesture-required']
-    //    },
-    //   },
-    // },
-    // {
-    //   name: 'Google Chrome Canary',
-    //   use: { 
-    //     ...devices['Desktop Chrome'], 
-    //     channel: 'chrome-canary',
-    //     launchOptions: {
-    //       ignoreDefaultArgs: ['--mute-audio'],
-    //       args: ['--autoplay-policy=no-user-gesture-required']
-    //    },
-    //   },
-    // }
   ],
 
   /* Run your local dev server before starting the tests */

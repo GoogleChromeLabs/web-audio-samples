@@ -2,8 +2,8 @@
   --global-font-size: 15px; /* The Base font size */
   --global-line-height: 1.4em; /* The baseline height. Modify this to achieve the best readability. */
   --global-space: 10px; /* A global spacer used to consistently space things */
-  --font-stack: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif; /* The fonts for the website. Use @font-face or any other font provider to include your custom fonts. */
-  --mono-font-stack: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif; /* Same as above but for code. */
+  --font-stack: Menlo, Monaco, Courier New, monospace, serif; /* The fonts for the website. Use @font-face or any other font provider to include your custom fonts. */
+  --mono-font-stack: Menlo, Monaco, Courier New, monospace, serif; /* Same as above but for code. */
   --background-color: #222225; /* The page background color */
   --font-color: #e8e9ed; /* The base font color for text, headlines, blockquotes, lists, etc. */
   --invert-font-color: #222225; /* Sometimes text appears on a colored background. Adjust this color to improve readability. */
