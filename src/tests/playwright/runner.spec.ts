@@ -36,10 +36,3 @@ test('Web Audio Graph Evaluation', async ({page}) => {
 test('Gain Performance', async ({page}) => {
   await page.goto('pages/perf-gain.html');
 });
-
-//-----------------------------------------------------------------------------
-// Performance Suite
-//-----------------------------------------------------------------------------
-test('Gain Performance', async ({page}) => {
-  await page.goto('pages/perf-gain.html');
-});

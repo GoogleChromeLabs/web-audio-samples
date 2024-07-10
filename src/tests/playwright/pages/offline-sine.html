@@ -27,7 +27,7 @@
 
         // compare bufferData samples to reference
         for (let i = 0; i < bufferData.length; i++) {
-          assert(...beCloseTo(bufferData[i], myRefData[i], 0))
+          assert(Math.abs(bufferData[i] - myRefData[i]) < 0.0001)
         }
 
         // assert() returns true if all previous asserts passed
