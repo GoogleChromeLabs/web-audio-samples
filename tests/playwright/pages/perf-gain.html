@@ -2,39 +2,39 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import { record } from './processors/recorder/recorder-main.js';
+      import { record } from './util/recorder/recorder-main.js';
       import { beCloseTo, test, evaluate } from './util/audit.js';
 
       test((async () => {
-        const ctx = new AudioContext({sampleRate: 48000});
-        const src = new ConstantSourceNode(ctx);
-        const gs = Array(100).fill().map(() => new GainNode(ctx));
-        const length = 1; // second
-        const {recorder, bufferPromise} = await record(ctx, length);
-        gs.forEach((g, i) => i !== 0 && gs[i - 1].connect(g));
-        src.connect(gs[0]);
-        gs.at(-1).connect(recorder).connect(ctx.destination);
+        const context = new AudioContext({sampleRate: 48000});
+        const constantSource = new ConstantSourceNode(context);
+        const gainNodes = Array(100).fill().map(() => new GainNode(context));
+        const renderLength = 1; // second
+        const {recorder, bufferPromise} = await record(context, renderLength);
+        gainNodes.forEach((g, i) => i !== 0 && gainNodes[i - 1].connect(g));
+        constantSource.connect(gainNodes[0]);
+        // connect last gain node to recorder
+        gainNodes.at(-1).connect(recorder).connect(context.destination);
 
-        src.start();
-        src.stop(ctx.currentTime + 1);
+        constantSource.start();
 
         const audioBuffer = await bufferPromise;
-        const float32Buffer = audioBuffer.getChannelData(0);
+        const leftChannelFloat32Array = audioBuffer.getChannelData(0);
 
-        await ctx.close();
-        return {buffer: float32Buffer};
+        await context.close();
+        return leftChannelFloat32Array;
       })());
 
-      evaluate(async () => {
-        const bufferData = (await window.test).buffer;
-        let numCorrect = 0;
-        for (let i = 0; i < bufferData.length; i++) {
-          numCorrect += beCloseTo(bufferData[i], 1, 0) ? 1 : 0;
+      evaluate(async (testResult) => {
+        const leftChannelFloat32Array = await testResult;
+        let numberOfAcceptableSamples = 0;
+        for (let i = 0; i < leftChannelFloat32Array.length; i++) {
+          numberOfAcceptableSamples += beCloseTo(leftChannelFloat32Array[i], 1, 0);
         }
-        console.info('% match:', numCorrect / bufferData.length);
+        console.info('% match:', numberOfAcceptableSamples / leftChannelFloat32Array.length);
 
         // return true if 99.99% pass
-        return numCorrect / bufferData.length > .9999;
+        return numberOfAcceptableSamples / leftChannelFloat32Array.length > .9999;
       });
     </script>
     <title>Gain Performance</title>

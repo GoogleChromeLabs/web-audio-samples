@@ -1,17 +1,16 @@
 /**
- * @type {Map<BaseAudioContext, Set<[AudioNode, AudioNode]>}
- * @description A map of AudioContexts to a set of connected nodes.
- * Build graph to track connections between nodes.
+ * Creates a cache for the graph of connected nodes in AudioContexts.
+ *
+ * @return {Map} The map containing the graph of connected nodes.
  */
-
 export const createGraphCache = () => {
   const graph = new Map();
 
   const connect = AudioNode.prototype.connect;
   const disconnect = AudioNode.prototype.disconnect;
 
-  AudioNode.prototype._WAS_connect = connect;
-  AudioNode.prototype._WAS_disconnect = disconnect;
+  AudioNode.prototype._webAudioConnect = connect;
+  AudioNode.prototype._webAudioDisconnect = disconnect;
 
   AudioNode.prototype.connect = function () {
     if (!graph.has(this.context)) {
