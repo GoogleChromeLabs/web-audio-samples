@@ -8,9 +8,10 @@
  * length of time (seconds). Passes audio through to output.
  * @param {AudioContext} context - The AudioContext to create the recorder node.
  * @param {number} recordLength - The length in seconds to record for.
- * @returns {Object} An object containing:
+ * @return {Object} An object containing:
  *   - {AudioWorkletNode} recorder: The recorder AudioWorkletNode.
- *   - {Promise<AudioBuffer>} bufferPromise: A promise that resolves to an AudioBuffer once filled.
+ *   - {Promise<AudioBuffer>} bufferPromise: A promise that resolves to an
+ *   AudioBuffer once filled.
  */
 export const record = async (context, recordLength) => {
   console.assert(context instanceof AudioContext);
@@ -22,8 +23,8 @@ export const record = async (context, recordLength) => {
 
   const recorder = new AudioWorkletNode(context, 'recorder', {
     processorOptions: {
-      maxSamples
-    }
+      maxSamples,
+    },
   });
 
   let bufferResolve;
@@ -33,11 +34,11 @@ export const record = async (context, recordLength) => {
       const audioBuffer = new AudioBuffer({
         length: maxSamples,
         sampleRate: context.sampleRate,
-        numberOfChannels: channelBuffers.length
-      })
+        numberOfChannels: channelBuffers.length,
+      });
       channelBuffers.forEach((array, i) => audioBuffer.copyToChannel(array, i));
 
-      bufferResolve(audioBuffer)
+      bufferResolve(audioBuffer);
     }
   };
 

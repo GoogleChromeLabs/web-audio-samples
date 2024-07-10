@@ -1,24 +1,24 @@
-import { test, expect } from '@playwright/test';
+import {test, expect} from '@playwright/test';
 
 // Capture test console logs
-test.beforeEach(async ({ page }) =>
-  page.on('console', msg =>
-    console[msg.type() === 'assert' ? 'error' : msg.type()](msg.text())
-  )
+test.beforeEach(async ({page}) =>
+  page.on('console', (msg) =>
+    console[msg.type() === 'assert' ? 'error' : msg.type()](msg.text()),
+  ),
 );
 
 // Check if test passed
-test.afterEach(async ({ page }) => {
-  // @ts-ignore
+test.afterEach(async ({page}) => {
+  // eslint-disable-next-line no-undef
   const result = await page.evaluate(() => webAudioEvaluate);
   expect(result).toBeTruthy();
 });
 
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // TEST SUITE
-//-----------------------------------------------------------------------------
-test('Hello Sine (realtime)', async ({ page }) => {
+// -----------------------------------------------------------------------------
+test('Hello Sine (realtime)', async ({page}) => {
   await page.goto('pages/realtime-sine.html');
 });
 
@@ -30,9 +30,9 @@ test('Web Audio Graph Evaluation', async ({page}) => {
   await page.goto('pages/web-audio-graph-evaluation.html');
 });
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Performance Suite
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 test('Gain Performance', async ({page}) => {
   await page.goto('pages/perf-gain.html');
 });

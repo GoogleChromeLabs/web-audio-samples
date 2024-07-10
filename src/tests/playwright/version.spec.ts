@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
+import {test, expect} from '@playwright/test';
 
-test('Browser version', async ({ browser }) => {
+test('Browser version', async ({browser}) => {
   test.info().annotations.push({
     type: 'browser version',
     description: browser.version(),

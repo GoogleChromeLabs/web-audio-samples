@@ -3,11 +3,11 @@
  * interactive DOM elements in the Web Audio Test Suite, including dynamic test
  * execution, results display, and console output management.
  */
-import { output } from './console.js';
+import {output} from './console.js';
 
-export const convert = async tests => {
+export const convert = async (tests) => {
   const htmls = await Promise.all(
-      tests.map(async t => (await fetch(t)).text()));
+      tests.map(async (t) => (await fetch(t)).text()));
 
   const template = document.querySelector('#row');
   htmls.forEach((html) => {
@@ -22,7 +22,7 @@ export const convert = async tests => {
     tr.childNodes[1].id = id;
     tr.querySelector('slot[name=name]').textContent = dom.title;
     tr.querySelector('button').addEventListener('click', async () => {
-      document.querySelectorAll('button').forEach(b => b.disabled = true);
+      document.querySelectorAll('button').forEach((b) => b.disabled = true);
 
       const script = document.createElement('script');
       script.defer = true;
@@ -33,7 +33,7 @@ export const convert = async tests => {
       const start = performance.now();
       // TODO: hacky, the 'load' event listener for script elements doesn't
       //  actually fire
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await window._webAudioTest;
       const diff = performance.now() - start;
 
@@ -43,7 +43,7 @@ export const convert = async tests => {
           `${(diff).toFixed(2)}ms`;
       document.querySelector(`#${id} pre slot[name=output]`).textContent =
           output.map(({method, args}) =>
-              `${method}: ${args.join(' ')}`
+            `${method}: ${args.join(' ')}`,
           ).join('\n') || '---';
 
       output.length = 0;
@@ -52,7 +52,7 @@ export const convert = async tests => {
       delete window.webAudioEvaluate;
       document.head.removeChild(script);
 
-      document.querySelectorAll('button').forEach(b => b.disabled = false);
+      document.querySelectorAll('button').forEach((b) => b.disabled = false);
     });
 
     document.querySelector('tbody').appendChild(tr);
