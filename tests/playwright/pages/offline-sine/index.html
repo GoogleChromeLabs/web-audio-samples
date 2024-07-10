@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import { test, evaluate, assert } from './util/audit.js';
+
+      const sampleRate = 48000;
+      const renderLength = 1;
+      const numberOfChannels = 1;
+      const frequency = 440;
+
+      test(new Promise((resolve) => {
+        const offlineContext = new OfflineAudioContext(numberOfChannels,
+          renderLength * sampleRate, sampleRate);
+        const osc = new OscillatorNode(offlineContext, { frequency });
+        osc.connect(offlineContext.destination);
+
+        osc.start();
+        offlineContext.startRendering().then((buffer) => {
+          resolve(buffer.getChannelData(0));
+        });
+      }));
+
+      evaluate(async testResult => {
+        const bufferData = await testResult;
+        const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
+
+        // compare bufferData samples to reference
+        for (let i = 0; i < bufferData.length; i++) {
+          assert(Math.abs(bufferData[i] - myRefData[i]) < 0.0001);
+        }
+
+        // assert() returns true if all previous asserts passed
+        return assert();
+      });
+    </script>
+    <title>Offline Sine</title>
+  </head>
+  <body>
+    <h1>Offline Sine Test</h1>
+    <p>Render a sine wave at 440Hz for 1 second using OfflineContext, sampleRate: 48000</p>
+  </body>
+</html>
