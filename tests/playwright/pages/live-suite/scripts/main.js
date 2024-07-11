@@ -8,9 +8,6 @@ window._webAudioSuite = true;
 
 const files = [
   'realtime-sine.html',
-  'offline-sine.html',
-  'web-audio-graph-evaluation.html',
-  'perf-gain.html',
 ];
 
 convert(files);
