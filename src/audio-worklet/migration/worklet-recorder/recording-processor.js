@@ -32,9 +32,6 @@ class RecordingProcessor extends AudioWorkletProcessor {
     this.framesSinceLastPublish = 0;
     this.publishInterval = this.sampleRate / 60;
 
-    // We will keep a live sum for rendering the visualizer.
-    this.sampleSum = 0;
-
     this.port.onmessage = (event) => {
       if (event.data.message === 'UPDATE_RECORDING_STATE') {
         this.isRecording = event.data.setRecording;
@@ -63,9 +60,6 @@ class RecordingProcessor extends AudioWorkletProcessor {
 
           // Pass data directly to output, unchanged.
           outputs[input][channel][sample] = currentSample;
-
-          // Sum values for visualizer
-          this.sampleSum += currentSample;
         }
       }
     }
@@ -107,11 +101,9 @@ class RecordingProcessor extends AudioWorkletProcessor {
     if (shouldPublish) {
       this.port.postMessage({
         message: 'UPDATE_VISUALIZERS',
-        gain: this.sampleSum / this.framesSinceLastPublish,
       });
 
       this.framesSinceLastPublish = 0;
-      this.sampleSum = 0;
     } else {
       this.framesSinceLastPublish += 128;
     }
