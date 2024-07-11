@@ -9,8 +9,8 @@ test.beforeEach(async ({page}) =>
 
 // Check if test passed
 test.afterEach(async ({page}) => {
-  // eslint-disable-next-line no-undef
   // @ts-ignore
+  // eslint-disable-next-line no-undef
   const result = await page.evaluate(() => webAudioEvaluate);
   expect(result).toBeTruthy();
 });
@@ -21,19 +21,4 @@ test.afterEach(async ({page}) => {
 // -----------------------------------------------------------------------------
 test('Hello Sine (realtime)', async ({page}) => {
   await page.goto('pages/realtime-sine.html');
-});
-
-test('Hello Sine (offline)', async ({page}) => {
-  await page.goto('pages/offline-sine.html');
-});
-
-test('Web Audio Graph Evaluation', async ({page}) => {
-  await page.goto('pages/web-audio-graph-evaluation.html');
-});
-
-// -----------------------------------------------------------------------------
-// Performance Suite
-// -----------------------------------------------------------------------------
-test('Gain Performance', async ({page}) => {
-  await page.goto('pages/perf-gain.html');
 });

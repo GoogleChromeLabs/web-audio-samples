@@ -24,12 +24,11 @@ export function beCloseTo(actual, expected, threshold) {
  *
  * @param {Promise<any>} testPromise - The test function to be assigned to
  * window._webAudioTest.
- * @return {Promise<any>} Unused
  */
 export const test = (testPromise) => {
   window._webAudioTest = testPromise;
   window._webAudioSuite && window._webAudioMutex();
-}
+};
 
 /**
  * Evaluates a given function by assigning it to window.webAudioEvaluate.
