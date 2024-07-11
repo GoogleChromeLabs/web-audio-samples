@@ -22,11 +22,14 @@ export function beCloseTo(actual, expected, threshold) {
  * Assigns a given test function to the global window._webAudioTest property.
  * This function is used to set up a test that can later be executed globally.
  *
- * @param {Promise<any>} test - The test function to be assigned to
+ * @param {Promise<any>} testPromise - The test function to be assigned to
  * window._webAudioTest.
  * @return {Promise<any>} Unused
  */
-export const test = (test) => window._webAudioTest = test;
+export const test = (testPromise) => {
+  window._webAudioTest = testPromise;
+  window._webAudioSuite && window._webAudioMutex();
+}
 
 /**
  * Evaluates a given function by assigning it to window.webAudioEvaluate.
