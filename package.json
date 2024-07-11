@@ -14,8 +14,7 @@
     "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html",
     "test": "npx playwright test",
     "test-server": "npx http-server",
-    "test-ui": "npx playwright test --ui",
-    "test-headed": "npx playwright test --debug"
+    "test-live": "npx http-server ./src/tests/playwright/pages/"
   },
   "license": "MIT",
   "dependencies": {
