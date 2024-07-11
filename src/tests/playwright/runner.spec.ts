@@ -10,6 +10,7 @@ test.beforeEach(async ({page}) =>
 // Check if test passed
 test.afterEach(async ({page}) => {
   // eslint-disable-next-line no-undef
+  // @ts-ignore
   const result = await page.evaluate(() => webAudioEvaluate);
   expect(result).toBeTruthy();
 });
