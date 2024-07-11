@@ -23,7 +23,7 @@
     "@11ty/eleventy-navigation": "^0.3.5",
     "autoprefixer": "^10.4.19",
     "cssnano": "^7.0.1",
-    "eslint": "^9.2.0",
+    "eslint": "8.57.0",
     "eslint-config-google": "^0.14.0",
     "html-minifier": "^4.0.0",
     "js-yaml": "^4.1.0",
