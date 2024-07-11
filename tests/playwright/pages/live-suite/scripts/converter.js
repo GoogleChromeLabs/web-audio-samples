@@ -26,14 +26,13 @@ export const convert = async (tests) => {
 
       const script = document.createElement('script');
       script.defer = true;
+      script.async = true;
       script.type = 'module';
       script.textContent = scriptContent;
       document.head.appendChild(script);
 
       const start = performance.now();
-      // TODO: hacky, the 'load' event listener for script elements doesn't
-      //  actually fire
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => window._webAudioMutex = resolve);
       await window._webAudioTest;
       const diff = performance.now() - start;
 
