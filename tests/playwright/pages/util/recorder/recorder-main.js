@@ -40,7 +40,7 @@ export const record = async (context, recordLength) => {
   let resolveWithRecording;
   recorder.port.onmessage = (event) => {
     if (event.data.message === 'RECORD_DONE') {
-      const {channelData} = event.data;
+      const channelData = event.data.channelData;
       const audioBuffer = new AudioBuffer({
         length: recorderBufferSize,
         sampleRate: context.sampleRate,

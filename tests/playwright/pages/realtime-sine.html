@@ -3,7 +3,7 @@
   <head>
     <script defer type="module">
       import {record} from './util/recorder/recorder-main.js';
-      import {beCloseTo, test, evaluateTestFunction} from './util/audit.js';
+      import {beCloseTo, test, evaluate} from './util/audit.js';
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
@@ -21,7 +21,7 @@
         return {buffer: float32Buffer};
       })());
 
-      evaluateTestFunction(async testResult => {
+      evaluate(async testResult => {
         const bufferData = (await testResult).buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
@@ -40,6 +40,6 @@
   </head>
   <body>
     <h1>Realtime Sine Oscillator Test</h1>
-    <p>Play a sine wave at 440Hz for 1 second at 48KHz sample rate.</p>
+    <p>Play a sine wave at 440Hz for 1 second at 48kHz sample rate.</p>
   </body>
 </html>
