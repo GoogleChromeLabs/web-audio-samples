@@ -1,8 +1,10 @@
 /**
- * @fileoverview Provides utility functions for auditing and testing in the Web Audio Test Suite,
- * including assertions, test function evaluation, and global test state management. Designed for use in
- * scenarios requiring audio processing result validation, it supports both synchronous and asynchronous test execution.
- * Key functionalities include numeric comparison with tolerance, test scheduling, and collective assertion logging.
+ * @fileoverview Web Audio Test Suite management and utility functions.
+ * Specifies functions to define and evaluate Web Audio Tests and schedule 
+ * execution making Web Audio tests compatible with Playwright and the 
+ * Live Test Suite. Manages global test state for assertion handling. 
+ * 
+ * Additionally includes functions to validate audio processing.
  */
 
 /**
@@ -26,6 +28,7 @@ export function beCloseTo(actual, expected, threshold) {
 }
 
 /**
+ * Creates a Web Audio Test for Playwright and the Web Audio Test Suite.
  * Assigns a given test function to the global window._webAudioTest property.
  * This function is used to set up a test that can later be executed globally.
  *
@@ -38,22 +41,25 @@ export const test = (testPromise) => {
 };
 
 /**
- * Evaluates a given function by assigning it to window.webAudioEvaluate.
- * If window._webAudioSuite property is true, the function is assigned directly.
- * Otherwise, the function is invoked immediately.
+ * Evaluates a Web Audio Test and assigns the result to window.webAudioEvaluate.
+ * If window._webAudioTestSuite property is true, the function is assigned 
+ * directly. Otherwise, the function is invoked immediately.
  *
- * @param {Function} testFunction - The function to evaluate.
+ * @param {Function} testFunction - The test function to evaluate.
  * @return {any}
  */
-export const evaluateTestFunction =
-  (testFunction) =>  window.webAudioEvaluate = window._webAudioTestSuite
-    ? () => testFunction(window._webAudioTest)
-    : testFunction(window._webAudioTest);
+export const evaluate =
+    (testFunction) =>  window.webAudioEvaluate = window._webAudioTestSuite
+        ? () => testFunction(window._webAudioTest)
+        : testFunction(window._webAudioTest);
 
+// global state to accumulate assert() tests
 const tests = [];
 
 /**
  * Asserts a condition and logs a message if the condition is not met.
+ * If no arguments are specified, the function returns a boolean indicating 
+ * whether all previous assertions were true.
  *
  * @param {boolean} condition - The condition to be checked.
  * @param {string} message - The message to be logged if condition is not met.

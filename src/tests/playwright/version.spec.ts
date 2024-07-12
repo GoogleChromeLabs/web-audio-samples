@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Playwright auxiliary test for checking browser version
+ */
 import {test, expect} from '@playwright/test';
 
 test('Browser version', async ({browser}) => {

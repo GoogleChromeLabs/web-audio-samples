@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Web Audio Test Suite using the Playwright Framework.
+ * Playwright will navigate and run each HTML page, capture logs,
+ * and finally check if the `evaluate` function which sets `webAudioEvaluate`
+ * returns true.
+ */
 import {test, expect} from '@playwright/test';
 
 // Capture test console logs
