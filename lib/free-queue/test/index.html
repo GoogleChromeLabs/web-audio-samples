@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeQueueSAB Tests</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.4.0/mocha.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.4.0/mocha.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.3.4/chai.min.js"></script>
+  <script>
+    mocha.setup('bdd');
+    const { expect } = chai;
+  </script>
+</head>
+<body>
+  <h1>FreeQueueSAB Tests</h1>
+  <div id="mocha"></div>
+  <button onclick="runTests()">Run Tests</button>
+  <script>
+    function runTests() {
+      mocha.run();
+    }
+  </script>
+  <script src="./coi-serviceworker.js"></script>
+  <script src="./free-queue-sab.js"></script>
+  <script src="./test/test-free-queue-sab.js"></script>
+</body>
+</html>
