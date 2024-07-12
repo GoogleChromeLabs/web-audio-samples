@@ -1,4 +1,11 @@
 /**
+ * @fileoverview Provides utility functions for auditing and testing in the Web Audio Test Suite,
+ * including assertions, test function evaluation, and global test state management. Designed for use in
+ * scenarios requiring audio processing result validation, it supports both synchronous and asynchronous test execution.
+ * Key functionalities include numeric comparison with tolerance, test scheduling, and collective assertion logging.
+ */
+
+/**
  * Check if |actual| is close to |expected| using the given relative error
  * |threshold|.
  * @param {number} actual
@@ -27,7 +34,7 @@ export function beCloseTo(actual, expected, threshold) {
  */
 export const test = (testPromise) => {
   window._webAudioTest = testPromise;
-  window._webAudioSuite && window._webAudioMutex();
+  window._webAudioTestSuite && window._webAudioTestIsRunning();
 };
 
 /**
@@ -35,15 +42,16 @@ export const test = (testPromise) => {
  * If window._webAudioSuite property is true, the function is assigned directly.
  * Otherwise, the function is invoked immediately.
  *
- * @param {Function} fun - The function to evaluate.
+ * @param {Function} testFunction - The function to evaluate.
  * @return {any}
  */
-export const evaluate = (fun) => window.webAudioEvaluate =
-    window._webAudioSuite ?
-        () => fun(window._webAudioTest) :
-        fun(window._webAudioTest);
+export const evaluateTestFunction =
+  (testFunction) =>  window.webAudioEvaluate = window._webAudioTestSuite
+    ? () => testFunction(window._webAudioTest)
+    : testFunction(window._webAudioTest);
 
 const tests = [];
+
 /**
  * Asserts a condition and logs a message if the condition is not met.
  *
@@ -53,9 +61,9 @@ const tests = [];
  */
 export const assert = (condition = undefined, message = undefined) => {
   if (condition === undefined && message === undefined) {
-    const res = tests.every((t) => t);
+    const result = tests.every((test) => test);
     tests.length = 0;
-    return res;
+    return result;
   }
   console.assert(condition, message);
   tests.push(condition);

@@ -2,12 +2,12 @@
  * @fileoverview Initializes the Web Audio Test Suite by converting specified
  * HTML test files to interactive DOM elements.
  */
-import {convert} from './converter.js';
+import {convertTestFiles} from './test-file-converter.js';
 
-window._webAudioSuite = true;
+window._webAudioTestSuite = true;
 
 const files = [
   'realtime-sine.html',
 ];
 
-convert(files);
+convertTestFiles(files);

@@ -9,9 +9,9 @@ class RecorderProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     this._position = 0;
-    this._maxSamples = options.processorOptions.maxSamples;
-    this._recordingBuffer = new Array(this.numberOfChannels)
-        .fill(new Float32Array(this._maxSamples));
+    this._numberOfSamples = options.processorOptions.numberOfSamples;
+    this._channelData = new Array(this.numberOfChannels)
+        .fill(new Float32Array(this._numberOfSamples));
   }
 
   process(inputs, outputs) {
@@ -19,19 +19,19 @@ class RecorderProcessor extends AudioWorkletProcessor {
     const output = outputs[0];
 
     const samplesToRecord = Math.min(MAX_RENDER_QUANTUM,
-        this._maxSamples - this._position);
+        this._numberOfSamples - this._position);
 
     for (let channel = 0; channel < input.length; ++channel) {
       output[channel].set(input[channel]); // pass-through
-      this._recordingBuffer[channel]
+      this._channelData[channel]
           .set(input[channel].subarray(0, samplesToRecord), this._position);
     }
 
     this._position += samplesToRecord;
-    if (this._position === this._maxSamples) {
+    if (this._position === this._numberOfSamples) {
       this.port.postMessage({
         message: 'RECORD_DONE',
-        buffer: this._recordingBuffer,
+        channelData: this._channelData,
       });
       return false;
     }
@@ -40,4 +40,4 @@ class RecorderProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('recorder', RecorderProcessor);
+registerProcessor('test-recorder', RecorderProcessor);

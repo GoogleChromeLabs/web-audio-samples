@@ -3,9 +3,9 @@
  * interactive DOM elements in the Web Audio Test Suite, including dynamic test
  * execution, results display, and console output management.
  */
-import {output} from './console.js';
+import {output} from './console-override.js';
 
-export const convert = async (tests) => {
+export const convertTestFiles = async (tests) => {
   const htmls = await Promise.all(
       tests.map(async (t) => (await fetch(t)).text()));
 
@@ -32,7 +32,7 @@ export const convert = async (tests) => {
       document.head.appendChild(script);
 
       const start = performance.now();
-      await new Promise((resolve) => window._webAudioMutex = resolve);
+      await new Promise((resolve) => window._webAudioTestIsRunning = resolve);
       await window._webAudioTest;
       const diff = performance.now() - start;
 

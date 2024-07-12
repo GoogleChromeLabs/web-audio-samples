@@ -2,26 +2,26 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import { record } from './util/recorder/recorder-main.js';
-      import { beCloseTo, test, evaluate } from './util/audit.js';
+      import {record} from './util/recorder/recorder-main.js';
+      import {beCloseTo, test, evaluateTestFunction} from './util/audit.js';
 
       test((async () => {
-        const ctx = new AudioContext({sampleRate: 48000});
-        const helloSine = new OscillatorNode(ctx);
-        const recordLength = 1; // second
-        const {recorder, bufferPromise} = await record(ctx, recordLength);
-        helloSine.connect(recorder).connect(ctx.destination);
+        const context = new AudioContext({sampleRate: 48000});
+        const oscillator = new OscillatorNode(context);
+        const duration = 1; // second
+        const {recorder, bufferPromise} = await record(context, duration);
+        oscillator.connect(recorder).connect(context.destination);
 
-        helloSine.start();
+        oscillator.start();
 
         const audioBuffer = await bufferPromise;
         const float32Buffer = audioBuffer.getChannelData(0);
 
-        await ctx.close();
+        await context.close();
         return {buffer: float32Buffer};
       })());
 
-      evaluate(async testResult => {
+      evaluateTestFunction(async testResult => {
         const bufferData = (await testResult).buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
@@ -36,10 +36,10 @@
         return numberOfAcceptableSamples / bufferData.length > .998;
       });
     </script>
-    <title>Realtime Sine</title>
+    <title>Realtime Sine Oscillator Test</title>
   </head>
   <body>
-    <h1>Realtime Sine Test</h1>
-    <p>Play a sine wave at 440Hz for 1 second, sampleRate: 48000</p>
+    <h1>Realtime Sine Oscillator Test</h1>
+    <p>Play a sine wave at 440Hz for 1 second at 48KHz sample rate.</p>
   </body>
 </html>

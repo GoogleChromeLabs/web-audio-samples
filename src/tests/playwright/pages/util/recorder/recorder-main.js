@@ -17,33 +17,43 @@ export const record = async (context, recordLength) => {
   console.assert(context instanceof AudioContext);
   console.assert(typeof recordLength === 'number' && recordLength > 0);
 
-  const maxSamples = recordLength * context.sampleRate;
+  const recorderBufferSize = recordLength * context.sampleRate;
 
-  await context.audioWorklet.addModule('./util/recorder/recorder-processor.js');
+  let recorder;
 
-  const recorder = new AudioWorkletNode(context, 'recorder', {
-    processorOptions: {
-      maxSamples,
-    },
-  });
+  try {
+    recorder = new AudioWorkletNode(context, 'test-recorder', {
+      processorOptions: {
+        numberOfSamples: recorderBufferSize,
+      },
+    });
+  } catch {
+    await context.audioWorklet.addModule('./util/recorder/recorder-processor.js');
 
-  let bufferResolve;
-  recorder.port.onmessage = (e) => {
-    if (e.data.message === 'RECORD_DONE') {
-      const channelBuffers = e.data.buffer;
+    recorder = new AudioWorkletNode(context, 'test-recorder', {
+      processorOptions: {
+        numberOfSamples: recorderBufferSize,
+      },
+    });
+  }
+
+  let resolveWithRecording;
+  recorder.port.onmessage = (event) => {
+    if (event.data.message === 'RECORD_DONE') {
+      const {channelData} = event.data;
       const audioBuffer = new AudioBuffer({
-        length: maxSamples,
+        length: recorderBufferSize,
         sampleRate: context.sampleRate,
-        numberOfChannels: channelBuffers.length,
+        numberOfChannels: channelData.length,
       });
-      channelBuffers.forEach((array, i) => audioBuffer.copyToChannel(array, i));
+      channelData.forEach((array, i) => audioBuffer.copyToChannel(array, i));
 
-      bufferResolve(audioBuffer);
+      resolveWithRecording(audioBuffer);
     }
   };
 
   const bufferPromise = new Promise((resolve) => {
-    bufferResolve = resolve;
+    resolveWithRecording = resolve;
   });
 
   return {recorder, bufferPromise};
