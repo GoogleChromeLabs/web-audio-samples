@@ -4,7 +4,8 @@
  */
 import {convertTestFiles} from './test-file-converter.js';
 
-window._webAudioTestSuite = true;
+// Flag for live test suite environment
+window._isTestSuiteMode = true;
 
 const files = [
   'realtime-sine.html',
