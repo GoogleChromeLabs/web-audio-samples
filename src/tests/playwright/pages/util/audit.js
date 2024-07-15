@@ -36,8 +36,11 @@ export function beCloseTo(actual, expected, threshold) {
  * window._webAudioTest.
  */
 export const test = (testPromise) => {
+  // Current web audio test to run
   window._webAudioTest = testPromise;
-  window._webAudioTestSuite && window._webAudioTestIsRunning();
+  // Flag if test is run from the live suite and
+  // resolve that the web audio test is running
+  window._isTestSuiteMode && window._webAudioTestIsRunning();
 };
 
 /**
@@ -49,7 +52,7 @@ export const test = (testPromise) => {
  * @return {any}
  */
 export const evaluate =
-    (testFunction) =>  window.webAudioEvaluate = window._webAudioTestSuite
+    (testFunction) =>  window.webAudioEvaluate = window._isTestSuiteMode
         ? () => testFunction(window._webAudioTest)
         : testFunction(window._webAudioTest);
 

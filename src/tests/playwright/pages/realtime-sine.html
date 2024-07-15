@@ -9,13 +9,13 @@
         const context = new AudioContext({sampleRate: 48000});
         const oscillator = new OscillatorNode(context);
         const duration = 1; // second
-        const {recorder, bufferPromise} = await record(context, duration);
+        const {recorder, recordingCompletePromise} = await record(context, duration);
         oscillator.connect(recorder).connect(context.destination);
 
         oscillator.start();
 
-        const audioBuffer = await bufferPromise;
-        const float32Buffer = audioBuffer.getChannelData(0);
+        const recordedChannelBuffers = await recordingCompletePromise;
+        const float32Buffer = recordedChannelBuffers[0];
 
         await context.close();
         return {buffer: float32Buffer};
