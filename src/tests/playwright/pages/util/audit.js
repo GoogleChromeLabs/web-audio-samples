@@ -1,9 +1,9 @@
 /**
  * @fileoverview Web Audio Test Suite management and utility functions.
- * Specifies functions to define and evaluate Web Audio Tests and schedule 
- * execution making Web Audio tests compatible with Playwright and the 
- * Live Test Suite. Manages global test state for assertion handling. 
- * 
+ * Specifies functions to define and evaluate Web Audio Tests and schedule
+ * execution making Web Audio tests compatible with Playwright and the
+ * Live Test Suite. Manages global test state for assertion handling.
+ *
  * Additionally includes functions to validate audio processing.
  */
 
@@ -44,7 +44,7 @@ export const test = (testPromise) => {
 
 /**
  * Evaluates a Web Audio Test and assigns the result to window.webAudioEvaluate.
- * If window._webAudioTestSuite property is true, the function is assigned 
+ * If window._webAudioTestSuite property is true, the function is assigned
  * directly. Otherwise, the function is invoked immediately.
  *
  * @param {Function} testFunction - The test function to evaluate.
@@ -52,15 +52,15 @@ export const test = (testPromise) => {
  */
 export const evaluateTest =
     (testFunction) =>  window.webAudioEvaluate = window._isTestSuiteMode
-        ? () => testFunction(window._webAudioTest)
-        : testFunction(window._webAudioTest);
+        ? async () => testFunction(await window._webAudioTest)
+        : (async () => testFunction(await window._webAudioTest))();
 
 // global state to accumulate assert() tests
 const tests = [];
 
 /**
  * Asserts a condition and logs a message if the condition is not met.
- * If no arguments are specified, the function returns a boolean indicating 
+ * If no arguments are specified, the function returns a boolean indicating
  * whether all previous assertions were true.
  *
  * @param {boolean} condition - The condition to be checked.
