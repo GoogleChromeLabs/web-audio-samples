@@ -3,7 +3,7 @@
   <head>
     <script defer type="module">
       import {record} from './util/recorder/recorder-main.js';
-      import {beCloseTo, test, evaluate} from './util/audit.js';
+      import {beCloseTo, test, evaluateTest} from './util/audit.js';
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
@@ -21,7 +21,7 @@
         return {buffer: float32Buffer};
       })());
 
-      evaluate(async testResult => {
+      evaluateTest(async testResult => {
         const bufferData = (await testResult).buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 

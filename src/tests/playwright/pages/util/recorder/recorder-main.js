@@ -10,8 +10,8 @@
  * @param {number} recordDuration - The duration in seconds to record for.
  * @return {Object} An object containing:
  *   - {AudioWorkletNode} recorder: The recorder AudioWorkletNode.
- *   - {Promise<Array<Float32Array>>} recordingCompletePromise: A promise that 
- * resolves to an array of float32Arrays of each recorded channel.
+ *   - {Promise<Float32Array[]>} recordingCompletePromise: A promise that 
+ * resolves to an array of Float32Arrays of each recorded channel.
  */
 export const record = async (context, recordDuration) => {
   console.assert(context instanceof AudioContext);
@@ -19,11 +19,9 @@ export const record = async (context, recordDuration) => {
 
   const recorderBufferSize = recordDuration * context.sampleRate;
 
-  let recorder;
-
   await context.audioWorklet.addModule('./util/recorder/recorder-processor.js');
 
-  recorder = new AudioWorkletNode(context, 'test-recorder', {
+  const recorder = new AudioWorkletNode(context, 'test-recorder', {
     processorOptions: {
       numberOfSamples: recorderBufferSize,
     },
@@ -32,7 +30,7 @@ export const record = async (context, recordDuration) => {
   let resolveWithRecording;
   recorder.port.onmessage = (event) => {
     if (event.data.message === 'RECORD_DONE') {
-      // Array<Float32Array> channels of recorded samples
+      // Float32Array[] channels of recorded samples
       resolveWithRecording(event.data.channelData);
     }
   };

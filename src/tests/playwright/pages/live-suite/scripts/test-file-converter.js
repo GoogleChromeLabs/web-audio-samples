@@ -31,7 +31,7 @@ export const convertTestFiles = async (tests) => {
       script.textContent = scriptContent;
       document.head.appendChild(script);
 
-      // await when script loads in the live suite
+      // await until script loads in the live suite
       await new Promise((resolve) => window._webAudioTestIsRunning = resolve);
       const start = performance.now();
       await window._webAudioTest;

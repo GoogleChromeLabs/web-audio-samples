@@ -7,7 +7,3 @@ _site/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-## IDE and runtime ignores
-/.idea
-bun.lockb
