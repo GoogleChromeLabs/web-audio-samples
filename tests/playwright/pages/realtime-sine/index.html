@@ -22,7 +22,7 @@
       })());
 
       evaluateTest(async testResult => {
-        const bufferData = (await testResult).buffer;
+        const bufferData = testResult.buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
         // compare bufferData samples to reference
