@@ -11,7 +11,10 @@
     "start": "run-p start:*",
     "start:eleventy": "eleventy --serve",
     "start:postcss": "postcss src/styles/*.css --dir _site --watch",
-    "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html"
+    "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html",
+    "test": "npx playwright test",
+    "test-server": "npx http-server",
+    "test-live": "npx http-server ./src/tests/playwright/pages/"
   },
   "license": "MIT",
   "dependencies": {
@@ -29,5 +32,9 @@
     "prettier": "^3.2.5",
     "rimraf": "^5.0.7",
     "tailwindcss": "^3.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@types/node": "^20.12.13"
   }
 }
