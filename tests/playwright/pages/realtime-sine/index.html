@@ -5,8 +5,6 @@
       import {record} from './util/recorder/recorder-main.js';
       import {beCloseTo, test, evaluateTest} from './util/audit.js';
 
-      const expectedAccuracy = 0.998;
-
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const oscillator = new OscillatorNode(context);
@@ -23,7 +21,7 @@
         return {buffer: float32Buffer};
       })());
 
-      evaluateTest(async testResult => {
+      evaluateTest(async (testResult) => {
         const bufferData = testResult.buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
@@ -35,7 +33,7 @@
         console.info('% match:', numberOfAcceptableSamples / bufferData.length);
 
         // return true if 99.8% pass
-        return numberOfAcceptableSamples / bufferData.length > expectedAccuracy;
+        return numberOfAcceptableSamples / bufferData.length > .998;
       });
     </script>
     <title>Realtime Sine Oscillator Test</title>
