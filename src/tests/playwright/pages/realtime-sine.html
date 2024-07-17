@@ -5,6 +5,8 @@
       import {record} from './util/recorder/recorder-main.js';
       import {beCloseTo, test, evaluateTest} from './util/audit.js';
 
+      const expectedAccuracy = 0.998;
+
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const oscillator = new OscillatorNode(context);
@@ -33,7 +35,7 @@
         console.info('% match:', numberOfAcceptableSamples / bufferData.length);
 
         // return true if 99.8% pass
-        return numberOfAcceptableSamples / bufferData.length > .998;
+        return numberOfAcceptableSamples / bufferData.length > expectedAccuracy;
       });
     </script>
     <title>Realtime Sine Oscillator Test</title>
