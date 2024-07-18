@@ -23,7 +23,7 @@
         return {buffer: float32Buffer};
       })());
 
-      evaluateTest(async (testResult) => {
+      evaluateTest(async testResult => {
         const bufferData = testResult.buffer;
         const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
 
