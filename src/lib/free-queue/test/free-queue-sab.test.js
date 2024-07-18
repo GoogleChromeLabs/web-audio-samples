@@ -41,8 +41,14 @@ describe('FreeQueueSAB', function() {
         });
 
         it('should fail to push data when buffer is full', function() {
-            const input = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
-            const result = queue.push(input, bufferLength);
+            const input = [new Float32Array(queue.getBufferLength()), new Float32Array(queue.getBufferLength())];
+            
+            let result = queue.push(input, queue.getBufferLength());
+            console.log("Push result when buffer is full:", result);
+            expect(result).to.be.true;
+    
+            result = queue.push(input, queue.getBufferLength());
+            console.log("Push result when attempting to overfill buffer:", result);
             expect(result).to.be.false;
         });
     });
