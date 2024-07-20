@@ -100,17 +100,18 @@ To add your test to Playwright and the Live Suite:
 ## Playwright Configuration
 
 Playwright runs each test headlessly in an isolated [BrowserContext](https://playwright.dev/docs/api/class-browsercontext).
-To configure which browsers Playwright uses, browser projects are specified in 
-[playwright.config.ts](../../../playwright.config.ts) under `projects`. 
+To configure which browsers Playwright uses, multiple browser projects can be 
+added in [playwright.config.ts](../../../playwright.config.ts) under `projects`. 
 By default, Playwright uses the latest stable version of Chromium. The latest 
 version is listed on the [Playwright GitHub](https://github.com/microsoft/playwright?tab=readme-ov-file#documentation--api-reference).
 
-Playwright can also use your local browser application, e.g. Chrome or 
-Chrome Canary, for testing. More details can be found in Playwright's 
-documentation [here](https://playwright.dev/docs/browsers#run-tests-on-different-browsers).
+Playwright tests can also be run on your local Chrome application or 
+Chrome Canary. More details can be found in Playwright's documentation 
+[here](https://playwright.dev/docs/browsers#run-tests-on-different-browsers).
 
-To use a custom browser (e.g. older version of Chromium), manually download and 
-specify your browser executable path. Add your browser to `playwright.config.ts`
+To test a custom Chromium executable (e.g. older version of Chromium), manually 
+download and specify your browser executable path. Add your browser to 
+`playwright.config.ts` as shown below:
 
 ```ts
 {
@@ -127,9 +128,8 @@ specify your browser executable path. Add your browser to `playwright.config.ts`
 ```
 
 For Chromium, these `launchOptions` parameters are necessary for Web Audio Tests:
-- `ignoreDefaultArgs: ['--mute-audio]` - prevent browser audio from being muted. 
-- `args: ['--autoplay-policy=no-user-gesture-required']` - disable user gesture
-  requirement for AudioContext to start
+- `ignoreDefaultArgs: ['--mute-audio']` - prevent browser audio from being muted. 
+- `args: ['--autoplay-policy=no-user-gesture-required']` - disable user gesture requirement for AudioContext to start
 
 ## Web Audio Test Suite APIs
 
