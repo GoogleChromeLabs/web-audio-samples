@@ -9,9 +9,6 @@ window._isTestSuiteMode = true;
 
 const files = [
   'realtime-sine.html',
-  'perf-gain.html',
-  'perf-panner.html',
-  'perf-timeline-insert-event.html',
 ];
 
 convertTestFiles(files);
