@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import {test, evaluateTest, assert} from './util/audit.js';
+
+      test(new Promise((resolve) => {
+        const context = new AudioContext();
+        // resolved object is passed to evaluateTest as testResult
+        resolve(context);
+      }));
+
+      evaluateTest((testResult) => {
+        assert(testResult instanceof AudioContext, 'Test result is not an instance of AudioContext.');
+        // returns true if test passes
+        return assert();
+      });
+    </script>
+    <title>My Web Audio Test</title>
+  </head>
+  <body>
+    <h1>My Web Audio Test</h1>
+    <p>My web audio test description.</p>
+  </body>
+</html>
