@@ -24,6 +24,9 @@ jobs:
       run: |
         npm install
         npm run build
+        cp src/tests/playwright/pages/live-suite/style.css _site/tests/playwright/pages/live-suite/style.css
+        mkdir _site/tests/playwright/pages/reference
+        cp src/tests/playwright/pages/reference/440@48k-sine-octx.json _site/tests/playwright/pages/reference/440@48k-sine-octx.json
     - name: deploy _site to gh-pages
       uses: s0/git-publish-subdir-action@develop
       env:
