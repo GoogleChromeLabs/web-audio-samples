@@ -40,3 +40,7 @@ test('Performance Gain Test', async ({page}) => {
 test('Performance Panner Test', async ({page}) => {
   await page.goto('pages/perf-panner.html');
 });
+
+test('Performance Timeline Insert Event Test', async ({page}) => {
+  await page.goto('pages/perf-timeline-insert-event.html');
+});
