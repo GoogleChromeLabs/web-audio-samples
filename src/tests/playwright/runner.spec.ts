@@ -29,3 +29,14 @@ test.afterEach(async ({page}) => {
 test('Hello Sine (realtime)', async ({page}) => {
   await page.goto('pages/realtime-sine.html');
 });
+
+// -----------------------------------------------------------------------------
+// PERFORMANCE SUITE
+// -----------------------------------------------------------------------------
+test('Performance Gain Test', async ({page}) => {
+  await page.goto('pages/perf-gain.html');
+});
+
+test('Performance Panner Test', async ({page}) => {
+  await page.goto('pages/perf-panner.html');
+});
