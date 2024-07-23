@@ -190,6 +190,10 @@ class FreeQueue {
     // The channel count of arraySequence and the length of each channel must
     // match with this buffer obejct.
 
+    if (arraySequence.length !== this._channelCount) {
+      throw new Error('Channel count mismatch');
+    }
+
     // Transfer data from the |arraySequence| storage to the internal buffer.
     const sourceLength = arraySequence[0].length;
     for (let i = 0; i < sourceLength; ++i) {
@@ -214,6 +218,10 @@ class FreeQueue {
   pull(arraySequence) {
     // The channel count of arraySequence and the length of each channel must
     // match with this buffer obejct.
+
+    if (arraySequence.length !== this._channelCount) {
+      throw new Error('Channel count mismatch');
+    }
 
     // If the FIFO is completely empty, do nothing.
     if (this._framesAvailable === 0) {
