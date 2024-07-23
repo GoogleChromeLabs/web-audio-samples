@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeQueue Tests</title>
+    <title>FreeQueueSAB Tests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.6.0/mocha.css" integrity="sha512-xPbP9qFwQklQFQX6R6+36vNq6mZatPrpfEKUB/zWASwZvfDBy8Y2gEpkRuDlZ0WCiZZGMPyluZif5v2KKxylqg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
       .head {
@@ -19,7 +19,7 @@
   </style>
 </head>
 <body>
-    <h1 class="head">FreeQueue Test</h1>
+    <h1 class="head">FreeQueueSAB Test</h1>
     <div id="mocha"></div>
     <button id="run-tests">Run Tests</button>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.6.0/mocha.min.js" integrity="sha512-Wt8lK9Rbdq3uAOR9lm7Fy+XTPP0xie3DzFQ0JTzQLGPvdZ7tDFMqHOJq6hbB4v8uvj7xaBEsINRs7K7HTfi9wA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -28,7 +28,7 @@
         mocha.setup('bdd');
     </script>
     <script src="../coi-serviceworker.js"></script>
-    <script type="module" src="./free-queue.test.js"></script>
+    <script type="module" src="./free-queue-sab.test.js"></script>
     <script>
         document.getElementById('run-tests').addEventListener('click', function() {
             mocha.run();
