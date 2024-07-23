@@ -54,7 +54,7 @@
     - title: WebGL Pool with 3D audio
       description: Play pool in your browser
       href: demos/pool/
-    - title: Web Audio Tests
+    - title: Web Audio Test Suite
       description: Various Web Audio tests
       href: tests/
 
