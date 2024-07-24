@@ -16,19 +16,17 @@
         return Math.floor(0.5 + time * sampleRate);
       }
 
-      function renderLength(numberOfEvents, timeInterval) {
-        return timeToSampleFrame((numberOfEvents + 1) * timeInterval, sampleRate);
-      }
-
+      // Compute duration (in seconds) for all events
       function renderDuration(numberOfEvents, timeInterval) {
         return numberOfEvents * timeInterval; 
       }
 
-      const context = new AudioContext({sampleRate});
-      console.log("Measures performance of 10k InsertEvents using calls to setValueAtTime.");
-      console.log("duration:", renderDuration(numberOfEvents, timeInterval));
+      console.log('Measures performance of 10k InsertEvents using calls to setValueAtTime.');
+      console.log('duration:', renderDuration(numberOfEvents, timeInterval), 
+          'seconds');
 
       test(new Promise(async (resolve) => {
+        const context = new AudioContext({sampleRate})
         const oscillator = new OscillatorNode(context);
         const gainNode = new GainNode(context);
         oscillator.connect(gainNode).connect(context.destination);
@@ -44,11 +42,12 @@
         oscillator.stop(context.currentTime + 
             renderDuration(numberOfEvents, timeInterval));
 
-        oscillator.onended = resolve;
+        await new Promise((resolve) => oscillator.onended = resolve);
+        resolve({context});
       }));
 
       evaluateTest(async (testResult) => {
-        await context.close();
+        await testResult.context.close();
         return true;
       });
     </script>

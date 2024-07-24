@@ -1,36 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
   <head>
-    <script defer type="module">
+    <script defer type='module'>
       import {record} from './util/recorder/recorder-main.js';
       import {test, evaluateTest, assert, beCloseTo} from './util/audit.js';
 
       const NUM_PANNER_NODES = 100;
-
-      const context = new AudioContext({sampleRate: 48000});
+      console.log('Test performance of 100 PannerNodes (HRTF)');
 
       test((async () => {
+        const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
         const pannerNodes = Array(NUM_PANNER_NODES).fill().map(() => 
             new PannerNode(context), {panningModel: 'HRTF'});
         pannerNodes.forEach((g, i) => i !== 0 && pannerNodes[i - 1].connect(g));
         constantSource.connect(pannerNodes[0]);
-        // connect last panner node to destination
+        // connect last node to destination
         pannerNodes.at(-1).connect(context.destination);
 
         constantSource.start();
         constantSource.stop(context.currentTime + 1);
 
-        await new Promise(resolve => {
-          constantSource.onended = resolve;
-        });
-
-        return true;
+        await new Promise((resolve) => constantSource.onended = resolve);
+        return {context};
       })());
 
-      evaluateTest((testResult) => {
-        context.close();
-        return testResult;
+      evaluateTest(async (testResult) => {
+        await testResult.context.close();
+        return true;
       });
     </script>
     <title>Panner Performance Test</title>
