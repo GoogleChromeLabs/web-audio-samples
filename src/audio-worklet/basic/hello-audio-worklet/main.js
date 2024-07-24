@@ -15,7 +15,7 @@ const startAudio = async (context) => {
     oscillatorNode.connect(bypasser).connect(context.destination);
     oscillatorNode.start();
     isModuleLoaded = true;
-  } else context.resume();
+  }
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
@@ -30,23 +30,12 @@ window.addEventListener('load', async () => {
       isPlaying = true;
       buttonEl.textContent = 'Playing...';
       buttonEl.classList.remove('start-button');
+      audioContext.resume();
     } else {
       audioContext.suspend();
       isPlaying = false;
       buttonEl.textContent = 'START';
       buttonEl.classList.add('start-button');
-    }
-  });
-
-  buttonEl.addEventListener('mouseenter', () => {
-    if (isPlaying) {
-      buttonEl.textContent = 'STOP';
-    }
-  });
-
-  buttonEl.addEventListener('mouseleave', () => {
-    if (isPlaying) {
-      buttonEl.textContent = 'Playing...';
     }
   });
 });
