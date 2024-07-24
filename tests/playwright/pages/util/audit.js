@@ -51,9 +51,9 @@ export const test = (testPromise) => {
  * @return {any}
  */
 export const evaluateTest =
-    (testFunction) => window.webAudioEvaluate = window._isTestSuiteMode ?
-        async () => testFunction(await window._webAudioTest) :
-        (async () => testFunction(await window._webAudioTest))();
+    (testFunction) =>  window.webAudioEvaluate = window._isTestSuiteMode
+        ? async () => testFunction(await window._webAudioTest)
+        : (async () => testFunction(await window._webAudioTest))();
 
 // global state to accumulate assert() tests
 const tests = [];
