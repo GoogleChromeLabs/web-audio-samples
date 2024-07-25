@@ -7,9 +7,8 @@
 
       const NUM_BUFFER_NODES = 100;
       const SAMPLE_RATE = 48000;
-      const DURATION = 1;
-      console.log('Test performance of 100 AudioBufferSourceNodes');
-      console.log('duration 100ms');
+      console.info('Test performance of 100 AudioBufferSourceNodes');
+      console.info('duration 100ms');
 
       /**
        * Creates an AudioBuffer with up-ramp samples.
@@ -19,17 +18,18 @@
        * @returns {AudioBuffer}
        */
       function createMonoRampBuffer(length, sampleRate) {
-        let buffer = new AudioBuffer({numberOfChannel: 1, length, sampleRate});
+        let buffer = new AudioBuffer({numberOfChannels: 1, length, sampleRate});
         let channelData = buffer.getChannelData(0);
-        for (let i = 0; i < length; ++i)
+        for (let i = 0; i < length; ++i) {
           channelData[i] = i / length;
+        }
         return buffer;
       }
 
       test((async () => {
         const context = new AudioContext({sampleRate: SAMPLE_RATE});
         const buffer = createMonoRampBuffer(4800, SAMPLE_RATE);
-        const bufferNodes = Array(NUM_BUFFER_NODES).fill().map(() => 
+        const bufferNodes = Array(NUM_BUFFER_NODES).fill().map(() =>
             new AudioBufferSourceNode(context, {buffer}));
 
         // All the buffer nodes fan-in to the destination node.
@@ -51,7 +51,7 @@
   </head>
   <body>
     <h1>Audio Buffer Source Node Performance Test</h1>
-    <p>Test performance of 100 AudioBufferSourceNode; Port of 
+    <p>Test performance of 100 AudioBufferSourceNode; Port of
       <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/audio-buffer-source-node.html">
         Blink WPT Performance Audio Buffer Source Node Test</a>
     </p>

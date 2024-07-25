@@ -2,30 +2,25 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import {test, evaluateTest, assert} from './util/audit.js';
+      import {evaluateTest, test} from './util/audit.js';
 
       // Number of events to insert.
       const numberOfEvents = 10000;
       const sampleRate = 44100;
-      const timeInterval = .0003; // changed from .03
+      // time interval changed from .03
+      const timeInterval = .0003;
       const initialValue = 1;
       const startingValueDelta = initialValue / numberOfEvents;
 
-      // Convert time (in seconds) to sample frames.
-      function timeToSampleFrame(time, sampleRate) {
-        return Math.floor(0.5 + time * sampleRate);
-      }
-
       // Compute duration (in seconds) for all events
-      function renderDuration(numberOfEvents, timeInterval) {
-        return numberOfEvents * timeInterval; 
-      }
+      const renderDuration = (numberOfEvents, timeInterval) =>
+        numberOfEvents * timeInterval;
 
-      console.log('Measures performance of 10k InsertEvents using calls to setValueAtTime.');
-      console.log('duration:', renderDuration(numberOfEvents, timeInterval), 
+      console.info('Measures performance of 10k InsertEvents using calls to setValueAtTime.');
+      console.info('duration:', renderDuration(numberOfEvents, timeInterval),
           'seconds');
 
-      test(new Promise(async (resolve) => {
+      test((async () => {
         const context = new AudioContext({sampleRate})
         const oscillator = new OscillatorNode(context);
         const gainNode = new GainNode(context);
@@ -39,12 +34,12 @@
         }
 
         oscillator.start();
-        oscillator.stop(context.currentTime + 
+        oscillator.stop(context.currentTime +
             renderDuration(numberOfEvents, timeInterval));
 
         await new Promise((resolve) => oscillator.onended = resolve);
-        resolve({context});
-      }));
+        return {context};
+      })());
 
       evaluateTest(async (testResult) => {
         await testResult.context.close();
@@ -55,7 +50,7 @@
   </head>
   <body>
     <h1>Timeline Insert Event Performance Test</h1>
-    <p>Test performance of AudioParamTimeline::InsertEvent; Port of 
+    <p>Test performance of AudioParamTimeline::InsertEvent; Port of
       <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/timeline-insert-event.html">
         Blink WPT Performance Timeline Insert Event Test</a>
     </p>
