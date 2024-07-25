@@ -10,7 +10,8 @@ class RecorderProcessor extends AudioWorkletProcessor {
     super();
     this._position = 0;
     this._numberOfSamples = options.processorOptions.numberOfSamples;
-    this._channelData = new Array(this.numberOfChannels)
+    this._numberOfChannels = options.processorOptions.numberOfChannels;
+    this._channelData = new Array(this._numberOfChannels)
         .fill(new Float32Array(this._numberOfSamples));
   }
 
