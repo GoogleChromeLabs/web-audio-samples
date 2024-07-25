@@ -2,16 +2,15 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import {record} from './util/recorder/recorder-main.js';
-      import {test, evaluateTest, assert, beCloseTo} from './util/audit.js';
+      import {evaluateTest, test} from './util/audit.js';
 
       const NUM_FILTER_NODES = 50;
-      console.log('Test performance of 100 BiquadFilterNodes');
+      console.info('Test performance of 100 BiquadFilterNodes');
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
-        const biquadNodes = Array(NUM_FILTER_NODES).fill().map(() => 
+        const biquadNodes = Array(NUM_FILTER_NODES).fill().map(() =>
             new BiquadFilterNode(context));
         biquadNodes.forEach((g, i) => i !== 0 && biquadNodes[i - 1].connect(g));
         constantSource.connect(biquadNodes[0]);
@@ -34,7 +33,7 @@
   </head>
   <body>
     <h1>Biquad Filter Node Performance Test</h1>
-    <p>Test performance of ConstantSourceNode => 100 Biquad Filter Node Nodes; 
+    <p>Test performance of ConstantSourceNode => 100 Biquad Filter Node Nodes;
       Port of <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/biquad-filter-node.html">
         Blink WPT Performance Biquad Filter Node Test</a>
     </p>

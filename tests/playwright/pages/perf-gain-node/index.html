@@ -2,16 +2,15 @@
 <html lang="en">
   <head>
     <script defer type="module">
-      import {record} from './util/recorder/recorder-main.js';
-      import {test, evaluateTest, assert, beCloseTo} from './util/audit.js';
+      import {evaluateTest, test} from './util/audit.js';
 
       const NUM_GAIN_NODES = 100;
-      console.log('Test performance of 100 GainNodes');
+      console.info('Test performance of 100 GainNodes');
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
-        const gainNodes = Array(NUM_GAIN_NODES).fill().map(() => 
+        const gainNodes = Array(NUM_GAIN_NODES).fill().map(() =>
             new GainNode(context));
         gainNodes.forEach((g, i) => i !== 0 && gainNodes[i - 1].connect(g));
         constantSource.connect(gainNodes[0]);
@@ -34,7 +33,7 @@
   </head>
   <body>
     <h1>Gain Performance Test</h1>
-    <p>Test performance of ConstantSourceNode => 100 Gain Nodes; Port of 
+    <p>Test performance of ConstantSourceNode => 100 Gain Nodes; Port of
       <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/gain-node.html">
         Blink WPT Performance Gain Test</a>
     </p>
