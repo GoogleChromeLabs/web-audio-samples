@@ -191,7 +191,7 @@ class FreeQueue {
     // match with this buffer obejct.
 
     if (arraySequence.length !== this._channelCount) {
-      throw new Error('Channel count mismatch');
+      throw new Error(`Channel count mismatch: expected ${this._channelCount}, but got ${arraySequence.length}.`);
     }
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
@@ -220,7 +220,7 @@ class FreeQueue {
     // match with this buffer obejct.
 
     if (arraySequence.length !== this._channelCount) {
-      throw new Error('Channel count mismatch');
+      throw new Error(`Channel count mismatch: expected ${this._channelCount}, but got ${arraySequence.length}.`);
     }
 
     // If the FIFO is completely empty, do nothing.

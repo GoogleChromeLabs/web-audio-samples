@@ -3,16 +3,19 @@ import { FreeQueue, MAX_CHANNEL_COUNT, RENDER_QUANTUM_FRAMES } from '../free-que
 
 // Mock WASM module
 const mockWasmModule = {
-  _malloc: (size) => new ArrayBuffer(size), // Simulate memory allocation
-  _free: () => {}, // Simulate memory deallocation
-  HEAPF32: new Float32Array(1024), // Simulate HEAPF32
+  // Simulate memory allocation
+  _malloc: (size) => new ArrayBuffer(size), 
+  // Simulate memory deallocation
+  _free: () => {}, 
+  // Simulate HEAPF32
+  HEAPF32: new Float32Array(1024), 
 };
 
 describe('FreeQueue Class', () => {
   const bufferLength = 512;
   const channelCount = 2;
   const maxChannelCount = 4;
-  let freeQueue;
+  let freeQueue = null;
 
   beforeEach(() => {
     freeQueue = new FreeQueue(mockWasmModule, bufferLength, channelCount, maxChannelCount);
@@ -106,19 +109,30 @@ describe('FreeQueue Class', () => {
 
     it('should throw an error if pushing with mismatched channel count', () => {
       const invalidTestData = [new Float32Array(bufferLength).fill(1)];
-      expect(() => freeQueue.push(invalidTestData)).to.throw(Error, 'Channel count mismatch');
+      
+      const expectedChannelCount = freeQueue._channelCount; 
+      const actualChannelCount = invalidTestData.length;
+    
+      expect(() => freeQueue.push(invalidTestData))
+        .to.throw(Error, `Channel count mismatch: expected ${expectedChannelCount}, but got ${actualChannelCount}.`);
     });
 
     it('should throw an error if pulling with mismatched channel count', () => {
-      const invalidOutputData = [new Float32Array(bufferLength)];
-      expect(() => freeQueue.pull(invalidOutputData)).to.throw(Error, 'Channel count mismatch');
+      const invalidOutputData = [new Float32Array(bufferLength)]; 
+      
+      const expectedChannelCount = freeQueue._channelCount; 
+      const actualChannelCount = invalidOutputData.length;
+    
+      expect(() => freeQueue.pull(invalidOutputData))
+        .to.throw(Error, `Channel count mismatch: expected ${expectedChannelCount}, but got ${actualChannelCount}.`);
     });
   });
 
   describe('Performance', () => {
     it('should efficiently handle large data transfers', function() {
-      this.timeout(5000);
-      const largeBuffer = 1024 * 1024; // 1 MB buffer
+      // this.timeout(5000);
+      // 1 MB buffer
+      const largeBuffer = 1024 * 1024; 
       const testData = [new Float32Array(largeBuffer).fill(1), new Float32Array(largeBuffer).fill(2)];
 
       const start = performance.now();
@@ -126,7 +140,8 @@ describe('FreeQueue Class', () => {
       freeQueue.pull(testData);
       const end = performance.now();
 
-      expect(end - start).to.be.below(1000); // Ensure operations complete within 1 second
+      // Ensure operations complete within 1 second
+      expect(end - start).to.be.below(1000); 
     });
 
     it('should perform consistently over many operations', function() {
@@ -140,8 +155,8 @@ describe('FreeQueue Class', () => {
         freeQueue.pull(testData);
       }
       const end = performance.now();
-
-      expect(end - start).to.be.below(5000); // Ensure it completes within 5 seconds
+      // Ensure it completes within 1 seconds
+      expect(end - start).to.be.below(1000); 
     });
   });
 });
