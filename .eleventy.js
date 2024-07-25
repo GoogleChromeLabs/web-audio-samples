@@ -26,15 +26,15 @@ module.exports = function(eleventyConfig) {
 
   // See .eleventyignore for files to ignore.
   eleventyConfig.setUseGitIgnore(false);
-  
+
   // To enable YAML files in `_data`.
   eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
-  
+
   // To handle relative paths and basic navigation via breadcrumbs.
   eleventyConfig.addPlugin(navigationPlugin);
   eleventyConfig.addFilter('relativePath', (fromPage, toUrl) => {
     return path.relative(fromPage.url, toUrl);
-  }); 
+  });
 
   if (process.env.ELEVENTY_ENV !== 'production') {
     eleventyConfig.setBrowserSyncConfig({});
@@ -42,7 +42,7 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addWatchTarget('src/**/*.js');
   eleventyConfig.addWatchTarget('src/styles/styles.css');
-  
+
   // Passthrough files via these glob patterns.
   [
     'src/library/**.js',
@@ -73,8 +73,10 @@ module.exports = function(eleventyConfig) {
     'src/sounds/hyper-reality/**/*.wav',
     'src/sounds/impulse-responses/**/*.wav',
     'src/sounds/loops/**/*.wav',
+    'src/tests/**/*.css',
     'src/tests/**/*.html',
     'src/tests/**/*.js',
+    'src/tests/**/*.json',
     'src/robots.txt',
     'src/README.md',
     'src/sitemap.xml',

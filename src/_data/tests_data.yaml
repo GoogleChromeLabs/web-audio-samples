@@ -6,3 +6,7 @@
     - title: Performance of PannerNode and AudioListener
       description: Manual test for performance of PannerNode and AudioListener
       href: pannernode/
+    - title: Web Audio Live Test Suite
+      description: "An interactive webpage for running performance and benchmark tests locally in your browser and
+      monitoring runtime"
+      href: playwright/pages/
