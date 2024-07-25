@@ -6,13 +6,13 @@
       import {test, evaluateTest, assert, beCloseTo} from './util/audit.js';
 
       const NUM_COMPRESSOR_NODES = 100;
-      console.log('Test performance of 100 DynamicsCompressorNodes (knee)');
+      console.info('Test performance of 100 DynamicsCompressorNodes (knee)');
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         // -24 dB default threshold is about 0.063, use 0.07
         const constantSource = new ConstantSourceNode(context, {offset: 0.07});
-        const dynamicsNodes = Array(NUM_COMPRESSOR_NODES).fill().map(() => 
+        const dynamicsNodes = Array(NUM_COMPRESSOR_NODES).fill().map(() =>
             new DynamicsCompressorNode(context, {
               attack: 0.003,
               knee: 30,
@@ -41,7 +41,7 @@
   </head>
   <body>
     <h1>Dynamics Compressor Knee Performance Test</h1>
-    <p>Test performance of ConstantSourceNode => 100 Dynamics Compressor Nodes; 
+    <p>Test performance of ConstantSourceNode => 100 Dynamics Compressor Nodes;
       Port of <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/dynamics-compressor-node-knee.html">
         Blink WPT Performance Dynamics Compressor Node Knee Test</a>
     </p>
