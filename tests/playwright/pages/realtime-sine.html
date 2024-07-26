@@ -30,7 +30,7 @@
         // compare bufferData samples to reference
         let numberOfAcceptableSamples = 0;
         for (let i = 0; i < bufferData.length; i++) {
-          numberOfAcceptableSamples += beCloseTo(bufferData[i], myRefData[i], 0.01)[0] ? 1 : 0;
+          numberOfAcceptableSamples += beCloseTo(bufferData[i], myRefData[i], 0.01) ? 1 : 0;
         }
         console.info('% match:', numberOfAcceptableSamples / bufferData.length);
 
