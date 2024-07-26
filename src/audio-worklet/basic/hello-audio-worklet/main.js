@@ -5,16 +5,25 @@
 const audioContext = new AudioContext();
 let isModuleLoaded = false;
 let isPlaying = false;
+let isGraphReady = false;
 let oscillatorNode = null;
+
+
+const loadGraph = (context) => {
+  oscillatorNode = new OscillatorNode(context);
+  const bypasser = new AudioWorkletNode(context, 'bypass-processor');
+  oscillatorNode.connect(bypasser).connect(context.destination);
+  oscillatorNode.start();
+};
 
 const startAudio = async (context) => {
   if (!isModuleLoaded) {
     await context.audioWorklet.addModule('bypass-processor.js');
-    oscillatorNode = new OscillatorNode(context);
-    const bypasser = new AudioWorkletNode(context, 'bypass-processor');
-    oscillatorNode.connect(bypasser).connect(context.destination);
-    oscillatorNode.start();
     isModuleLoaded = true;
+  }
+  if (!isGraphReady) {
+    loadGraph(audioContext);
+    isGraphReady = true;
   }
 };
 
