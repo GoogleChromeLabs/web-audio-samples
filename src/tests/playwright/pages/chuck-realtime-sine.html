@@ -4,17 +4,26 @@
     <script defer type="module">
       import {record} from './util/recorder/recorder-main.js';
       import {beCloseTo, test, evaluateTest} from './util/audit.js';
+      import {Chuck} from 'https://cdn.jsdelivr.net/npm/webchuck/+esm';
 
       const expectedAccuracy = 0.998;
 
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
-        const oscillator = new OscillatorNode(context);
+        await context.suspend();
+        // Initialize default ChucK object
+        const theChuck = await Chuck.init([], context, 1);
         const duration = 1; // second
         const {recorder, recordingCompletePromise} = await record(context, duration);
-        oscillator.connect(recorder).connect(context.destination);
+        theChuck.connect(recorder).connect(context.destination);
 
-        oscillator.start();
+        // Run ChucK code
+        theChuck.runCode(`
+          SinOsc sin => dac;
+          440 => sin.freq;
+          1::second => now;
+        `);
+        await context.resume();
 
         const recordedChannelBuffers = await recordingCompletePromise;
         const float32Buffer = recordedChannelBuffers[0];
@@ -38,10 +47,10 @@
         return numberOfAcceptableSamples / bufferData.length > expectedAccuracy;
       });
     </script>
-    <title>Realtime Sine Oscillator Test</title>
+    <title>Realtime Sine Oscillator Test (WebChucK)</title>
   </head>
   <body>
-    <h1>Realtime Sine Oscillator Test</h1>
+    <h1>Realtime Sine Oscillator Test (WebChucK)</h1>
     <p>Play a sine wave at 440Hz for 1 second at 48kHz sample rate.</p>
   </body>
 </html>
