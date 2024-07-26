@@ -79,23 +79,19 @@ Each Web Audio Test is comprised of two parts:
       Use `assert(condition: boolean, message: string)` for assertions and
       return `assert()` which evaluates if all assertions passed. 
 
-To add your test to Playwright and the Live Suite:
-1. Playwright
-    - Add your test to the end of `runner.spec.ts`
-    ```ts
-    test('My Web Audio Test Name', async ({page}) => {
-        await page.goto('pages/my-web-audio-test.html');
-    });
-    ```
-2. Live Suite
-    - Add your test HTML file name to the `files` array in
-      [pages/live-suite/scripts/main.js](./pages/live-suite/scripts/main.js)
-    ```js
-    const files = [
-        // ...other tests
-        'test-name.html',
-    ];
-    ```
+### To add your test to Web Audio Test Suite:
+
+Add an entry to [pages/tests.json](pages/tests.json) a test group using the
+following schema:
+
+```json
+{
+  "name": "My Web Audio Test",
+  "path": "pages/template.html"
+}
+```
+
+Make sure that the `path` contains `pages/`.
 
 ## Playwright Configuration
 

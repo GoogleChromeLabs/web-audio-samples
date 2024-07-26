@@ -10,9 +10,12 @@
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
-        const pannerNodes = Array(NUM_PANNER_NODES).fill().map(() =>
-            new PannerNode(context), {panningModel: 'HRTF'});
-        pannerNodes.forEach((g, i) => i !== 0 && pannerNodes[i - 1].connect(g));
+
+        const pannerNodes = Array(NUM_PANNER_NODES).fill();
+        pannerNodes.forEach((_, i) => {
+          pannerNodes[i] = new PannerNode(context, {panningModel: 'HRTF'});
+          if (i !== 0) pannerNodes[i - 1].connect(pannerNodes[i]); 
+        });
         constantSource.connect(pannerNodes[0]);
         // connect last node to destination
         pannerNodes.at(-1).connect(context.destination);

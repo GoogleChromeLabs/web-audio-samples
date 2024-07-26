@@ -29,13 +29,13 @@
       test((async () => {
         const context = new AudioContext({sampleRate: SAMPLE_RATE});
         const buffer = createMonoRampBuffer(4800, SAMPLE_RATE);
-        const bufferNodes = Array(NUM_BUFFER_NODES).fill().map(() =>
-            new AudioBufferSourceNode(context, {buffer}));
 
-        // All the buffer nodes fan-in to the destination node.
-        bufferNodes.forEach(node => {
-          node.connect(context.destination);
-          node.start();
+        const bufferNodes = Array(NUM_BUFFER_NODES).fill();
+        bufferNodes.forEach((_, i) => {
+          bufferNodes[i] = new AudioBufferSourceNode(context, {buffer});
+          // All the buffer nodes fan-in to the destination node.
+          bufferNodes[i].connect(context.destination);
+          bufferNodes[i].start();
         });
 
         await new Promise((resolve) => bufferNodes[0].onended = resolve);

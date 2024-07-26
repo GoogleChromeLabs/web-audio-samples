@@ -12,9 +12,11 @@
         await context.audioWorklet.addModule('./util/bypass-processor.js');
         const constantSource = new ConstantSourceNode(context);
 
-        const workletNodes = Array(NUM_WORKLET_NODES).fill().map(() =>
-            new AudioWorkletNode(context, 'bypass-processor'));
-        workletNodes.forEach((g, i) => i !== 0 && workletNodes[i - 1].connect(g));
+        const workletNodes = Array(NUM_WORKLET_NODES).fill();
+        workletNodes.forEach((_, i) => {
+          workletNodes[i] = new AudioWorkletNode(context, 'bypass-processor');
+          if (i !== 0) workletNodes[i - 1].connect(workletNodes[i]); 
+        });
         constantSource.connect(workletNodes[0]);
         // connect last node to destination
         workletNodes.at(-1).connect(context.destination);

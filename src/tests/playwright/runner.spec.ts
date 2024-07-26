@@ -5,6 +5,7 @@
  * returns true.
  */
 import {test, expect} from '@playwright/test';
+import tests from './pages/tests.json';
 
 // Capture test console logs
 test.beforeEach(async ({page}) =>
@@ -22,49 +23,18 @@ test.afterEach(async ({page}) => {
   expect(result).toBeTruthy();
 });
 
-
-// -----------------------------------------------------------------------------
-// TEST SUITE
-// -----------------------------------------------------------------------------
-test('Hello Sine (realtime)', async ({page}) => {
-  await page.goto('pages/realtime-sine.html');
+test.describe('Benchmark Tests', () => {
+  tests.benchmark.forEach(({name, path}) => {
+    test(name, async ({page}) => {
+      await page.goto(path);
+    });
+  });
 });
 
-// -----------------------------------------------------------------------------
-// PERFORMANCE SUITE
-// -----------------------------------------------------------------------------
-test('Performance Gain Test', async ({page}) => {
-  await page.goto('pages/perf-gain-node.html');
-});
-
-test('Performance Panner Test', async ({page}) => {
-  await page.goto('pages/perf-panner-node.html');
-});
-
-test('Performance Timeline Insert Event Test', async ({page}) => {
-  await page.goto('pages/perf-timeline-insert-event.html');
-});
-
-test('Performance Audio Buffer Source Test', async ({page}) => {
-  await page.goto('pages/perf-audio-buffer-source-node.html');
-});
-
-test('Performance Audio Worklet Node Test', async ({page}) => {
-  await page.goto('pages/perf-audio-worklet-node.html');
-});
-
-test('Performance Biquad Filter Node Test', async ({page}) => {
-  await page.goto('pages/perf-biquad-filter-node.html');
-});
-
-test('Performance Dynamics Compressor Node (Knee) Test', async ({page}) => {
-  await page.goto('pages/perf-dynamics-compressor-node-knee.html');
-});
-
-test('Performance Dynamics Compressor Node (Post-Knee) Test', async ({page}) => {
-  await page.goto('pages/perf-dynamics-compressor-node-post-knee.html');
-});
-
-test('Performance Dynamics Compressor Node (Pre-Knee) Test', async ({page}) => {
-  await page.goto('pages/perf-dynamics-compressor-node-pre-knee.html');
+test.describe('Performance Tests', () => {
+  tests.performance.forEach(({name, path}) => {
+    test(name, async ({page}) => {
+      await page.goto(path);
+    });
+  });
 });
