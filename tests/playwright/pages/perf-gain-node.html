@@ -10,9 +10,11 @@
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
-        const gainNodes = Array(NUM_GAIN_NODES).fill().map(() =>
-            new GainNode(context));
-        gainNodes.forEach((g, i) => i !== 0 && gainNodes[i - 1].connect(g));
+        const gainNodes = Array(NUM_GAIN_NODES).fill();
+        gainNodes.forEach((_, i) => {
+          gainNodes[i] = new GainNode(context);
+          if (i !== 0) gainNodes[i - 1].connect(gainNodes[i]); 
+        });
         constantSource.connect(gainNodes[0]);
         // connect last node to destination
         gainNodes.at(-1).connect(context.destination);

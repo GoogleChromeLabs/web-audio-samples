@@ -10,9 +10,12 @@
       test((async () => {
         const context = new AudioContext({sampleRate: 48000});
         const constantSource = new ConstantSourceNode(context);
-        const biquadNodes = Array(NUM_FILTER_NODES).fill().map(() =>
-            new BiquadFilterNode(context));
-        biquadNodes.forEach((g, i) => i !== 0 && biquadNodes[i - 1].connect(g));
+
+        const biquadNodes = Array(NUM_FILTER_NODES).fill();
+        biquadNodes.forEach((_, i) => {
+          biquadNodes[i] = new BiquadFilterNode(context);
+          if (i !== 0) biquadNodes[i - 1].connect(biquadNodes[i]); 
+        });
         constantSource.connect(biquadNodes[0]);
         // connect last node to destination
         biquadNodes.at(-1).connect(context.destination);
