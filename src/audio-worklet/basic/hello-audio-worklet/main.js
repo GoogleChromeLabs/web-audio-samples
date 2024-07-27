@@ -8,7 +8,6 @@ let isPlaying = false;
 let isGraphReady = false;
 let oscillatorNode = null;
 
-
 const loadGraph = (context) => {
   oscillatorNode = new OscillatorNode(context);
   const bypasser = new AudioWorkletNode(context, 'bypass-processor');
