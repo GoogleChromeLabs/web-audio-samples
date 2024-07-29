@@ -25,7 +25,7 @@ export function beCloseTo(actual, expected, threshold) {
 
 /**
  * Compare two float32arrays sample-by-sample using a relative error threshold.
- * Default threshold is 0.01.
+ * Default threshold is 0.01 for relative floating-point comparison.
  * @param {Float32Array} actualData - actual array of samples.
  * @param {Float32Array} expectedData - expected array of samples.
  * @param {number} threshold - threshold for sample similarity comparison

@@ -28,6 +28,7 @@
         await context.close();
         const actualBufferData = testResult.buffer;
         const expectedData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
+        // almost all samples should match across systems
         const matchThreshold = 0.998;
 
         return compareBufferData(actualBufferData, expectedData) > matchThreshold;
