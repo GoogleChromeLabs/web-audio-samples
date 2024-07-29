@@ -150,8 +150,8 @@ Check if `actual` is close to `expected` using the given relative error
 #### `compareBufferData(actualBuffer: Float32Array, expectedBuffer: Float32Array, threshold: number): number`
 
 Compare two float32arrays sample-by-sample using a relative error threshold.
-Default threshold is 0.01. Returns a float for the percentage of array samples
-that are similar.
+Default threshold is 0.01 for relative floating-point comparison. Returns a 
+float for the percentage of array samples that are similar.
 
 #### `test(testPromise: Promise<T>): void`
 
