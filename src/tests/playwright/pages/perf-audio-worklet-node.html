@@ -11,7 +11,6 @@
         const context = new AudioContext({sampleRate: 48000});
         await context.audioWorklet.addModule('./util/bypass-processor.js');
         const constantSource = new ConstantSourceNode(context);
-
         const workletNodes = Array(NUM_WORKLET_NODES).fill();
         workletNodes.forEach((_, i) => {
           workletNodes[i] = new AudioWorkletNode(context, 'bypass-processor');

@@ -142,11 +142,16 @@ Below are some helpful tools for writing Web Audio Tests:
 import {test, evaluateTest} from './util/audit.js';
 ```
 
-#### `beCloseTo(actual: number, expected: number, threshold: number): [boolean, string]`
+#### `beCloseTo(actual: number, expected: number, threshold: number): boolean`
 
 Check if `actual` is close to `expected` using the given relative error
-`threshold`. A detailed message string is returned if false. This can be used
-with `assert()`.
+`threshold`.
+
+#### `compareBufferData(actualBuffer: Float32Array, expectedBuffer: Float32Array, threshold: number): number`
+
+Compare two float32arrays sample-by-sample using a relative error threshold.
+Default threshold is 0.01. Returns a float for the percentage of array samples
+that are similar.
 
 #### `test(testPromise: Promise<T>): void`
 

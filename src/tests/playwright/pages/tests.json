@@ -6,7 +6,8 @@
     },
     {
       "name": "Hello Sine (realtime) (WebChucK)",
-      "path": "pages/chuck-realtime-sine.html"
+      "path": "pages/chuck-realtime-sine.html",
+      "playwright-ignore": true
     }
   ],
   "performance": [

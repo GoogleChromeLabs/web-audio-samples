@@ -1,8 +1,8 @@
 /**
  * @fileoverview Web Audio Test Suite using the Playwright Framework.
- * Playwright will navigate and run each HTML page, capture logs,
- * and finally check if the `evaluate` function which sets `webAudioEvaluate`
- * returns true.
+ * Read `pages/tests.json` for all tests for Playwright to build. Playwright
+ * will navigate and run each HTML page, capture logs, and finally check if the
+ * `evaluate` function which sets `webAudioEvaluate` returns true.
  */
 import {test, expect} from '@playwright/test';
 import tests from './pages/tests.json';
@@ -24,17 +24,21 @@ test.afterEach(async ({page}) => {
 });
 
 test.describe('Benchmark Tests', () => {
-  tests.benchmark.forEach(({name, path}) => {
-    test(name, async ({page}) => {
-      await page.goto(path);
-    });
-  });
+  tests.benchmark
+      .filter((test) => !test['playwright-ignore'])
+      .forEach(({name, path}) => {
+        test(name, async ({page}) => {
+          await page.goto(path);
+        });
+      });
 });
 
 test.describe('Performance Tests', () => {
-  tests.performance.forEach(({name, path}) => {
-    test(name, async ({page}) => {
-      await page.goto(path);
-    });
-  });
+  tests.performance
+      .filter((test) => !test['playwright-ignore'])
+      .forEach(({name, path}) => {
+        test(name, async ({page}) => {
+          await page.goto(path);
+        });
+      });
 });

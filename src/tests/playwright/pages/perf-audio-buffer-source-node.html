@@ -3,7 +3,7 @@
   <head>
     <script defer type="module">
       import {record} from './util/recorder/recorder-main.js';
-      import {test, evaluateTest, assert, beCloseTo} from './util/audit.js';
+      import {test, evaluateTest} from './util/audit.js';
 
       const NUM_BUFFER_NODES = 100;
       const SAMPLE_RATE = 48000;
@@ -38,6 +38,7 @@
           bufferNodes[i].start();
         });
 
+        // Wait for first buffer node to finish
         await new Promise((resolve) => bufferNodes[0].onended = resolve);
         return {context};
       })());
