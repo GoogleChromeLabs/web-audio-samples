@@ -8,12 +8,14 @@
  * length of time (seconds). Passes audio through to output.
  * @param {AudioContext} context - The AudioContext to create the recorder node.
  * @param {number} recordDuration - The duration in seconds to record for.
+ * @param {number} numberOfChannels - The number of channels to record.
+ * Default is 1 channel.
  * @return {Object} An object containing:
  *   - {AudioWorkletNode} recorder: The recorder AudioWorkletNode.
- *   - {Promise<Float32Array[]>} recordingCompletePromise: A promise that 
+ *   - {Promise<Float32Array[]>} recordingCompletePromise: A promise that
  * resolves to an array of Float32Arrays of each recorded channel.
  */
-export const record = async (context, recordDuration) => {
+export const record = async (context, recordDuration, numberOfChannels = 1) => {
   console.assert(context instanceof AudioContext);
   console.assert(typeof recordDuration === 'number' && recordDuration > 0);
 
@@ -24,6 +26,7 @@ export const record = async (context, recordDuration) => {
   const recorder = new AudioWorkletNode(context, 'test-recorder', {
     processorOptions: {
       numberOfSamples: recorderBufferSize,
+      numberOfChannels,
     },
   });
 

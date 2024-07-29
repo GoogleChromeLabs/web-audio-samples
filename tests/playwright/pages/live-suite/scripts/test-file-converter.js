@@ -7,7 +7,7 @@ import {output} from './console-override.js';
 
 export const convertTestFiles = async (tests) => {
   const htmls = await Promise.all(
-      tests.map(async (t) => (await fetch(t)).text()));
+      tests.map(async (t) => (await fetch(t.replace(/^pages\//g, ''))).text()));
 
   const template = document.querySelector('#row');
   htmls.forEach((html) => {

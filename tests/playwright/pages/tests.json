@@ -1,0 +1,51 @@
+{
+  "benchmark": [
+    {
+      "name": "Hello Sine (realtime)",
+      "path": "pages/realtime-sine.html"
+    },
+    {
+      "name": "Hello Sine (realtime) (WebChucK)",
+      "path": "pages/chuck-realtime-sine.html",
+      "playwright-ignore": true
+    }
+  ],
+  "performance": [
+    {
+      "name": "Gain Test",
+      "path": "pages/perf-gain-node.html"
+    },
+    {
+      "name": "Panner Test",
+      "path": "pages/perf-panner-node.html"
+    },
+    {
+      "name": "Timeline Insert Event Test",
+      "path": "pages/perf-timeline-insert-event.html"
+    },
+    {
+      "name": "Audio Buffer Source Test",
+      "path": "pages/perf-audio-buffer-source-node.html"
+    },
+    {
+      "name": "Audio Worklet Node Test",
+      "path": "pages/perf-audio-worklet-node.html"
+    },
+    {
+      "name": "Biquad Filter Node Test",
+      "path": "pages/perf-biquad-filter-node.html"
+    },
+    {
+      "name": "Dynamics Compressor Node (Knee) Test",
+      "path": "pages/perf-dynamics-compressor-node-knee.html"
+    },
+    {
+      "name": "Dynamics Compressor Node (Post-Knee) Test",
+      "path": "pages/perf-dynamics-compressor-node-post-knee.html"
+    },
+    {
+      "name": "Dynamics Compressor Node (Pre-Knee) Test",
+      "path": "pages/perf-dynamics-compressor-node-pre-knee.html"
+    }
+  ]
+}

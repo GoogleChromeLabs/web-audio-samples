@@ -7,8 +7,11 @@ import {convertTestFiles} from './test-file-converter.js';
 // Flag for live test suite environment
 window._isTestSuiteMode = true;
 
-const files = [
-  'realtime-sine.html',
-];
+(async () => {
+  const tests = await (await fetch('tests.json')).json();
 
-convertTestFiles(files);
+  convertTestFiles([
+    ...tests.benchmark.map((test) => test.path),
+    ...tests.performance.map((test) => test.path),
+  ]);
+})();
