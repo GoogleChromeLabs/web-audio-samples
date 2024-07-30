@@ -6,11 +6,13 @@
 import {output} from './console-override.js';
 
 export const convertTestFiles = async (tests) => {
+  const testsPassed = [];
+
   const htmls = await Promise.all(
       tests.map(async (t) => (await fetch(t.replace(/^pages\//g, ''))).text()));
 
   const template = document.querySelector('#row');
-  htmls.forEach((html) => {
+  htmls.forEach((html, i) => {
     const dom = new DOMParser()
         .parseFromString(html, 'text/html');
     const scriptContent = dom.querySelector('script').innerText;
@@ -31,20 +33,25 @@ export const convertTestFiles = async (tests) => {
       script.textContent = scriptContent;
       document.head.appendChild(script);
 
-      // await until script loads in the live suite
+      // wait until script loads in the live suite
       await new Promise((resolve) => window._webAudioTestIsRunning = resolve);
       const start = performance.now();
       await window._webAudioTest;
       const diff = performance.now() - start;
 
+      testsPassed[i] = await window.webAudioEvaluate();
+
       document.querySelector(`#${id} slot[name=result]`).textContent =
-          await window.webAudioEvaluate() ? '✅': '❌';
+          testsPassed[i] ? '✅': '❌';
       document.querySelector(`#${id} slot[name=time]`).textContent =
           `${(diff).toFixed(2)}ms`;
       document.querySelector(`#${id} pre slot[name=output]`).textContent =
           output.map(({method, args}) =>
             `${method}: ${args.join(' ')}`,
           ).join('\n') || '---';
+
+      document.querySelector('#passed').innerText =
+          testsPassed.filter((status) => status).length;
 
       output.length = 0;
 
@@ -53,6 +60,8 @@ export const convertTestFiles = async (tests) => {
       document.head.removeChild(script);
 
       document.querySelectorAll('button').forEach((b) => b.disabled = false);
+
+      window._webAudioTestEnded();
     });
 
     document.querySelector('tbody').appendChild(tr);
