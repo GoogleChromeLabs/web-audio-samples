@@ -81,6 +81,7 @@ module.exports = function(eleventyConfig) {
     'src/README.md',
     'src/sitemap.xml',
     'src/lib/**/*.js',
+    'src/lib/**/*.html',
   ].map(path => eleventyConfig.addPassthroughCopy(path));
 
   // eleventyConfig.addPassthroughCopy('src/favicon');
