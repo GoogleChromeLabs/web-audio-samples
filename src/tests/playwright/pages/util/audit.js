@@ -58,6 +58,14 @@ export const test = (testPromise) => {
   window._isTestSuiteMode && window._webAudioTestIsRunning();
 };
 
+// For Playwright tests, webAudioEvaluate is set to a deferred promise with
+// webAudioEvaluateResolve as the resolution function. The resolve is called
+// when the test is evaluated in evaluateTest.
+let webAudioEvaluateResolve;
+!window._isTestSuiteMode &&
+    (window.webAudioEvaluate = new Promise((resolve) =>
+        webAudioEvaluateResolve = resolve));
+
 /**
  * Evaluates a Web Audio Test and assigns the result to window.webAudioEvaluate.
  * If window._webAudioTestSuite property is true, the function is assigned
@@ -66,10 +74,14 @@ export const test = (testPromise) => {
  * @param {Function} testFunction - The test function to evaluate.
  * @return {any}
  */
-export const evaluateTest =
-    (testFunction) => window.webAudioEvaluate = window._isTestSuiteMode ?
+// export const evaluateTest =
+//     (testFunction) => window.webAudioEvaluate = window._isTestSuiteMode ?
+//         async () => testFunction(await window._webAudioTest) :
+//         (async () => testFunction(await window._webAudioTest))();
+export const evaluateTest = (testFunction) => window._isTestSuiteMode ?
+    window.webAudioEvaluate =
         async () => testFunction(await window._webAudioTest) :
-        (async () => testFunction(await window._webAudioTest))();
+    webAudioEvaluateResolve((async () => testFunction(await window._webAudioTest))());
 
 // global state to accumulate assert() tests
 const tests = [];

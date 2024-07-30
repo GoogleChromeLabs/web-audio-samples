@@ -19,7 +19,7 @@ test.afterEach(async ({page}) => {
   // @ts-ignore
   // eslint-disable-next-line no-undef
   // noinspection TypeScriptUnresolvedReference
-  const result = await page.evaluate(() => webAudioEvaluate);
+  const result = await page.evaluate(async () => await webAudioEvaluate);
   expect(result).toBeTruthy();
 });
 
