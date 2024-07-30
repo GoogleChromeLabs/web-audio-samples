@@ -25,6 +25,17 @@ button[disabled], button[disabled]:hover {
   cursor: not-allowed;
 }
 
+header {
+  align-items: center;
+  display: grid;
+  grid-template-columns: 9fr auto 1fr;
+}
+
+p {
+  margin: 0;
+  padding-right: 1rem;
+}
+
 pre {
   font-size: 8pt;
   max-height: 40vh;
@@ -33,4 +44,8 @@ pre {
 
 td {
   vertical-align: middle !important;
+}
+
+#passed {
+  color: lightgreen;
 }
