@@ -13,34 +13,18 @@
  * @param {number} actual
  * @param {number} expected
  * @param {number} threshold
- * @return {boolean} if |actual| is within |threshold| of |expected|
+ * @return {[boolean, string]} if |actual| is within |threshold| of |expected|
  */
 export function beCloseTo(actual, expected, threshold) {
   // The threshold is relative except when |expected| is zero, in which case
   // it is absolute.
   const absExpected = expected ? Math.abs(expected) : 1;
   const error = Math.abs(actual - expected) / absExpected;
-  return error <= threshold;
-}
-
-/**
- * Compare two float32arrays sample-by-sample using a relative error threshold.
- * Default threshold is 0.01 for relative floating-point comparison.
- * @param {Float32Array} actualData - actual array of samples.
- * @param {Float32Array} expectedData - expected array of samples.
- * @param {number} threshold - threshold for sample similarity comparison
- * @return {number} percentage of array samples that are similar.
- */
-export function compareBufferData(actualData, expectedData, threshold = 0.01) {
-  let numberOfAcceptableSamples = 0;
-  for (let i = 0; i < expectedData.length; ++i) {
-    const isClose = beCloseTo(actualData[i], expectedData[i], threshold);
-    console.assert(isClose,
-        `sample ${i}: ${actualData[i]} vs ${expectedData[i]}`);
-    numberOfAcceptableSamples += isClose ? 1 : 0;
-  }
-  console.info('% similar', numberOfAcceptableSamples / expectedData.length);
-  return numberOfAcceptableSamples / expectedData.length;
+  return [
+    error <= threshold,
+    // eslint-disable-next-line max-len
+    `${ actual } vs ${ expected } | error: ${error} | ${ Math.abs(actual - expected) } diff`,
+  ];
 }
 
 /**
@@ -67,9 +51,9 @@ export const test = (testPromise) => {
  * @return {any}
  */
 export const evaluateTest =
-    (testFunction) => window.webAudioEvaluate = window._isTestSuiteMode ?
-        async () => testFunction(await window._webAudioTest) :
-        (async () => testFunction(await window._webAudioTest))();
+    (testFunction) =>  window.webAudioEvaluate = window._isTestSuiteMode
+        ? async () => testFunction(await window._webAudioTest)
+        : (async () => testFunction(await window._webAudioTest))();
 
 // global state to accumulate assert() tests
 const tests = [];
