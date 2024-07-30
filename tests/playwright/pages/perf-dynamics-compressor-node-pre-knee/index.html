@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import {evaluateTest, test} from './util/audit.js';
+
+      const NUM_COMPRESSOR_NODES = 100;
+      console.info('Test performance of 100 DynamicsCompressorNodes (pre-knee)');
+
+      test((async () => {
+        const context = new AudioContext({sampleRate: 48000});
+        // Use 0 offset to ensure we are pre-knee
+        const constantSource = new ConstantSourceNode(context, {offset: 0});
+        const dynamicsNodes = Array(NUM_COMPRESSOR_NODES).fill();
+        dynamicsNodes.forEach((_, i) => {
+          dynamicsNodes[i] = new DynamicsCompressorNode(context, {
+            attack: 0.003,
+            knee: 30,
+            ratio: 12,
+            release: 0.25,
+            threshold: -24,
+          });
+          if (i !== 0) dynamicsNodes[i - 1].connect(dynamicsNodes[i]); 
+        });
+        constantSource.connect(dynamicsNodes[0]);
+        // connect last node to destination
+        dynamicsNodes.at(-1).connect(context.destination);
+
+        constantSource.start();
+        constantSource.stop(context.currentTime + 1);
+
+        await new Promise((resolve) => constantSource.onended = resolve);
+        return {context};
+      })());
+
+      evaluateTest(async (testResult) => {
+        await testResult.context.close();
+        return true;
+      });
+    </script>
+    <title>Dynamics Compressor Pre Knee Performance Test</title>
+  </head>
+  <body>
+    <h1>Dynamics Compressor Pre Knee Performance Test</h1>
+    <p>Test performance of ConstantSourceNode => 100 Dynamics Compressor Nodes;
+      Port of <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/dynamics-compressor-node-pre-knee.html">
+        Blink WPT Performance Dynamics Compressor Node Pre Knee Test</a>
+    </p>
+  </body>
+</html>

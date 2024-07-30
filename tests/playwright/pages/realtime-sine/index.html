@@ -3,39 +3,28 @@
   <head>
     <script defer type="module">
       import {record} from './util/recorder/recorder-main.js';
-      import {beCloseTo, test, evaluateTest} from './util/audit.js';
+      import {test, evaluateTest, compareBufferData} from './util/audit.js';
 
-      const expectedAccuracy = 0.998;
+      const context = new AudioContext({sampleRate: 48000});
+      const oscillator = new OscillatorNode(context);
+      const duration = 1;
+      const {recorder, recordingCompletePromise} = await record(context, duration);
+      oscillator.connect(recorder).connect(context.destination);
 
       test((async () => {
-        const context = new AudioContext({sampleRate: 48000});
-        const oscillator = new OscillatorNode(context);
-        const duration = 1; // second
-        const {recorder, recordingCompletePromise} = await record(context, duration);
-        oscillator.connect(recorder).connect(context.destination);
-
         oscillator.start();
-
         const recordedChannelBuffers = await recordingCompletePromise;
-        const float32Buffer = recordedChannelBuffers[0];
-
-        await context.close();
-        return {buffer: float32Buffer};
+        return {buffer: recordedChannelBuffers[0]};
       })());
 
       evaluateTest(async (testResult) => {
-        const bufferData = testResult.buffer;
-        const myRefData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
+        await context.close();
+        const actualBufferData = testResult.buffer;
+        const expectedData = await (await fetch('./reference/440@48k-sine-octx.json')).json();
+        // almost all samples should match across systems
+        const matchThreshold = 0.998;
 
-        // compare bufferData samples to reference
-        let numberOfAcceptableSamples = 0;
-        for (let i = 0; i < bufferData.length; i++) {
-          numberOfAcceptableSamples += beCloseTo(bufferData[i], myRefData[i], 0.01) ? 1 : 0;
-        }
-        console.info('% match:', numberOfAcceptableSamples / bufferData.length);
-
-        // return true if 99.8% pass
-        return numberOfAcceptableSamples / bufferData.length > expectedAccuracy;
+        return compareBufferData(actualBufferData, expectedData) > matchThreshold;
       });
     </script>
     <title>Realtime Sine Oscillator Test</title>
