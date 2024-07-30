@@ -8,7 +8,7 @@ import {convertTestFiles} from './test-file-converter.js';
 window._isTestSuiteMode = true;
 
 const testEnded = () =>
-    new Promise((resolve) => window._webAudioTestEnded = resolve);
+  new Promise((resolve) => window._webAudioTestEnded = resolve);
 document.querySelector('#run-all').addEventListener('click', async () => {
   const buttons = document.querySelectorAll('button[data-type=test]');
   for (const button of buttons) {

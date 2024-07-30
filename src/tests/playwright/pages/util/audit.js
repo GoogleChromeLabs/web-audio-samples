@@ -64,7 +64,7 @@ export const test = (testPromise) => {
 let webAudioEvaluateResolve;
 !window._isTestSuiteMode &&
     (window.webAudioEvaluate = new Promise((resolve) =>
-        webAudioEvaluateResolve = resolve));
+      webAudioEvaluateResolve = resolve));
 
 /**
  * Evaluates a Web Audio Test and assigns the result to window.webAudioEvaluate.
@@ -74,14 +74,11 @@ let webAudioEvaluateResolve;
  * @param {Function} testFunction - The test function to evaluate.
  * @return {any}
  */
-// export const evaluateTest =
-//     (testFunction) => window.webAudioEvaluate = window._isTestSuiteMode ?
-//         async () => testFunction(await window._webAudioTest) :
-//         (async () => testFunction(await window._webAudioTest))();
 export const evaluateTest = (testFunction) => window._isTestSuiteMode ?
     window.webAudioEvaluate =
         async () => testFunction(await window._webAudioTest) :
-    webAudioEvaluateResolve((async () => testFunction(await window._webAudioTest))());
+    webAudioEvaluateResolve((async () =>
+        testFunction(await window._webAudioTest))());
 
 // global state to accumulate assert() tests
 const tests = [];
