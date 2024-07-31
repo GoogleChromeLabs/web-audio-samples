@@ -13,18 +13,34 @@
  * @param {number} actual
  * @param {number} expected
  * @param {number} threshold
- * @return {[boolean, string]} if |actual| is within |threshold| of |expected|
+ * @return {boolean} if |actual| is within |threshold| of |expected|
  */
 export function beCloseTo(actual, expected, threshold) {
   // The threshold is relative except when |expected| is zero, in which case
   // it is absolute.
   const absExpected = expected ? Math.abs(expected) : 1;
   const error = Math.abs(actual - expected) / absExpected;
-  return [
-    error <= threshold,
-    // eslint-disable-next-line max-len
-    `${ actual } vs ${ expected } | error: ${error} | ${ Math.abs(actual - expected) } diff`,
-  ];
+  return error <= threshold;
+}
+
+/**
+ * Compare two float32arrays sample-by-sample using a relative error threshold.
+ * Default threshold is 0.01 for relative floating-point comparison.
+ * @param {Float32Array} actualData - actual array of samples.
+ * @param {Float32Array} expectedData - expected array of samples.
+ * @param {number} threshold - threshold for sample similarity comparison
+ * @return {number} percentage of array samples that are similar.
+ */
+export function compareBufferData(actualData, expectedData, threshold = 0.01) {
+  let numberOfAcceptableSamples = 0;
+  for (let i = 0; i < expectedData.length; ++i) {
+    const isClose = beCloseTo(actualData[i], expectedData[i], threshold);
+    console.assert(isClose,
+        `sample ${i}: ${actualData[i]} vs ${expectedData[i]}`);
+    numberOfAcceptableSamples += isClose ? 1 : 0;
+  }
+  console.info('% similar', numberOfAcceptableSamples / expectedData.length);
+  return numberOfAcceptableSamples / expectedData.length;
 }
 
 /**
@@ -42,6 +58,14 @@ export const test = (testPromise) => {
   window._isTestSuiteMode && window._webAudioTestIsRunning();
 };
 
+// For Playwright tests, webAudioEvaluate is set to a deferred promise with
+// webAudioEvaluateResolve as the resolution function. The resolve is called
+// when the test is evaluated in evaluateTest.
+let webAudioEvaluateResolve;
+!window._isTestSuiteMode &&
+    (window.webAudioEvaluate = new Promise((resolve) =>
+      webAudioEvaluateResolve = resolve));
+
 /**
  * Evaluates a Web Audio Test and assigns the result to window.webAudioEvaluate.
  * If window._webAudioTestSuite property is true, the function is assigned
@@ -50,10 +74,11 @@ export const test = (testPromise) => {
  * @param {Function} testFunction - The test function to evaluate.
  * @return {any}
  */
-export const evaluateTest =
-    (testFunction) =>  window.webAudioEvaluate = window._isTestSuiteMode
-        ? async () => testFunction(await window._webAudioTest)
-        : (async () => testFunction(await window._webAudioTest))();
+export const evaluateTest = (testFunction) => window._isTestSuiteMode ?
+    window.webAudioEvaluate =
+        async () => testFunction(await window._webAudioTest) :
+    webAudioEvaluateResolve((async () =>
+        testFunction(await window._webAudioTest))());
 
 // global state to accumulate assert() tests
 const tests = [];

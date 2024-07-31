@@ -8,7 +8,11 @@
     <title>Web Audio Test Suite</title>
   </head>
   <body class="terminal">
-    <h1 class="terminal-prompt">Web Audio Test Suite</h1>
+    <header>
+      <h1 class="terminal-prompt">Web Audio Test Suite</h1>
+      <p><span id="passed">0</span>/<span id="total">0</span></p>
+      <button class="btn btn-primary" id="run-all">run all</button>
+    </header>
     <table>
       <thead>
         <tr>
@@ -27,7 +31,7 @@
         <td><slot name="result">---</slot></td>
         <td><slot name="time">---</slot></td>
         <td><pre><slot name="output">---</slot></pre></td>
-        <td><button class="btn btn-block btn-primary">start</button></td>
+        <td><button class="btn btn-block btn-primary" data-type="test">start</button></td>
       </tr>
     </template>
   </body>

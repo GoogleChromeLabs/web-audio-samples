@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <script defer type='module'>
+      import {evaluateTest, test} from './util/audit.js';
+
+      const NUM_PANNER_NODES = 100;
+      console.info('Test performance of 100 PannerNodes (HRTF)');
+
+      test((async () => {
+        const context = new AudioContext({sampleRate: 48000});
+        const constantSource = new ConstantSourceNode(context);
+
+        const pannerNodes = Array(NUM_PANNER_NODES).fill();
+        pannerNodes.forEach((_, i) => {
+          pannerNodes[i] = new PannerNode(context, {panningModel: 'HRTF'});
+          if (i !== 0) pannerNodes[i - 1].connect(pannerNodes[i]); 
+        });
+        constantSource.connect(pannerNodes[0]);
+        // connect last node to destination
+        pannerNodes.at(-1).connect(context.destination);
+
+        constantSource.start();
+        constantSource.stop(context.currentTime + 1);
+
+        await new Promise((resolve) => constantSource.onended = resolve);
+        return {context};
+      })());
+
+      evaluateTest(async (testResult) => {
+        await testResult.context.close();
+        return true;
+      });
+    </script>
+    <title>Panner Performance Test</title>
+  </head>
+  <body>
+    <h1>Panner Performance Test</h1>
+    <p>Test of ConstantSourceNode => 100 Panner Nodes; Port of
+      <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/panner-node.html">
+      Blink WPT Performance Panner Test</a>
+    </p>
+  </body>
+</html>

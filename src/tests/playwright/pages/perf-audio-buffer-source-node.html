@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import {record} from './util/recorder/recorder-main.js';
+      import {test, evaluateTest} from './util/audit.js';
+
+      const NUM_BUFFER_NODES = 100;
+      const SAMPLE_RATE = 48000;
+      console.info('Test performance of 100 AudioBufferSourceNodes');
+      console.info('duration 100ms');
+
+      /**
+       * Creates an AudioBuffer with up-ramp samples.
+       *
+       * @param {number} length number of samples
+       * @param {number} sampleRate sample rate
+       * @returns {AudioBuffer}
+       */
+      function createMonoRampBuffer(length, sampleRate) {
+        let buffer = new AudioBuffer({numberOfChannels: 1, length, sampleRate});
+        let channelData = buffer.getChannelData(0);
+        for (let i = 0; i < length; ++i) {
+          channelData[i] = i / length;
+        }
+        return buffer;
+      }
+
+      test((async () => {
+        const context = new AudioContext({sampleRate: SAMPLE_RATE});
+        const buffer = createMonoRampBuffer(4800, SAMPLE_RATE);
+
+        const bufferNodes = Array(NUM_BUFFER_NODES).fill();
+        bufferNodes.forEach((_, i) => {
+          bufferNodes[i] = new AudioBufferSourceNode(context, {buffer});
+          // All the buffer nodes fan-in to the destination node.
+          bufferNodes[i].connect(context.destination);
+          bufferNodes[i].start();
+        });
+
+        // Wait for first buffer node to finish
+        await new Promise((resolve) => bufferNodes[0].onended = resolve);
+        return {context};
+      })());
+
+      evaluateTest(async (testResult) => {
+        await testResult.context.close();
+        return true;
+      });
+    </script>
+    <title>Audio Buffer Source Node Performance Test</title>
+  </head>
+  <body>
+    <h1>Audio Buffer Source Node Performance Test</h1>
+    <p>Test performance of 100 AudioBufferSourceNode; Port of
+      <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/audio-buffer-source-node.html">
+        Blink WPT Performance Audio Buffer Source Node Test</a>
+    </p>
+  </body>
+</html>

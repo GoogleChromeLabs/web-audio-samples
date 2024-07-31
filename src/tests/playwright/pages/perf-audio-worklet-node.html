@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script defer type="module">
+      import {evaluateTest, test} from './util/audit.js';
+
+      const NUM_WORKLET_NODES = 100;
+      console.info('Test performance of 100 AudioWorkletNodes');
+
+      const context = new AudioContext({sampleRate: 48000});
+      await context.audioWorklet.addModule('./util/bypass-processor.js');
+
+      test((async () => {
+        const constantSource = new ConstantSourceNode(context);
+        const workletNodes = Array(NUM_WORKLET_NODES).fill();
+        workletNodes.forEach((_, i) => {
+          workletNodes[i] = new AudioWorkletNode(context, 'bypass-processor');
+          if (i !== 0) workletNodes[i - 1].connect(workletNodes[i]);
+        });
+        constantSource.connect(workletNodes[0]);
+        // connect last node to destination
+        workletNodes.at(-1).connect(context.destination);
+
+        constantSource.start();
+        constantSource.stop(context.currentTime + 1);
+
+        await new Promise((resolve) => constantSource.onended = resolve);
+        return {context};
+      })());
+
+      evaluateTest(async (testResult) => {
+        await testResult.context.close();
+        return true;
+      });
+    </script>
+    <title>AudioWorklet Performance Test</title>
+  </head>
+  <body>
+    <h1>AudioWorklet Performance Test</h1>
+    <p>Test performance of ConstantSourceNode => 100 AudioWorklet Nodes; Port of
+      <a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/perf_tests/webaudio/audio-worklet-node.html">
+        Blink WPT Performance Audio Worklet Test</a>
+    </p>
+  </body>
+</html>
