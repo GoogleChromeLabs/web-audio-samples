@@ -3,21 +3,38 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isModuleLoaded = false;
+let isPlaying = false;
+let isGraphReady = false;
+let modulatorNode = null;
+let modGainNode = null;
+let noiseGeneratorNode = null;
 
-const startAudio = async (context) => {
-  await context.audioWorklet.addModule('noise-generator.js');
-  const modulator = new OscillatorNode(context);
-  const modGain = new GainNode(context);
-  const noiseGenerator = new AudioWorkletNode(context, 'noise-generator');
-  noiseGenerator.connect(context.destination);
+const loadGraph = (context) => {
+  modulatorNode = new OscillatorNode(context);
+  modGainNode = new GainNode(context);
+  noiseGeneratorNode = new AudioWorkletNode(context, 'noise-generator');
+  noiseGeneratorNode.connect(context.destination);
 
   // Connect the oscillator to 'amplitude' AudioParam.
-  const paramAmp = noiseGenerator.parameters.get('amplitude');
-  modulator.connect(modGain).connect(paramAmp);
+  const paramAmp = noiseGeneratorNode.parameters.get('amplitude');
+  modulatorNode.connect(modGainNode).connect(paramAmp);
 
-  modulator.frequency.value = 0.5;
-  modGain.gain.value = 0.75;
-  modulator.start();
+  modulatorNode.frequency.value = 0.5;
+  modGainNode.gain.value = 0.75;
+  modulatorNode.start();
+};
+
+
+const startAudio = async (context) => {
+  if (!isModuleLoaded) {
+    await context.audioWorklet.addModule('noise-generator.js');
+    isModuleLoaded = true;
+  }
+  if (!isGraphReady) {
+    loadGraph(audioContext);
+    isGraphReady = true;
+  }
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
@@ -26,9 +43,17 @@ window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
   buttonEl.addEventListener('click', async () => {
-    await startAudio(audioContext);
-    audioContext.resume();
-    buttonEl.disabled = true;
-    buttonEl.textContent = 'Playing...';
-  }, false);
+    if (!isPlaying) {
+      await startAudio(audioContext);
+      isPlaying = true;
+      buttonEl.textContent = 'Playing...';
+      buttonEl.classList.remove('start-button');
+      audioContext.resume();
+    } else {
+      audioContext.suspend();
+      isPlaying = false;
+      buttonEl.textContent = 'START';
+      buttonEl.classList.add('start-button');
+    }
+  });
 });

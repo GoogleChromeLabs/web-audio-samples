@@ -3,16 +3,30 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isModuleLoaded = false;
+let isPlaying = false;
+let isGraphReady = false;
+let oscillatorProcessor = null;
+
+const loadGraph = (context, options) => {
+  oscillatorProcessor = new AudioWorkletNode(context, 'oscillator-processor', {
+    processorOptions: {
+      waveformType: options.waveformType,
+      frequency: options.frequency,
+    }
+  });
+  oscillatorProcessor.connect(context.destination);
+};
 
 const startAudio = async (context, options) => {
-  await context.audioWorklet.addModule('oscillator-processor.js');
-  const oscillatorProcessor =
-      new AudioWorkletNode(context, 'oscillator-processor', {
-        processorOptions: {
-          waveformType: options.waveformType,
-          frequency: options.frequency,
-        }});
-  oscillatorProcessor.connect(context.destination);
+  if (!isModuleLoaded) {
+    await context.audioWorklet.addModule('oscillator-processor.js');
+    isModuleLoaded = true;
+  }
+  if (!isGraphReady) {
+    loadGraph(context, options);
+    isGraphReady = true;
+  }
 };
 
 // A simplem onLoad handler. It also handles user gesture to unlock the audio
@@ -20,13 +34,26 @@ const startAudio = async (context, options) => {
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
   buttonEl.disabled = false;
+
   buttonEl.addEventListener('click', async () => {
-    const waveformType =
-        document.querySelector('#demo-select-waveform-type').value;
-    const frequency = document.querySelector('#demo-input-frequency').value;
-    await startAudio(audioContext, {waveformType, frequency});
-    audioContext.resume();
-    buttonEl.disabled = true;
-    buttonEl.textContent = 'Playing...';
-  }, false);
+    if (!isPlaying) {
+      const waveformType =
+          document.querySelector('#demo-select-waveform-type').value;
+      const frequency = document.querySelector('#demo-input-frequency').value;
+      isPlaying = true;
+      await startAudio(audioContext, {waveformType, frequency});
+      buttonEl.textContent = 'Playing...';
+      buttonEl.classList.remove('start-button');
+      audioContext.resume();
+      document.querySelector('#demo-select-waveform-type').disabled = true;
+      document.querySelector('#demo-input-frequency').disabled = true;
+    } else {
+      audioContext.suspend();
+      isPlaying = false;
+      buttonEl.textContent = 'START';
+      buttonEl.classList.add('start-button');
+      document.querySelector('#demo-select-waveform-type').disabled = false;
+      document.querySelector('#demo-input-frequency').disabled = false;
+    }
+  });
 });
