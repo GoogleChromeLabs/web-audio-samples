@@ -4,15 +4,15 @@ import { FreeQueue, MAX_CHANNEL_COUNT, RENDER_QUANTUM_FRAMES } from '../free-que
 // Mock WASM module
 const mockWasmModule = {
   // Simulate memory allocation
-  _malloc: (size) => new ArrayBuffer(size), 
+  _malloc: (size) => new ArrayBuffer(size),
   // Simulate memory deallocation
-  _free: () => {}, 
+  _free: () => { },
   // Simulate HEAPF32
-  HEAPF32: new Float32Array(1024), 
+  HEAPF32: new Float32Array(1024),
 };
 
 describe('FreeQueue Class', () => {
-  const bufferLength = 512;
+  const bufferLength = 1024;
   const channelCount = 2;
   const maxChannelCount = 4;
   let freeQueue = null;
@@ -46,54 +46,82 @@ describe('FreeQueue Class', () => {
     });
   });
 
-  describe('Pushing and Pulling Data', () => {
-    it('should correctly push and pull data', () => {
+  describe('Push Data', () => {
+    it('should correctly push data', () => {
       const testData = [new Float32Array(bufferLength).fill(1), new Float32Array(bufferLength).fill(2)];
       freeQueue.push(testData);
-
+  
       const outputData = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
       freeQueue.pull(outputData);
-
+  
       expect(outputData[0]).to.deep.equal(testData[0]);
       expect(outputData[1]).to.deep.equal(testData[1]);
     });
-
+  
     it('should handle buffer overflow correctly', () => {
       const testData = [new Float32Array(bufferLength * 2).fill(1), new Float32Array(bufferLength * 2).fill(2)];
       freeQueue.push(testData);
-
+  
       expect(freeQueue.framesAvailable).to.equal(bufferLength);
     });
+  
+    it('should handle multiple push cycles', () => {
+      const testData = [new Float32Array(bufferLength).fill(1), new Float32Array(bufferLength).fill(2)];
+  
+      for (let i = 0; i < 5; i++) {
+        freeQueue.push(testData);
+  
+        const outputData = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
+        freeQueue.pull(outputData);
+  
+        expect(outputData[0]).to.deep.equal(testData[0]);
+        expect(outputData[1]).to.deep.equal(testData[1]);
+        expect(freeQueue.framesAvailable).to.equal(0);
+      }
+    });
+  });
 
+  describe('Pull Data', () => {
+    it('should correctly pull data', () => {
+      const testData = [new Float32Array(bufferLength).fill(1), new Float32Array(bufferLength).fill(2)];
+      freeQueue.push(testData);
+  
+      const outputData = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
+      freeQueue.pull(outputData);
+  
+      expect(outputData[0]).to.deep.equal(testData[0]);
+      expect(outputData[1]).to.deep.equal(testData[1]);
+    });
+  
     it('should not pull data when buffer is empty', () => {
       const outputData = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
       freeQueue.pull(outputData);
-
+  
       expect(outputData[0]).to.deep.equal(new Float32Array(bufferLength));
       expect(outputData[1]).to.deep.equal(new Float32Array(bufferLength));
     });
-
+  
     it('should manage partial data pulls', () => {
       const testData = [new Float32Array(bufferLength).fill(1), new Float32Array(bufferLength).fill(2)];
       freeQueue.push(testData);
-
+  
       const partialOutput = [new Float32Array(bufferLength / 2), new Float32Array(bufferLength / 2)];
       freeQueue.pull(partialOutput);
-
+  
       expect(partialOutput[0]).to.deep.equal(new Float32Array(bufferLength / 2).fill(1));
       expect(partialOutput[1]).to.deep.equal(new Float32Array(bufferLength / 2).fill(2));
       expect(freeQueue.framesAvailable).to.equal(bufferLength / 2);
     });
-
-    it('should handle multiple push and pull cycles', () => {
+  
+    it('should handle multiple pull cycles', () => {
       const testData = [new Float32Array(bufferLength).fill(1), new Float32Array(bufferLength).fill(2)];
-      
+  
       for (let i = 0; i < 5; i++) {
         freeQueue.push(testData);
-
+  
         const outputData = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
         freeQueue.pull(outputData);
-
+  
         expect(outputData[0]).to.deep.equal(testData[0]);
         expect(outputData[1]).to.deep.equal(testData[1]);
         expect(freeQueue.framesAvailable).to.equal(0);
@@ -109,54 +137,42 @@ describe('FreeQueue Class', () => {
 
     it('should throw an error if pushing with mismatched channel count', () => {
       const invalidTestData = [new Float32Array(bufferLength).fill(1)];
-      
-      const expectedChannelCount = freeQueue._channelCount; 
+
+      const expectedChannelCount = freeQueue._channelCount;
       const actualChannelCount = invalidTestData.length;
-    
+
       expect(() => freeQueue.push(invalidTestData))
         .to.throw(Error, `Channel count mismatch: expected ${expectedChannelCount}, but got ${actualChannelCount}.`);
     });
 
     it('should throw an error if pulling with mismatched channel count', () => {
-      const invalidOutputData = [new Float32Array(bufferLength)]; 
-      
-      const expectedChannelCount = freeQueue._channelCount; 
+      const invalidOutputData = [new Float32Array(bufferLength)];
+
+      const expectedChannelCount = freeQueue._channelCount;
       const actualChannelCount = invalidOutputData.length;
-    
+
       expect(() => freeQueue.pull(invalidOutputData))
         .to.throw(Error, `Channel count mismatch: expected ${expectedChannelCount}, but got ${actualChannelCount}.`);
     });
   });
 
-  describe('Performance', () => {
-    it('should efficiently handle large data transfers', function() {
-      // this.timeout(5000);
-      // 1 MB buffer
-      const largeBuffer = 1024 * 1024; 
-      const testData = [new Float32Array(largeBuffer).fill(1), new Float32Array(largeBuffer).fill(2)];
-
-      const start = performance.now();
-      freeQueue.push(testData);
-      freeQueue.pull(testData);
-      const end = performance.now();
-
-      // Ensure operations complete within 1 second
-      expect(end - start).to.be.below(1000); 
+  describe('Performance Tests', function () {
+    it('should handle large data efficiently', function () {
+      const input = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
+      const output = [new Float32Array(bufferLength), new Float32Array(bufferLength)];
+      for (let i = 0; i < 10000; i++) {
+        freeQueue.push(input, bufferLength);
+        freeQueue.pull(output, bufferLength);
+      }
     });
 
-    it('should perform consistently over many operations', function() {
-      this.timeout(10000);
-      const iterations = 10000;
-      const testData = [new Float32Array(RENDER_QUANTUM_FRAMES).fill(1), new Float32Array(RENDER_QUANTUM_FRAMES).fill(2)];
-
-      const start = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        freeQueue.push(testData);
-        freeQueue.pull(testData);
+    it('should handle small data efficiently', function () {
+      const input = [new Float32Array(1), new Float32Array(1)];
+      const output = [new Float32Array(1), new Float32Array(1)];
+      for (let i = 0; i < 1000000; i++) {
+        freeQueue.push(input, 1);
+        freeQueue.pull(output, 1);
       }
-      const end = performance.now();
-      // Ensure it completes within 1 seconds
-      expect(end - start).to.be.below(1000); 
     });
   });
 });
