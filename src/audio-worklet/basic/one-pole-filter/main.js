@@ -18,9 +18,9 @@ const loadGraph = (context) => {
   oscillatorNode.start();
 
   frequencyParam
-    .setValueAtTime(0.01, 0)
-    .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
-    .exponentialRampToValueAtTime(0.01, 8.0);
+      .setValueAtTime(0.01, 0)
+      .exponentialRampToValueAtTime(context.sampleRate * 0.5, 4.0)
+      .exponentialRampToValueAtTime(0.01, 8.0);
 }
 
 const startAudio = async (context) => {
