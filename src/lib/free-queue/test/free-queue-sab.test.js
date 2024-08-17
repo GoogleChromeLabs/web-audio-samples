@@ -24,7 +24,7 @@ describe('FreeQueueSAB', function () {
     });
 
     describe('Channel Adaption', () => {
-        it('should initialize channel data correctly', function () {
+        it('should adapt to a new channel count within limitsy', function () {
             expect(queue.channelData).to.be.an('array');
             expect(queue.channelData.length).to.equal(channelCount);
             queue.channelData.forEach(channel => {
@@ -33,7 +33,7 @@ describe('FreeQueueSAB', function () {
             });
         });
 
-        it('should not adapt to an invalid channel count (e.g., negative or zero)', function () {
+        it('should not adapt to an invalid channel count', function () {
             const invalidChannelCounts = [-1, 0]; 
             invalidChannelCounts.forEach(invalidCount => {
                 expect(() => queue.setChannelCount(invalidCount)).to.throw(Error);
