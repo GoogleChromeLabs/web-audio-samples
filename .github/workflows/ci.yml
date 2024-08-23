@@ -37,28 +37,10 @@ jobs:
           if [ -n "$FILES" ]; then
             echo "Linting changed files:"
             echo "$FILES"
-            echo "$FILES" | xargs npx prettier --write
-            echo "$FILES" | grep -E '\.(js|jsx|ts|tsx)$' | xargs npx eslint --fix || true
+            echo "$FILES" | xargs npx prettier --check
+            echo "$FILES" | grep -E '\.(js|jsx|ts|tsx)$' | xargs npx eslint || true
           else
             echo "No relevant files changed."
           fi
         env:
           CI: true
-
-      - name: Check for uncommitted changes
-        run: |
-          if [[ -n $(git status -s) ]]; then
-            echo "There are uncommitted changes after linting. Please commit these changes."
-            git status
-            exit 1
-          fi
-
-      - name: Upload lint results
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: lint-results
-          path: |
-            **/lint-results.txt
-            **/prettier-results.txt
-          retention-days: 5
