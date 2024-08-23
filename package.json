@@ -12,6 +12,8 @@
     "start:eleventy": "eleventy --serve",
     "start:postcss": "postcss src/styles/*.css --dir _site --watch",
     "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html",
+    "lint:prettier": "prettier --check src/**/*.js src/**/*.html",
+    "lint:eslint": "eslint src/**/*.js",
     "test": "npx playwright test",
     "test-server": "npx http-server",
     "test-live": "npx http-server ./src/tests/playwright/pages/"

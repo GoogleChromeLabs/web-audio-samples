@@ -1,0 +1,64 @@
+name: CI and Lint
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Prettier
+        run: npm run lint:prettier
+
+      - name: Run ESLint
+        run: npm run lint:eslint
+
+      - name: Lint changed files
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          FILES=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx|html|css)$' || true)
+          if [ -n "$FILES" ]; then
+            echo "Linting changed files:"
+            echo "$FILES"
+            echo "$FILES" | xargs npx prettier --write
+            echo "$FILES" | grep -E '\.(js|jsx|ts|tsx)$' | xargs npx eslint --fix || true
+          else
+            echo "No relevant files changed."
+          fi
+        env:
+          CI: true
+
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "There are uncommitted changes after linting. Please commit these changes."
+            git status
+            exit 1
+          fi
+
+      - name: Upload lint results
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: lint-results
+          path: |
+            **/lint-results.txt
+            **/prettier-results.txt
+          retention-days: 5
