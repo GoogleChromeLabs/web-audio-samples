@@ -3,7 +3,7 @@
 **Organization:** Chromium
 **Projects Overview:**
 - [Web Audio Test and Live Suite](https://github.com/GoogleChromeLabs/web-audio-samples/blob/main/src/tests/playwright/README.md)
-- Rainfly: Audio Worklets Playground
+- Rainfly: Audio Worklet Playground
 
 # Projects
 ## Web Audio Test and Live Suite
