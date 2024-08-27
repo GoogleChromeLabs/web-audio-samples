@@ -34,6 +34,14 @@ The test cases are organized within a `test` folder, containing the following fi
 - **`free-queue.test.js`** and **`free-queue-sab.test.js`**: JavaScript files containing the test cases.
 - **`free-queue.test.html`** and **`free-queue-sab.test.html`**: HTML files that enable the tests to be executed directly from a browser environment.
 
+### Documentation of Performance Comparison
+
+We also documented the results of the performance comparison between the `FreeQueueSAB` class and an external project. This documentation will provide valuable insights into the efficiency gains and help understand the improvements over existing solutions.
+
+### NPM Package Creation and Publishing Guide
+
+The next step involves packaging the `FreeQueue` and `FreeQueueSAB` implementations into an npm package. This will make it easier for other developers to integrate and use these optimized components directly in their projects. I created the guide for making the package and publishing it to the npm website for the project maintainers, as they can do it from their end.
+
 This restructuring not only improved the performance and maintainability of the codebase but also provided a robust testing framework that ensured the components function correctly across various scenarios.
 
 ## Merged PRs
@@ -53,18 +61,6 @@ This restructuring not only improved the performance and maintainability of the 
   - Added the documentation.
 - [**More Test Cases**](https://github.com/GoogleChromeLabs/web-audio-samples/pull/391):
   - Added more test cases in `free-queue-sab` for better coverage.
-
-## What’s Left to Do
-
-While significant progress has been made, a few key tasks remain to complete the project fully:
-
-### NPM Package Creation and Publishing
-
-The next step involves packaging the FreeQueue and HeapAudioBuffer implementations into an npm package. This will make it easier for other developers to integrate and use these optimized components directly in their projects.
-
-### Documentation of Performance Comparison
-
-We need to document the results of the performance comparison between the FreeQueue class and an external project. This documentation will provide valuable insights into the efficiency gains and help in understanding the improvements over existing solutions.
 
 ## Acknowledgment
 
