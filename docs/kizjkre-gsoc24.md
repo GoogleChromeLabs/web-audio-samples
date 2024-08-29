@@ -29,7 +29,7 @@ Rainfly is an Audio Worklet playground, useful for inspecting, developing, and r
 ### Contributions
 Along with [@terryzfeng](https://github.com/terryzfeng), we created, designed, and developed an MVP of Rainfly using SvelteKit and TailwindCSS.
 ### Documentation
-#### Figma med-fi prototype
+#### Figma medium fidelity prototype
 [![Figma prototype](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/eosafuca9s69ur78yr8z.png)](https://www.figma.com/proto/NrpvA1wwQNoc4hnKTAORIg/Rainfly?node-id=1-2&t=VBSHkeRFtwhvNIfU-0&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=1%3A2)
 #### The original MVP hosted on a separate repository due to separate framework and development environment
 {% github https://github.com/Kizjkre/rainfly %}
