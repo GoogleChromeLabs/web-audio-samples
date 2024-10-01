@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "npm ci",
     "build": "vite build",
     "postbuild": "rm -rf ../../_site/rainfly/* && cp -r build/* ../../_site/rainfly/ && rm -rf build/",
     "preview": "vite preview",
