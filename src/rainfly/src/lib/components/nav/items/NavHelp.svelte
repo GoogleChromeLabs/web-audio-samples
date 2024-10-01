@@ -33,6 +33,7 @@
     </div>
     <div class="text-center text-sm">
       <!-- eslint-disable-next-line no-undef -->
+      <!-- svelte-ignore missing-declaration -->
       <p>ver {meta.version}</p>
     </div>
   </div>

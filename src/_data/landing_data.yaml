@@ -18,9 +18,6 @@
     - title: Canopy
       description: Web Audio code editor and visual debugger
       href: https://hoch.github.io/canopy/
-#    - title: Audio Worklets Playground
-#      description: Audio Worklet playground
-#      href: \#
 
 - title: Demos
   entries:
