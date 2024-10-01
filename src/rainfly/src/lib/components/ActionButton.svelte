@@ -3,6 +3,7 @@
   import playerPlay from '$lib/assets/player-play.svg';
   import playerStop from '$lib/assets/player-stop.svg';
   import playerPause from '$lib/assets/player-pause.svg';
+  import playerRunPlay from '$lib/assets/player-run-play.svg';
 
   let showStop = false;
   let playButtonText = 'Play';
@@ -46,9 +47,9 @@
         break;
       default:
       case Status.stop:
-        playButtonText = 'Run';
-        icon = playerPlay;
         showStop = false;
+        playButtonText = 'Run';
+        icon = playerRunPlay;
     }
   }
 

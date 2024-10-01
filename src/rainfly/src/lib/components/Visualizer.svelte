@@ -183,7 +183,14 @@
     const samples = getRecordedSamples();
     if (samples && samples[0].length === 0) return;
 
-    zoom = Math.max(0, Math.min(zoom + event.deltaY, MAX_ZOOM));
+    let scrollY = event.deltaY;
+    // hack: convert mouse scroll to trackpad scroll amount
+    if (Math.abs(scrollY) > 40) {
+      scrollY /= 40;
+    }
+
+    zoom = Math.max(0, Math.min(zoom + scrollY, MAX_ZOOM));
+    console.log("zoom", zoom);
     slice.full = zoom === 0;
     const max = getRecordedSamples()[0].length;
     const position = event.clientX / window.innerWidth *
