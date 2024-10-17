@@ -2,7 +2,6 @@
   import NavItem from '$lib/components/nav/NavItem.svelte';
   import NavDropdownItem from '$lib/components/nav/NavDropdownItem.svelte';
   import Modal from '$lib/components/Modal.svelte';
-  import splash from '$lib/assets/splash.svg';
 
   /** @type {(state: boolean) => void}*/
   let showAbout;
@@ -28,7 +27,7 @@
            for more information or to submit an issue</p>
       </div>
       <div class="pl-8">
-        <img src={splash} alt="Rainfly logo" class="w-96" />
+        <img src="splash.svg" alt="Rainfly logo" class="w-96" />
       </div>
     </div>
     <div class="text-center text-sm">
