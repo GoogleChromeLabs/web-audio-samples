@@ -8,7 +8,10 @@
   let canvas;
   /** @type {CanvasRenderingContext2D | null} */
   let context;
-  /** @type {number} */
+  /**
+   * Ratio of canvas size to device pixels, for retina displays
+   * @type {number}
+   */
   let RATIO;
   /** @type {number} */
   const BAR_THRESHOLD = 250;
@@ -46,7 +49,6 @@
     if (context === null) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // visualizer width and height
     const width = canvas.width;
     const height = canvas.height;
     const padding = 0.8;
@@ -57,12 +59,10 @@
     slice.full && (slice.end = samples[0]?.length || Infinity);
     const displaySamples = samples[0]?.slice(slice.start, slice.end) || [];
 
-    // visualize the samples
+    // Visualize the samples
     if (displaySamples.length > BAR_THRESHOLD) {
-      // display whole sine wav
+      // Display sine wave samples as a continuous line
       const size = displaySamples.length;
-
-      // const downsampleHop = Math.floor(size / width / 10);
       const downsampleHop = 1;
 
       const increment = width / (size / downsampleHop);
@@ -75,19 +75,16 @@
             height / 2 - (displaySamples[i] * height / 2 * padding));
       }
       context.strokeStyle = PRIMARY_COLOR;
-      // stroke thickness
       context.lineWidth = 1.5 * RATIO;
       context.stroke();
       context.closePath();
     } else {
-      // display sin wave as bars like audacity
+      // Display sine wave samples as bars like Audacity
       const size = displaySamples.length;
-
-      // const downsampleHop = Math.floor(size / width / 10);
       const downsampleHop = 1;
-
       const increment = width / (size / downsampleHop);
 
+      // draw each sample as a bar
       let i = 0;
       context.beginPath();
       for (let x = 0; x < width; x += increment, i += downsampleHop) {
@@ -96,7 +93,6 @@
             height / 2 - (displaySamples[i] * height / 2 * padding));
       }
       context.strokeStyle = PRIMARY_COLOR;
-      // stroke thickness
       context.lineWidth = 1.5 * RATIO;
       context.stroke();
       context.closePath();
@@ -114,7 +110,6 @@
       }
     }
 
-    // Request animation frame
     if ($status === Status.play || $status === Status.running) {
       requestAnimationFrame(draw);
     }
@@ -159,7 +154,7 @@
   }
 
   /**
-   * Clear the canvas and draw the axes
+   * Clear the canvas and re-draw the axes
    */
   function clearCanvas() {
     if (!context) return;
@@ -179,7 +174,11 @@
     draw();
   }
 
-  const handleWheel = (/** @type {WheelEvent} */ event) => {
+  /**
+   * Handle mouse wheel event to zoom in/out of the visualizer
+   * @param {WheelEvent} event - mouse wheel event
+   */
+  const handleWheel = (event) => {
     const samples = getRecordedSamples();
     if (samples && samples[0].length === 0) return;
 
@@ -190,7 +189,7 @@
     }
 
     zoom = Math.max(0, Math.min(zoom + scrollY, MAX_ZOOM));
-    console.log("zoom", zoom);
+    console.log('zoom', zoom);
     slice.full = zoom === 0;
     const max = getRecordedSamples()[0].length;
     const position = event.clientX / window.innerWidth *

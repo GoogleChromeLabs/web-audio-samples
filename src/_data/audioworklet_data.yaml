@@ -42,9 +42,7 @@
     - title: Audio Worklet, SharedArrayBuffer, and Worker
       description: For high performance large-scale audio applications
       href: design-pattern/shared-buffer/
-    - title: Rainfly 
-      description: AudioWorklet DSP Playground and Visualizer
-      href: ../rainfly
+
 
 - title: FreeQueue
   entries:

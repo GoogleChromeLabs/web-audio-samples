@@ -1,4 +1,3 @@
-/* eslint-disable */
 // REF: https://github.com/hoch/canopy/blob/master/docs/js/canopy-exporter.js
 
 /**
@@ -9,7 +8,9 @@
  * @param {number} offset - The offset in the array to start writing at.
  */
 const _writeStringToArray = (aString, targetArray, offset) => {
-  for (let i = 0; i < aString.length; ++i) targetArray[offset + i] = aString.charCodeAt(i);
+  for (let i = 0; i < aString.length; ++i) {
+    targetArray[offset + i] = aString.charCodeAt(i);
+  }
 };
 
 /**
@@ -17,7 +18,8 @@ const _writeStringToArray = (aString, targetArray, offset) => {
  *
  * @param {number} aNumber - The 16-bit integer to be written.
  * @param {Uint8Array} targetArray - The array to write the integer to.
- * @param {number} offset - The offset at which to write the integer in the array.
+ * @param {number} offset - The offset at which to write the integer in the
+ * array.
  */
 const _writeInt16ToArray = (aNumber, targetArray, offset) => {
   aNumber = Math.floor(aNumber);
@@ -55,49 +57,55 @@ const _floatBits = (f) => {
  *
  * @param {AudioBuffer} audioBuffer - The audio buffer to convert.
  * @param {Uint8Array} targetArray - The array to store the converted samples.
- * @param {number} offset - The offset in the targetArray to start writing the converted samples.
- * @param {number} bitDepth - The desired bit depth of the converted samples (16 or 32).
+ * @param {number} offset - The offset in the targetArray to start writing the
+ * converted samples.
+ * @param {number} bitDepth - The desired bit depth of the converted samples
+ * (16 or 32).
  */
-const _writeAudioBufferToArray = (audioBuffer, targetArray, offset, bitDepth) => {
-  let index; let channel = 0;
-  const length = audioBuffer.length;
-  const channels = audioBuffer.numberOfChannels;
-  let channelData; let sample;
+const _writeAudioBufferToArray =
+  (audioBuffer, targetArray, offset, bitDepth) => {
+    let index; let channel = 0;
+    const length = audioBuffer.length;
+    const channels = audioBuffer.numberOfChannels;
+    let channelData; let sample;
 
-  // Clamping samples onto the 16-bit resolution.
-  for (index = 0; index < length; ++index) {
-    for (channel = 0; channel < channels; ++channel) {
-      channelData = audioBuffer.getChannelData(channel);
+    // Clamping samples onto the 16-bit resolution.
+    for (index = 0; index < length; ++index) {
+      for (channel = 0; channel < channels; ++channel) {
+        channelData = audioBuffer.getChannelData(channel);
 
-      // Branches upon the requested bit depth
-      if (bitDepth === 16) {
-        sample = channelData[index] * 32768.0;
-        if (sample < -32768) {
-          sample = -32768;
-        } else if (sample > 32767) {
-          sample = 32767;
-        }
-        _writeInt16ToArray(sample, targetArray, offset);
-        offset += 2;
-      } else if (bitDepth === 32) {
+        // Branches upon the requested bit depth
+        if (bitDepth === 16) {
+          sample = channelData[index] * 32768.0;
+          if (sample < -32768) {
+            sample = -32768;
+          } else if (sample > 32767) {
+            sample = 32767;
+          }
+          _writeInt16ToArray(sample, targetArray, offset);
+          offset += 2;
+        } else if (bitDepth === 32) {
         // This assumes we're going to out 32-float, not 32-bit linear.
-        sample = _floatBits(channelData[index]);
-        _writeInt32ToArray(sample, targetArray, offset);
-        offset += 4;
-      } else {
-        console.error('Invalid bit depth for PCM encoding.');
-        return;
+          sample = _floatBits(channelData[index]);
+          _writeInt32ToArray(sample, targetArray, offset);
+          offset += 4;
+        } else {
+          console.error('Invalid bit depth for PCM encoding.');
+          return;
+        }
       }
     }
-  }
-};
+  };
 
 /**
- * Converts an AudioBuffer object into a WAV file in the form of a binary blob.The resulting WAV file can be used for
- * audio playback or further processing. The function takes two parameters: audioBuffer which represents the audio data,
- * and as32BitFloat which indicates whether the WAV file should be encoded as 32-bit float or 16-bit integer PCM. The
- * function performs various calculations and writes the necessary headers and data to create the WAV file. Finally, it
- * returns the WAV file as a Blob object with the MIME type audio/wave.
+ * Converts an AudioBuffer object into a WAV file in the form of a binary blob.
+ * The resulting WAV file can be used for audio playback or further processing.
+ * The function takes two parameters: audioBuffer which represents the audio
+ * data, and as 32BitFloat which indicates whether the WAV file should be
+ * encoded as 32-bit float or 16-bit integer PCM. The function performs various
+ * calculations and writes the necessary headers and data to create the WAV
+ * file. Finally, it returns the WAV file as a Blob object with the MIME type
+ * audio/wave.
  *
  * @param  {AudioBuffer} audioBuffer
  * @param  {Boolean} as32BitFloat

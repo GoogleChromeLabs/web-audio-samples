@@ -19,8 +19,20 @@
     const mainCode = getEditorMain();
     /** @type {Object.<string, string>}*/
     const files = {};
-    processorCode && (files['processor.js'] = processorCode);
-    mainCode && (files['main.js'] = mainCode);
+    if (processorCode.length == 0 && mainCode.length == 0) {
+      errorMsg = 'No code to save';
+      console.error(errorMsg);
+      showError(true);
+      return;
+    } else {
+      showError(false);
+    }
+    if (processorCode.length > 0) {
+      files['processor.js'] = processorCode;
+    }
+    if (mainCode.length > 0) {
+      files['main.js'] = mainCode;
+    }
 
     const zipBlob = await zipTextFiles(files);
     const url = URL.createObjectURL(zipBlob);

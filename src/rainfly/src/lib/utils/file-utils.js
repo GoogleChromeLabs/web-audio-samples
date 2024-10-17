@@ -12,12 +12,20 @@ import JSZip from 'jszip';
  */
 export async function fetchTextFile(url) {
   let filename = url.split('/').pop();
-  if (filename === undefined) {
+  if (filename === undefined || filename === '') {
     filename = url;
   }
-  const response = await fetch(url);
-  const text = await response.text();
-  return {name: filename, data: text};
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}`);
+    }
+    const data = await response.text();
+    return {name: filename, data};
+  } catch (/** @type any */ error) {
+    return {name: filename, data: 'error: '+ error.message};
+  }
 }
 
 /**
