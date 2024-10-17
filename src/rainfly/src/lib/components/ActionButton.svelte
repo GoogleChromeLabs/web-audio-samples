@@ -52,7 +52,6 @@
         icon = playerRunPlay;
     }
   }
-
 </script>
 
 <div class="flex">
