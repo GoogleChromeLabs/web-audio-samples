@@ -29,7 +29,6 @@
 
   $: {
     if ($status === Status.play || $status === Status.running) {
-      console.log($status);
       draw();
     } else if ($status === Status.stop) {
       clearCanvas();
@@ -189,7 +188,6 @@
     }
 
     zoom = Math.max(0, Math.min(zoom + scrollY, MAX_ZOOM));
-    console.log('zoom', zoom);
     slice.full = zoom === 0;
     const max = getRecordedSamples()[0].length;
     const position = event.clientX / window.innerWidth *

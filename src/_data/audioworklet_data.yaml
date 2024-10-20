@@ -43,7 +43,6 @@
       description: For high performance large-scale audio applications
       href: design-pattern/shared-buffer/
 
-
 - title: FreeQueue
   entries:
     - title: Simple Passthrough
