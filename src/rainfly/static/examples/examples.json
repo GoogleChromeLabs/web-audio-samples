@@ -1,0 +1,14 @@
+{
+  "examples": [
+    {
+      "name": "Hello Bypass",
+      "mainCodeUrl": "examples/bypass/main.js",
+      "processorCodeUrl": "examples/bypass/processor.js"
+    },
+    {
+      "name": "Hello Sine",
+      "mainCodeUrl": "examples/sine/main.js",
+      "processorCodeUrl": "examples/sine/processor.js"
+    }
+  ]
+}
