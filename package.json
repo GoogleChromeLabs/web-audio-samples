@@ -8,6 +8,7 @@
     "build": "npm run clean && run-p build:*",
     "build:eleventy": "ELEVENTY_ENV=production eleventy",
     "build:postcss": "ELEVENTY_ENV=production postcss src/styles/*.css --dir _site",
+    "build:rainfly": "cd src/rainfly && npm run build",
     "start": "run-p start:*",
     "start:eleventy": "eleventy --serve",
     "start:postcss": "postcss src/styles/*.css --dir _site --watch",
