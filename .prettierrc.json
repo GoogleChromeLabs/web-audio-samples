@@ -2,29 +2,9 @@
   "semi": true,
   "singleQuote": true,
   "tabWidth": 2,
-  "useTabs": true,
+  "useTabs": false,
   "trailingComma": "es5",
   "bracketSpacing": true,
   "arrowParens": "always",
-  "printWidth": 80,
-  "overrides": [
-    {
-      "files": "*.html",
-      "options": {
-        "parser": "html"
-      }
-    },
-    {
-      "files": "*.js",
-      "options": {
-        "parser": "babel"
-      }
-    },
-    {
-      "files": "*.njk",
-      "options": {
-        "parser": "html"
-      }
-    }
-  ]
+  "printWidth": 80
 }
