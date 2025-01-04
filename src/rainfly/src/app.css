@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes left-bounce-expand-in {
+  0% {
+    transform: translateX(-100%) scaleY(0.5);
+    opacity: 0;
+  }
+
+  80% {
+    transform: translateX(40%) scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0.25rem);
+  }
+}
+
+@keyframes left-bounce-shrink-out {
+  0% {
+    transform: translateX(0.25rem);
+  }
+
+  20% {
+    transform: translateX(40%) scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-100%) scaleY(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes right-bounce-in {
+  0% {
+    transform: translateX(100%) scaleY(0.5);
+    opacity: 0;
+  }
+
+  80% {
+    transform: translateX(-5rem) scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes right-bounce-out {
+  0% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-5rem) scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(100%) scaleY(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes unfold {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    max-height: 10rem;
+  }
+}
+
+@keyframes fold {
+  0% {
+    max-height: 10rem;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+    transform: scale(.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+body, html {
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  width: 100vw;
+}
+
+.fab-in {
+  animation: left-bounce-expand-in 0.25s ease-in-out forwards;
+}
+
+.fab-out {
+  animation: left-bounce-shrink-out 0.25s ease-in-out forwards;
+}
+
+.fold {
+  @apply overflow-hidden;
+  animation: fold 0.2s ease-in-out forwards;
+}
+
+.unfold {
+  @apply overflow-hidden;
+  animation: unfold 0.2s ease-in-out forwards;
+}
+
+.toast-in {
+  animation: right-bounce-in 0.25s ease-in-out forwards;
+}
+
+.toast-out {
+  animation: right-bounce-out 0.25s ease-in-out forwards;
+}
+
+.tooltip-in {
+  animation: appear 0.05s ease-in-out forwards;
+}
+
+.tooltip-out {
+  animation: disappear 0.05s ease-in-out forwards;
+}
+
+.vimBar {
+  @apply w-full h-6 px-1 border-none bg-gray-200 text-sm items-center;
+  display: flex !important;
+}
+
+.vimBar input {
+  @apply outline-none bg-transparent border-none;
+}
