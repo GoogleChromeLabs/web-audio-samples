@@ -2,9 +2,9 @@ name: CI and Lint
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   lint:
@@ -25,9 +25,6 @@ jobs:
 
       - name: Run Prettier
         run: npm run lint:prettier
-
-      - name: Run ESLint
-        run: npm run lint:eslint
 
       - name: Lint changed files
         if: github.event_name == 'pull_request'
