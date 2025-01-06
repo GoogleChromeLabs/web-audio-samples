@@ -1,8 +1,6 @@
 name: CI and Lint
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -22,9 +20,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run Prettier
-        run: npm run lint:prettier
 
       - name: Lint changed files
         if: github.event_name == 'pull_request'
