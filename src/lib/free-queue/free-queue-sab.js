@@ -29,7 +29,7 @@ class FreeQueueSAB {
     }
     
     /**
-     * FreeQueue constructor. A shared buffer created by this constuctor
+     * FreeQueue constructor. A shared buffer created by this constructor
      * will be shared between two threads.
      *
      * @param {number} size Frame buffer length.

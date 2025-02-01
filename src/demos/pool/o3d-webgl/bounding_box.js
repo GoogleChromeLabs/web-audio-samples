@@ -193,7 +193,7 @@ o3d.BoundingBox.prototype.intersectRay =
     var which_plane;
 
     // Find candidate planes; this loop can be avoided if rays cast all from
-    // the eye (assumes perpsective view).
+    // the eye (assumes perspective view).
     for (var i = 0; i < kNumberOfDimensions; ++i) {
       if (start[i] < min_extent_[i]) {
         quadrant[i] = kLeft;

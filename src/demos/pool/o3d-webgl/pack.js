@@ -51,7 +51,7 @@ o3d.inherit('Pack', 'NamedObject');
  * after the pack's destruction.  Objects will only be destroyed after all
  * references to them have been removed.
  *
- * NOTE: Calling pack.destroy does NOT free your resources. It justs releases
+ * NOTE: Calling pack.destroy does NOT free your resources. It just releases
  * the pack's reference to those resources.  An example should hopefully make
  * it clearer.
  *
@@ -194,7 +194,7 @@ o3d.Pack.prototype.createObject =
  * @param {number} height The height of the texture area in texels (max = 2048)
  * @param {o3d.Texture.Format} format The memory format of each texel
  * @param {number} levels The number of mipmap levels.  Use zero to create the
- *     compelete mipmap chain.
+ *     complete mipmap chain.
  * @param {boolean} enable_render_surfaces If true, the texture object will
  *     expose RenderSurface objects through GetRenderSurface(...).
  * @return {!o3d.Texture2D}  The Texture2D object.
@@ -231,7 +231,7 @@ o3d.Pack.prototype.createTexture2D =
  *     (max = 2048)
  * @param {o3d.Texture.Format} format The memory format of each texel.
  * @param {number} levels The number of mipmap levels.   Use zero to create
- *     the compelete mipmap chain.
+ *     the complete mipmap chain.
  * @param {boolean} enableRenderSurfaces If true, the texture object
  *     will expose RenderSurface objects through GetRenderSurface(...).
  * @return {!o3d.TextureCUBE}  The TextureCUBE object.

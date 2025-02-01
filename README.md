@@ -10,7 +10,7 @@ actual site built from the source, see `gh-pages` branch.
 - `gh-pages`: the actual site built from `main`
 - `archive`: old projects/examples (V2 and earlier)
 
-### How to make changes and depoly
+### How to make changes and deploy
 
 1. Clone the repository.
 2. `npm install`

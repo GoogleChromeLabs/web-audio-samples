@@ -568,7 +568,7 @@ function abort(what) {
   // allows this in the wasm spec.
 
   // Suppress closure compiler warning here. Closure compiler's builtin extern
-  // defintion for WebAssembly.RuntimeError claims it takes no arguments even
+  // definition for WebAssembly.RuntimeError claims it takes no arguments even
   // though it can.
   // TODO(https://github.com/google/closure-compiler/pull/3913): Remove if/when upstream closure gets fixed.
   /** @suppress {checkTypes} */

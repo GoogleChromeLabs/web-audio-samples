@@ -556,7 +556,7 @@ o3d.TextureCUBE.prototype.drawImage =
 
 
 /**
- * Makes this texture currrent, and sets various texParameters provided they
+ * Makes this texture current, and sets various texParameters provided they
  * have changed since the last time bindAndSetParameters_ was called for this
  * texture.
  * @param {number} addressModeU  The address mode in the U coordinate.
