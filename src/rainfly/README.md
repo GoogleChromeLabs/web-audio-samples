@@ -24,3 +24,16 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+## Using Parameters in Rainfly Examples
+
+Rainfly supports defining parameters inside comments, which are automatically parsed and used in the execution.
+
+### Sample Rate Parameter
+To specify the sample rate for the AudioContext, use the following syntax:
+
+```js
+// @sampleRate = 48000
+```
+
+If not specified, the default sample rate of **48000 Hz** is used. This allows easy configuration without manually setting `AudioContextOptions.sampleRate`.
