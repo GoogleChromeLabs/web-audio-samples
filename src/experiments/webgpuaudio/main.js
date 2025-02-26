@@ -100,26 +100,26 @@ const toggleButtonClickHandler = async () => {
 
 // Detect required features.
 const detectFeaturesAndReport = (viewElement) => {
-  let areRequiremensMet = true;
+  let areRequirementsMet = true;
 
   if (typeof navigator.gpu !== 'object') {
     viewElement.textContent +=
         'ERROR: WebGPU is not available on your browser.\r\n';
-    areRequiremensMet = false;
+    areRequirementsMet = false;
   }
 
   if (typeof SharedArrayBuffer !== 'function') {
     viewElement.textContent +=
         'ERROR: SharedArrayBuffer is not available on your browser.\r\n';
-    areRequiremensMet = false;
+    areRequirementsMet = false;
   }
 
-  if (areRequiremensMet) {
+  if (areRequirementsMet) {
     viewElement.textContent +=
         'All requirements have been met. The experiment is ready to run.\r\n';
   }
 
-  return areRequiremensMet;
+  return areRequirementsMet;
 };
 
 window.addEventListener('load', async () => {
