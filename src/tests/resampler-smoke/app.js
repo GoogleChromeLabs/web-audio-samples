@@ -11,11 +11,11 @@ const logMessage = (message, delayInSecond = 0) => {
 
 const startAudio = () => {
   const audioElementA = new Audio();
-  audioElementA.src = '/sounds/fx/human-voice.mp3';
+  audioElementA.src = '../../sounds/fx/human-voice.mp3';
   audioElementA.loop = true;
 
   const audioElementB = new Audio();
-  audioElementB.src = '/sounds/fx/human-voice.mp3';
+  audioElementB.src = '../../sounds/fx/human-voice.mp3';
   audioElementB.loop = true;
   audioElementB.volume = 1.0;
   
