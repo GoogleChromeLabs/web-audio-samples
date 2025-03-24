@@ -1,0 +1,81 @@
+---
+eleventyNavigation:
+  key: test-resampler-smoke-test
+  title: Resampler Smoke Test
+  parent: tests
+to_root_dir: ../../
+---
+
+{% extends "../../_includes/base.njk" %}
+
+{% block content %}
+
+<style>
+  /* Hide the default checkbox */
+  .toggle-checkbox {
+    display: none;
+  }
+
+  /* Style the toggle label */
+  .toggle-label {
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 15px;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 16px;
+    cursor: pointer;
+  }
+
+  /* Style the toggle switch */
+  .toggle-switch {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s ease-in-out;
+  }
+
+  /* Style the toggle when checked */
+  .toggle-checkbox:checked + .toggle-label {
+    /* background-color: #4CAF50; Green when on */
+  }
+
+  .toggle-checkbox:checked + .toggle-label .toggle-switch {
+    left: 32px; /* Move to the right when on */
+  }
+
+  #btn-start-test {
+    vertical-align: middle;
+  }
+</style>
+
+<h1>{{ eleventyNavigation.title }}</h1>
+<p>Play the start button to run the test. Compare the resampled AudioContext
+  audio stream and the original AudioElement audio stream with the toggle
+  switch.</p>
+<p>Refresh the page to run the test again.</p>
+
+<div class="demo-box">
+  <button id="btn-start-test" disabled>START TEST</button>
+  <input type="checkbox" id="myToggle" class="toggle-checkbox">
+<label for="myToggle" class="toggle-label">
+  <span class="toggle-switch"></span>
+</label>
+  {% include "../../_includes/example-source-code.njk" %}
+</div>
+
+<div id="view"
+  class="mt-6 p-3 rounded border">
+  <div id="log" class="text-xs text-slate-600 font-mono whitespace-pre"></div>
+  <div id="inspector"></div>
+</div>
+
+<script type="module" src="app.js"></script>
+
+{% endblock %}
