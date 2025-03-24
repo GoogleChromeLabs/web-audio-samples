@@ -38,7 +38,7 @@
  * DrawElement to that DrawList.
  *
  * @param {o3d.Transform} opt_transform The root transform to start traversing
- *     by this TreeTraveral.
+ *     by this TreeTraversal.
  * @constructor
  */
 o3d.TreeTraversal = function(opt_transform) {

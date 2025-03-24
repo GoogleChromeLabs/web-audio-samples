@@ -80,7 +80,7 @@ class IndexedDBStorage {
               // cursor is undefined on the initial invocation, which triggers
               // the data loading. Finally, cursor will be falsey when the
               // previous next() invocation could not return any more data.
-              // Cursor being truthy indicates that the previos next()
+              // Cursor being truthy indicates that the previous next()
               // invocation returned data and there might be more. Calling
               // continue() will invoke the onsuccess event handler with the
               // next data entry.
