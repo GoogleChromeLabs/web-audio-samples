@@ -5,7 +5,7 @@ const logMessage = (message, delayInSecond = 0) => {
 
   setTimeout(() => {
     Test.log.textContent +=
-        '[' + performance.now().toFixed(2) + '] ' + message + '\r\n';
+      '[' + performance.now().toFixed(2) + '] ' + message + '\r\n';
   }, delayInSecond * 1000);
 };
 
@@ -18,12 +18,12 @@ const startAudio = () => {
   audioElementB.src = '../../sounds/fx/human-voice.mp3';
   audioElementB.loop = true;
   audioElementB.volume = 1.0;
-  
-  const contextA = new AudioContext({sampleRate: 8000});
+
+  const contextA = new AudioContext({ sampleRate: 8000 });
   const elementSourceA = new MediaElementAudioSourceNode(contextA, {
     mediaElement: audioElementA,
   });
-  const gainA = new GainNode(contextA, {gain: 0.0});
+  const gainA = new GainNode(contextA, { gain: 0.0 });
   elementSourceA.connect(gainA).connect(contextA.destination);
 
   contextA.resume();
@@ -35,8 +35,10 @@ const startAudio = () => {
 
   logMessage('Test started: context samplerate = ' + contextA.sampleRate);
   logMessage('Test started: context baseLatency = ' + contextA.baseLatency);
-  logMessage('Test started: context buffer size = ' + 
-             contextA.baseLatency * contextA.sampleRate);
+  logMessage(
+    'Test started: context buffer size = ' +
+      contextA.baseLatency * contextA.sampleRate
+  );
   Test.startAudioButton.disabled = true;
   myToggle.disabled = false;
 };
