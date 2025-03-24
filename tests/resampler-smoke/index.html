@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <title>
-      WebGPUAudio Experiment | Web Audio Samples
+      Resampler Smoke Test | Web Audio Samples
     </title>
     <meta charset="UTF-8"/>
     <meta name="keywords" content="">
@@ -35,7 +35,7 @@
   
     <div class="mr-2">
       <a href="..">
-        Experiments
+        Various tests for Web Audio API
       </a>
     </div>
     <span class="mr-2">
@@ -43,7 +43,7 @@
     </span>
   
   <div>
-    WebGPUAudio Experiment
+    Resampler Smoke Test
   </div>
 </div>
 
@@ -55,21 +55,77 @@
         <div class="w-full px-6 md:max-w-4xl md:mx-auto">
           
 
-<script src="./coi-serviceworker.js"></script>
+<style>
+  /* Hide the default checkbox */
+  .toggle-checkbox {
+    display: none;
+  }
 
-<h1>WebGPUAudio Experiment</h1>
+  /* Style the toggle label */
+  .toggle-label {
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 15px;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 16px;
+    cursor: pointer;
+  }
 
-<p>An experiment to use Web Audio API and WebGPU together to process audio
-  stream with GPU.</p>
+  /* Style the toggle switch */
+  .toggle-switch {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s ease-in-out;
+  }
+
+  /* Style the toggle when checked */
+  .toggle-checkbox:checked + .toggle-label {
+    /* background-color: #4CAF50; Green when on */
+  }
+
+  .toggle-checkbox:checked + .toggle-label .toggle-switch {
+    left: 32px; /* Move to the right when on */
+  }
+
+  #btn-start-test {
+    vertical-align: middle;
+  }
+</style>
+
+<h1>Resampler Smoke Test</h1>
+<p>Play the start button to run the test. Compare the resampled AudioContext
+  audio stream and the original AudioElement audio stream with the toggle
+  switch.</p>
+<p>Refresh the page to run the test again.</p>
 
 <div class="demo-box">
-  
-  
-  <div id="message-view" class="pb-3 text-sm whitespace-pre"></div>
-  <button id="toggle-audio" disabled>START</button>
+  <button id="btn-start-test" disabled>START TEST</button>
+  <input type="checkbox" id="myToggle" class="toggle-checkbox">
+<label for="myToggle" class="toggle-label">
+  <span class="toggle-switch"></span>
+</label>
+  <div class="text-sm text-right">
+  <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/tests/resampler-smoke/" target="_blank">
+    source code
+  </a>
+</div>
 </div>
 
-<script src="./main.js" type="module"></script>
+<div id="view"
+  class="mt-6 p-3 rounded border">
+  <div id="log" class="text-xs text-slate-600 font-mono whitespace-pre"></div>
+  <div id="inspector"></div>
+</div>
+
+<script type="module" src="app.js"></script>
 
 
         </div>
