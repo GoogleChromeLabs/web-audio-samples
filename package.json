@@ -1,6 +1,6 @@
 {
   "name": "web-audio-samples",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "A collection of projects, examples and resources for Web Audio API. Curated by the Chrome Web Audio team.",
   "main": "index.js",
   "scripts": {
@@ -21,18 +21,18 @@
   "dependencies": {
     "@11ty/eleventy": "^2.0.1",
     "@11ty/eleventy-navigation": "^0.3.5",
-    "autoprefixer": "^10.4.19",
-    "cssnano": "^7.0.1",
-    "eslint": "8.57.0",
+    "autoprefixer": "^10.4.21",
+    "cssnano": "^7.0.6",
+    "eslint": "9.23.0",
     "eslint-config-google": "^0.14.0",
     "html-minifier": "^4.0.0",
     "js-yaml": "^4.1.0",
     "npm-run-all": "^4.1.5",
-    "postcss": "^8.4.38",
-    "postcss-cli": "^11.0.0",
-    "prettier": "^3.2.5",
-    "rimraf": "^5.0.7",
-    "tailwindcss": "^3.4.3"
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
     "@playwright/test": "latest",
