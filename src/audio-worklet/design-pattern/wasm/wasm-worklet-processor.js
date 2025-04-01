@@ -23,6 +23,8 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
     super();
 
     Module().then((module) => {
+      this.module = module;
+
       // Allocate the buffer for the heap access. Start with stereo, but it can
       // be expanded up to 32 channels.
       this._heapInputBuffer = new FreeQueue(
@@ -43,7 +45,7 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
   process(inputs, outputs, parameters) {
     if (this.module === undefined) {
       // Wait for the WASM module to be loaded.
-      return false;
+      return true;
     }
 
     // Use the 1st input and output only to make the example simpler. |input|
