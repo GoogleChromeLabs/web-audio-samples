@@ -31,7 +31,7 @@
 
 
 /**
- * The Transform defines parent child relationship and a localMatrix..
+ * The Transform defines parent child relationship and a localMatrix.
  * A Transform can have one or no parents and
  * an arbitrary number of children.
  *
@@ -291,7 +291,7 @@ o3d.Transform.prototype.identity = function() {
 
 
 /*
- * Utility function to copose a matrix with another matrix.
+ * Utility function to compose a matrix with another matrix.
  * Precomposes b with a, changing a, or if the target matrix if
  * one is provided.
  *
@@ -564,7 +564,7 @@ o3d.Transform.prototype.translate =
 
 /**
  * Pre-composes the local matrix of this Transform with a rotation about the
- * x-axis.  For example, if the local matrix is a tranlsation, the new local
+ * x-axis.  For example, if the local matrix is a translation, the new local
  * matrix will rotate around the x-axis and then translate.
  *
  * @param {number} radians The number of radians to rotate around x-axis.

@@ -34,7 +34,7 @@
  * Bitmap provides an interface for basic image operations on bitmap,
  * including scale and crop. A Bitmap can be created from RawData via
  * pack.createBitmapsFromRawData(), and also can be transferred to mip of a
- * Texure2D or a specific face of TextureCUBE via methods in Texture.
+ * Texture2D or a specific face of TextureCUBE via methods in Texture.
  * @constructor
  */
 o3d.Bitmap = function() {

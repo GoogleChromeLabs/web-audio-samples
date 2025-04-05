@@ -168,7 +168,7 @@ o3d.ClientInfo.prototype.buffer_memory_used = 0;
  * browser from that same command line if you want to effect just
  * that instance of the browser.
  *
- * Note that many browers require special command line options to
+ * Note that many browsers require special command line options to
  * run in a separate process, otherwise they default to finding
  * the browser process already running and using that. For example
  * firefox requires the option -no-remote.

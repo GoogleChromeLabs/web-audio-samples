@@ -418,8 +418,8 @@ o3djs.particles.ParticleSystem.prototype.createTextureFromFloats = function(widt
  * );
  * </pre>
  *
- * Many of these parameters are in pairs. For paired paramters each particle
- * specfic value is set like this
+ * Many of these parameters are in pairs. For paired parameters each particle
+ * specific value is set like this
  *
  * particle.field = value + Math.random() - 0.5 * valueRange * 2;
  *
@@ -530,7 +530,7 @@ o3djs.particles.ParticleSpec = function() {
   this.positionRange = [0, 0, 0];
 
   /**
-   * The velocity of a paritcle in local space.
+   * The velocity of a particle in local space.
    * @type {!o3djs.math.Vector3}
    */
   this.velocity = [0, 0, 0];
@@ -548,7 +548,7 @@ o3djs.particles.ParticleSpec = function() {
   this.acceleration = [0, 0, 0];
 
   /**
-   * The accleration range.
+   * The acceleration range.
    * @type {!o3djs.math.Vector3}
    */
   this.accelerationRange = [0, 0, 0];
@@ -590,13 +590,13 @@ o3djs.particles.ParticleSpec = function() {
   this.colorMultRange = [0, 0, 0, 0];
 
   /**
-   * The velocity of all paritcles in world space.
+   * The velocity of all particles in world space.
    * @type {!o3djs.math.Vector3}
    */
   this.worldVelocity = [0, 0, 0];
 
   /**
-   * The acceleration of all paritcles in world space.
+   * The acceleration of all particles in world space.
    * @type {!o3djs.math.Vector3}
    */
   this.worldAcceleration = [0, 0, 0];
@@ -1021,7 +1021,7 @@ o3djs.particles.ParticleEmitter.prototype.allocateParticles_ = function(
  * Sets the parameters of the particle emitter.
  *
  * Each of these parameters are in pairs. The used to create a table
- * of particle parameters. For each particle a specfic value is
+ * of particle parameters. For each particle a specific value is
  * set like this
  *
  * particle.field = value + Math.random() - 0.5 * valueRange * 2;

@@ -19,7 +19,7 @@
 // associated AWP via SharedArrayBuffer (SAB).
 //
 // A pair of SABs is created by this Worker. The one is for the shared states
-// (Int32Array) of ring buffer between two obejcts and the other works like the
+// (Int32Array) of ring buffer between two objects and the other works like the
 // ring buffer for audio content (Float32Array).
 //
 // The synchronization mechanism between two object is done by wake/wait

@@ -78,7 +78,7 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
       this._inputAudioBuffer.pull(this._inputAudioBuffer.getChannelData());
 
       // This WASM process function can be replaced with ScriptProcessor's
-      // |onaudioprocess| callback funciton. However, if the event handler
+      // |onaudioprocess| callback function. However, if the event handler
       // touches DOM in the main scope, it needs to be translated with the
       // async messaging via MessagePort.
       this._kernel.process(
