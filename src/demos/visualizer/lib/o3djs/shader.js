@@ -108,7 +108,7 @@ o3djs.shader.loadFromURL = function(gl,
 
 
 /**
- * Helper which convers GLSL names to JavaScript names.
+ * Helper which converts GLSL names to JavaScript names.
  * @private
  */
 o3djs.shader.glslNameToJs_ = function(name) {

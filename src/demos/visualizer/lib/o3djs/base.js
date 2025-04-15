@@ -31,7 +31,7 @@
 
 
 /**
- * @fileoverview Base for all o3d sample utilties.
+ * @fileoverview Base for all o3d sample utilities.
  *    For more information about o3d see
  *    http://code.google.com/p/o3d.
  *

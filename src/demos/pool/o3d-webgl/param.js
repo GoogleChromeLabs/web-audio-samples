@@ -805,7 +805,7 @@ o3d.ParamMatrix4.prototype.applyToLocation = function(gl, location) {
 };
 
 /**
- * A counter to ensure each texture sampler gets a unqiue id.
+ * A counter to ensure each texture sampler gets a unique id.
  * @private
  */
 o3d.Param.texture_index_ = 0;

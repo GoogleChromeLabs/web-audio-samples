@@ -31,7 +31,7 @@
 
 
 /**
- * @fileoverview Base for all o3d classes implemented in javscript.
+ * @fileoverview Base for all o3d classes implemented in javascript.
  *    Include just this file in a script tag and it will include all other
  *    source files needed by o3d.
  *    For more information about o3d see

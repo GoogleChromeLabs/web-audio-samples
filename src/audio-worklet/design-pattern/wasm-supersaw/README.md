@@ -13,4 +13,4 @@ an additional step to build and compile. Follow the steps below:
 
 3. In the terminal, run `make` to build the WASM file.
 
-4. Serve `index.html` file in the directoy.
+4. Serve `index.html` file in the directory.
