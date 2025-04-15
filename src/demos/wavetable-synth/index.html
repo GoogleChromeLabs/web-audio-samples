@@ -507,6 +507,7 @@ Sequence.prototype.schedule = function() {
 function Note(staticAudioRouting, isMonophonic) {
     this.staticAudioRouting = staticAudioRouting;
     this.isMonophonic = isMonophonic;
+    this.firstTime = true;
     
     // Create oscillators, panners, amplitude, and filter envelopes.    
     
@@ -621,15 +622,13 @@ Note.prototype.setFilterValues = function() {
     filter.frequency.setTargetAtTime(startFrequency, time + filterAttack, filterDecay);
 }
 
-var firstTime = true;
-
 Note.prototype.play = function(wave, wave2, semitone, octave, time) {
     this.time = time;
     
     if (wave != this.wave || wave2 != this.wave2 || !this.isMonophonic) {
         this.wave = wave;
         this.wave2 = wave2;
-        firstTime = true;
+        this.firstTime = true;
     }
     
     // Get local copies.
@@ -652,20 +651,20 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
 
     var rate1 = pitchRate * Math.pow(2.0, -detune1/1200);
     var buffer1 = wave.getWaveDataForPitch(rate1);
-    if (firstTime) osc1.buffer = buffer1;
+    if (this.firstTime) osc1.buffer = buffer1;
 
     osc1.playbackRate.value = rate1;
 
 
     var rate2 = pitchRate * Math.pow(2.0, octave - detune2/1200);
     var buffer2 = wave2.getWaveDataForPitch(rate2);
-    if (firstTime) osc1Octave.buffer = buffer2;
+    if (this.firstTime) osc1Octave.buffer = buffer2;
     osc1Octave.playbackRate.value = rate2;
 
-    if (firstTime) osc2.buffer = buffer1;
+    if (this.firstTime) osc2.buffer = buffer1;
     osc2.playbackRate.value = pitchRate * Math.pow(2.0, +detune1/1200); // max one semi-tone
 
-    if (firstTime) osc2Octave.buffer = buffer2;
+    if (this.firstTime) osc2Octave.buffer = buffer2;
     osc2Octave.playbackRate.value = pitchRate * Math.pow(2.0, octave + detune2/1200); // max one semi-tone
     
     // Set panning amount for width spreading.
@@ -725,12 +724,12 @@ Note.prototype.play = function(wave, wave2, semitone, octave, time) {
 //            console.log('cleanup');
         }, cleanupDelay * 1000);
     } else {
-        if (firstTime) {
+        if (this.firstTime) {
             osc1.start(0);
             osc2.start(0);
             osc1Octave.start(0);
             osc2Octave.start(0);
-            firstTime = false;
+            this.firstTime = false;
         }
     }
 }
