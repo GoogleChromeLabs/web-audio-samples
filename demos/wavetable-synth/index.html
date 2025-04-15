@@ -955,15 +955,29 @@ function addUI() {
 }
 
 function start() {
-    // first, get rid of loading animation
     var loading = document.getElementById("loading");
-    loading.innerHTML = "";
 
-    startTime = context.currentTime + 0.160;
-    
     waveTable = loader.getTable(defaultWaveTableName);
     waveTable2 = loader.getTable(defaultWaveTableName);
-    sequence.schedule();    
+
+    const startAudioPlayback = () => {
+        loading.innerHTML = "";
+        startTime = context.currentTime + 0.160;
+        sequence.schedule();
+    };
+
+    if (context.state === 'running') {
+        startAudioPlayback();
+    } else if (context.state === 'suspended') {
+        loading.innerHTML = "Click anywhere or press a key to start playing.";
+        const interactionHandler = () => {
+            document.removeEventListener('mousedown', interactionHandler);
+            document.removeEventListener('keydown', interactionHandler);
+            context.resume().then(() => startAudioPlayback());
+        };
+        document.addEventListener('mousedown', interactionHandler);
+        document.addEventListener('keydown', interactionHandler);
+    }
 }
 
 </script>
