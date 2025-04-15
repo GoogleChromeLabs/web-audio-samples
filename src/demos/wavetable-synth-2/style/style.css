@@ -1,6 +1,20 @@
+/* For fonts */
 body {
   font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
+}
+
+/* For positioning */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+  font-family: sans-serif;
+  gap: 30px; /* Add space between switches */
+  flex-wrap: wrap; /* Allow wrapping if needed */
+  padding: 20px;
 }

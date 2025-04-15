@@ -11,7 +11,12 @@
   <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-  <script src="script/main.js"></script>
   <h1>This is the new wavetable synth app.</h1>
+
+  <led-toggle-switch id="ledToggleSwitch" label="Polyphonic">
+  </led-toggle-switch>
+  <p>Current Value: <span id="statusSpan">OFF</span></p>
+
+  <script type="module" src="script/main.js"></script>
 </body>
 </html>
