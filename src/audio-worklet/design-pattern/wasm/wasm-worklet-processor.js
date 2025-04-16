@@ -13,19 +13,26 @@ import {RENDER_QUANTUM_FRAMES, MAX_CHANNEL_COUNT, FreeQueue}
  * @extends AudioWorkletProcessor
  */
 class WASMWorkletProcessor extends AudioWorkletProcessor {
+  // WASM module instance.
+  #module = undefined;
+
   /**
    * @constructor
    */
   constructor() {
     super();
 
-    // Allocate the buffer for the heap access. Start with stereo, but it can
-    // be expanded up to 32 channels.
-    this._heapInputBuffer = new FreeQueue(
-        Module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
-    this._heapOutputBuffer = new FreeQueue(
-        Module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
-    this._kernel = new Module.SimpleKernel();
+    Module().then((module) => {
+      this.module = module;
+
+      // Allocate the buffer for the heap access. Start with stereo, but it can
+      // be expanded up to 32 channels.
+      this._heapInputBuffer = new FreeQueue(
+        this.module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
+      this._heapOutputBuffer = new FreeQueue(
+        this.module, RENDER_QUANTUM_FRAMES, 2, MAX_CHANNEL_COUNT);
+      this._kernel = new this.module.SimpleKernel();
+    });
   }
 
   /**
@@ -36,6 +43,11 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
    * @return {Boolean} Active source flag.
    */
   process(inputs, outputs, parameters) {
+    if (this.module === undefined) {
+      // Wait for the WASM module to be loaded.
+      return true;
+    }
+
     // Use the 1st input and output only to make the example simpler. |input|
     // and |output| here have the similar structure with the AudioBuffer
     // interface. (i.e. An array of Float32Array)
