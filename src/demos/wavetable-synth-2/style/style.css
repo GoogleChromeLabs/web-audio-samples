@@ -14,7 +14,12 @@ body {
   min-height: 100vh;
   background-color: #f0f0f0;
   font-family: sans-serif;
-  gap: 30px; /* Add space between switches */
+  gap: 40px;
   flex-wrap: wrap; /* Allow wrapping if needed */
   padding: 20px;
+}
+
+knob-simple {
+  width: 150px; /* Example width */
+  height: 200px; /* Example height */
 }
