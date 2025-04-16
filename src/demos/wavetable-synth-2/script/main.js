@@ -1,3 +1,4 @@
+import { Dropdown } from "../ui-components/Dropdown.js";
 import { KnobSimple } from "../ui-components/KnobSimple.js";
 import { ToggleSimple } from "../ui-components/ToggleSimple.js";
 
@@ -23,3 +24,13 @@ knob2.addEventListener('change', handleUIEvent);
 knob3.addEventListener('input', handleUIEvent);
 knob3.addEventListener('change', handleUIEvent);
 
+const dropdown1 = document.querySelector('#dropdown-1');
+dropdown1.options = {
+  'Option A': 'value_a',
+  'Option B': 'value_b',
+  'Option C': 'value_c',
+  'Another Option': 'value_d'
+};
+dropdown1.addEventListener('select', (event) => {
+  console.log('Select event received:', event.detail);
+});

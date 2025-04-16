@@ -239,9 +239,9 @@ export class KnobSimple extends HTMLElement {
         cursor: ns-resize; /* Indicate vertical drag */
         user-select: none; /* Prevent text selection during drag */
         touch-action: none; /* Prevent scrolling on touch devices */
-        --knob-bg-color: #ddd;
-        --knob-fg-color: #333;
-        --knob-tick-color: #f00;
+        --knob-bg-color: #fff;
+        --knob-fg-color: #aaa;
+        --knob-tick-color: #1f7a35;
         --knob-label-color: #555;
         --knob-value-color: #111;
         --knob-value-edit-bg: #fff;
@@ -257,7 +257,7 @@ export class KnobSimple extends HTMLElement {
         box-sizing: border-box;
       }
       .knob-label {
-        font-size: 0.9em;
+        font-size: 14px;
         color: var(--knob-label-color);
         margin-bottom: 5px;
         text-align: center;
@@ -282,12 +282,11 @@ export class KnobSimple extends HTMLElement {
       }
       .knob-tick {
         stroke: var(--knob-tick-color);
-        stroke-width: 4; /* Make tick thicker */
-        stroke-linecap: round; /* Rounded ends for the tick */
+        stroke-width: 6; /* Make tick thicker */
+        stroke-linecap: square; /* Rounded ends for the tick */
       }
       .knob-value {
-        font-size: 1em;
-        font-weight: bold;
+        font-size: 14px;
         color: var(--knob-value-color);
         text-align: center;
         min-width: 4ch; /* Minimum width to prevent layout shifts */
