@@ -246,6 +246,10 @@ export class ToggleSimple extends HTMLElement {
   get state() {
     return this._state;
   }
+
+  get label() {
+    return this._labelElement.textContent;
+  }
 }
 
 // Define the new custom element

@@ -4,18 +4,32 @@ body {
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
+  min-height: 100vh;
+  background-color: #f0f0f0;
 }
 
-/* For positioning */
-body {
+.header {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-family: sans-serif;
   gap: 40px;
   flex-wrap: wrap; /* Allow wrapping if needed */
+  padding: 20px;
+}
+
+.footer {
+  font-size: small;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 20px;
 }
 
