@@ -1,32 +1,3 @@
-// Copyright 2011, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 /**
  * Converts decibels to a linear gain value.
  * @param {number} db - Decibel value.
@@ -54,8 +25,10 @@ const linearToDecibels = (x) => {
 class Colortouch {
   /**
    * Sets the parameters for the waveshaping curve.
-   * @param {number} dbThreshold - The threshold in dB above which compression starts.
-   * @param {number} dbKnee - The range in dB above the threshold where the curve smoothly transitions.
+   * @param {number} dbThreshold - The threshold in dB above which compression
+   * starts.
+   * @param {number} dbKnee - The range in dB above the threshold where the
+   * curve smoothly transitions.
    * @param {number} ratio - The compression ratio (e.g., 4 for 4:1).
    */
   constructor(dbThreshold, dbKnee, ratio) {
@@ -76,7 +49,8 @@ class Colortouch {
   }
 
   /**
-   * Calculates the slope of the curve at a given input level x using a specific k value.
+   * Calculates the slope of the curve at a given input level x using a specific
+   * k value.
    * @private
    * @param {number} x - Input level (linear).
    * @param {number} k - Curve shaping parameter.
@@ -98,14 +72,15 @@ class Colortouch {
     const y1Db = linearToDecibels(this.saturateBasic(x1, k));
     const y2Db = linearToDecibels(this.saturateBasic(x2, k));
 
-    // Avoid division by zero or very small numbers if x1Db and x2Db are too close
+    // Avoid division by zero or very small numbers if x1Db and x2Db are too
+    // close
     const dbDifference = x2Db - x1Db;
     if (Math.abs(dbDifference) < 1e-9) {
-        // Handle potential division by zero or near-zero
-        // This might happen if x is very close to 0 or if precision issues arise.
-        // Returning 1 (no compression) or slope (full compression) might be options,
-        // but requires understanding the desired behavior at edge cases.
-        // For now, let's return the target slope as a fallback.
+        // Handle potential division by zero or near-zero This might happen if x
+        // is very close to 0 or if precision issues arise. Returning 1 (no
+        // compression) or slope (full compression) might be options, but
+        // requires understanding the desired behavior at edge cases. For now,
+        // let's return the target slope as a fallback.
         return this.slope;
     }
 
@@ -139,7 +114,8 @@ class Colortouch {
         // Slope is too steep, k is too low
         minK = k;
       }
-      // Adjust k using a midpoint approach (safer than sqrt for potential negative values if logic were different)
+      // Adjust k using a midpoint approach (safer than sqrt for potential
+      // negative values if logic were different)
       k = (minK + maxK) / 2;
     }
 
@@ -165,7 +141,8 @@ class Colortouch {
   }
 
   /**
-   * Applies the full waveshaping curve, including the knee and the linear gain reduction part.
+   * Applies the full waveshaping curve, including the knee and the linear gain
+   * reduction part.
    * @param {number} x - Input level (linear).
    * @returns {number} Shaped output level (linear).
    */
@@ -208,10 +185,10 @@ const generateColortouchCurve = (curve) => {
 };
 
 /**
- * Creates a WaveShaper node setup with pre and post gain stages
- * and applies a Colortouch distortion curve.
+ * Creates a WaveShaper node setup with pre and post gain stages and applies a
+ * Colortouch distortion curve.
  */
-class WaveShaper {
+export class WaveShaper {
   /**
    * @param {AudioContext} context - The Web Audio API AudioContext.
    */
@@ -231,8 +208,8 @@ class WaveShaper {
     this.input = preGain;
     this.output = postGain;
 
-    // Initialize with the Colortouch curve
-    // Allocate curve array once if possible, or ensure it's properly sized
+    // Initialize with the Colortouch curve Allocate curve array once if
+    // possible, or ensure it's properly sized
     const curve = new Float32Array(65536);
     generateColortouchCurve(curve);
     waveshaper.curve = curve;
@@ -245,7 +222,8 @@ class WaveShaper {
 
   /**
    * Sets the drive amount, adjusting pre-gain and applying makeup gain.
-   * @param {number} drive - The desired drive level (linear gain). Should be > 0.
+   * @param {number} drive - The desired drive level (linear gain). Should be >
+   * 0.
    */
   setDrive(drive) {
     if (typeof drive !== 'number' || drive <= 0) {
@@ -254,8 +232,8 @@ class WaveShaper {
     }
     this.input.gain.value = drive;
 
-    // Apply makeup gain to compensate for the drive increase,
-    // using an exponent for a smoother perceived loudness adjustment.
+    // Apply makeup gain to compensate for the drive increase, using an exponent
+    // for a smoother perceived loudness adjustment.
     const postDrive = Math.pow(1 / drive, 0.6);
     this.output.gain.value = postDrive;
   }

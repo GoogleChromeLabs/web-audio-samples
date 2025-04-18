@@ -1,35 +1,6 @@
-// Copyright 2011, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 const K_DEFAULT_NUMBER_OF_RESAMPLE_RANGES = 11;
 
-class WaveTable {
+export class WaveTable {
   constructor(name, context) {
     if (!context || typeof context.createBuffer !== 'function') {
       throw new Error('A valid AudioContext is required for WaveTable.');
@@ -80,9 +51,11 @@ class WaveTable {
 
   /**
    * Gets the appropriate pre-rendered AudioBuffer for a given pitch frequency.
-   * This selects the buffer with the highest number of partials that won't cause aliasing.
+   * This selects the buffer with the highest number of partials that won't
+   * cause aliasing.
    * @param {number} pitchFrequency - The target frequency in Hz.
-   * @returns {AudioBuffer | null} The best matching AudioBuffer for the frequency, or null if not ready.
+   * @returns {AudioBuffer | null} The best matching AudioBuffer for the
+   * frequency, or null if not ready.
    */
   getWaveDataForPitch(pitchFrequency) {
     if (!this.buffers || this.buffers.length === 0) {
@@ -111,19 +84,22 @@ class WaveTable {
   }
 
   /**
-   * Calculates the maximum number of partials for a given resampling range index.
-   * Higher indices correspond to higher fundamental frequencies and thus fewer partials.
-   * @param {number} rangeIndex - The index of the resampling range (0 to numberOfResampleRanges - 1).
+   * Calculates the maximum number of partials for a given resampling range
+   * index. Higher indices correspond to higher fundamental frequencies and thus
+   * fewer partials.
+   * @param {number} rangeIndex - The index of the resampling range (0 to
+   * numberOfResampleRanges - 1).
    * @returns {number} The maximum number of partials for that range.
    */
   getNumberOfPartialsForRange(rangeIndex) {
     // Ensure rangeIndex is within valid bounds
     const safeRangeIndex = Math.max(0, Math.min(rangeIndex, this.numberOfResampleRanges - 1));
-    // Goes from 1024 -> 4 @ 44.1KHz (and do same for 48KHz)
-    // Goes from 2048 -> 8 @ 96KHz
+    // Goes from 1024 -> 4 @ 44.1KHz (and do same for 48KHz) Goes from 2048 -> 8
+    // @ 96KHz
     let npartials = Math.pow(2, 1 + this.numberOfResampleRanges - safeRangeIndex);
 
-    // Adjust for higher sample rates (consider making 48000 a constant or configurable)
+    // Adjust for higher sample rates (consider making 48000 a constant or
+    // configurable)
     if (this.sampleRate > 48000.0) {
       npartials *= 2;
     }
@@ -133,9 +109,9 @@ class WaveTable {
 
 
   /**
-   * Creates multiple band-limited versions (AudioBuffers) of the wavetable
-   * from the loaded frequency domain data, suitable for different pitch ranges
-   * to minimize aliasing.
+   * Creates multiple band-limited versions (AudioBuffers) of the wavetable from
+   * the loaded frequency domain data, suitable for different pitch ranges to
+   * minimize aliasing.
    * @private
    */
   createBuffers() {
@@ -177,7 +153,8 @@ class WaveTable {
         realP[i] = 0.0;
         imagP[i] = 0.0;
       }
-      // Clear packed-nyquist if necessary (assuming FFT implementation packs it at imagP[0])
+      // Clear packed-nyquist if necessary (assuming FFT implementation packs it
+      // at imagP[0])
       if (npartials < halfSize) {
         imagP[0] = 0.0;
       }
@@ -185,7 +162,8 @@ class WaveTable {
       // Clear any DC-offset (realP[0])
       realP[0] = 0.0;
 
-      // Calculate normalization factor based *only* on the first (least band-limited) buffer
+      // Calculate normalization factor based *only* on the first (least
+      // band-limited) buffer
       if (j === 0) {
         let power = 0;
         for (let i = 1; i < halfSize; ++i) { // Start from 1 to exclude DC
@@ -193,9 +171,10 @@ class WaveTable {
           const y = imagP[i];
           power += x * x + y * y;
         }
-        // Normalize based on RMS power, aiming for a peak close to 1.0 after iFFT.
-        // The iFFT implementation divides by bufferSize (n), so the scale factor 'n'
-        // above cancels that out. We need an additional scaling factor.
+        // Normalize based on RMS power, aiming for a peak close to 1.0 after
+        // iFFT. The iFFT implementation divides by bufferSize (n), so the scale
+        // factor 'n' above cancels that out. We need an additional scaling
+        // factor.
         const rmsPower = Math.sqrt(power) / n; // RMS power after iFFT scaling
 
         finalScale = 0.5 / power;
