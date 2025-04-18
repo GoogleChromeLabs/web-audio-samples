@@ -11,10 +11,6 @@
   <link rel="stylesheet" href="style/layout.css">
 </head>
 <body>
-  <div class="header">
-    <h1>This is the new wavetable synth app.</h1>
-  </div>
-
   <div class="synth-container">
     <div class="panel-container">
       <div class="left-panel">
@@ -22,21 +18,21 @@
           <h2 id="gen1-label" class="visually-hidden">Generator 1 Controls</h2>
           <div class="generator-content">
             <div class="wavetable-container">
-              <wavetable-view></wavetable-view>
-              <dropdown-menu aria-label="Generator 1 Wavetable"></dropdown-menu>
+              <wavetable-view id="wave-view-1"></wavetable-view>
+              <dropdown-menu id="wave-select-1" aria-label="Generator 1 Wavetable"></dropdown-menu>
             </div>
             <div class="knob-section">
               <div class="knob-group">
-                <knob-simple label="Cutoff"></knob-simple>
-                <knob-simple label="Resonance"></knob-simple>
-                <knob-simple label="Attack"></knob-simple>
-                <knob-simple label="Decay"></knob-simple>
+                <knob-simple id="filter-cuttoff-1" label="Cutoff"></knob-simple>
+                <knob-simple id="filter-resonance-1" label="Resonance"></knob-simple>
+                <knob-simple id="filter-attack-1 "label="Attack"></knob-simple>
+                <knob-simple id="filter-decay-1" label="Decay"></knob-simple>
               </div>
               <div class="knob-group">
-                <knob-simple label="Filter Amt"></knob-simple>
-                <knob-simple label="Detune"></knob-simple>
-                <knob-simple label="Attack"></knob-simple>
-                <knob-simple label="Decay"></knob-simple>
+                <knob-simple id="filter-amount-1" label="Filter Amt"></knob-simple>
+                <knob-simple id="wave-detune-1" label="Detune"></knob-simple>
+                <knob-simple id="wave-attack-1" label="Attack"></knob-simple>
+                <knob-simple id="wave-decay-1" label="Decay"></knob-simple>
               </div>
             </div>
           </div>
@@ -46,21 +42,21 @@
           <h2 id="gen2-label" class="visually-hidden">Generator 2 Controls</h2>
           <div class="generator-content">
             <div class="wavetable-container">
-              <wavetable-view></wavetable-view>
-              <dropdown-menu aria-label="Generator 2 Wavetable"></dropdown-menu>
+              <wavetable-view id="wave-view-2"></wavetable-view>
+              <dropdown-menu id="wave-select-2" aria-label="Generator 2 Wavetable"></dropdown-menu>
             </div>
             <div class="knob-section">
               <div class="knob-group">
-                <knob-simple label="Cutoff"></knob-simple>
-                <knob-simple label="Resonance"></knob-simple>
-                <knob-simple label="Attack"></knob-simple>
-                <knob-simple label="Decay"></knob-simple>
+                <knob-simple id="filter-cutoff-2" label="Cutoff"></knob-simple>
+                <knob-simple id="filter-resonance-2" label="Resonance"></knob-simple>
+                <knob-simple id="filter-attack-2" label="Attack"></knob-simple>
+                <knob-simple id="filter-decay-2" label="Decay"></knob-simple>
               </div>
               <div class="knob-group">
-                <knob-simple label="Filter Amt"></knob-simple>
-                <knob-simple label="Detune"></knob-simple>
-                <knob-simple label="Attack"></knob-simple>
-                <knob-simple label="Decay"></knob-simple>
+                <knob-simple id="filter-amount-2" label="Filter Amt"></knob-simple>
+                <knob-simple id="wave-detune-2" label="Detune"></knob-simple>
+                <knob-simple id="wave-attack-2" label="Attack"></knob-simple>
+                <knob-simple id="wave-decay-2" label="Decay"></knob-simple>
               </div>
             </div>
           </div>
@@ -68,36 +64,36 @@
 
       </div>
       <div class="center-panel">
-        <knob-simple label="Balance"></knob-simple>
+        <knob-simple id="wave-balance" label="Balance"></knob-simple>
       </div>
       <div class="right-panel">
         <section class="panel effects-panel" aria-labelledby="effects-label">
           <h2 id="effects-label" class="visually-hidden">Effects and Master Controls</h2>
 
           <div class="control-group">
-            <knob-simple label="Threshold"></knob-simple>
-            <knob-simple label="Makeup"></knob-simple>
-            <knob-simple label="Ratio"></knob-simple>
-            <knob-simple label="Drive"></knob-simple>
+            <knob-simple id="compressor-threshold" label="Threshold"></knob-simple>
+            <knob-simple id="compressor-makeup" label="Makeup"></knob-simple>
+            <knob-simple id="compressor-ratio" label="Ratio"></knob-simple>
+            <knob-simple id="compressor-drive" label="Drive"></knob-simple>
           </div>
 
           <div class="control-group-row">
             <div class="sub-group">
-              <dropdown-menu aria-label="Delay Beat"></dropdown-menu>
-              <knob-simple label="Delay Mix"></knob-simple>
-              <knob-simple label="Feedback"></knob-simple>
-              <knob-simple label="Delay Drive"></knob-simple>
+              <dropdown-menu id="delay-beat" aria-label="Delay Beat"></dropdown-menu>
+              <knob-simple id="delay-mix" label="Delay Mix"></knob-simple>
+              <knob-simple id="delay-feedback" label="Feedback"></knob-simple>
+              <knob-simple id="delay-drive" label="Delay Drive"></knob-simple>
             </div>
           </div>
 
           <div class="control-group dropdown-reverb-group">
-            <dropdown-menu aria-label="Reverb IR"></dropdown-menu>
-            <knob-simple label="Reverb Mix"></knob-simple>
+            <dropdown-menu id="reverb-ir" aria-label="Reverb IR"></dropdown-menu>
+            <knob-simple id="reverb-mix" label="Reverb Mix"></knob-simple>
           </div>
 
           <div class="control-group">
-            <knob-simple label="Main Volume"></knob-simple>
-            <knob-simple label="Tempo"></knob-simple>
+            <knob-simple id="volume" label="Main Volume"></knob-simple>
+            <knob-simple id="tempo" label="Tempo"></knob-simple>
           </div>
         </section>
       </div>
@@ -105,8 +101,11 @@
     <div>
       <section class="panel sequencer-panel" aria-labelledby="seq-label">
         <h2 id="seq-label" class="visually-hidden">Sequencer Controls</h2>
-        <matrix-sequence-2d></matrix-sequence-2d>
+        <matrix-sequence-2d id="sequencer"></matrix-sequence-2d>
       </section>
+    </div>
+    <div>
+      <toggle-simple id="play-button" label="Start Audio" initial-state="false"></toggle-simple>
     </div>
   </div>
 
