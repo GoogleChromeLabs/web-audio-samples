@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wavetable Synth 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style/normalize.css">
+  <link rel="stylesheet" href="style/layout.css">
+</head>
+<body>
+  <div class="header">
+    <h1>This is the new wavetable synth app.</h1>
+  </div>
+
+  <div class="synth-container">
+    <div class="panel-container">
+      <div class="left-panel">
+        <section class="panel generator-panel" aria-labelledby="gen1-label">
+          <h2 id="gen1-label" class="visually-hidden">Generator 1 Controls</h2>
+          <div class="generator-content">
+            <div class="wavetable-container">
+              <wavetable-view></wavetable-view>
+              <dropdown-menu aria-label="Generator 1 Wavetable"></dropdown-menu>
+            </div>
+            <div class="knob-section">
+              <div class="knob-group">
+                <knob-simple label="Cutoff"></knob-simple>
+                <knob-simple label="Resonance"></knob-simple>
+                <knob-simple label="Attack"></knob-simple>
+                <knob-simple label="Decay"></knob-simple>
+              </div>
+              <div class="knob-group">
+                <knob-simple label="Filter Amt"></knob-simple>
+                <knob-simple label="Detune"></knob-simple>
+                <knob-simple label="Attack"></knob-simple>
+                <knob-simple label="Decay"></knob-simple>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <section class="panel generator-panel" aria-labelledby="gen2-label">
+          <h2 id="gen2-label" class="visually-hidden">Generator 2 Controls</h2>
+          <div class="generator-content">
+            <div class="wavetable-container">
+              <wavetable-view></wavetable-view>
+              <dropdown-menu aria-label="Generator 2 Wavetable"></dropdown-menu>
+            </div>
+            <div class="knob-section">
+              <div class="knob-group">
+                <knob-simple label="Cutoff"></knob-simple>
+                <knob-simple label="Resonance"></knob-simple>
+                <knob-simple label="Attack"></knob-simple>
+                <knob-simple label="Decay"></knob-simple>
+              </div>
+              <div class="knob-group">
+                <knob-simple label="Filter Amt"></knob-simple>
+                <knob-simple label="Detune"></knob-simple>
+                <knob-simple label="Attack"></knob-simple>
+                <knob-simple label="Decay"></knob-simple>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+      <div class="center-panel">
+        <knob-simple label="Balance"></knob-simple>
+      </div>
+      <div class="right-panel">
+        <section class="panel effects-panel" aria-labelledby="effects-label">
+          <h2 id="effects-label" class="visually-hidden">Effects and Master Controls</h2>
+
+          <div class="control-group">
+            <knob-simple label="Threshold"></knob-simple>
+            <knob-simple label="Makeup"></knob-simple>
+            <knob-simple label="Ratio"></knob-simple>
+            <knob-simple label="Drive"></knob-simple>
+          </div>
+
+          <div class="control-group-row">
+            <div class="sub-group">
+              <dropdown-menu aria-label="Delay Beat"></dropdown-menu>
+              <knob-simple label="Delay Mix"></knob-simple>
+              <knob-simple label="Feedback"></knob-simple>
+              <knob-simple label="Delay Drive"></knob-simple>
+            </div>
+          </div>
+
+          <div class="control-group dropdown-reverb-group">
+            <dropdown-menu aria-label="Reverb IR"></dropdown-menu>
+            <knob-simple label="Reverb Mix"></knob-simple>
+          </div>
+
+          <div class="control-group">
+            <knob-simple label="Main Volume"></knob-simple>
+            <knob-simple label="Tempo"></knob-simple>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div>
+      <section class="panel sequencer-panel" aria-labelledby="seq-label">
+        <h2 id="seq-label" class="visually-hidden">Sequencer Controls</h2>
+        <matrix-sequence-2d></matrix-sequence-2d>
+      </section>
+    </div>
+  </div>
+
+  
+  <div class="footer">
+    <p>2025 Chrome WebAudio Team (with Gemini Pro 2.5): Making the web sing with happy bleeps & boops! 🎶💖</p>
+  </div>
+
+  <script type="module" src="script/layout.js"></script>
+</body>
+</html>
