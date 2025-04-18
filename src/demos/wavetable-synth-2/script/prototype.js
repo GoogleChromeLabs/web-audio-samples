@@ -8,6 +8,7 @@ import { ToggleSimple } from "../ui-components/ToggleSimple.js";
 const startAudio = async () => {
   const context = new AudioContext();
   const globalEffect = new GlobalEffect(context);
+  await globalEffect.initialize();
 
   const periodicWaveData = WavetableDataSet[20];
   console.log(periodicWaveData.filename);

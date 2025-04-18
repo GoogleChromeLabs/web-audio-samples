@@ -20,7 +20,7 @@ const loadImpulseResponse = async (context, url) => {
     const arrayBuffer = await response.arrayBuffer();
     console.log(`Successfully fetched ${url}, received ${arrayBuffer.byteLength} bytes.`);
     console.log(`Decoding audio data for ${url}...`);
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const audioBuffer = await context.decodeAudioData(arrayBuffer);
     console.log(`Successfully decoded audio data for ${url}.`);
     console.log(`Impulse response ${url} loaded and assigned to convolver.`);
     return audioBuffer;
@@ -38,11 +38,10 @@ export class GlobalEffect {
     this.compressor = new DynamicsCompressorNode(context);
     this.convolver = new ConvolverNode(context);
     this.convolverDry = new GainNode(context);
-    this.convolverWet = new GainNode(context);
-    this.delay = new DelayNode(context);
-    this.delayFeedback = new GainNode(context, {gain: 0.5});
-    this.delayDry = new GainNode(context, {gain: 0.5});
-    this.delayWet = new GainNode(context, {gain: 0.5});
+    this.convolverWet = new GainNode(context);    
+    this.delayFeedback = new GainNode(context);
+    this.delayDry = new GainNode(context);
+    this.delayWet = new GainNode(context);
     this.waveShaper = new WaveShaperNode(context);
     this.subsonicFilter =
         new BiquadFilterNode(context, {type:'highpass', frequency: 20})
@@ -74,12 +73,15 @@ export class GlobalEffect {
     // this.subsonicFilter.connect(this.grungeWaveShaper.input);
     this.subsonicFilter.connect(this.convolverDry);
     this.subsonicFilter.connect(this.convolverWet);
+
+    this.setDelayDryWet(0.2);
+    this.setReverbDryWet(0.05);
   }
 
   async initialize() {
     const irBuffer = await loadImpulseResponse(
-        this.context, '../../sounds/impulse-responses/matrix-reverb6.wav');
-    this.convolver.buffer = buffer;
+        this.context, './sound/matrix-reverb6.wav');
+    this.convolver.buffer = irBuffer;
   }
 
   setDelayDryWet(value) {
