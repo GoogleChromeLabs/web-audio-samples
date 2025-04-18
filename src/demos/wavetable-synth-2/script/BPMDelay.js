@@ -61,7 +61,7 @@ const noteDivisionMap = {
   'half note': 12,
 };
 
-class BpmDelay {
+export class BPMDelay {
   constructor(context, initialTempo = 120, initialNoteDivisionIndex = 6) {
     if (!context || typeof context.createDelay !== 'function') {
       throw new Error('A valid AudioContext is required.');

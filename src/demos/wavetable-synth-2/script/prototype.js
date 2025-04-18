@@ -1,14 +1,15 @@
 import { WavetableDataSet } from './WavetableDataSet.js';
 
+import { GlobalEffect } from './GlobalEffect.js';
 import { Note } from './Note.js';
 
 import { ToggleSimple } from "../ui-components/ToggleSimple.js";
 
 const startAudio = async () => {
   const context = new AudioContext();
-  const globalEffectInput = context.destination;
+  const globalEffect = new GlobalEffect(context);
 
-  const periodicWaveData = WavetableDataSet[16];
+  const periodicWaveData = WavetableDataSet[20];
   console.log(periodicWaveData.filename);
   const periodicWave = new PeriodicWave(context, {
     real: periodicWaveData.real,
@@ -16,7 +17,7 @@ const startAudio = async () => {
   });
 
   setInterval(() => {
-    const note = new Note(context, periodicWave, globalEffectInput);
+    const note = new Note(context, periodicWave, globalEffect.input);
     note.play(60, 1, context.currentTime);
   }, 1000);
 };
