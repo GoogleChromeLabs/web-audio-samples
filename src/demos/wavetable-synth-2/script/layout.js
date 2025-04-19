@@ -28,27 +28,46 @@ const initialize = async () => {
   // knob3.addEventListener('input', handleUIEvent);
   // knob3.addEventListener('change', handleUIEvent);
 
-  // const dropdown1 = document.querySelector('#dropdown-1');
-  // dropdown1.options = {
-  //   'Option A': 'value_a',
-  //   'Option B': 'value_b',
-  //   'Option C': 'value_c',
-  //   'Another Option': 'value_d'
-  // };
-
-  // dropdown1.addEventListener('select', (event) => {
-  //   console.log('Select event received:', event.detail);
-  // });
-
   const matrix2D = document.querySelector('#sequencer');
   matrix2D.addEventListener('change', (event) => {
     console.log('matrix changed:', event.detail.values);
   });
 
   const wavetableView1 = document.querySelector('#wave-view-1');
-  const wavetableView2 = document.querySelector('#wave-view-2');
   wavetableView1.setComplexData(WavetableDataSet[35].real, WavetableDataSet[35].imag);
+  const wavetableView2 = document.querySelector('#wave-view-2');
   wavetableView2.setComplexData(WavetableDataSet[20].real, WavetableDataSet[20].imag);
+
+  const wavetableSelect1 = document.querySelector('#wave-select-1');
+  wavetableSelect1.options = {
+    'Option A': 1,
+    'Option B': 2,
+    'Option C': 3,
+    'Another Option': 4,
+  };
+  wavetableSelect1.addEventListener('select', (event) => {
+    console.log('Select event received:', event.detail);
+    if (event.detail.value) {
+      const index = event.detail.value
+      wavetableView1.setComplexData(WavetableDataSet[index].real, WavetableDataSet[index].imag);
+    }
+  });
+  const wavetableSelect2 = document.querySelector('#wave-select-2');
+  wavetableSelect2.options = {
+    'Option A': 1,
+    'Option B': 2,
+    'Option C': 3,
+    'Another Option': 4,
+  };
+  wavetableSelect2.addEventListener('select', (event) => {
+    console.log('Select event received:', event.detail);
+    if (event.detail.value) {
+      const index = event.detail.value
+      wavetableView2.setComplexData(WavetableDataSet[index].real, WavetableDataSet[index].imag);
+    }
+  });
+
+
 };
 
 window.addEventListener('load', initialize);
