@@ -1,7 +1,9 @@
+const CUTOFF_OFFSET = 9600;
+const FILTER_MOD_OFFSET = 7200;
 
 export class Note {
 
-  constructor(context, periodicWave, globalEffectInput) {
+  constructor(context, periodicWave, destination) {
     this.context = context;
 
     const oscOptions = {type:'custom', periodicWave};
@@ -13,27 +15,29 @@ export class Note {
     this.panner2 = new PannerNode(context, {panningModel: 'equalpower'});
     this.ampEnv = new GainNode(context, {gain:0.0});
     this.biquad = new BiquadFilterNode(context, {type:'lowpass'});
-    this.volume = new GainNode(context, {gain:0.5});
+    this.volume = new GainNode(context, {gain:0.0});
 
-    this.detune1 = 0.0;
-    this.detune2 = 0.0;
-    this.filterCutoff = 2500;
-    this.filterResonance = 1.0;
-    this.filterAmount = 1.0;
-    this.filterAttack = 0.01;
-    this.filterDecay = 0.1;
-    this.ampAttack = 0.01;
-    this.ampDecay = 0.1;
-    this.width = 1.0;
+    this.detune1 = 4.5;
+    this.detune2 = -2.5;
+    this.filterCutoff = 0.2;
+    this.filterResonance = 6.0;
+    this.filterAmount = 0.4;
+    this.filterAttack = 0.056;
+    this.filterDecay = 0.991;
+    this.ampAttack = 0.056;
+    this.ampDecay = 0.100;
+    this.width = 0.6;
 
     this.osc1.connect(this.panner1).connect(this.ampEnv).connect(this.biquad);
     this.osc2.connect(this.panner2).connect(this.ampEnv);
     this.biquad.connect(this.volume);
-    this.volume.connect(globalEffectInput);
+    this.volume.connect(destination);
+
+    this.volume.gain.value = 0.1;
   }
 
   play(semitone, octave, time) {
-    console.log('play: ', semitone, octave, time);
+    console.log('[NOTE] play: ', semitone, octave, time);
     // Calculate the fundamental frequency from semitone.
     this.pitchFrequency = 20.0 * Math.pow(2.0, semitone / 12.0);
 
@@ -64,10 +68,12 @@ export class Note {
 
     this.biquad.frequency.cancelScheduledValues(0);
     const nyquistFrequency = this.context.sampleRate / 2;
-    const cutoffRate = Math.pow(2, 9600 * this.filterCutoff / 1200);
+    const cutoffRate =
+        Math.pow(2, CUTOFF_OFFSET * this.filterCutoff / 1200);
     const startFrequency =
         Math.min(nyquistFrequency, cutoffRate * this.pitchFrequency);
-    const filterAmountRate = Math.pow(2, 7200 * this.filterAmount / 1200.0);
+    const filterAmountRate =
+        Math.pow(2, FILTER_MOD_OFFSET * this.filterAmount / 1200.0);
     const filterAmountFrequency =
         Math.min(nyquistFrequency, filterAmountRate * startFrequency);
 

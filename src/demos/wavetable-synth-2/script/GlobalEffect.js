@@ -30,7 +30,6 @@ const loadImpulseResponse = async (context, url) => {
   }
 };
 
-
 export class GlobalEffect {
 
   constructor(context) {
@@ -47,9 +46,9 @@ export class GlobalEffect {
         new BiquadFilterNode(context, {type:'highpass', frequency: 20})
 
     // TODO
-    // this.bpmDelay = new BPMDelay(context);
-    // this.delayWaveShaper = new WaveShaper(context);
-    // this.grungeWaveShaper = new WaveShaper(context);
+    this.bpmDelay = new BPMDelay(context);
+    this.delayWaveShaper = new WaveShaper(context);
+    this.grungeWaveShaper = new WaveShaper(context);
     
     this.compressor.connect(this.context.destination);
 
@@ -58,23 +57,24 @@ export class GlobalEffect {
     this.convolverWet.connect(this.convolver);
 
     this.delayDry.connect(this.compressor);
-    // this.bpmDelay.delay.connect(this.delayWet);
+    this.bpmDelay.node.connect(this.delayWet);
     this.delayWet.connect(this.compressor);
 
-    // this.bpmDelay.delay.connect(this.delayFeedback);
-    // this.delayFeedback.connect(this.delayWaveShaper.input);
-    // this.delayWaveShaper.output.connect(this.bpmDelay.delay);
+    this.bpmDelay.node.connect(this.delayFeedback);
+    this.delayFeedback.connect(this.delayWaveShaper.input);
+    this.delayWaveShaper.output.connect(this.bpmDelay.node);
 
-    // this.grungeWaveShaper.output.connect(this.delayDry);
-    // this.grungeWaveShaper.output.connect(this.bpmDelay.delay);
+    this.grungeWaveShaper.output.connect(this.delayDry);
+    this.grungeWaveShaper.output.connect(this.bpmDelay.node);
 
-    // this.grungeWaveShaper.output.connect(this.convolverDry);
-    // this.grungeWaveShaper.output.connect(this.convolverWet);
-    // this.subsonicFilter.connect(this.grungeWaveShaper.input);
+    this.grungeWaveShaper.output.connect(this.convolverDry);
+    this.grungeWaveShaper.output.connect(this.convolverWet);
+    this.subsonicFilter.connect(this.grungeWaveShaper.input);
     this.subsonicFilter.connect(this.convolverDry);
     this.subsonicFilter.connect(this.convolverWet);
 
     this.setDelayDryWet(0.2);
+    this.setDelayFeedback(0.5);
     this.setReverbDryWet(0.05);
   }
 

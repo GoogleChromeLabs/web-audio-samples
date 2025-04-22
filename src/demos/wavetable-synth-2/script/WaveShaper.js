@@ -45,7 +45,8 @@ class Colortouch {
     this.kneeThreshold = decibelsToLinear(this.kneeThresholdDb);
 
     // Calculate the output level (in dB) at the knee threshold
-    this.ykneeThresholdDb = linearToDecibels(this.saturateBasic(this.kneeThreshold, this.k));
+    this.ykneeThresholdDb =
+        linearToDecibels(this.saturateBasic(this.kneeThreshold, this.k));
   }
 
   /**
@@ -65,10 +66,8 @@ class Colortouch {
     const deltaX = 0.001;
     const x1 = x;
     const x2 = x * (1 + deltaX); // Use relative delta for better precision across magnitudes
-
     const x1Db = linearToDecibels(x1);
     const x2Db = linearToDecibels(x2);
-
     const y1Db = linearToDecibels(this.saturateBasic(x1, k));
     const y2Db = linearToDecibels(this.saturateBasic(x2, k));
 
@@ -84,7 +83,7 @@ class Colortouch {
         return this.slope;
     }
 
-    const m = (y2Db - yDb) / dbDifference;
+    const m = (y2Db - y2Db) / dbDifference;
     return m;
   }
 
@@ -193,31 +192,20 @@ export class WaveShaper {
    * @param {AudioContext} context - The Web Audio API AudioContext.
    */
   constructor(context) {
-    if (!context || typeof context.createWaveShaper !== 'function') {
-        throw new Error('A valid AudioContext is required for WaveShaper.');
-    }
     this.context = context;
 
-    const waveshaper = context.createWaveShaper();
-    const preGain = context.createGain();
-    const postGain = context.createGain();
+    this.waveshaper = new WaveShaperNode(context);
+    this.preGain = new GainNode(context);
+    this.postGain = new GainNode(context);
 
-    preGain.connect(waveshaper);
-    waveshaper.connect(postGain);
-
-    this.input = preGain;
-    this.output = postGain;
+    this.preGain.connect(this.waveshaper).connect(this.postGain);
 
     // Initialize with the Colortouch curve Allocate curve array once if
     // possible, or ensure it's properly sized
     const curve = new Float32Array(65536);
     generateColortouchCurve(curve);
-    waveshaper.curve = curve;
-
-    // Enable oversampling for better quality if the browser supports it
-    if ('oversample' in waveshaper) {
-      waveshaper.oversample = '4x';
-    }
+    this.waveshaper.curve = curve;
+    this.waveshaper.oversample = '4x';
   }
 
   /**
@@ -230,19 +218,19 @@ export class WaveShaper {
         console.error('Invalid drive value. Drive must be a positive number.');
         return;
     }
-    this.input.gain.value = drive;
+    this.preGain.gain.value = drive;
 
     // Apply makeup gain to compensate for the drive increase, using an exponent
     // for a smoother perceived loudness adjustment.
     const postDrive = Math.pow(1 / drive, 0.6);
-    this.output.gain.value = postDrive;
+    this.postGain.gain.value = postDrive;
   }
 
   get input() {
-    return this.input;
+    return this.preGain;
   }
 
   get output() {
-    return this.output;
+    return this.postGain;
   }
 }
