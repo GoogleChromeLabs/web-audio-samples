@@ -1,3 +1,5 @@
+const RAMP_DURATION = 0.016;
+
 // Represents the beat divisions relative to a quarter note.
 const noteDivisionTimes = [
   1 / 8, // 32nd note
@@ -95,8 +97,9 @@ export class BPMDelay {
 
     // Use setTargetAtTime for smoother transitions if needed, though
     // setValueAtTime is often sufficient for direct changes.
+    this.delayNode.delayTime.cancelAndHoldAtTime(this.context.currentTime);
     this.delayNode.delayTime.linearRampToValueAtTime(
-        delayTime, this.context.currentTime);
+        delayTime, this.context.currentTime + RAMP_DURATION);
   }
 
   get node() {

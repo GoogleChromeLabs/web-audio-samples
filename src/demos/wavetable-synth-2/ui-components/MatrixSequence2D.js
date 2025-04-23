@@ -17,11 +17,11 @@ export class MatrixSequence2D extends HTMLElement {
     /** @type {number} Number of vertical grid divisions per segment. */
     this.grids = 24;
     /** @type {string} Color for the grid lines. */
-    this.gridColor = '#ccc';
+    this.gridColor = '#8a9199';
     /** @type {string} Color for the highlighted grid cell. */
-    this.highlightColor = '#28a745';
+    this.highlightColor = '#00a1ff';
     /** @type {string} Background color of the canvas. */
-    this.backgroundColor = '#fff';
+    this.backgroundColor = '#30353a';
 
     // --- State ---
     /**

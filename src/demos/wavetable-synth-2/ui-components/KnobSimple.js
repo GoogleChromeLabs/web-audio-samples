@@ -21,7 +21,7 @@ export class KnobSimple extends HTMLElement {
     this._isDragging = false;
     this._initialPointerY = 0; // Used for vertical drag calculation
     this._initialValueOnDrag = 0; // Value when drag started
-    this._precision = 2; // Digits after decimal point
+    this._precision = 3; // Digits after decimal point
 
     // --- Shadow DOM ---
     this.attachShadow({ mode: 'open' });
@@ -225,7 +225,11 @@ export class KnobSimple extends HTMLElement {
     const svgSize = 100; // Viewbox size
     const center = svgSize / 2;
     const radius = svgSize * 0.4; // Knob radius
-    const tickLength = radius * 0.25; // Length of the tick mark from the edge
+    const tickLength = radius * 0.3; // Length of the tick mark from the edge
+
+    // Calculate the start and end points for the tick line
+    const tickOuterY = center - radius; // Y-coordinate on the circle's edge
+    const tickInnerY = center - radius + tickLength; // Y-coordinate towards the center
 
     this.shadowRoot.innerHTML = `
     <style>
@@ -239,11 +243,11 @@ export class KnobSimple extends HTMLElement {
         cursor: ns-resize; /* Indicate vertical drag */
         user-select: none; /* Prevent text selection during drag */
         touch-action: none; /* Prevent scrolling on touch devices */
-        --knob-bg-color: #fff;
-        --knob-fg-color: #aaa;
-        --knob-tick-color: #1f7a35;
-        --knob-label-color: #555;
-        --knob-value-color: #111;
+        --knob-bg-color: #4f565e;
+        --knob-fg-color: #8a9199;
+        --knob-tick-color: #00a1ff;
+        --knob-label-color: #d1d5db;
+        --knob-value-color: #d1d5db;
         --knob-value-edit-bg: #fff;
       }
       .knob-container {
@@ -264,10 +268,10 @@ export class KnobSimple extends HTMLElement {
         white-space: nowrap; /* Prevent label wrapping */
       }
       .knob-svg-container {
-            width: 70%; /* Control SVG size relative to host */
-            /* Maintain aspect ratio */
-            aspect-ratio: 1 / 1;
-            margin-bottom: 5px;
+        width: 70%; /* Control SVG size relative to host */
+        /* Maintain aspect ratio */
+        aspect-ratio: 1 / 1;
+        margin-bottom: 5px;
       }
       svg {
         display: block; /* Remove extra space below SVG */
@@ -278,12 +282,12 @@ export class KnobSimple extends HTMLElement {
       .knob-circle {
         fill: var(--knob-bg-color);
         stroke: var(--knob-fg-color);
-        stroke-width: 2;
+        stroke-width: 3;
       }
       .knob-tick {
         stroke: var(--knob-tick-color);
-        stroke-width: 6; /* Make tick thicker */
-        stroke-linecap: square; /* Rounded ends for the tick */
+        stroke-width: 9; /* Make tick thicker */
+        stroke-linecap: rounded; /* Rounded ends for the tick */
       }
       .knob-value {
         font-size: 14px;
@@ -312,8 +316,8 @@ export class KnobSimple extends HTMLElement {
           aria-valuenow="${this._currentValue}">
         <circle class="knob-circle" cx="${center}" cy="${center}" r="${radius}" part="circle"/>
         <line class="knob-tick"
-            x1="${center}" y1="${center - radius + tickLength / 2}"
-            x2="${center}" y2="${center - radius - tickLength / 2}"
+            x1="${center}" y1="${tickOuterY}"
+            x2="${center}" y2="${tickInnerY}"
             transform="rotate(0 ${center} ${center})" part="tick"/>
             </svg>
       </div>

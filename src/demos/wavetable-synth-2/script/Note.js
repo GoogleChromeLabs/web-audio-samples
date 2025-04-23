@@ -1,11 +1,11 @@
-const CUTOFF_OFFSET = 9600;
+const CUTOFF_OFFSET = 3500;
 const FILTER_MOD_OFFSET = 7200;
 
 export class Note {
   constructor(noteData) {
     const { context, periodicWave1, periodicWave2, params, destination }
         = noteData;
-
+    
     this.context = context;
 
     const oscOptions1 = {type: 'custom', periodicWave: periodicWave1};
@@ -44,8 +44,8 @@ export class Note {
     for (const key in params) {
       if (Object.hasOwnProperty.call(this, key)) {
         this[key] = params[key];
+        console.log(key, this[key]);
       }
-      
     }
   }
 

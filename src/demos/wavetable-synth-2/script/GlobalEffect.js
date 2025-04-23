@@ -44,8 +44,7 @@ export class GlobalEffect {
     this.waveShaper = new WaveShaperNode(context);
     this.subsonicFilter =
         new BiquadFilterNode(context, {type:'highpass', frequency: 20})
-
-    // TODO
+    
     this.bpmDelay = new BPMDelay(context);
     this.delayWaveShaper = new WaveShaper(context);
     this.grungeWaveShaper = new WaveShaper(context);

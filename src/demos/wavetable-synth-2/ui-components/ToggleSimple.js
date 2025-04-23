@@ -123,12 +123,12 @@ export class ToggleSimple extends HTMLElement {
         width: 150px; /* Fixed width container */
         box-sizing: border-box; /* Include padding and border in width */
         overflow: hidden; /* Prevent content overflow */
-        background-color: #f8f9fa; /* Light background */
+        background-color: #8a9199; /* Light background */
       }
 
       :host(:hover) {
         border-color: #aaa; /* Darker border on hover */
-        background-color: #e9ecef; /* Slightly darker background on hover */
+        background-color: #d1d5db; /* Slightly darker background on hover */
       }
 
       /* Style the SVG container */
@@ -144,20 +144,20 @@ export class ToggleSimple extends HTMLElement {
         cx: 8; /* Center X */
         cy: 8; /* Center Y */
         r: 6;  /* Radius */
-        stroke: #6c757d; /* Grey border */
+        stroke: #4f565e; /* Grey border */
         stroke-width: 1.5;
-        fill: #ced4da; /* Default off color (light grey) */
+        fill: #4f565e; /* Default off color (light grey) */
         transition: fill 0.2s ease-in-out; /* Smooth color transition */
       }
 
       /* Style for the 'on' state */
       :host([data-state='true']) .led-circle {
-        fill: #28a745; /* Green color when on */
-        stroke: #1f7a35; /* Darker green border when on */
+        fill: #a0ff1a; 
+        stroke: #a0ff1a;
       }
-        :host([data-state='true']) {
-        border-color: #a0d1ab; /* Lighter green border for host when on */
-        }
+      :host([data-state='true']) {
+        border-color: #a0ff1a; /* Lighter green border for host when on */
+      }
 
       /* Style the label text */
       .label {

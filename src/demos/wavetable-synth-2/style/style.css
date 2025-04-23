@@ -5,7 +5,8 @@ body {
   font-weight: 500;
   font-style: normal;
   min-height: 100vh;
-  background-color: #f0f0f0;
+  color: #d1d5db;
+  background-color: #30353a;
 }
 
 .header {
@@ -21,7 +22,7 @@ body {
   justify-content: center;
   align-items: center;
   font-family: sans-serif;
-  gap: 40px;
+  gap: 20px;
   /* flex-wrap: wrap; Allow wrapping if needed */
   padding: 20px;
 }

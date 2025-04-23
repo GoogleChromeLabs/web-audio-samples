@@ -37,15 +37,10 @@ const handleSequnceDataChange = (event) => {
   sequencer.setSequenceData(event.target.getSequenceData());
 };
 
-const handleSynthParamChange = (event) => {
+const handleParamChange = (event) => {
   if (event.type !== 'input' && event.type !== 'change') return;
   if (typeof event.detail.value === 'undefined') return;
-
-  // Derive the parameter name from the element's ID
-  // Assumes IDs like 'knob-filter-cutoff' map to 'filterCutoff'
   let paramName = event.target.id.replace('knob-', '');
-  paramName = paramName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-
   if (globalParams.hasOwnProperty(paramName)) {
     globalParams[paramName] = event.detail.value;
     console.log(`Set globalParams.${paramName} = ${globalParams[paramName]}`);
@@ -76,7 +71,7 @@ const startAudio = async () => {
       context,
       periodicWave1,
       periodicWave2,
-      globalParams,
+      params: globalParams,
       destination: globalEffect.input
     });
     ScheduleTaskId = requestAnimationFrame(sequenceLoop);
@@ -101,39 +96,33 @@ const initialize = async () => {
   knobTempo.addEventListener('input', handleTempoKnob);
   knobTempo.addEventListener('change', handleTempoKnob);
 
-  const knobDetune1 = document.querySelector("#knob-detune-1");
-  const knobDetune2 = document.querySelector("#knob-detune-2");
-  const knobFilterCutoff = document.querySelector("#knob-filter-cutoff");
-  const knobFilterResonance = document.querySelector("#knob-filter-resonance");
-  const knobFilterAmount = document.querySelector("#knob-filter-amount");
-  const knobFilterAttack = document.querySelector("#knob-filter-attack");
-  const knobFilterDecay = document.querySelector("#knob-filter-decay");
-  const knobAmpAttack = document.querySelector("#knob-amp-attack");
-  const knobAmpDecay = document.querySelector("#knob-amp-decay");
-  const knobWidth = document.querySelector("#knob-width");
-  const paramKnobs = [
-    knobDetune1, knobDetune2, knobFilterCutoff, knobFilterResonance,
-    knobFilterAmount, knobFilterAttack, knobFilterDecay, knobAmpAttack,
-    knobAmpDecay, knobWidth
-  ];
+  const knobs = {
+    detune1: document.querySelector("#knob-detune1"),
+    detune2: document.querySelector("#knob-detune2"),
+    filterCutoff: document.querySelector("#knob-filterCutoff"),
+    FilterResonance: document.querySelector("#knob-filterResonance"),
+    FilterAmount: document.querySelector("#knob-filterAmount"),
+    FilterAttack: document.querySelector("#knob-filterAttack"),
+    FilterDecay: document.querySelector("#knob-filterDecay"),
+    AmpAttack: document.querySelector("#knob-ampAttack"),
+    AmpDecay: document.querySelector("#knob-ampDecay"),
+    width: document.querySelector("#knob-width"),
+  };
   
-  paramKnobs.forEach((knob) => {
-    if (knob) {
-      knob.addEventListener('input', handleSynthParamChange);
-      knob.addEventListener('change', handleSynthParamChange);
-
+  for (const paramName in knobs) {
+    if (knobs[paramName]) {
+      const knob = knobs[paramName]
+      knob.addEventListener('input', handleParamChange);
+      knob.addEventListener('change', handleParamChange);
       // Initialize knob value from globalParams
-      let paramName = knob.id.replace('knob-', '');
-      paramName = paramName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
       if (globalParams.hasOwnProperty(paramName)) {
         knob.value = globalParams[paramName];
       }
-
     } else {
       // Log a warning if a knob element wasn't found in the HTML
-      console.warn(`Could not find knob element for one of the parameters.`);
+      console.warn(`Could not find knob element for one of the parameters.`);  
     }
-  });
+  }
 
   const matrix2D = document.querySelector('#matrix-2d-1');
   matrix2D.addEventListener('change', handleSequnceDataChange);
