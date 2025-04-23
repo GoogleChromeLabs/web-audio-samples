@@ -17,8 +17,23 @@
 
   <div class="container">
     <div>
+      <knob-simple id="knob-detune-1" min-value="0.0" max-value="12.0" default-value="0.0" label="Detune 1"></knob-simple>
+      <knob-simple id="knob-detune-2" min-value="0.0" max-value="12.0" default-value="0.0" label="Detune 2"></knob-simple>
+      <knob-simple id="knob-filter-cutoff" min-value="0.0" max-value="1.0" default-value="0.2" label="Cutoff"></knob-simple>
+      <knob-simple id="knob-filter-resonance" min-value="0.1" max-value="12.0" default-value="6.0" label="Resonace"></knob-simple>
+      <knob-simple id="knob-filter-amount" min-value="0.0" max-value="1.0" default-value="0.4" label="Filter Amt"></knob-simple>
+      <knob-simple id="knob-filter-attack" min-value="0.001" max-value="100.0" default-value="0.056" label="Filter Atk"></knob-simple>
+      <knob-simple id="knob-filter-decay" min-value="0.001" max-value="100.0" default-value="0.991" label="Filter Dcy"></knob-simple>
+      <knob-simple id="knob-amp-attack" min-value="0.001" max-value="100.0" default-value="0.056" label="Amp Atk"></knob-simple>
+      <knob-simple id="knob-amp-decay" min-value="0.001" max-value="100.0" default-value="0.100" label="Amp Dcy"></knob-simple>
+      <knob-simple id="knob-width" min-value="0.00" max-value="1.0" default-value="0.200" label="Width"></knob-simple>
+    </div>
+    <div>
       <knob-simple id="knob-tempo" min-value="20" max-value="200" default-value="85" label="Tempo"></knob-simple>
       <toggle-simple id="toggle-1" label="Start Audio" initial-state="false"></toggle-simple>
+    </div>
+    <div>
+      <matrix-sequence-2d id="matrix-2d-1"></matrix-sequence-2d>
     </div>
   </div>
 

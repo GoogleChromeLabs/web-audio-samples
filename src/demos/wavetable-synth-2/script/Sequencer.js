@@ -50,10 +50,12 @@ export class Sequencer {
     this.startTime = 0.0;
 
     /**
-     * @const {!Array<number>} The rhythm pattern. -1 represents a rest.
+     * @const {!Int32Array<number>} The rhythm pattern. -1 represents a rest.
      * Other numbers can represent note values or indices.
      */
-    this.rhythm = [4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1];
+    this.sequenceData = new Int32Array([
+        4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1
+    ]);
   }
 
   /**
@@ -87,10 +89,9 @@ export class Sequencer {
       // Convert noteTime (relative to sequence start) back to context time.
       const contextPlayTime = this.noteTime + this.startTime;
 
-      if (this.rhythm[this.rhythmIndex] != -1) {
-        const noteNumber = this.rhythm[this.rhythmIndex];
-        const note1 = new Note(
-            noteData.context, noteData.periodicWave, noteData.destination);
+      if (this.sequenceData[this.rhythmIndex] != -1) {
+        const noteNumber = this.sequenceData[this.rhythmIndex];
+        const note1 = new Note(noteData);
         note1.play(noteNumber + PITCH_OFFSET, octave, contextPlayTime);
         // const note2 = new Note(
         //     noteData.context, noteData.periodicWave, noteData.destination);
@@ -104,5 +105,21 @@ export class Sequencer {
 
   setTempo(tempo) {
     this.tempo = Math.max(20, Math.min(200, tempo));
+  }
+
+  /**
+   * Updates the sequencer's rhythm pattern.
+   * @param {Int32Array} sequenceData - The new rhythm sequence. Must be an
+   * Int32Array with the same length as the current sequence.
+   * Values should be numbers (representing note indices or MIDI note numbers)
+   * or -1 for rests.
+   */
+  setSequenceData(sequenceData) {
+    if (!(sequenceData instanceof Int32Array) ||
+        this.sequenceData.length !== sequenceData.length) {
+      return;
+    }
+
+    this.sequenceData.set(sequenceData);
   }
 };

@@ -26,11 +26,11 @@ export class MatrixSequence2D extends HTMLElement {
     // --- State ---
     /**
      * @private
-     * @type {Array<number>} Stores the selected vertical grid index for each segment.
-     * Defaults to the bottom grid (grids - 1).
+     * @type {Int32Array<number>} Stores the selected vertical grid index
+     * for each segment. Defaults to the bottom grid (grids - 1).
      */
-    // MODIFIED: Initialize values to the bottom grid index (this.grids - 1)
-    this._values = Array(this.segments).fill(this.grids - 1);
+    // Initialize values to the bottom grid index (this.grids - 1)
+    this._values = new Int32Array(this.segments).fill(-1);
     /**
      * @private
      * @type {boolean} Flag indicating if the user is currently dragging.
@@ -124,6 +124,10 @@ export class MatrixSequence2D extends HTMLElement {
   get values() {
     // Provide read-only access to the values by returning a copy
     return [...this._values];
+  }
+
+  getSequenceData() {
+    return this._values;
   }
 
   // --- Setup ---

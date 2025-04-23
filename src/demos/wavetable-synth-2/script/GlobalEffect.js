@@ -106,12 +106,16 @@ export class GlobalEffect {
         feedbackGain, this.context.currentTime);
   }
 
-  setDelayGrunge (driveDb) {
+  setDelayGrunge(driveDb) {
     this.delayWaveShaper.setDrive(Math.pow(10, 0.05 * driveDb));
   }
 
-  setMainGrunge (driveDb) {
+  setMainGrunge(driveDb) {
     this.grungeWaveShaper.setDrive(Math.pow(10, 0.05 * driveDb));
+  }
+
+  setTempo(tempo) {
+    this.bpmDelay.setTempo(tempo);
   }
 
   get input() {

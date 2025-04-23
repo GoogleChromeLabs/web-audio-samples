@@ -95,8 +95,8 @@ export class BPMDelay {
 
     // Use setTargetAtTime for smoother transitions if needed, though
     // setValueAtTime is often sufficient for direct changes.
-    this.delayNode.delayTime.setValueAtTime(delayTime, 
-                                            this.context.currentTime);
+    this.delayNode.delayTime.linearRampToValueAtTime(
+        delayTime, this.context.currentTime);
   }
 
   get node() {

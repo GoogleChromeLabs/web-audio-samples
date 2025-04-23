@@ -2,31 +2,35 @@ const CUTOFF_OFFSET = 9600;
 const FILTER_MOD_OFFSET = 7200;
 
 export class Note {
+  constructor(noteData) {
+    const { context, periodicWave1, periodicWave2, params, destination }
+        = noteData;
 
-  constructor(context, periodicWave, destination) {
     this.context = context;
 
-    const oscOptions = {type:'custom', periodicWave};
-    this.osc1 = new OscillatorNode(context, oscOptions);
-    this.osc1Octave = new OscillatorNode(context, oscOptions);
-    this.osc2 = new OscillatorNode(context, oscOptions);
-    this.osc2Octave = new OscillatorNode(context, oscOptions);
+    const oscOptions1 = {type: 'custom', periodicWave: periodicWave1};
+    this.osc1 = new OscillatorNode(context, oscOptions1);
+    this.osc1Octave = new OscillatorNode(context, oscOptions1);
+    const oscOptions2 = {type: 'custom', periodicWave: periodicWave2};
+    this.osc2 = new OscillatorNode(context, oscOptions2);
+    this.osc2Octave = new OscillatorNode(context, oscOptions2);
     this.panner1 = new PannerNode(context, {panningModel: 'equalpower'});
     this.panner2 = new PannerNode(context, {panningModel: 'equalpower'});
     this.ampEnv = new GainNode(context, {gain:0.0});
     this.biquad = new BiquadFilterNode(context, {type:'lowpass'});
     this.volume = new GainNode(context, {gain:0.0});
 
-    this.detune1 = 4.5;
-    this.detune2 = -2.5;
-    this.filterCutoff = 0.2;
+    this.detune1 = 0.0;
+    this.detune2 = 0.0;
+    this.filterCutoff = 0.5;
     this.filterResonance = 6.0;
-    this.filterAmount = 0.4;
-    this.filterAttack = 0.056;
-    this.filterDecay = 0.991;
-    this.ampAttack = 0.056;
-    this.ampDecay = 0.100;
-    this.width = 0.6;
+    this.filterAmount = 0.5;
+    this.filterAttack = 0.020;
+    this.filterDecay = 0.500;
+    this.ampAttack = 0.020;
+    this.ampDecay = 0.500;
+    this.width = 0.5;
+    this.setParams(params);
 
     this.osc1.connect(this.panner1).connect(this.ampEnv).connect(this.biquad);
     this.osc2.connect(this.panner2).connect(this.ampEnv);
@@ -36,8 +40,17 @@ export class Note {
     this.volume.gain.value = 0.1;
   }
 
+  setParams(params) {
+    for (const key in params) {
+      if (Object.hasOwnProperty.call(this, key)) {
+        this[key] = params[key];
+      }
+      
+    }
+  }
+
   play(semitone, octave, time) {
-    console.log('[NOTE] play: ', semitone, octave, time);
+    // console.log('[NOTE] play: ', semitone, octave, time);
     // Calculate the fundamental frequency from semitone.
     this.pitchFrequency = 20.0 * Math.pow(2.0, semitone / 12.0);
 
@@ -97,7 +110,6 @@ export class Note {
     this.osc2Octave.stop(decayEndTime);
 
     setTimeout(() => {
-      console.log('disconnected');
       this.volume.disconnect();
     }, (decayEndTime + 1.0) * 1000);
   }
