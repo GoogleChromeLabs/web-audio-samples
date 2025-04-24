@@ -3,6 +3,11 @@ import { Note } from './Note.js';
 const SCHEDULE_AHEAD_TIME = 0.040;
 const PITCH_OFFSET = 36;
 
+const LYDIAN_MAP = [
+  36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59, 
+  60, 62, 64, 66, 67, 69, 71, 72, 74, 76
+];
+
 /**
  * Represents a musical sequence with rhythm and note scheduling capabilities.
  * Note: This class relies on several external variables/objects that should
@@ -90,7 +95,7 @@ export class Sequencer {
       const contextPlayTime = this.noteTime + this.startTime;
 
       if (this.sequenceData[this.rhythmIndex] != -1) {
-        const noteNumber = this.sequenceData[this.rhythmIndex];
+        const noteNumber = LYDIAN_MAP[this.sequenceData[this.rhythmIndex]];
         const note1 = new Note(noteData);
         note1.play(noteNumber + PITCH_OFFSET, octave, contextPlayTime);
         // const note2 = new Note(
