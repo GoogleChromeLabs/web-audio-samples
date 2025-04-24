@@ -1,17 +1,17 @@
-const CUTOFF_OFFSET = 3500;
-const FILTER_MOD_OFFSET = 7200;
+// In cents
+const CUTOFF_OFFSET_CENTS = 9600;
+const FILTER_MOD_OFFSET_CENTS = 7200;
 
 export class Note {
   constructor(noteData) {
-    const { context, periodicWave1, periodicWave2, params, destination }
-        = noteData;
+    const { context, periodicWaves, params, destination } = noteData;
     
     this.context = context;
 
-    const oscOptions1 = {type: 'custom', periodicWave: periodicWave1};
+    const oscOptions1 = {type: 'custom', periodicWave: periodicWaves[0]};
     this.osc1 = new OscillatorNode(context, oscOptions1);
     this.osc1Octave = new OscillatorNode(context, oscOptions1);
-    const oscOptions2 = {type: 'custom', periodicWave: periodicWave2};
+    const oscOptions2 = {type: 'custom', periodicWave: periodicWaves[1]};
     this.osc2 = new OscillatorNode(context, oscOptions2);
     this.osc2Octave = new OscillatorNode(context, oscOptions2);
     this.panner1 = new PannerNode(context, {panningModel: 'equalpower'});
@@ -82,11 +82,11 @@ export class Note {
     this.biquad.frequency.cancelScheduledValues(0);
     const nyquistFrequency = this.context.sampleRate / 2;
     const cutoffRate =
-        Math.pow(2, CUTOFF_OFFSET * this.filterCutoff / 1200);
+        Math.pow(2, CUTOFF_OFFSET_CENTS * this.filterCutoff / 1200);
     const startFrequency =
         Math.min(nyquistFrequency, cutoffRate * this.pitchFrequency);
     const filterAmountRate =
-        Math.pow(2, FILTER_MOD_OFFSET * this.filterAmount / 1200.0);
+        Math.pow(2, FILTER_MOD_OFFSET_CENTS * this.filterAmount / 1200.0);
     const filterAmountFrequency =
         Math.min(nyquistFrequency, filterAmountRate * startFrequency);
 

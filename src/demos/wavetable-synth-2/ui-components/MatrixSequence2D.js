@@ -262,8 +262,9 @@ export class MatrixSequence2D extends HTMLElement {
     const gridIndex = Math.max(0, Math.min(this.grids - 1, Math.floor(y / this._gridHeight)));
 
     // Update the value only if it has changed for the specific segment
-    if (this._values[segmentIndex] !== gridIndex) {
-      this._values[segmentIndex] = gridIndex;
+    const reversedIndex = this.grids - gridIndex;
+    if (this._values[segmentIndex] !== reversedIndex) {
+      this._values[segmentIndex] = reversedIndex;
       this._draw(); // Redraw the canvas to show the change
 
       // Dispatch a custom event to notify users of the change
@@ -313,7 +314,8 @@ export class MatrixSequence2D extends HTMLElement {
     // --- Draw highlighted cells ---
     this._ctx.fillStyle = this.highlightColor;
     for (let i = 0; i < this.segments; i++) {
-      const selectedGrid = this._values[i];
+      // The value also needs to be reversed.
+      const selectedGrid = this.grids - this._values[i];
       // Check if a valid grid (0 to grids-1) is selected for this segment
       if (selectedGrid >= 0 && selectedGrid < this.grids) {
         const x = i * this._segmentWidth;
