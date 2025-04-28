@@ -1,11 +1,11 @@
 import { Note } from './Note.js';
 
 const SCHEDULE_AHEAD_TIME = 0.040;
-const PITCH_OFFSET = 36;
+const PITCH_OFFSET = -24;
 
 const LYDIAN_MAP = [
   36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59, 
-  60, 62, 64, 66, 67, 69, 71, 72, 74, 76
+  60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78 
 ];
 
 /**
@@ -59,7 +59,7 @@ export class Sequencer {
      * Other numbers can represent note values or indices.
      */
     this.sequenceData = new Int32Array([
-        4, 4, 4, -1, 8, 13, 25, 15, 33, 23, 11, -1, 0, -1, 3, -1
+        4, 4, 4, -1, 8, 13, 23, 15, 23, 23, 11, -1, 0, -1, 3, -1
     ]);
   }
 
@@ -96,11 +96,11 @@ export class Sequencer {
 
       if (this.sequenceData[this.rhythmIndex] != -1) {
         const noteNumber = LYDIAN_MAP[this.sequenceData[this.rhythmIndex]];
+        console.log(noteNumber, this.sequenceData[this.rhythmIndex]);
         const note1 = new Note(noteData);
         note1.play(noteNumber + PITCH_OFFSET, octave, contextPlayTime);
-        // const note2 = new Note(
-        //     noteData.context, noteData.periodicWave, noteData.destination);
-        // note2.play(noteNumber + 12 + PITCH_OFFSET, octave, contextPlayTime);
+        const note2 = new Note(noteData);
+        note2.play(noteNumber + 12 + PITCH_OFFSET, octave, contextPlayTime);
       }
 
       // Advance to the next step in the sequence

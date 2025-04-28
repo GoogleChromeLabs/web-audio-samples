@@ -44,7 +44,7 @@ export class Note {
     for (const key in params) {
       if (Object.hasOwnProperty.call(this, key)) {
         this[key] = params[key];
-        console.log(key, this[key]);
+        // console.log(key, this[key]);
       }
     }
   }
