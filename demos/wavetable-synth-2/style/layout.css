@@ -1,0 +1,208 @@
+/* For fonts */
+body {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.footer {
+  font-size: small;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Main Container using Flexbox */
+.synth-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap; /* Keep side-by-side layout */
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.panel-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap; /* Keep side-by-side layout */
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Left and Right Panels */
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1 1 620px;
+    min-width: 300px;
+}
+
+.center-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1 1 50px;
+    min-width: 50px;
+    align-items: center; /* Try centering items vertically */
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1 1 420px;
+    min-width: 220px;
+}
+
+/* General Panel Styling */
+.panel {
+    border: 1px solid #ccc; /* Use solid border */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Generator Panel Specifics */
+.generator-panel .generator-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.wavetable-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    flex: 1 1 200px;
+    min-width: 150px;
+}
+
+.knob-section {
+    display: box;
+    gap: 10px;
+    min-width: 190px;
+}
+
+.knob-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    border: 1px solid #ccc; /* Use solid border */
+    padding: 5px; /* Reduced padding slightly */
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Sequencer Panel Specifics */
+.sequencer-panel {
+    align-items: center;
+    padding: 5px; /* Reduce padding to let sequencer fill */
+}
+
+/* Effects Panel Specifics */
+.effects-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Slightly reduced gap */
+    border: 1px solid #ccc; /* Use solid border */
+    padding: 8px;
+    align-items: flex-start; /* Align controls to top */
+}
+
+.control-group-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    border: 1px solid #ccc; /* Use solid border */
+    padding: 8px;
+    align-items: flex-start; /* Align items to top */
+}
+
+/* Row with dropdowns and Reverb Mix */
+.dropdown-reverb-group {
+   align-items: center; /* Try centering items vertically */
+}
+
+
+/* --- Web Component Styles --- */
+matrix-sequence-2d {
+    display: block;
+    max-width: 600px;
+    width: 100%;
+    height: 300px;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Placeholder optional: */
+    /* background-color: #fafafa; */
+    /* border: 1px solid #eee;  */
+}
+
+knob-simple {
+    display: inline-block;
+    width: 90px;
+    height: 120px;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-align: center;
+    vertical-align: top;
+}
+
+wavetable-view {
+    display: block;
+    min-height: 120px;
+    min-width: 200px;
+    width: 100%;
+    box-sizing: border-box;
+     /* Placeholder optional: */
+    /* background-color: #fafafa; */
+    /* border: 1px solid #eee;  */
+}
+
+dropdown-menu {
+    display: inline-block;
+    min-width: 100px;
+    padding: 5px 8px;
+    box-sizing: border-box;
+    text-align: center;
+    vertical-align: middle;
+    min-height: 25px; /* Ensure some height */
+    /* Optional simple border/bg if component has none */
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+/* *** ADDED BACK: Placeholder text for empty dropdowns *** */
+dropdown-menu:empty::before {
+     content: 'Select...'; /* Placeholder text */
+     color: #888;
+     font-style: italic;
+     font-size: 12px;
+}
+
+/* Accessibility Helper */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wavetable Synth 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style/normalize.css">
+  <link rel="stylesheet" href="style/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script type="module" src="script/prototype.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>This is the new wavetable synth.</h1>
+  </div>
+
+  <div class="container">
+    
+    <div class="flex flex-col">
+
+      <div id="generator-section" class="flex flex-row gap-5">
+        <div class="mb-2">
+          <div class="mb-2">
+            <span class="text-sm mr-5">Generator 1</span>
+            <drop-down id="select-wavetable1"></drop-down>
+          </div>
+          <wavetable-view id="view-wavetable1"></wavetable-view>
+        </div>
+        <div class="mb-2">
+          <div class="mb-2">
+            <span class="text-sm mr-5">Generator 2</span>
+            <drop-down id="select-wavetable2"></drop-down>
+          </div>
+          <wavetable-view id="view-wavetable2"></wavetable-view>
+        </div>      
+      </div>
+
+      <div id="knobs-section" class="flex flex-row">
+        <div class="mr-5">
+          <div>
+            <knob-simple id="knob-detune1" min-value="-50.0" max-value="50.0" default-value="0.0" label="Detune 1"></knob-simple>
+            <knob-simple id="knob-detune2" min-value="-50.0" max-value="50.0" default-value="0.0" label="Detune 2"></knob-simple>
+            <knob-simple id="knob-width" min-value="0.00" max-value="1.0" default-value="0.000" label="Width"></knob-simple>
+            <knob-simple id="knob-ampAttack" min-value="0.001" max-value="0.300" default-value="0.056" label="Amp Atk"></knob-simple>
+            <knob-simple id="knob-ampDecay" min-value="0.001" max-value="5.0" default-value="0.100" label="Amp Dcy"></knob-simple>
+          </div>
+          <div>
+            <knob-simple id="knob-filterCutoff" min-value="0.0" max-value="1.0" default-value="0.2" label="Cutoff"></knob-simple>
+            <knob-simple id="knob-filterResonance" min-value="0.001" max-value="40.0" default-value="12.0" label="Resonace"></knob-simple>
+            <knob-simple id="knob-filterAmount" min-value="0.0" max-value="1.0" default-value="0.4" label="Filter Amt"></knob-simple>
+            <knob-simple id="knob-filterAttack" min-value="0.001" max-value="0.300" default-value="0.056" label="Filter Atk"></knob-simple>
+            <knob-simple id="knob-filterDecay" min-value="0.001" max-value="0.300" default-value="0.991" label="Filter Dcy"></knob-simple>
+          </div>
+        </div>
+        <div class="flex flex-col justify-center items-center">
+          <knob-simple id="knob-tempo" min-value="40" max-value="240" default-value="85" label="Tempo"></knob-simple>
+          <toggle-simple id="toggle-1" label="Start Audio" initial-state="false"></toggle-simple>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="flex">
+      <matrix-sequence-2d id="matrix-2d-1"></matrix-sequence-2d>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>2025 Chrome WebAudio Team (with Gemini Pro 2.5): Making the web sing with happy bleeps & boops! 🎶💖</p>
+  </div>
+
+  <!-- <script type="module" src="script/prototype.js"></script> -->
+</body>
+</html>
