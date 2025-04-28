@@ -7,9 +7,9 @@
 function FourierTransform(bufferSize, sampleRate) {
   this.bufferSize = bufferSize;
   this.sampleRate = sampleRate;
-  this.bandwidth = 2 / bufferSize * sampleRate / 2;
+  this.bandwidth = ((2 / bufferSize) * sampleRate) / 2;
 
-  this.spectrum = new Float32Array(bufferSize/2);
+  this.spectrum = new Float32Array(bufferSize / 2);
   this.real = new Float32Array(bufferSize);
   this.imag = new Float32Array(bufferSize);
 
@@ -23,11 +23,11 @@ function FourierTransform(bufferSize, sampleRate) {
    *
    * @return The middle frequency in Hz.
    */
-  this.getBandFrequency = function(index) {
+  this.getBandFrequency = function (index) {
     return this.bandwidth * index + this.bandwidth / 2;
   };
 
-  this.calculateSpectrum = function() {
+  this.calculateSpectrum = function () {
     const spectrum = this.spectrum;
     const real = this.real;
     const imag = this.imag;
@@ -37,7 +37,7 @@ function FourierTransform(bufferSize, sampleRate) {
     let ival;
     let mag;
 
-    for (let i = 0, N = bufferSize/2; i < N; i++) {
+    for (let i = 0, N = bufferSize / 2; i < N; i++) {
       rval = real[i];
       ival = imag[i];
       mag = bSi * sqrt(rval * rval + ival * ival);
@@ -85,8 +85,8 @@ function FFT(bufferSize, sampleRate) {
   this.cosTable = new Float32Array(bufferSize);
 
   for (i = 0; i < bufferSize; i++) {
-    this.sinTable[i] = Math.sin(-Math.PI/i);
-    this.cosTable[i] = Math.cos(-Math.PI/i);
+    this.sinTable[i] = Math.sin(-Math.PI / i);
+    this.cosTable[i] = Math.cos(-Math.PI / i);
   }
 }
 
@@ -98,7 +98,7 @@ function FFT(bufferSize, sampleRate) {
  *
  * @return The frequency spectrum array
  */
-FFT.prototype.forward = function(buffer) {
+FFT.prototype.forward = function (buffer) {
   // Locally scope variables for speed up
   const bufferSize = this.bufferSize;
   const cosTable = this.cosTable;
@@ -114,8 +114,12 @@ FFT.prototype.forward = function(buffer) {
     throw 'Invalid buffer size, must be a power of 2.';
   }
   if (bufferSize !== buffer.length) {
-    throw 'Supplied buffer is not the same size as defined FFT. FFT Size: ' +
-    bufferSize + ' Buffer Size: ' + buffer.length;
+    throw (
+      'Supplied buffer is not the same size as defined FFT. FFT Size: ' +
+      bufferSize +
+      ' Buffer Size: ' +
+      buffer.length
+    );
   }
 
   let halfSize = 1;
@@ -148,10 +152,10 @@ FFT.prototype.forward = function(buffer) {
 
       while (i < bufferSize) {
         off = i + halfSize;
-        tr = (currentPhaseShiftReal * real[off]) -
-             (currentPhaseShiftImag * imag[off]);
-        ti = (currentPhaseShiftReal * imag[off]) +
-             (currentPhaseShiftImag * real[off]);
+        tr =
+          currentPhaseShiftReal * real[off] - currentPhaseShiftImag * imag[off];
+        ti =
+          currentPhaseShiftReal * imag[off] + currentPhaseShiftImag * real[off];
 
         real[off] = real[i] - tr;
         imag[off] = imag[i] - ti;
@@ -162,10 +166,12 @@ FFT.prototype.forward = function(buffer) {
       }
 
       tmpReal = currentPhaseShiftReal;
-      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) -
-                              (currentPhaseShiftImag * phaseShiftStepImag);
-      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) +
-                              (currentPhaseShiftImag * phaseShiftStepReal);
+      currentPhaseShiftReal =
+        tmpReal * phaseShiftStepReal -
+        currentPhaseShiftImag * phaseShiftStepImag;
+      currentPhaseShiftImag =
+        tmpReal * phaseShiftStepImag +
+        currentPhaseShiftImag * phaseShiftStepReal;
     }
 
     halfSize = halfSize << 1;
@@ -175,7 +181,7 @@ FFT.prototype.forward = function(buffer) {
   imag[0] = real[bufferSize / 2];
 };
 
-FFT.prototype.inverse = function(real, imag) {
+FFT.prototype.inverse = function (real, imag) {
   // Locally scope variables for speed up
   const bufferSize = this.bufferSize;
   const cosTable = this.cosTable;
@@ -219,7 +225,6 @@ FFT.prototype.inverse = function(real, imag) {
   const revReal = new Float32Array(bufferSize);
   const revImag = new Float32Array(bufferSize);
 
-
   for (i = 0; i < real.length; i++) {
     revReal[i] = real[reverseTable[i]];
     revImag[i] = imag[reverseTable[i]];
@@ -239,10 +244,10 @@ FFT.prototype.inverse = function(real, imag) {
 
       while (i < bufferSize) {
         off = i + halfSize;
-        tr = (currentPhaseShiftReal * real[off]) -
-             (currentPhaseShiftImag * imag[off]);
-        ti = (currentPhaseShiftReal * imag[off]) +
-             (currentPhaseShiftImag * real[off]);
+        tr =
+          currentPhaseShiftReal * real[off] - currentPhaseShiftImag * imag[off];
+        ti =
+          currentPhaseShiftReal * imag[off] + currentPhaseShiftImag * real[off];
 
         real[off] = real[i] - tr;
         imag[off] = imag[i] - ti;
@@ -253,10 +258,12 @@ FFT.prototype.inverse = function(real, imag) {
       }
 
       tmpReal = currentPhaseShiftReal;
-      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) -
-                              (currentPhaseShiftImag * phaseShiftStepImag);
-      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) +
-                              (currentPhaseShiftImag * phaseShiftStepReal);
+      currentPhaseShiftReal =
+        tmpReal * phaseShiftStepReal -
+        currentPhaseShiftImag * phaseShiftStepImag;
+      currentPhaseShiftImag =
+        tmpReal * phaseShiftStepImag +
+        currentPhaseShiftImag * phaseShiftStepReal;
     }
 
     halfSize = halfSize << 1;

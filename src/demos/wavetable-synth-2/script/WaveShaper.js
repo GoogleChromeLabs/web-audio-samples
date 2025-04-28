@@ -45,8 +45,9 @@ class Colortouch {
     this.kneeThreshold = decibelsToLinear(this.kneeThresholdDb);
 
     // Calculate the output level (in dB) at the knee threshold
-    this.ykneeThresholdDb =
-        linearToDecibels(this.saturateBasic(this.kneeThreshold, this.k));
+    this.ykneeThresholdDb = linearToDecibels(
+      this.saturateBasic(this.kneeThreshold, this.k)
+    );
   }
 
   /**
@@ -137,8 +138,9 @@ class Colortouch {
     if (k === 0) {
       return x; // Or handle as linear above threshold if k=0 implies ratio=1
     }
-    return this.linearThreshold +
-           (1 - Math.exp(-k * (x - this.linearThreshold))) / k;
+    return (
+      this.linearThreshold + (1 - Math.exp(-k * (x - this.linearThreshold))) / k
+    );
   }
 
   /**
@@ -156,8 +158,8 @@ class Colortouch {
     } else {
       // Above the knee, apply linear gain reduction based on the ratio
       const xDb = linearToDecibels(x);
-      const yDb = this.ykneeThresholdDb +
-                  this.slope * (xDb - this.kneeThresholdDb);
+      const yDb =
+        this.ykneeThresholdDb + this.slope * (xDb - this.kneeThresholdDb);
       y = decibelsToLinear(yDb);
     }
 
