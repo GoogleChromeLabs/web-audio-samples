@@ -1,6 +1,6 @@
 /* For fonts */
 body {
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -40,9 +40,10 @@ knob-simple {
   height: 120px; /* Example height */
 }
 
-matrix-sequence-2d { /* Updated tag name */
+matrix-sequence-2d {
+  /* Updated tag name */
   display: block; /* Make it a block element */
-  width: 600px;   /* Example width */
+  width: 600px; /* Example width */
   max-width: 600px;
   height: 300px; /* Example height */
   border: 1px solid #ccc;
