@@ -1,0 +1,53 @@
+/* For fonts */
+body {
+  font-family: 'Inter', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  min-height: 100vh;
+  color: #d1d5db;
+  background-color: #30353a;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  gap: 20px;
+  /* flex-wrap: wrap; Allow wrapping if needed */
+  padding: 20px;
+}
+
+.footer {
+  font-size: small;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+knob-simple {
+  width: 90px; /* Example width */
+  height: 120px; /* Example height */
+}
+
+matrix-sequence-2d {
+  /* Updated tag name */
+  display: block; /* Make it a block element */
+  width: 600px; /* Example width */
+  max-width: 600px;
+  height: 300px; /* Example height */
+  border: 1px solid #ccc;
+  cursor: crosshair;
+  margin-bottom: 20px;
+  touch-action: none; /* Prevent default touch actions like scrolling */
+}
