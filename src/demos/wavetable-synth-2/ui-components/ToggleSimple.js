@@ -114,13 +114,13 @@ export class ToggleSimple extends HTMLElement {
         /* Style the component host element */
         display: inline-flex; /* Align items inline */
         align-items: center; /* Center items vertically */
-        padding: 8px 12px; /* Add some padding */
+        padding: 8px 12px !important; /* Add some padding */
         border: 1px solid #ccc; /* Subtle border */
         border-radius: 18px; /* Rounded corners */
         cursor: pointer; /* Indicate interactivity */
         user-select: none; /* Prevent text selection */
         transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Smooth transitions */
-        width: 150px; /* Fixed width container */
+        width: 120px; /* Fixed width container */
         box-sizing: border-box; /* Include padding and border in width */
         overflow: hidden; /* Prevent content overflow */
         background-color: #8a9199; /* Light background */
