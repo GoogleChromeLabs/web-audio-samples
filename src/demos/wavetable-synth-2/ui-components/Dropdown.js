@@ -9,7 +9,7 @@ export class Dropdown extends HTMLElement {
   constructor() {
     super();
     // Create a shadow root
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({mode: 'open'});
     /** @private {!Object<string, string>} Internal storage for options */
     this._options = {};
     /** @private {?string} Internal storage for selected value */
@@ -29,7 +29,8 @@ export class Dropdown extends HTMLElement {
 
   /**
    * Sets the options for the dropdown.
-   * @param {Object<string, string>} data - An object where keys are labels and values are option values.
+   * @param {Object<string, string>} data - An object where keys are labels
+   * and values are option values.
    */
   set options(data) {
     if (typeof data === 'object' && data !== null) {
@@ -54,7 +55,8 @@ export class Dropdown extends HTMLElement {
 
   /**
    * Gets the currently selected value.
-   * @return {?string} The selected value, or null if the default option is selected.
+   * @return {?string} The selected value, or null if the default option is
+   * selected.
    */
   get selectedValue() {
     return this._selectedValue;
@@ -89,7 +91,7 @@ export class Dropdown extends HTMLElement {
           outline: 2px solid transparent;
           outline-offset: 2px;
           border-color: #4f46e5; /* Indigo border on focus */
-          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3); /* Indigo ring on focus */
+          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
         }
         /* Style for the placeholder option */
           option[value=""] {
@@ -99,9 +101,10 @@ export class Dropdown extends HTMLElement {
       <select id="dropdown">
         <option value="">${this._defaultLabel}</option>
         ${Object.entries(this._options).map(([label, value]) =>
-          // Ensure value attribute is properly quoted
-          `<option value="${String(value).replace(/"/g, '&quot;')}">${label}</option>`
-        ).join('')}
+  // Ensure value attribute is properly quoted
+    `<option value="${String(value).replace(/"/g, '&quot;')}">
+                ${label}</option>`,
+  ).join('')}
       </select>
     `;
   }
@@ -115,14 +118,16 @@ export class Dropdown extends HTMLElement {
     if (selectElement) {
       selectElement.addEventListener('change', (event) => {
         // Update internal selected value
-        // Use null if the default option is selected, otherwise use the actual value
-        this._selectedValue = event.target.value === '' ? null : event.target.value;
+        // Use null if the default option is selected, otherwise use the actual
+        // value
+        this._selectedValue =
+            event.target.value === '' ? null : event.target.value;
 
         // Dispatch a custom 'select' event
         this.dispatchEvent(new CustomEvent('select', {
-          detail: { value: this._selectedValue }, // Pass the selected value
+          detail: {value: this._selectedValue}, // Pass the selected value
           bubbles: true, // Allow event to bubble up
-          composed: true // Allow event to cross shadow DOM boundary
+          composed: true, // Allow event to cross shadow DOM boundary
         }));
       });
     }

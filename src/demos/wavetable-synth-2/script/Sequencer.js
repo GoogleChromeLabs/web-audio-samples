@@ -1,11 +1,11 @@
-import { Note } from './Note.js';
+import {Note} from './Note.js';
 
 const SCHEDULE_AHEAD_TIME = 0.040;
 const PITCH_OFFSET = -24;
 
 const LYDIAN_MAP = [
-  36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59, 
-  60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78 
+  36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59,
+  60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78,
 ];
 
 /**
@@ -59,7 +59,7 @@ export class Sequencer {
      * Other numbers can represent note values or indices.
      */
     this.sequenceData = new Int32Array([
-        4, 4, 4, -1, 8, 13, 23, 15, 23, 23, 11, -1, 0, -1, 3, -1
+      4, 4, 4, -1, 8, 13, 23, 15, 23, 23, 11, -1, 0, -1, 3, -1,
     ]);
   }
 
@@ -71,7 +71,7 @@ export class Sequencer {
     // Advance time by a 16th note.
     const secondsPerBeat = 60.0 / this.tempo;
     // Assuming 4 16th notes per beat
-    this.noteTime += 0.25 * secondsPerBeat; 
+    this.noteTime += 0.25 * secondsPerBeat;
 
     this.lastRhythmIndex = this.rhythmIndex;
     this.rhythmIndex++;
@@ -127,4 +127,4 @@ export class Sequencer {
 
     this.sequenceData.set(sequenceData);
   }
-};
+}

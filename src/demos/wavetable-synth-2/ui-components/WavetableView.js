@@ -2,7 +2,7 @@ export class WavetableView extends HTMLElement {
   constructor() {
     super();
     // Create Shadow DOM for encapsulation
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({mode: 'open'});
 
     // Create canvas element
     /** @private {HTMLCanvasElement} */
@@ -60,7 +60,8 @@ export class WavetableView extends HTMLElement {
         this._redraw(); // Redraw if data exists
         break;
       case 'backgroundcolor':
-        // Directly set style, as it's handled within the canvas drawing/clearing
+        // Directly set style, as it's handled within the canvas
+        // drawing/clearing
         this._canvas.style.backgroundColor = newValue;
         this._redraw();
         break;
@@ -82,7 +83,8 @@ export class WavetableView extends HTMLElement {
     this._canvas.width = Number(initialWidth);
     this._canvas.height = Number(initialHeight);
     this._lineColor = this.getAttribute('linecolor') || '#007bff';
-    this._canvas.style.backgroundColor = this.getAttribute('backgroundcolor') || '#f0f0f0';
+    this._canvas.style.backgroundColor =
+        this.getAttribute('backgroundcolor') || '#f0f0f0';
 
     console.log('WavetableView connected.');
     this._drawEmptyState(); // Draw initial empty state
@@ -93,7 +95,7 @@ export class WavetableView extends HTMLElement {
    * This is a basic O(N^2) implementation, not a fast FFT.
    * @param {number[]} real - Array of real parts of frequency domain data.
    * @param {number[]} imag - Array of imaginary parts of frequency domain data.
-   * @returns {Float32Array} The real part of the time-domain signal (PCM data).
+   * @return {Float32Array} The real part of the time-domain signal (PCM data).
    * @private
    */
   _inverseDFT(real, imag) {
@@ -119,7 +121,8 @@ export class WavetableView extends HTMLElement {
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
 
-        // Complex multiplication: (real[k] + j*imag[k]) * (cosAngle + j*sinAngle)
+        // Complex multiplication:
+        // (real[k] + j*imag[k]) * (cosAngle + j*sinAngle)
         // Real part = real[k]*cosAngle - imag[k]*sinAngle
         sumReal += real[k] * cosAngle - imag[k] * sinAngle;
         // Imaginary part = real[k]*sinAngle + imag[k]*cosAngle
@@ -151,13 +154,13 @@ export class WavetableView extends HTMLElement {
     }
   }
 
-   /**
+  /**
     * Draws the current PCM data onto the canvas.
     * @private
     */
   _drawWaveform() {
     if (!this._pcmData || this._pcmData.length === 0) {
-       this._drawEmptyState('No data to display');
+      this._drawEmptyState('No data to display');
       return;
     }
 
@@ -198,13 +201,17 @@ export class WavetableView extends HTMLElement {
     // Draw the waveform line
     for (let i = 0; i < dataLength; i++) {
       // Scale time index to canvas width
-      // Use dataLength (instead of dataLength - 1) for mapping points to pixel columns
+      // Use dataLength (instead of dataLength - 1) for mapping points to
+      // pixel columns
       const x = (i / dataLength) * width;
 
       // Scale amplitude: Map [minVal, maxVal] to [height, 0] (inverted y-axis)
       // y = height - ((data[i] - minVal) * verticalScale);
-      // Ensure y is clamped within canvas bounds in case of floating point issues
-      const y = Math.max(0, Math.min(height, height - ((data[i] - minVal) * verticalScale)));
+      // Ensure y is clamped within canvas bounds in case of
+      // floating point issues
+      const y =
+          Math.max(0, Math.min(height,
+              height - ((data[i] - minVal) * verticalScale)));
 
 
       if (i === 0) {
@@ -223,7 +230,7 @@ export class WavetableView extends HTMLElement {
    * @param {string} [message='No data loaded'] - The message to display.
    * @private
    */
-   _drawEmptyState(message = 'No data loaded') {
+  _drawEmptyState(message = 'No data loaded') {
     const ctx = this._ctx;
     const width = this._canvas.width;
     const height = this._canvas.height;
@@ -235,7 +242,7 @@ export class WavetableView extends HTMLElement {
     ctx.fillText(message, width / 2, height / 2);
   }
 
-   /**
+  /**
     * Draws an error message.
     * @param {string} errorMessage - The error message to display.
     * @private
@@ -249,7 +256,8 @@ export class WavetableView extends HTMLElement {
     ctx.font = 'bold 14px sans-serif';
     ctx.fillStyle = '#c00'; // Red text
     ctx.textAlign = 'center';
-    ctx.fillText(`Error: ${errorMessage}`, width / 2, height / 2, width * 0.9); // Add max width
+    // Add max width
+    ctx.fillText(`Error: ${errorMessage}`, width / 2, height / 2, width * 0.9);
   }
 
 
@@ -261,7 +269,7 @@ export class WavetableView extends HTMLElement {
     if (this._pcmData) {
       this._drawWaveform();
     } else {
-       this._drawEmptyState(); // Redraw empty state if no data
+      this._drawEmptyState(); // Redraw empty state if no data
     }
   }
 }

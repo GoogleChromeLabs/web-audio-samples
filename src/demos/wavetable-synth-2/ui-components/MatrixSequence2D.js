@@ -1,15 +1,13 @@
 /**
- * @class MatrixSequence2D
- * A Web Component displaying a 2D grid (matrix) where users can select
- * one vertical position per horizontal segment. Defaults to the bottom grid.
- *
- * @fires change - Dispatched when the selected values change. Detail contains {values: Array<number>}.
+ * @classdesc MatrixSequence2D A Web Component displaying a 2D grid (matrix)
+ * where users can select one vertical position per horizontal segment. Defaults
+ * to the bottom grid.
  */
 export class MatrixSequence2D extends HTMLElement {
   constructor() {
     super();
     // Attach a shadow DOM tree to the instance
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({mode: 'open'});
 
     // --- Configuration ---
     /** @type {number} Number of horizontal segments. */
@@ -26,8 +24,8 @@ export class MatrixSequence2D extends HTMLElement {
     // --- State ---
     /**
      * @private
-     * @type {Int32Array<number>} Stores the selected vertical grid index
-     * for each segment. Defaults to the bottom grid (grids - 1).
+     * @type {Int32Array<number>} Stores the selected vertical grid index for
+     * each segment. Defaults to the bottom grid (grids - 1).
      */
     // Initialize values to the bottom grid index (this.grids - 1)
     this._values = new Int32Array(this.segments).fill(-1);
@@ -51,13 +49,17 @@ export class MatrixSequence2D extends HTMLElement {
      * @type {?ResizeObserver} Observer for handling element resize.
      */
     this._resizeObserver = null;
-    /** @private @type {number} The current width of the canvas element in CSS pixels. */
+    /** @private @type {number} The current width of the canvas element in CSS
+     * pixels. */
     this._width = 0;
-    /** @private @type {number} The current height of the canvas element in CSS pixels. */
+    /** @private @type {number} The current height of the canvas element in CSS
+     * pixels. */
     this._height = 0;
-    /** @private @type {number} The calculated width of each segment in CSS pixels. */
+    /** @private @type {number} The calculated width of each segment in CSS
+     * pixels. */
     this._segmentWidth = 0;
-    /** @private @type {number} The calculated height of each grid row in CSS pixels. */
+    /** @private @type {number} The calculated height of each grid row in CSS
+     * pixels. */
     this._gridHeight = 0;
 
 
@@ -84,8 +86,8 @@ export class MatrixSequence2D extends HTMLElement {
     // --- Append to Shadow DOM ---
     this.shadowRoot.append(style, this._canvas);
 
-    // --- Bind methods ---
-    // Binding ensures 'this' context is correct when methods are used as event handlers.
+    // --- Bind methods --- Binding ensures 'this' context is correct when
+    // methods are used as event handlers.
     this._handlePointerDown = this._handlePointerDown.bind(this);
     this._handlePointerMove = this._handlePointerMove.bind(this);
     this._handlePointerUp = this._handlePointerUp.bind(this);
@@ -119,7 +121,7 @@ export class MatrixSequence2D extends HTMLElement {
   // --- Getters ---
   /**
    * Gets the current array of selected grid values.
-   * @returns {Array<number>} A copy of the internal values array.
+   * @return {Array<number>} A copy of the internal values array.
    */
   get values() {
     // Provide read-only access to the values by returning a copy
@@ -133,15 +135,16 @@ export class MatrixSequence2D extends HTMLElement {
   // --- Setup ---
   /**
    * @private
-   * Sets up the canvas dimensions and scaling for HiDPI displays.
-   * Calculates segment and grid dimensions.
+   * Sets up the canvas dimensions and scaling for HiDPI displays. Calculates
+   * segment and grid dimensions.
    */
   _setupCanvas() {
     if (!this._canvas || !this._ctx) return; // Added check for ctx
     const rect = this.getBoundingClientRect();
     const devicePixelRatio = window.devicePixelRatio || 1;
 
-    // Set canvas internal resolution based on its display size and device pixel ratio
+    // Set canvas internal resolution based on its display size and device pixel
+    // ratio
     this._canvas.width = rect.width * devicePixelRatio;
     this._canvas.height = rect.height * devicePixelRatio;
 
@@ -166,7 +169,8 @@ export class MatrixSequence2D extends HTMLElement {
     if (!this._canvas) return;
     this._canvas.addEventListener('pointerdown', this._handlePointerDown);
     this._canvas.addEventListener('pointermove', this._handlePointerMove);
-    // Listen on the window for pointerup/cancel to catch cases where the pointer leaves the canvas while pressed.
+    // Listen on the window for pointerup/cancel to catch cases where the
+    // pointer leaves the canvas while pressed.
     window.addEventListener('pointerup', this._handlePointerUp);
     window.addEventListener('pointercancel', this._handlePointerUp);
   }
@@ -201,11 +205,12 @@ export class MatrixSequence2D extends HTMLElement {
   _handlePointerDown(event) {
     if (!this._canvas) return;
     this._isDragging = true;
-    // Capture the pointer to ensure move/up events are received even if the pointer leaves the element.
+    // Capture the pointer to ensure move/up events are received even if the
+    // pointer leaves the element.
     try { // Add try/catch for setPointerCapture as it can fail in edge cases
-       this._canvas.setPointerCapture(event.pointerId);
+      this._canvas.setPointerCapture(event.pointerId);
     } catch (e) {
-       console.warn('Failed to capture pointer:', e);
+      console.warn('Failed to capture pointer:', e);
     }
     this._updateValueFromEvent(event);
   }
@@ -229,37 +234,43 @@ export class MatrixSequence2D extends HTMLElement {
    */
   _handlePointerUp(event) {
     if (!this._isDragging || !this._canvas) {
-       return; // Avoid redundant updates or errors if not dragging/canvas gone
+      return; // Avoid redundant updates or errors if not dragging/canvas gone
     }
     this._isDragging = false;
     try { // Add try/catch for releasePointerCapture
       this._canvas.releasePointerCapture(event.pointerId);
-    } catch(e) {
+    } catch (e) {
       console.warn('Failed to release pointer:', e);
     }
-    // Optional: Update one last time on pointer up. Usually not needed as move handles it.
-    // this._updateValueFromEvent(event);
+    // Optional: Update one last time on pointer up. Usually not needed as move
+    // handles it. this._updateValueFromEvent(event);
   }
 
   // --- Logic ---
   /**
    * @private
-   * Calculates the segment and grid index from pointer coordinates and updates the internal state.
-   * Dispatches a 'change' event if a value was modified.
+   * Calculates the segment and grid index from pointer coordinates and updates
+   * the internal state. Dispatches a 'change' event if a value was modified.
    * @param {PointerEvent} event - The pointer event object.
    */
   _updateValueFromEvent(event) {
     if (!this._canvas || this._segmentWidth <= 0 || this._gridHeight <= 0) {
-      return; // Avoid division by zero or errors if dimensions aren't calculated
+      // Avoid division by zero or errors if dimensions aren't calculated
+      return;
     }
     const rect = this._canvas.getBoundingClientRect();
-    // Calculate coordinates relative to the canvas element's top-left corner (CSS pixels)
+    // Calculate coordinates relative to the canvas element's top-left corner
+    // (CSS pixels)
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Determine segment and grid indices, clamping values to valid ranges [0, segments-1] and [0, grids-1]
-    const segmentIndex = Math.max(0, Math.min(this.segments - 1, Math.floor(x / this._segmentWidth)));
-    const gridIndex = Math.max(0, Math.min(this.grids - 1, Math.floor(y / this._gridHeight)));
+    // Determine segment and grid indices, clamping values to valid ranges [0,
+    // segments-1] and [0, grids-1]
+    const segmentIndex =
+        Math.max(0, Math.min(this.segments - 1,
+            Math.floor(x / this._segmentWidth)));
+    const gridIndex =
+        Math.max(0, Math.min(this.grids - 1, Math.floor(y / this._gridHeight)));
 
     // Update the value only if it has changed for the specific segment
     const reversedIndex = this.grids - gridIndex;
@@ -269,7 +280,7 @@ export class MatrixSequence2D extends HTMLElement {
 
       // Dispatch a custom event to notify users of the change
       this.dispatchEvent(new CustomEvent('change', {
-        detail: { values: this.values } // Pass a copy of the values
+        detail: {values: this.values}, // Pass a copy of the values
       }));
     }
   }
