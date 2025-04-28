@@ -1,16 +1,16 @@
 /* eslint-disable */
 
-import {KnobSimple} from '../ui-components/KnobSimple.js';
-import {ToggleSimple} from '../ui-components/ToggleSimple.js';
-import {Dropdown} from '../ui-components/Dropdown.js';
-import {WavetableView} from '../ui-components/WavetableView.js';
-import {MatrixSequence2D} from '../ui-components/MatrixSequence2D.js';
+import { KnobSimple } from '../ui-components/KnobSimple.js';
+import { ToggleSimple } from '../ui-components/ToggleSimple.js';
+import { Dropdown } from '../ui-components/Dropdown.js';
+import { WavetableView } from '../ui-components/WavetableView.js';
+import { MatrixSequence2D } from '../ui-components/MatrixSequence2D.js';
 
-import {WavetableDataSet} from './WavetableDataSet.js';
+import { WavetableDataSet } from './WavetableDataSet.js';
 
-import {GlobalEffect} from './GlobalEffect.js';
-import {Sequencer} from './Sequencer.js';
-import {Note} from './Note.js';
+import { GlobalEffect } from './GlobalEffect.js';
+import { Sequencer } from './Sequencer.js';
+import { Note } from './Note.js';
 
 let isAudioStarted = false;
 let ScheduleTaskId = null;
@@ -27,7 +27,7 @@ const globalParams = {
   filterAttack: 0.056,
   filterDecay: 0.991,
   ampAttack: 0.056,
-  ampDecay: 0.100,
+  ampDecay: 0.1,
   width: 0.6,
 };
 
@@ -56,7 +56,9 @@ const handleParamChange = (event) => {
     globalParams[paramName] = event.detail.value;
     console.log(`Set globalParams.${paramName} = ${globalParams[paramName]}`);
   } else {
-    console.warn(`Unknown parameter: ${paramName} for element ID: ${event.target.id}`);
+    console.warn(
+      `Unknown parameter: ${paramName} for element ID: ${event.target.id}`
+    );
   }
 };
 
@@ -87,7 +89,9 @@ const handleWavetableSelect = (event) => {
 const changeWavetable = (generatorIndex, wavetableIndex) => {
   const periodicWaveData = WavetableDataSet[wavetableIndex];
   wavetableViews[generatorIndex].setComplexData(
-      periodicWaveData.real, periodicWaveData.imag);
+    periodicWaveData.real,
+    periodicWaveData.imag
+  );
   periodicWaves[generatorIndex] = new PeriodicWave(context, {
     real: periodicWaveData.real,
     imag: periodicWaveData.imag,

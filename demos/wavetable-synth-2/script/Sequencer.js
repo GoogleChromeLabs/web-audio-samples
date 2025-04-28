@@ -1,11 +1,11 @@
-import {Note} from './Note.js';
+import { Note } from './Note.js';
 
-const SCHEDULE_AHEAD_TIME = 0.040;
+const SCHEDULE_AHEAD_TIME = 0.04;
 const PITCH_OFFSET = -24;
 
 const LYDIAN_MAP = [
-  36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59,
-  60, 62, 64, 66, 67, 69, 71, 72, 74, 76, 78,
+  36, 38, 40, 42, 43, 45, 47, 48, 50, 52, 54, 55, 57, 59, 60, 62, 64, 66, 67,
+  69, 71, 72, 74, 76, 78,
 ];
 
 /**
@@ -83,7 +83,7 @@ export class Sequencer {
 
   schedule(noteData) {
     if (this.startTime === 0.0) {
-      this.startTime = noteData.context.currentTime + 0.160;
+      this.startTime = noteData.context.currentTime + 0.16;
     }
     let currentTime = noteData.context.currentTime;
     currentTime -= this.startTime;
@@ -120,8 +120,10 @@ export class Sequencer {
    * or -1 for rests.
    */
   setSequenceData(sequenceData) {
-    if (!(sequenceData instanceof Int32Array) ||
-        this.sequenceData.length !== sequenceData.length) {
+    if (
+      !(sequenceData instanceof Int32Array) ||
+      this.sequenceData.length !== sequenceData.length
+    ) {
       return;
     }
 

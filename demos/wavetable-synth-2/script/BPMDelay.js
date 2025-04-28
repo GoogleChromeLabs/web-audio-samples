@@ -74,8 +74,10 @@ export class BPMDelay {
       this.noteDivision = noteDivisionTimes[index];
       this.updateDelayTime();
     } else {
-      console.error(`Invalid delay index: ${index}. Must be between 0 and ` +
-                      `${noteDivisionTimes.length - 1}.`);
+      console.error(
+        `Invalid delay index: ${index}. Must be between 0 and ` +
+          `${noteDivisionTimes.length - 1}.`
+      );
     }
   }
 
@@ -99,7 +101,9 @@ export class BPMDelay {
     // setValueAtTime is often sufficient for direct changes.
     this.delayNode.delayTime.cancelAndHoldAtTime(this.context.currentTime);
     this.delayNode.delayTime.linearRampToValueAtTime(
-        delayTime, this.context.currentTime + RAMP_DURATION);
+      delayTime,
+      this.context.currentTime + RAMP_DURATION
+    );
   }
 
   get node() {

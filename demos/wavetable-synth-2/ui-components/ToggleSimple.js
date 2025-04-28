@@ -1,6 +1,6 @@
 /**
-  * @classdesc A simple two-state toggle button Web Component using SVG.
-  */
+ * @classdesc A simple two-state toggle button Web Component using SVG.
+ */
 export class ToggleSimple extends HTMLElement {
   constructor() {
     super(); // Always call super first in constructor
@@ -13,7 +13,7 @@ export class ToggleSimple extends HTMLElement {
     this._labelElement = null;
 
     // Attach a shadow root to the element.
-    this.attachShadow({mode: 'open'});
+    this.attachShadow({ mode: 'open' });
 
     // Bind methods to ensure 'this' context is correct
     this._toggleState = this._toggleState.bind(this);
@@ -158,8 +158,10 @@ export class ToggleSimple extends HTMLElement {
     svg.setAttribute('class', 'led-svg');
     svg.setAttribute('viewBox', '0 0 16 16'); // ViewBox for scaling
 
-    const circle =
-        document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const circle = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'circle'
+    );
     circle.setAttribute('class', 'led-circle');
     this._ledElement = circle; // Store reference
     svg.appendChild(circle);
@@ -188,11 +190,13 @@ export class ToggleSimple extends HTMLElement {
     this._updateVisuals();
 
     // Optional: Dispatch a custom event when state changes
-    this.dispatchEvent(new CustomEvent('change', {
-      detail: {state: this._state},
-      bubbles: true, // Allow event to bubble up
-      composed: true, // Allow event to cross shadow DOM boundary
-    }));
+    this.dispatchEvent(
+      new CustomEvent('change', {
+        detail: { state: this._state },
+        bubbles: true, // Allow event to bubble up
+        composed: true, // Allow event to cross shadow DOM boundary
+      })
+    );
   }
 
   /**
@@ -205,23 +209,23 @@ export class ToggleSimple extends HTMLElement {
       this.setAttribute('data-state', 'true');
     } else {
       this.setAttribute('data-state', 'false');
-    // Or use: this.removeAttribute('data-state'); if false is the default
-    // absence
+      // Or use: this.removeAttribute('data-state'); if false is the default
+      // absence
     }
     // The actual color change is handled by CSS using the [data-state] selector
   }
 
   /**
-  * Public method to programmatically set the state.
-  * @param {boolean} newState The desired state (true=on, false=off).
-  */
+   * Public method to programmatically set the state.
+   * @param {boolean} newState The desired state (true=on, false=off).
+   */
   setState(newState) {
     const booleanState = Boolean(newState); // Ensure it's a boolean
     if (this._state !== booleanState) {
       this._state = booleanState;
       this._updateVisuals();
-    // Optionally dispatch change event here too if needed for programmatic
-    // changes
+      // Optionally dispatch change event here too if needed for programmatic
+      // changes
     }
   }
 

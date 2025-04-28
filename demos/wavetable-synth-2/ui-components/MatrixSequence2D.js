@@ -7,7 +7,7 @@ export class MatrixSequence2D extends HTMLElement {
   constructor() {
     super();
     // Attach a shadow DOM tree to the instance
-    this.attachShadow({mode: 'open'});
+    this.attachShadow({ mode: 'open' });
 
     // --- Configuration ---
     /** @type {number} Number of horizontal segments. */
@@ -61,7 +61,6 @@ export class MatrixSequence2D extends HTMLElement {
     /** @private @type {number} The calculated height of each grid row in CSS
      * pixels. */
     this._gridHeight = 0;
-
 
     // --- Create Elements ---
     this._canvas = document.createElement('canvas');
@@ -207,7 +206,8 @@ export class MatrixSequence2D extends HTMLElement {
     this._isDragging = true;
     // Capture the pointer to ensure move/up events are received even if the
     // pointer leaves the element.
-    try { // Add try/catch for setPointerCapture as it can fail in edge cases
+    try {
+      // Add try/catch for setPointerCapture as it can fail in edge cases
       this._canvas.setPointerCapture(event.pointerId);
     } catch (e) {
       console.warn('Failed to capture pointer:', e);
@@ -237,7 +237,8 @@ export class MatrixSequence2D extends HTMLElement {
       return; // Avoid redundant updates or errors if not dragging/canvas gone
     }
     this._isDragging = false;
-    try { // Add try/catch for releasePointerCapture
+    try {
+      // Add try/catch for releasePointerCapture
       this._canvas.releasePointerCapture(event.pointerId);
     } catch (e) {
       console.warn('Failed to release pointer:', e);
@@ -266,11 +267,14 @@ export class MatrixSequence2D extends HTMLElement {
 
     // Determine segment and grid indices, clamping values to valid ranges [0,
     // segments-1] and [0, grids-1]
-    const segmentIndex =
-        Math.max(0, Math.min(this.segments - 1,
-            Math.floor(x / this._segmentWidth)));
-    const gridIndex =
-        Math.max(0, Math.min(this.grids - 1, Math.floor(y / this._gridHeight)));
+    const segmentIndex = Math.max(
+      0,
+      Math.min(this.segments - 1, Math.floor(x / this._segmentWidth))
+    );
+    const gridIndex = Math.max(
+      0,
+      Math.min(this.grids - 1, Math.floor(y / this._gridHeight))
+    );
 
     // Update the value only if it has changed for the specific segment
     const reversedIndex = this.grids - gridIndex;
@@ -279,9 +283,11 @@ export class MatrixSequence2D extends HTMLElement {
       this._draw(); // Redraw the canvas to show the change
 
       // Dispatch a custom event to notify users of the change
-      this.dispatchEvent(new CustomEvent('change', {
-        detail: {values: this.values}, // Pass a copy of the values
-      }));
+      this.dispatchEvent(
+        new CustomEvent('change', {
+          detail: { values: this.values }, // Pass a copy of the values
+        })
+      );
     }
   }
 

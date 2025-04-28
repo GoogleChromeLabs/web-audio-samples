@@ -2,7 +2,7 @@ export class WavetableView extends HTMLElement {
   constructor() {
     super();
     // Create Shadow DOM for encapsulation
-    this.attachShadow({mode: 'open'});
+    this.attachShadow({ mode: 'open' });
 
     // Create canvas element
     /** @private {HTMLCanvasElement} */
@@ -84,7 +84,7 @@ export class WavetableView extends HTMLElement {
     this._canvas.height = Number(initialHeight);
     this._lineColor = this.getAttribute('linecolor') || '#007bff';
     this._canvas.style.backgroundColor =
-        this.getAttribute('backgroundcolor') || '#f0f0f0';
+      this.getAttribute('backgroundcolor') || '#f0f0f0';
 
     console.log('WavetableView connected.');
     this._drawEmptyState(); // Draw initial empty state
@@ -108,15 +108,17 @@ export class WavetableView extends HTMLElement {
     }
 
     const timeDomainReal = new Float32Array(N);
-    const twoPiOverN = 2 * Math.PI / N;
+    const twoPiOverN = (2 * Math.PI) / N;
 
     console.log(`Starting IDFT calculation for N = ${N}...`);
 
-    for (let n = 0; n < N; n++) { // For each time sample
+    for (let n = 0; n < N; n++) {
+      // For each time sample
       let sumReal = 0;
       // let sumImag = 0; // We only need the real part for the waveform
 
-      for (let k = 0; k < N; k++) { // Sum over frequencies
+      for (let k = 0; k < N; k++) {
+        // Sum over frequencies
         const angle = twoPiOverN * k * n;
         const cosAngle = Math.cos(angle);
         const sinAngle = Math.sin(angle);
@@ -155,9 +157,9 @@ export class WavetableView extends HTMLElement {
   }
 
   /**
-    * Draws the current PCM data onto the canvas.
-    * @private
-    */
+   * Draws the current PCM data onto the canvas.
+   * @private
+   */
   _drawWaveform() {
     if (!this._pcmData || this._pcmData.length === 0) {
       this._drawEmptyState('No data to display');
@@ -185,8 +187,8 @@ export class WavetableView extends HTMLElement {
     // Add padding if min and max are the same (e.g., constant signal)
     // Also handle the case where the signal is flat zero
     if (maxVal === minVal) {
-      maxVal += (maxVal === 0 ? 1 : 0.1);
-      minVal -= (minVal === 0 ? 1 : 0.1);
+      maxVal += maxVal === 0 ? 1 : 0.1;
+      minVal -= minVal === 0 ? 1 : 0.1;
     }
 
     const amplitudeRange = maxVal - minVal;
@@ -209,10 +211,10 @@ export class WavetableView extends HTMLElement {
       // y = height - ((data[i] - minVal) * verticalScale);
       // Ensure y is clamped within canvas bounds in case of
       // floating point issues
-      const y =
-          Math.max(0, Math.min(height,
-              height - ((data[i] - minVal) * verticalScale)));
-
+      const y = Math.max(
+        0,
+        Math.min(height, height - (data[i] - minVal) * verticalScale)
+      );
 
       if (i === 0) {
         ctx.moveTo(x, y);
@@ -243,10 +245,10 @@ export class WavetableView extends HTMLElement {
   }
 
   /**
-    * Draws an error message.
-    * @param {string} errorMessage - The error message to display.
-    * @private
-    */
+   * Draws an error message.
+   * @param {string} errorMessage - The error message to display.
+   * @private
+   */
   _drawErrorState(errorMessage) {
     const ctx = this._ctx;
     const width = this._canvas.width;
@@ -259,7 +261,6 @@ export class WavetableView extends HTMLElement {
     // Add max width
     ctx.fillText(`Error: ${errorMessage}`, width / 2, height / 2, width * 0.9);
   }
-
 
   /**
    * Redraws the waveform or empty state.

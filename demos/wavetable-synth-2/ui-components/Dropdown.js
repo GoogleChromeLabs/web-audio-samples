@@ -9,7 +9,7 @@ export class Dropdown extends HTMLElement {
   constructor() {
     super();
     // Create a shadow root
-    this.attachShadow({mode: 'open'});
+    this.attachShadow({ mode: 'open' });
     /** @private {!Object<string, string>} Internal storage for options */
     this._options = {};
     /** @private {?string} Internal storage for selected value */
@@ -100,11 +100,14 @@ export class Dropdown extends HTMLElement {
       </style>
       <select id="dropdown">
         <option value="">${this._defaultLabel}</option>
-        ${Object.entries(this._options).map(([label, value]) =>
-  // Ensure value attribute is properly quoted
-    `<option value="${String(value).replace(/"/g, '&quot;')}">
-                ${label}</option>`,
-  ).join('')}
+        ${Object.entries(this._options)
+          .map(
+            ([label, value]) =>
+              // Ensure value attribute is properly quoted
+              `<option value="${String(value).replace(/"/g, '&quot;')}">
+                ${label}</option>`
+          )
+          .join('')}
       </select>
     `;
   }
@@ -121,14 +124,16 @@ export class Dropdown extends HTMLElement {
         // Use null if the default option is selected, otherwise use the actual
         // value
         this._selectedValue =
-            event.target.value === '' ? null : event.target.value;
+          event.target.value === '' ? null : event.target.value;
 
         // Dispatch a custom 'select' event
-        this.dispatchEvent(new CustomEvent('select', {
-          detail: {value: this._selectedValue}, // Pass the selected value
-          bubbles: true, // Allow event to bubble up
-          composed: true, // Allow event to cross shadow DOM boundary
-        }));
+        this.dispatchEvent(
+          new CustomEvent('select', {
+            detail: { value: this._selectedValue }, // Pass the selected value
+            bubbles: true, // Allow event to bubble up
+            composed: true, // Allow event to cross shadow DOM boundary
+          })
+        );
       });
     }
   }
