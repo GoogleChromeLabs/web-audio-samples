@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 // Copyright (c) 2010 Corban Brook, released under the MIT license
 // Fourier Transform Module used by DFT, FFT, RFT
 // Slightly modified for packed DC/nyquist...
@@ -5,37 +7,37 @@
 function FourierTransform(bufferSize, sampleRate) {
   this.bufferSize = bufferSize;
   this.sampleRate = sampleRate;
-  this.bandwidth  = 2 / bufferSize * sampleRate / 2;
+  this.bandwidth = 2 / bufferSize * sampleRate / 2;
 
-  this.spectrum   = new Float32Array(bufferSize/2);
-  this.real       = new Float32Array(bufferSize);
-  this.imag       = new Float32Array(bufferSize);
+  this.spectrum = new Float32Array(bufferSize/2);
+  this.real = new Float32Array(bufferSize);
+  this.imag = new Float32Array(bufferSize);
 
-  this.peakBand   = 0;
-  this.peak       = 0;
+  this.peakBand = 0;
+  this.peak = 0;
 
   /**
    * Calculates the *middle* frequency of an FFT band.
    *
    * @param {Number} index The index of the FFT band.
    *
-   * @returns The middle frequency in Hz.
+   * @return The middle frequency in Hz.
    */
   this.getBandFrequency = function(index) {
     return this.bandwidth * index + this.bandwidth / 2;
   };
 
   this.calculateSpectrum = function() {
-    var spectrum  = this.spectrum,
-        real      = this.real,
-        imag      = this.imag,
-        bSi       = 2 / this.bufferSize,
-        sqrt      = Math.sqrt,
-        rval,
-        ival,
-        mag;
+    const spectrum = this.spectrum;
+    const real = this.real;
+    const imag = this.imag;
+    const bSi = 2 / this.bufferSize;
+    const sqrt = Math.sqrt;
+    let rval;
+    let ival;
+    let mag;
 
-    for (var i = 0, N = bufferSize/2; i < N; i++) {
+    for (let i = 0, N = bufferSize/2; i < N; i++) {
       rval = real[i];
       ival = imag[i];
       mag = bSi * sqrt(rval * rval + ival * ival);
@@ -54,7 +56,8 @@ function FourierTransform(bufferSize, sampleRate) {
  * FFT is a class for calculating the Discrete Fourier Transform of a signal
  * with the Fast Fourier Transform algorithm.
  *
- * @param {Number} bufferSize The size of the sample buffer to be computed. Must be power of 2
+ * @param {Number} bufferSize The size of the sample buffer to be
+ * computed. Must be power of 2
  * @param {Number} sampleRate The sampleRate of the buffer (eg. 44100)
  *
  * @constructor
@@ -64,10 +67,10 @@ function FFT(bufferSize, sampleRate) {
 
   this.reverseTable = new Uint32Array(bufferSize);
 
-  var limit = 1;
-  var bit = bufferSize >> 1;
+  let limit = 1;
+  let bit = bufferSize >> 1;
 
-  var i;
+  let i;
 
   while (limit < bufferSize) {
     for (i = 0; i < limit; i++) {
@@ -93,33 +96,38 @@ function FFT(bufferSize, sampleRate) {
  *
  * @param {Array} buffer The sample buffer. Buffer Length must be power of 2
  *
- * @returns The frequency spectrum array
+ * @return The frequency spectrum array
  */
 FFT.prototype.forward = function(buffer) {
   // Locally scope variables for speed up
-  var bufferSize      = this.bufferSize,
-      cosTable        = this.cosTable,
-      sinTable        = this.sinTable,
-      reverseTable    = this.reverseTable,
-      real            = this.real,
-      imag            = this.imag,
-      spectrum        = this.spectrum;
+  const bufferSize = this.bufferSize;
+  const cosTable = this.cosTable;
+  const sinTable = this.sinTable;
+  const reverseTable = this.reverseTable;
+  const real = this.real;
+  const imag = this.imag;
+  const spectrum = this.spectrum;
 
-  var k = Math.floor(Math.log(bufferSize) / Math.LN2);
+  const k = Math.floor(Math.log(bufferSize) / Math.LN2);
 
-  if (Math.pow(2, k) !== bufferSize) { throw "Invalid buffer size, must be a power of 2."; }
-  if (bufferSize !== buffer.length)  { throw "Supplied buffer is not the same size as defined FFT. FFT Size: " + bufferSize + " Buffer Size: " + buffer.length; }
+  if (Math.pow(2, k) !== bufferSize) {
+    throw 'Invalid buffer size, must be a power of 2.';
+  }
+  if (bufferSize !== buffer.length) {
+    throw 'Supplied buffer is not the same size as defined FFT. FFT Size: ' +
+    bufferSize + ' Buffer Size: ' + buffer.length;
+  }
 
-  var halfSize = 1,
-      phaseShiftStepReal,
-      phaseShiftStepImag,
-      currentPhaseShiftReal,
-      currentPhaseShiftImag,
-      off,
-      tr,
-      ti,
-      tmpReal,
-      i;
+  let halfSize = 1;
+  let phaseShiftStepReal;
+  let phaseShiftStepImag;
+  let currentPhaseShiftReal;
+  let currentPhaseShiftImag;
+  let off;
+  let tr;
+  let ti;
+  let tmpReal;
+  let i;
 
   for (i = 0; i < bufferSize; i++) {
     real[i] = buffer[reverseTable[i]];
@@ -127,21 +135,23 @@ FFT.prototype.forward = function(buffer) {
   }
 
   while (halfSize < bufferSize) {
-    //phaseShiftStepReal = Math.cos(-Math.PI/halfSize);
-    //phaseShiftStepImag = Math.sin(-Math.PI/halfSize);
+    // phaseShiftStepReal = Math.cos(-Math.PI/halfSize);
+    // phaseShiftStepImag = Math.sin(-Math.PI/halfSize);
     phaseShiftStepReal = cosTable[halfSize];
     phaseShiftStepImag = sinTable[halfSize];
 
     currentPhaseShiftReal = 1;
     currentPhaseShiftImag = 0;
 
-    for (var fftStep = 0; fftStep < halfSize; fftStep++) {
+    for (let fftStep = 0; fftStep < halfSize; fftStep++) {
       i = fftStep;
 
       while (i < bufferSize) {
         off = i + halfSize;
-        tr = (currentPhaseShiftReal * real[off]) - (currentPhaseShiftImag * imag[off]);
-        ti = (currentPhaseShiftReal * imag[off]) + (currentPhaseShiftImag * real[off]);
+        tr = (currentPhaseShiftReal * real[off]) -
+             (currentPhaseShiftImag * imag[off]);
+        ti = (currentPhaseShiftReal * imag[off]) +
+             (currentPhaseShiftImag * real[off]);
 
         real[off] = real[i] - tr;
         imag[off] = imag[i] - ti;
@@ -152,8 +162,10 @@ FFT.prototype.forward = function(buffer) {
       }
 
       tmpReal = currentPhaseShiftReal;
-      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) - (currentPhaseShiftImag * phaseShiftStepImag);
-      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) + (currentPhaseShiftImag * phaseShiftStepReal);
+      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) -
+                              (currentPhaseShiftImag * phaseShiftStepImag);
+      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) +
+                              (currentPhaseShiftImag * phaseShiftStepReal);
     }
 
     halfSize = halfSize << 1;
@@ -165,50 +177,47 @@ FFT.prototype.forward = function(buffer) {
 
 FFT.prototype.inverse = function(real, imag) {
   // Locally scope variables for speed up
-  var bufferSize      = this.bufferSize,
-      cosTable        = this.cosTable,
-      sinTable        = this.sinTable,
-      reverseTable    = this.reverseTable,
-      spectrum        = this.spectrum;
+  const bufferSize = this.bufferSize;
+  const cosTable = this.cosTable;
+  const sinTable = this.sinTable;
+  const reverseTable = this.reverseTable;
+  const spectrum = this.spectrum;
 
-      real = real || this.real;
-      imag = imag || this.imag;
+  real = real || this.real;
+  imag = imag || this.imag;
 
-  var halfSize = 1,
-      phaseShiftStepReal,
-      phaseShiftStepImag,
-      currentPhaseShiftReal,
-      currentPhaseShiftImag,
-      off,
-      tr,
-      ti,
-      tmpReal,
-      i;
+  let halfSize = 1;
+  let phaseShiftStepReal;
+  let phaseShiftStepImag;
+  let currentPhaseShiftReal;
+  let currentPhaseShiftImag;
+  let off;
+  let tr;
+  let ti;
+  let tmpReal;
+  let i;
 
-      // Unpack and create mirror image.
-      // This isn't that efficient, but let's us avoid having to deal with the mirror image part
-      // when processing.
-      var n = bufferSize;
-      var nyquist = imag[0];
-      imag[0] = 0;
-      real[n / 2] = nyquist;
-      imag[n / 2] = 0;
+  // Unpack and create mirror image.
+  // This isn't that efficient, but let's us avoid having to deal with the
+  // mirror image part when processing.
+  const n = bufferSize;
+  const nyquist = imag[0];
+  imag[0] = 0;
+  real[n / 2] = nyquist;
+  imag[n / 2] = 0;
 
-      // Mirror image complex conjugate.
-      for (i = 1 + n / 2; i < n; i++) {
-          real[i] = real[n - i];
-          imag[i] = -imag[n - i];
-      }
+  // Mirror image complex conjugate.
+  for (i = 1 + n / 2; i < n; i++) {
+    real[i] = real[n - i];
+    imag[i] = -imag[n - i];
+  }
 
   for (i = 0; i < bufferSize; i++) {
     imag[i] *= -1;
   }
 
-  var revReal = new Float32Array(bufferSize);
-  var revImag = new Float32Array(bufferSize);
-
-
-
+  const revReal = new Float32Array(bufferSize);
+  const revImag = new Float32Array(bufferSize);
 
 
   for (i = 0; i < real.length; i++) {
@@ -225,13 +234,15 @@ FFT.prototype.inverse = function(real, imag) {
     currentPhaseShiftReal = 1;
     currentPhaseShiftImag = 0;
 
-    for (var fftStep = 0; fftStep < halfSize; fftStep++) {
+    for (let fftStep = 0; fftStep < halfSize; fftStep++) {
       i = fftStep;
 
       while (i < bufferSize) {
         off = i + halfSize;
-        tr = (currentPhaseShiftReal * real[off]) - (currentPhaseShiftImag * imag[off]);
-        ti = (currentPhaseShiftReal * imag[off]) + (currentPhaseShiftImag * real[off]);
+        tr = (currentPhaseShiftReal * real[off]) -
+             (currentPhaseShiftImag * imag[off]);
+        ti = (currentPhaseShiftReal * imag[off]) +
+             (currentPhaseShiftImag * real[off]);
 
         real[off] = real[i] - tr;
         imag[off] = imag[i] - ti;
@@ -242,14 +253,16 @@ FFT.prototype.inverse = function(real, imag) {
       }
 
       tmpReal = currentPhaseShiftReal;
-      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) - (currentPhaseShiftImag * phaseShiftStepImag);
-      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) + (currentPhaseShiftImag * phaseShiftStepReal);
+      currentPhaseShiftReal = (tmpReal * phaseShiftStepReal) -
+                              (currentPhaseShiftImag * phaseShiftStepImag);
+      currentPhaseShiftImag = (tmpReal * phaseShiftStepImag) +
+                              (currentPhaseShiftImag * phaseShiftStepReal);
     }
 
     halfSize = halfSize << 1;
   }
 
-  var buffer = new Float32Array(bufferSize); // this should be reused instead
+  const buffer = new Float32Array(bufferSize); // this should be reused instead
   for (i = 0; i < bufferSize; i++) {
     buffer[i] = real[i] / bufferSize;
   }

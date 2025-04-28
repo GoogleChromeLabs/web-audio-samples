@@ -74,7 +74,7 @@ export class BPMDelay {
       this.noteDivision = noteDivisionTimes[index];
       this.updateDelayTime();
     } else {
-        console.error(`Invalid delay index: ${index}. Must be between 0 and ` +
+      console.error(`Invalid delay index: ${index}. Must be between 0 and ` +
                       `${noteDivisionTimes.length - 1}.`);
     }
   }
@@ -92,7 +92,7 @@ export class BPMDelay {
     // 44100 Hz is assumed based on the original calculation.
     const fixedOffset = 0.37299 / 44100.0;
     // Duration of one quarter note in seconds
-    const beatDuration = 60.0 / this.tempo; 
+    const beatDuration = 60.0 / this.tempo;
     const delayTime = fixedOffset + beatDuration * this.noteDivision;
 
     // Use setTargetAtTime for smoother transitions if needed, though

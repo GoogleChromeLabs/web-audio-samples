@@ -1,7 +1,7 @@
 /**
  * Converts decibels to a linear gain value.
  * @param {number} db - Decibel value.
- * @returns {number} Linear gain value.
+ * @return {number} Linear gain value.
  */
 const decibelsToLinear = (db) => {
   return Math.pow(10.0, 0.05 * db);
@@ -10,7 +10,7 @@ const decibelsToLinear = (db) => {
 /**
  * Converts a linear gain value to decibels.
  * @param {number} x - Linear gain value.
- * @returns {number} Decibel value.
+ * @return {number} Decibel value.
  */
 const linearToDecibels = (x) => {
   if (x <= 0) {
@@ -55,7 +55,7 @@ class Colortouch {
    * @private
    * @param {number} x - Input level (linear).
    * @param {number} k - Curve shaping parameter.
-   * @returns {number} The slope at point x.
+   * @return {number} The slope at point x.
    */
   slopeAt(x, k) {
     if (x < this.linearThreshold) {
@@ -65,7 +65,8 @@ class Colortouch {
     // Use a small delta for numerical differentiation
     const deltaX = 0.001;
     const x1 = x;
-    const x2 = x * (1 + deltaX); // Use relative delta for better precision across magnitudes
+    // Use relative delta for better precision across magnitudes
+    const x2 = x * (1 + deltaX);
     const x1Db = linearToDecibels(x1);
     const x2Db = linearToDecibels(x2);
     const y1Db = linearToDecibels(this.saturateBasic(x1, k));
@@ -75,15 +76,15 @@ class Colortouch {
     // close
     const dbDifference = x2Db - x1Db;
     if (Math.abs(dbDifference) < 1e-9) {
-        // Handle potential division by zero or near-zero This might happen if x
-        // is very close to 0 or if precision issues arise. Returning 1 (no
-        // compression) or slope (full compression) might be options, but
-        // requires understanding the desired behavior at edge cases. For now,
-        // let's return the target slope as a fallback.
-        return this.slope;
+      // Handle potential division by zero or near-zero This might happen if x
+      // is very close to 0 or if precision issues arise. Returning 1 (no
+      // compression) or slope (full compression) might be options, but
+      // requires understanding the desired behavior at edge cases. For now,
+      // let's return the target slope as a fallback.
+      return this.slope;
     }
 
-    const m = (y2Db - y2Db) / dbDifference;
+    const m = (y2Db - y1Db) / dbDifference;
     return m;
   }
 
@@ -92,7 +93,7 @@ class Colortouch {
    * Uses a binary search-like approach.
    * @private
    * @param {number} slope - The desired slope (1 / ratio).
-   * @returns {number} The calculated k value.
+   * @return {number} The calculated k value.
    */
   kAtSlope(slope) {
     const xDb = this.thresholdDb + this.kneeDb;
@@ -126,7 +127,7 @@ class Colortouch {
    * @private
    * @param {number} x - Input level (linear).
    * @param {number} k - Curve shaping parameter.
-   * @returns {number} Saturated output level (linear).
+   * @return {number} Saturated output level (linear).
    */
   saturateBasic(x, k) {
     if (x < this.linearThreshold) {
@@ -134,16 +135,17 @@ class Colortouch {
     }
     // Avoid division by zero if k is very small or zero
     if (k === 0) {
-        return x; // Or handle as linear above threshold if k=0 implies ratio=1
+      return x; // Or handle as linear above threshold if k=0 implies ratio=1
     }
-    return this.linearThreshold + (1 - Math.exp(-k * (x - this.linearThreshold))) / k;
+    return this.linearThreshold +
+           (1 - Math.exp(-k * (x - this.linearThreshold))) / k;
   }
 
   /**
    * Applies the full waveshaping curve, including the knee and the linear gain
    * reduction part.
    * @param {number} x - Input level (linear).
-   * @returns {number} Shaped output level (linear).
+   * @return {number} Shaped output level (linear).
    */
   saturate(x) {
     let y;
@@ -154,7 +156,8 @@ class Colortouch {
     } else {
       // Above the knee, apply linear gain reduction based on the ratio
       const xDb = linearToDecibels(x);
-      const yDb = this.ykneeThresholdDb + this.slope * (xDb - this.kneeThresholdDb);
+      const yDb = this.ykneeThresholdDb +
+                  this.slope * (xDb - this.kneeThresholdDb);
       y = decibelsToLinear(yDb);
     }
 
@@ -165,7 +168,7 @@ class Colortouch {
 /**
  * Generates the Colortouch waveshaper curve.
  * @param {Float32Array} curve - The array to fill with curve values.
- * @returns {Float32Array} The populated curve array.
+ * @return {Float32Array} The populated curve array.
  */
 const generateColortouchCurve = (curve) => {
   const colortouch = new Colortouch(-10, 20, 30);
@@ -176,8 +179,8 @@ const generateColortouchCurve = (curve) => {
     let x = i / n2; // Map index to range [0, 1)
     x = colortouch.saturate(x);
 
-    curve[n2 + i] = x;       // Positive side
-    curve[n2 - 1 - i] = -x;  // Negative side (symmetric)
+    curve[n2 + i] = x; // Positive side
+    curve[n2 - 1 - i] = -x; // Negative side (symmetric)
   }
 
   return curve;
@@ -215,8 +218,8 @@ export class WaveShaper {
    */
   setDrive(drive) {
     if (typeof drive !== 'number' || drive <= 0) {
-        console.error('Invalid drive value. Drive must be a positive number.');
-        return;
+      console.error('Invalid drive value. Drive must be a positive number.');
+      return;
     }
     this.preGain.gain.value = drive;
 

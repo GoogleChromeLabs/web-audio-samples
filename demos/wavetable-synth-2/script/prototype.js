@@ -1,14 +1,16 @@
-import { KnobSimple } from '../ui-components/KnobSimple.js';
-import { ToggleSimple } from '../ui-components/ToggleSimple.js';
-import { Dropdown } from '../ui-components/Dropdown.js';
-import { WavetableView } from '../ui-components/WavetableView.js';
-import { MatrixSequence2D } from "../ui-components/MatrixSequence2D.js";
+/* eslint-disable */
 
-import { WavetableDataSet } from './WavetableDataSet.js';
+import {KnobSimple} from '../ui-components/KnobSimple.js';
+import {ToggleSimple} from '../ui-components/ToggleSimple.js';
+import {Dropdown} from '../ui-components/Dropdown.js';
+import {WavetableView} from '../ui-components/WavetableView.js';
+import {MatrixSequence2D} from '../ui-components/MatrixSequence2D.js';
 
-import { GlobalEffect } from './GlobalEffect.js';
-import { Sequencer } from './Sequencer.js';
-import { Note } from './Note.js';
+import {WavetableDataSet} from './WavetableDataSet.js';
+
+import {GlobalEffect} from './GlobalEffect.js';
+import {Sequencer} from './Sequencer.js';
+import {Note} from './Note.js';
 
 let isAudioStarted = false;
 let ScheduleTaskId = null;
@@ -16,7 +18,7 @@ let ScheduleTaskId = null;
 let context = null;
 let globalEffect = null;
 let sequencer = null;
-let globalParams = {
+const globalParams = {
   detune1: 4.5,
   detune2: -2.5,
   filterCutoff: 0.2,
@@ -32,8 +34,8 @@ let globalParams = {
 const initialWavetable1Index = 22; // Celeste
 const initialWavetable2Index = 37; // Phoneme_ah
 
-let wavetableViews = [];
-let periodicWaves = [];
+const wavetableViews = [];
+const periodicWaves = [];
 
 const handleTempoKnob = (event) => {
   if (event.type !== 'input' && event.type !== 'change') return;
@@ -49,17 +51,19 @@ const handleSequnceDataChange = (event) => {
 const handleParamChange = (event) => {
   if (event.type !== 'input' && event.type !== 'change') return;
   if (typeof event.detail.value === 'undefined') return;
-  let paramName = event.target.id.replace('knob-', '');
+  const paramName = event.target.id.replace('knob-', '');
   if (globalParams.hasOwnProperty(paramName)) {
     globalParams[paramName] = event.detail.value;
     console.log(`Set globalParams.${paramName} = ${globalParams[paramName]}`);
   } else {
-    console.warn(`Unknown parameter: ${paramName} for element ID: ${event.target.id}`);
+    console.warn(
+        `Unknown parameter: ${paramName} for element ID: ${event.target.id}`);
   }
 };
 
 const handleWavetableSelect = (event) => {
-  // event.detail.value contains the selected wavetable index from WavetableDataSet
+  // event.detail.value contains the selected wavetable index from
+  // WavetableDataSet
   if (typeof event.detail.value === 'undefined') {
     return;
   }
@@ -106,7 +110,7 @@ const startAudio = async () => {
       context,
       periodicWaves,
       params: globalParams,
-      destination: globalEffect.input
+      destination: globalEffect.input,
     });
     ScheduleTaskId = requestAnimationFrame(sequenceLoop);
   };
@@ -116,7 +120,6 @@ const startAudio = async () => {
 };
 
 const initialize = async () => {
-
   wavetableViews[0] = document.querySelector('#view-wavetable1');
   wavetableViews[1] = document.querySelector('#view-wavetable2');
 
@@ -146,21 +149,21 @@ const initialize = async () => {
   knobTempo.addEventListener('change', handleTempoKnob);
 
   const knobs = {
-    detune1: document.querySelector("#knob-detune1"),
-    detune2: document.querySelector("#knob-detune2"),
-    filterCutoff: document.querySelector("#knob-filterCutoff"),
-    FilterResonance: document.querySelector("#knob-filterResonance"),
-    FilterAmount: document.querySelector("#knob-filterAmount"),
-    FilterAttack: document.querySelector("#knob-filterAttack"),
-    FilterDecay: document.querySelector("#knob-filterDecay"),
-    AmpAttack: document.querySelector("#knob-ampAttack"),
-    AmpDecay: document.querySelector("#knob-ampDecay"),
-    width: document.querySelector("#knob-width"),
+    detune1: document.querySelector('#knob-detune1'),
+    detune2: document.querySelector('#knob-detune2'),
+    filterCutoff: document.querySelector('#knob-filterCutoff'),
+    FilterResonance: document.querySelector('#knob-filterResonance'),
+    FilterAmount: document.querySelector('#knob-filterAmount'),
+    FilterAttack: document.querySelector('#knob-filterAttack'),
+    FilterDecay: document.querySelector('#knob-filterDecay'),
+    AmpAttack: document.querySelector('#knob-ampAttack'),
+    AmpDecay: document.querySelector('#knob-ampDecay'),
+    width: document.querySelector('#knob-width'),
   };
-  
+
   for (const paramName in knobs) {
     if (knobs[paramName]) {
-      const knob = knobs[paramName]
+      const knob = knobs[paramName];
       knob.addEventListener('input', handleParamChange);
       knob.addEventListener('change', handleParamChange);
       // Initialize knob value from globalParams
@@ -169,7 +172,7 @@ const initialize = async () => {
       }
     } else {
       // Log a warning if a knob element wasn't found in the HTML
-      console.warn(`Could not find knob element for one of the parameters.`);  
+      console.warn(`Could not find knob element for one of the parameters.`);
     }
   }
 

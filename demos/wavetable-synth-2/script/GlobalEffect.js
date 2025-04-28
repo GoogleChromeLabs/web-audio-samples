@@ -1,12 +1,12 @@
-import { BPMDelay } from './BPMDelay.js';
-import { WaveShaper } from './WaveShaper.js';
+import {BPMDelay} from './BPMDelay.js';
+import {WaveShaper} from './WaveShaper.js';
 
 /**
  * Loads an impulse response audio file using fetch() and Promises.
  *
- * @param {AudioContext} audioContext - The Web Audio API AudioContext.
+ * @param {AudioContext} context - The Web Audio API AudioContext.
  * @param {string} url - The URL of the impulse response audio file.
- * @returns {Promise<AudioBuffer>} A Promise that resolves with a decoded
+ * @return {Promise<AudioBuffer>} A Promise that resolves with a decoded
  *   AudioBUffer when the impulse response is successfully loaded and set, or
  *   rejects on error.
  */
@@ -14,44 +14,46 @@ const loadImpulseResponse = async (context, url) => {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status} while fetching ${url}`);
+      throw new Error(
+          `HTTP error! Status: ${response.status} while fetching ${url}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    console.log(`Successfully fetched ${url}, received ${arrayBuffer.byteLength} bytes.`);
+    console.log(
+        `Successfully fetched ${url}, ` +
+        `received ${arrayBuffer.byteLength} bytes.`);
     console.log(`Decoding audio data for ${url}...`);
     const audioBuffer = await context.decodeAudioData(arrayBuffer);
     console.log(`Successfully decoded audio data for ${url}.`);
     console.log(`Impulse response ${url} loaded and assigned to convolver.`);
     return audioBuffer;
   } catch (error) {
-    console.error("Error loading or decoding impulse response:", error);
+    console.error('Error loading or decoding impulse response:', error);
     throw error;
   }
 };
 
 export class GlobalEffect {
-
   constructor(context) {
     this.context = context;
     this.compressor = new DynamicsCompressorNode(context);
     this.convolver = new ConvolverNode(context);
     this.convolverDry = new GainNode(context);
-    this.convolverWet = new GainNode(context);    
+    this.convolverWet = new GainNode(context);
     this.delayFeedback = new GainNode(context);
     this.delayDry = new GainNode(context);
     this.delayWet = new GainNode(context);
     this.waveShaper = new WaveShaperNode(context);
     this.subsonicFilter =
-        new BiquadFilterNode(context, {type:'highpass', frequency: 20})
-    
+        new BiquadFilterNode(context, {type: 'highpass', frequency: 20});
+
     this.bpmDelay = new BPMDelay(context);
     this.delayWaveShaper = new WaveShaper(context);
     this.grungeWaveShaper = new WaveShaper(context);
-    
+
     this.compressor.connect(this.context.destination);
 
-    this.convolver.connect(this.compressor)
+    this.convolver.connect(this.compressor);
     this.convolverDry.connect(this.compressor);
     this.convolverWet.connect(this.convolver);
 
@@ -120,4 +122,4 @@ export class GlobalEffect {
   get input() {
     return this.subsonicFilter;
   }
-};
+}

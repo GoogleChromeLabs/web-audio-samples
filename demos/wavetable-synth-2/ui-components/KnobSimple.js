@@ -1,8 +1,6 @@
 /**
- * @class KnobSimple
+ * @classdesc KnobSimple
  * A simple SVG-based knob web component.
- *
- * @fires change - Dispatched when the knob's value is finalized after interaction.
  */
 export class KnobSimple extends HTMLElement {
   /**
@@ -24,7 +22,7 @@ export class KnobSimple extends HTMLElement {
     this._precision = 3; // Digits after decimal point
 
     // --- Shadow DOM ---
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({mode: 'open'});
 
     // --- Bind methods ---
     // Ensure 'this' context is correct in event handlers
@@ -40,7 +38,7 @@ export class KnobSimple extends HTMLElement {
 
   /**
    * Observed attributes for attributeChangedCallback.
-   * @returns {string[]} An array of attribute names to observe.
+   * @return {string[]} An array of attribute names to observe.
    */
   static get observedAttributes() {
     return ['min-value', 'max-value', 'default-value', 'label', 'value'];
@@ -48,7 +46,8 @@ export class KnobSimple extends HTMLElement {
 
   /**
    * Lifecycle callback invoked when the element is added to the DOM.
-   * Sets up initial properties, renders the component, and attaches event listeners.
+   * Sets up initial properties, renders the component, and attaches event
+   * listeners.
    */
   connectedCallback() {
     this._setupInitialProperties();
@@ -77,35 +76,37 @@ export class KnobSimple extends HTMLElement {
     if (oldValue === newValue) return; // No change
 
     switch (name) {
-    case 'min-value':
+      case 'min-value':
         this._minValue = parseFloat(newValue ?? 0);
         // Re-clamp current value if necessary
         this.value = this._currentValue;
         break;
-    case 'max-value':
+      case 'max-value':
         this._maxValue = parseFloat(newValue ?? 100);
         // Re-clamp current value if necessary
         this.value = this._currentValue;
         break;
-    case 'default-value':
-        this._defaultValue = this._clamp(parseFloat(newValue ?? this._minValue));
+      case 'default-value':
+        this._defaultValue =
+            this._clamp(parseFloat(newValue ?? this._minValue));
         // Don't automatically reset to default on attribute change,
         // only update the potential reset value.
         break;
-    case 'label':
+      case 'label':
         this._label = newValue ?? 'Knob';
         if (this.shadowRoot.querySelector('.knob-label')) {
-        this.shadowRoot.querySelector('.knob-label').textContent = this._label;
+          this.shadowRoot.querySelector('.knob-label').textContent =
+              this._label;
         }
         break;
-    case 'value':
+      case 'value':
         // Update internal value if changed externally via attribute
         this.value = parseFloat(newValue);
         break;
     }
     // Update ARIA attributes if min/max changed
     if (name === 'min-value' || name === 'max-value') {
-        this._updateAriaAttributes();
+      this._updateAriaAttributes();
     }
   }
 
@@ -113,7 +114,7 @@ export class KnobSimple extends HTMLElement {
 
   /**
    * Gets the current value of the knob.
-   * @returns {number} The current value.
+   * @return {number} The current value.
    */
   get value() {
     return this._currentValue;
@@ -136,28 +137,46 @@ export class KnobSimple extends HTMLElement {
     const clampedValue = this._clamp(numericValue);
     if (this._currentValue !== clampedValue) {
       this._currentValue = clampedValue;
-      this.setAttribute('value', this._currentValue.toFixed(this._precision)); // Reflect value attribute
+      // Reflect value attribute
+      this.setAttribute('value', this._currentValue.toFixed(this._precision));
       this._updateValueDisplay();
       this._updateKnobVisuals();
       this._updateAriaAttributes(); // Update aria-valuenow
     } else {
-      // If the value didn't change after clamping (e.g., trying to set 110 when max is 100),
-      // still ensure the display shows the correctly clamped value.
+      // If the value didn't change after clamping (e.g., trying to set 110
+      // when max is 100), still ensure the display shows the correctly
+      // clamped value.
       this._updateValueDisplay();
     }
   }
 
-  get minValue() { return this._minValue; }
-  set minValue(val) { this.setAttribute('min-value', val); }
+  get minValue() {
+    return this._minValue;
+  }
+  set minValue(val) {
+    this.setAttribute('min-value', val);
+  }
 
-  get maxValue() { return this._maxValue; }
-  set maxValue(val) { this.setAttribute('max-value', val); }
+  get maxValue() {
+    return this._maxValue;
+  }
+  set maxValue(val) {
+    this.setAttribute('max-value', val);
+  }
 
-  get defaultValue() { return this._defaultValue; }
-  set defaultValue(val) { this.setAttribute('default-value', val); }
+  get defaultValue() {
+    return this._defaultValue;
+  }
+  set defaultValue(val) {
+    this.setAttribute('default-value', val);
+  }
 
-  get label() { return this._label; }
-  set label(val) { this.setAttribute('label', val); }
+  get label() {
+    return this._label;
+  }
+  set label(val) {
+    this.setAttribute('label', val);
+  }
 
   // --- Private Methods ---
 
@@ -166,17 +185,23 @@ export class KnobSimple extends HTMLElement {
    * @private
    */
   _setupInitialProperties() {
-    this._minValue = parseFloat(this.getAttribute('min-value') ?? this._minValue);
-    this._maxValue = parseFloat(this.getAttribute('max-value') ?? this._maxValue);
+    this._minValue =
+        parseFloat(this.getAttribute('min-value') ?? this._minValue);
+    this._maxValue =
+        parseFloat(this.getAttribute('max-value') ?? this._maxValue);
     // Default value must be clamped between min and max
-    this._defaultValue = this._clamp(parseFloat(this.getAttribute('default-value') ?? this._minValue));
+    this._defaultValue =
+        this._clamp(parseFloat(this.getAttribute('default-value') ??
+                    this._minValue));
     // Initial current value is the default value
     this._currentValue = this._defaultValue;
     this._label = this.getAttribute('label') ?? this._label;
 
     // Ensure max is greater than min
     if (this._maxValue <= this._minValue) {
-      console.warn('KnobSimple: max-value must be greater than min-value. Adjusting max-value.');
+      console.warn(
+          `KnobSimple: max-value must be greater than min-value. `+
+          `Adjusting max-value.`);
       this._maxValue = this._minValue + 1;
       this.setAttribute('max-value', this._maxValue);
     }
@@ -192,7 +217,7 @@ export class KnobSimple extends HTMLElement {
   /**
    * Clamps a value between the minimum and maximum allowed values.
    * @param {number} value - The value to clamp.
-   * @returns {number} The clamped value.
+   * @return {number} The clamped value.
    * @private
    */
   _clamp(value) {
@@ -202,7 +227,7 @@ export class KnobSimple extends HTMLElement {
   /**
    * Converts the current knob value to an angle for the tick mark.
    * Maps the value range [min, max] to an angle range [startAngle, endAngle].
-   * @returns {number} The angle in degrees.
+   * @return {number} The angle in degrees.
    * @private
    */
   _valueToAngle() {
@@ -228,8 +253,10 @@ export class KnobSimple extends HTMLElement {
     const tickLength = radius * 0.3; // Length of the tick mark from the edge
 
     // Calculate the start and end points for the tick line
-    const tickOuterY = center - radius; // Y-coordinate on the circle's edge
-    const tickInnerY = center - radius + tickLength; // Y-coordinate towards the center
+    // Y-coordinate on the circle's edge
+    const tickOuterY = center - radius;
+    // Y-coordinate towards the center
+    const tickInnerY = center - radius + tickLength;
 
     this.shadowRoot.innerHTML = `
     <style>
@@ -314,14 +341,16 @@ export class KnobSimple extends HTMLElement {
           aria-valuemin="${this._minValue}"
           aria-valuemax="${this._maxValue}"
           aria-valuenow="${this._currentValue}">
-        <circle class="knob-circle" cx="${center}" cy="${center}" r="${radius}" part="circle"/>
+        <circle class="knob-circle"
+            cx="${center}" cy="${center}" r="${radius}" part="circle"/>
         <line class="knob-tick"
             x1="${center}" y1="${tickOuterY}"
             x2="${center}" y2="${tickInnerY}"
             transform="rotate(0 ${center} ${center})" part="tick"/>
             </svg>
       </div>
-      <div class="knob-value" part="value" contenteditable="false" inputmode="decimal">
+      <div class="knob-value" part="value"
+          contenteditable="false" inputmode="decimal">
       ${this._currentValue.toFixed(this._precision)}
       </div>
     </div>
@@ -331,7 +360,7 @@ export class KnobSimple extends HTMLElement {
     this._svgElement = this.shadowRoot.querySelector('svg');
     this._tickElement = this.shadowRoot.querySelector('.knob-tick');
     this._valueElement = this.shadowRoot.querySelector('.knob-value');
-    this._labelElement = this.shadowRoot.querySelector('.knob-label'); // Added reference
+    this._labelElement = this.shadowRoot.querySelector('.knob-label');
 
     // Initial update
     this._updateKnobVisuals();
@@ -347,8 +376,8 @@ export class KnobSimple extends HTMLElement {
     // Use pointer events for unified mouse/touch
     const svgContainer = this.shadowRoot.querySelector('.knob-svg-container');
     svgContainer.addEventListener('pointerdown', this._handlePointerDown);
-    // *** UPDATED: Use the renamed reset handler ***
-    svgContainer.addEventListener('click', this._handleResetClick); // For Meta/Cmd+Click reset
+    // For Meta/Cmd+Click reset
+    svgContainer.addEventListener('click', this._handleResetClick);
     this._valueElement.addEventListener('click', this._handleValueClick);
     this._valueElement.addEventListener('keydown', this._handleValueKeyDown);
     this._valueElement.addEventListener('blur', this._handleValueBlur);
@@ -370,14 +399,15 @@ export class KnobSimple extends HTMLElement {
     }
     if (this._valueElement) {
       this._valueElement.removeEventListener('click', this._handleValueClick);
-      this._valueElement.removeEventListener('keydown', this._handleValueKeyDown);
+      this._valueElement.removeEventListener('keydown',
+          this._handleValueKeyDown);
       this._valueElement.removeEventListener('blur', this._handleValueBlur);
     }
 
     // Ensure window listeners are removed if component is removed mid-drag
     window.removeEventListener('pointermove', this._handlePointerMove);
     window.removeEventListener('pointerup', this._handlePointerUp);
-    window.removeEventListener('pointercancel', this._handlePointerUp); // Handle cancel same as up
+    window.removeEventListener('pointercancel', this._handlePointerUp);
   }
 
   /**
@@ -386,10 +416,11 @@ export class KnobSimple extends HTMLElement {
    * @private
    */
   _handlePointerDown(event) {
-    if (event.button !== 0) return; // Only react to main button (left-click/touch)
+    // Only react to main button (left-click/touch)
+    if (event.button !== 0) return;
 
-    // Prevent drag initiation if Meta/Cmd key is pressed (allow reset click through)
-    // *** ADDED: Check for metaKey ***
+    // Prevent drag initiation if Meta/Cmd key is pressed (allow reset click
+    // through). Check for metaKey
     if (event.metaKey) return;
 
     this._isDragging = true;
@@ -397,10 +428,11 @@ export class KnobSimple extends HTMLElement {
     this._initialPointerY = event.clientY;
     this._initialValueOnDrag = this._currentValue;
 
-    // Capture pointer events on the window to track movement outside the element
+    // Capture pointer events on the window to track movement outside
+    // the element
     window.addEventListener('pointermove', this._handlePointerMove);
     window.addEventListener('pointerup', this._handlePointerUp);
-    window.addEventListener('pointercancel', this._handlePointerUp); // Handle interruption
+    window.addEventListener('pointercancel', this._handlePointerUp);
 
     this.style.cursor = 'grabbing'; // Change cursor during drag
     event.preventDefault(); // Prevent default actions like text selection
@@ -417,23 +449,26 @@ export class KnobSimple extends HTMLElement {
     if (!this._isDragging) return;
 
     const currentY = event.clientY;
-    const deltaY = this._initialPointerY - currentY; // Positive deltaY for upward movement
+    // Positive deltaY for upward movement
+    const deltaY = this._initialPointerY - currentY;
 
     // --- Sensitivity Adjustment ---
-    // Determine how many pixels of vertical drag correspond to the full value range.
-    // A smaller number means higher sensitivity. Adjust as needed.
+    // Determine how many pixels of vertical drag correspond to the full
+    // value range. A smaller number means higher sensitivity. Adjust as needed.
     const pixelsPerFullRange = 200; // e.g., 200px drag covers min to max
     const valueRange = this._maxValue - this._minValue;
 
     // Calculate the change in value based on the drag distance
     // Avoid division by zero if range is 0
-    const valueChange = valueRange === 0 ? 0 : (deltaY / pixelsPerFullRange) * valueRange;
+    const valueChange =
+        valueRange === 0 ? 0 : (deltaY / pixelsPerFullRange) * valueRange;
 
     // Update the value based on the initial value + change
     this.value = this._initialValueOnDrag + valueChange;
 
     // Optional: Dispatch an 'input' event for real-time feedback during drag
-    this.dispatchEvent(new CustomEvent('input', { detail: { value: this._currentValue } }));
+    this.dispatchEvent(
+        new CustomEvent('input', {detail: {value: this._currentValue}}));
 
     event.preventDefault();
   }
@@ -458,9 +493,9 @@ export class KnobSimple extends HTMLElement {
 
     // Dispatch a 'change' event when dragging stops
     this.dispatchEvent(new CustomEvent('change', {
-      detail: { value: this._currentValue },
+      detail: {value: this._currentValue},
       bubbles: true, // Allow event to bubble up
-      composed: true // Allow event to cross shadow DOM boundary
+      composed: true, // Allow event to cross shadow DOM boundary
     }));
 
     event.preventDefault();
@@ -474,21 +509,24 @@ export class KnobSimple extends HTMLElement {
    */
   _handleResetClick(event) {
     // Don't reset if it was part of a drag sequence that just ended
-    // (A quick click might register before _isDragging is fully false sometimes)
+    // (A quick click might register before _isDragging is fully false
+    // sometimes)
     if (this._isDragging) return;
 
     // *** UPDATED: Check for metaKey instead of ctrlKey ***
     if (event.metaKey) {
-      event.preventDefault(); // Prevent default browser actions (like context menu on some OS)
-      event.stopPropagation(); // Prevent click from bubbling further
+      // Prevent default browser actions (like context menu on some OS)
+      event.preventDefault();
+      // Prevent click from bubbling further
+      event.stopPropagation();
       if (this.value !== this._defaultValue) {
-      this.value = this._defaultValue;
-      // Dispatch change event after reset
-      this.dispatchEvent(new CustomEvent('change', {
-        detail: { value: this._currentValue },
-        bubbles: true,
-        composed: true
-      }));
+        this.value = this._defaultValue;
+        // Dispatch change event after reset
+        this.dispatchEvent(new CustomEvent('change', {
+          detail: {value: this._currentValue},
+          bubbles: true,
+          composed: true,
+        }));
       }
     }
     // Regular click without Meta/Cmd doesn't do anything on the SVG itself
@@ -545,9 +583,9 @@ export class KnobSimple extends HTMLElement {
         this.value = newValue;
         // Dispatch change event after text input confirmation
         this.dispatchEvent(new CustomEvent('change', {
-          detail: { value: this._currentValue },
+          detail: {value: this._currentValue},
           bubbles: true,
-          composed: true
+          composed: true,
         }));
       } else {
         // If input is invalid, revert display to current value
@@ -567,12 +605,13 @@ export class KnobSimple extends HTMLElement {
    * @private
    */
   _updateKnobVisuals() {
-      if (!this._tickElement) return; // Not rendered yet
+    if (!this._tickElement) return; // Not rendered yet
 
-      const angle = this._valueToAngle();
-      const svgSize = 100; // Must match viewBox
-      const center = svgSize / 2;
-      this._tickElement.setAttribute('transform', `rotate(${angle} ${center} ${center})`);
+    const angle = this._valueToAngle();
+    const svgSize = 100; // Must match viewBox
+    const center = svgSize / 2;
+    this._tickElement.setAttribute(
+        'transform', `rotate(${angle} ${center} ${center})`);
   }
 
   /**
@@ -581,11 +620,13 @@ export class KnobSimple extends HTMLElement {
    * @private
    */
   _updateValueDisplay() {
-      if (!this._valueElement) return; // Not rendered yet
-      // Only update text if not currently being edited to avoid disrupting user input
-      if (this._valueElement.contentEditable !== 'true') {
-      this._valueElement.textContent = this._currentValue.toFixed(this._precision);
-      }
+    if (!this._valueElement) return; // Not rendered yet
+    // Only update text if not currently being edited to avoid disrupting
+    // user input
+    if (this._valueElement.contentEditable !== 'true') {
+      this._valueElement.textContent =
+          this._currentValue.toFixed(this._precision);
+    }
   }
 
   /**
@@ -596,10 +637,13 @@ export class KnobSimple extends HTMLElement {
     if (!this._svgElement) return; // Not rendered yet
     this._svgElement.setAttribute('aria-valuemin', this._minValue);
     this._svgElement.setAttribute('aria-valuemax', this._maxValue);
-    this._svgElement.setAttribute('aria-valuenow', this._currentValue.toFixed(this._precision));
-    // Update label if it changes dynamically (though less common for aria-label)
-    if (this._labelElement && this._svgElement.getAttribute('aria-label') !== this._label) {
-        this._svgElement.setAttribute('aria-label', this._label);
+    this._svgElement.setAttribute('aria-valuenow',
+        this._currentValue.toFixed(this._precision));
+    // Update label if it changes dynamically (though less common for
+    // aria-label)
+    if (this._labelElement &&
+        this._svgElement.getAttribute('aria-label') !== this._label) {
+      this._svgElement.setAttribute('aria-label', this._label);
     }
   }
 }

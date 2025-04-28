@@ -1,37 +1,19 @@
 /**
- * @class ToggleSimple
- * @classdesc A simple two-state toggle button Web Component using SVG.
- *
- * @attr {boolean} [initial-state=false] - The default state of the toggle (true=on, false=off).
- * @attr {string} [label='Toggle'] - The text label displayed next to the toggle.
- */
+  * @classdesc A simple two-state toggle button Web Component using SVG.
+  */
 export class ToggleSimple extends HTMLElement {
-  /**
-   * Internal state of the toggle.
-   * @private
-   * @type {boolean}
-   */
-  _state = false;
-
-  /**
-   * Reference to the SVG circle element for the LED.
-   * @private
-   * @type {SVGCircleElement|null}
-   */
-  _ledElement = null;
-
-  /**
-   * Reference to the span element for the label.
-   * @private
-   * @type {HTMLSpanElement|null}
-   */
-  _labelElement = null;
-
   constructor() {
     super(); // Always call super first in constructor
 
+    /** @private @type {boolean} */
+    this._state = false;
+    /** @private @type {SVGCircleElement|null} */
+    this._ledElement = null;
+    /** @private @type {HTMLSpanElement|null} */
+    this._labelElement = null;
+
     // Attach a shadow root to the element.
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({mode: 'open'});
 
     // Bind methods to ensure 'this' context is correct
     this._toggleState = this._toggleState.bind(this);
@@ -39,15 +21,15 @@ export class ToggleSimple extends HTMLElement {
 
   /**
    * Defines which attributes should be observed for changes.
-   * @returns {string[]} An array of attribute names.
+   * @return {string[]} An array of attribute names.
    */
   static get observedAttributes() {
     return ['initial-state', 'label'];
   }
 
   /**
-   * Called when the element is added to the document's DOM.
-   * Handles initial setup, reading attributes, and rendering.
+   * Called when the element is added to the document's DOM. Handles initial
+   * setup, reading attributes, and rendering.
    */
   connectedCallback() {
     // Read initial attributes
@@ -63,8 +45,8 @@ export class ToggleSimple extends HTMLElement {
   }
 
   /**
-   * Called when the element is removed from the document's DOM.
-   * Cleans up event listeners.
+   * Called when the element is removed from the document's DOM. Cleans up event
+   * listeners.
    */
   disconnectedCallback() {
     this.removeEventListener('click', this._toggleState);
@@ -83,11 +65,10 @@ export class ToggleSimple extends HTMLElement {
 
     switch (name) {
       case 'initial-state':
-        // Note: This primarily sets the *initial* state.
-        // If changed dynamically *after* initial render,
-        // we might want to update the internal state here too.
-        // For simplicity, we'll assume it's mainly for setup.
-        // If dynamic updates are needed, uncomment the next line:
+        // Note: This primarily sets the *initial* state. If changed dynamically
+        // *after* initial render, we might want to update the internal state
+        // here too. For simplicity, we'll assume it's mainly for setup. If
+        // dynamic updates are needed, uncomment the next line:
         // this.setState(newValue === 'true');
         break;
       case 'label':
@@ -104,7 +85,8 @@ export class ToggleSimple extends HTMLElement {
    * @private
    */
   _render(labelText) {
-    // Clear previous content if any (though usually called only once in connectedCallback)
+    // Clear previous content if any (though usually called only once in
+    // connectedCallback)
     this.shadowRoot.innerHTML = '';
 
     // Create style element
@@ -119,7 +101,8 @@ export class ToggleSimple extends HTMLElement {
         border-radius: 18px; /* Rounded corners */
         cursor: pointer; /* Indicate interactivity */
         user-select: none; /* Prevent text selection */
-        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Smooth transitions */
+        transition: background-color 0.2s ease-in-out,
+            border-color 0.2s ease-in-out;
         width: 120px; /* Fixed width container */
         box-sizing: border-box; /* Include padding and border in width */
         overflow: hidden; /* Prevent content overflow */
@@ -175,7 +158,8 @@ export class ToggleSimple extends HTMLElement {
     svg.setAttribute('class', 'led-svg');
     svg.setAttribute('viewBox', '0 0 16 16'); // ViewBox for scaling
 
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const circle =
+        document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('class', 'led-circle');
     this._ledElement = circle; // Store reference
     svg.appendChild(circle);
@@ -205,23 +189,24 @@ export class ToggleSimple extends HTMLElement {
 
     // Optional: Dispatch a custom event when state changes
     this.dispatchEvent(new CustomEvent('change', {
-      detail: { state: this._state },
+      detail: {state: this._state},
       bubbles: true, // Allow event to bubble up
-      composed: true // Allow event to cross shadow DOM boundary
+      composed: true, // Allow event to cross shadow DOM boundary
     }));
   }
 
   /**
-   * Updates the visual appearance based on the current state.
-   * Reflects state to a host attribute for easier CSS styling.
+   * Updates the visual appearance based on the current state. Reflects state to
+   * a host attribute for easier CSS styling.
    * @private
    */
   _updateVisuals() {
     if (this._state) {
-    this.setAttribute('data-state', 'true');
+      this.setAttribute('data-state', 'true');
     } else {
-    this.setAttribute('data-state', 'false');
-    // Or use: this.removeAttribute('data-state'); if false is the default absence
+      this.setAttribute('data-state', 'false');
+    // Or use: this.removeAttribute('data-state'); if false is the default
+    // absence
     }
     // The actual color change is handled by CSS using the [data-state] selector
   }
@@ -233,15 +218,16 @@ export class ToggleSimple extends HTMLElement {
   setState(newState) {
     const booleanState = Boolean(newState); // Ensure it's a boolean
     if (this._state !== booleanState) {
-    this._state = booleanState;
-    this._updateVisuals();
-    // Optionally dispatch change event here too if needed for programmatic changes
+      this._state = booleanState;
+      this._updateVisuals();
+    // Optionally dispatch change event here too if needed for programmatic
+    // changes
     }
   }
 
   /**
    * Public getter for the current state.
-   * @returns {boolean} The current state.
+   * @return {boolean} The current state.
    */
   get state() {
     return this._state;

@@ -4,8 +4,8 @@ const FILTER_MOD_OFFSET_CENTS = 7200;
 
 export class Note {
   constructor(noteData) {
-    const { context, periodicWaves, params, destination } = noteData;
-    
+    const {context, periodicWaves, params, destination} = noteData;
+
     this.context = context;
 
     const oscOptions1 = {type: 'custom', periodicWave: periodicWaves[0]};
@@ -16,9 +16,9 @@ export class Note {
     this.osc2Octave = new OscillatorNode(context, oscOptions2);
     this.panner1 = new PannerNode(context, {panningModel: 'equalpower'});
     this.panner2 = new PannerNode(context, {panningModel: 'equalpower'});
-    this.ampEnv = new GainNode(context, {gain:0.0});
-    this.biquad = new BiquadFilterNode(context, {type:'lowpass'});
-    this.volume = new GainNode(context, {gain:0.0});
+    this.ampEnv = new GainNode(context, {gain: 0.0});
+    this.biquad = new BiquadFilterNode(context, {type: 'lowpass'});
+    this.volume = new GainNode(context, {gain: 0.0});
 
     this.detune1 = 0.0;
     this.detune2 = 0.0;
@@ -113,4 +113,4 @@ export class Note {
       this.volume.disconnect();
     }, (decayEndTime + 1.0) * 1000);
   }
-};
+}
