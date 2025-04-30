@@ -16,7 +16,7 @@ body {
   padding: 20px;
 }
 
-.container {
+.synth-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
