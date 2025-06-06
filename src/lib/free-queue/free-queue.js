@@ -17,9 +17,6 @@
 // Byte per audio sample. (32 bit float)
 const BYTES_PER_SAMPLE = Float32Array.BYTES_PER_ELEMENT;
 
-// Basic byte unit of WASM heap. (16 bit = 2 bytes)
-const BYTES_PER_UNIT = Uint16Array.BYTES_PER_ELEMENT;
-
 // The max audio channel on Chrome is 32.
 const MAX_CHANNEL_COUNT = 32;
 
@@ -80,7 +77,7 @@ class FreeQueue {
     for (let i = 0; i < this._channelCount; ++i) {
       const startByteOffset = this._dataPtr + i * channelByteSize;
       const endByteOffset = startByteOffset + channelByteSize;
-      // Get the actual array index by dividing the byte offset by 2 bytes.
+      // Get the actual array index by dividing the byte offset by 4 , the size of a float. Right shift >> 2  === dividing by 4.
       this._channelData[i] =
           this._module.HEAPF32.subarray(
               startByteOffset >> BYTES_PER_UNIT,
