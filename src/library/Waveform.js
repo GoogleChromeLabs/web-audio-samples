@@ -59,63 +59,13 @@ class Waveform {
   }
 
   /**
-   * Draw the background grid pattern
+   * Draw the background
    * @private
    */
   drawBackground_() {
     // Fill with white background
     this.canvasContext_.fillStyle = 'white';
     this.canvasContext_.fillRect(0, 0, this.width_, this.height_);
-    
-    // Grid configuration
-    const gridSpacing = 20; // Space between grid lines
-    const majorGridSpacing = 100; // Space between major grid lines
-    
-    // Draw minor grid lines
-    this.canvasContext_.strokeStyle = '#f0f0f0';
-    this.canvasContext_.lineWidth = 0.5;
-    this.canvasContext_.beginPath();
-    
-    // Vertical minor grid lines
-    for (let x = gridSpacing; x < this.width_; x += gridSpacing) {
-      this.canvasContext_.moveTo(x, 0);
-      this.canvasContext_.lineTo(x, this.height_);
-    }
-    
-    // Horizontal minor grid lines
-    for (let y = gridSpacing; y < this.height_; y += gridSpacing) {
-      this.canvasContext_.moveTo(0, y);
-      this.canvasContext_.lineTo(this.width_, y);
-    }
-    
-    this.canvasContext_.stroke();
-    
-    // Draw major grid lines
-    this.canvasContext_.strokeStyle = '#e0e0e0';
-    this.canvasContext_.lineWidth = 1;
-    this.canvasContext_.beginPath();
-    
-    // Vertical major grid lines
-    for (let x = majorGridSpacing; x < this.width_; x += majorGridSpacing) {
-      this.canvasContext_.moveTo(x, 0);
-      this.canvasContext_.lineTo(x, this.height_);
-    }
-    
-    // Horizontal major grid lines
-    for (let y = majorGridSpacing; y < this.height_; y += majorGridSpacing) {
-      this.canvasContext_.moveTo(0, y);
-      this.canvasContext_.lineTo(this.width_, y);
-    }
-    
-    this.canvasContext_.stroke();
-    
-    // Draw center line (zero amplitude reference)
-    this.canvasContext_.strokeStyle = '#d0d0d0';
-    this.canvasContext_.lineWidth = 1.5;
-    this.canvasContext_.beginPath();
-    this.canvasContext_.moveTo(0, this.height_ / 2);
-    this.canvasContext_.lineTo(this.width_, this.height_ / 2);
-    this.canvasContext_.stroke();
   }
 
   /**
@@ -128,19 +78,29 @@ class Waveform {
     // Get the time domain data
     this.analyser_.getFloatTimeDomainData(this.dataArray_);
     
-    // Calculate the average amplitude
+    // Calculate the average amplitude with enhanced scaling for more dramatic Y-axis movement
     const average = this.dataArray_.reduce((a, b) => a + b) / this.dataArray_.length;
-    const currentY = (average + 1) * (this.height_ / 2);
+    
+    // Apply amplitude multiplier for more dramatic vertical movement
+    const amplitudeMultiplier = 5.0; // Increase this value for more dramatic height
+    const scaledAmplitude = average * amplitudeMultiplier;
+    
+    // Calculate Y position with enhanced vertical range
+    const centerY = this.height_ / 2;
+    const currentY = centerY + (scaledAmplitude * (this.height_ / 2));
+    
+    // Clamp to canvas bounds to prevent drawing outside
+    const clampedY = Math.max(0, Math.min(this.height_, currentY));
     
     // Draw the waveform line
     this.canvasContext_.beginPath();
     this.canvasContext_.moveTo(this.currentX_, this.previousY_);
-    this.canvasContext_.lineTo(this.currentX_ + 1, currentY);
+    this.canvasContext_.lineTo(this.currentX_ + 1, clampedY);
     this.canvasContext_.strokeStyle = '#2196F3'; // Material Design blue
     this.canvasContext_.lineWidth = 2;
     this.canvasContext_.stroke();
     
-    this.previousY_ = currentY;
+    this.previousY_ = clampedY;
     
     // Handle scrolling
     if (this.currentX_ >= this.width_) {
