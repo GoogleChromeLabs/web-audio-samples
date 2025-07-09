@@ -3,6 +3,7 @@
   "version": "3.2.1",
   "description": "A collection of projects, examples and resources for Web Audio API. Curated by the Chrome Web Audio team.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "clean": "rimraf _site",
     "build": "npm run clean && run-p build:*",
