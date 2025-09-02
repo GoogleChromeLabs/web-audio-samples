@@ -1,44 +1,48 @@
-@import "tailwindcss";
+@import 'tailwindcss' layer(utilities);
 
 /* @tailwind base; */
 
-h1 {
-  @apply text-5xl pb-6;
-}
+@import 'tailwindcss/utilities' layer(utilities);
 
-h2 {
-  @apply text-2xl pb-2;
-}
+@layer utilities {
+  h1 {
+    @apply text-5xl pb-6;
+  }
 
-a, a:active, a:visited {
-  @apply text-blue-600;
-}
+  h2 {
+    @apply text-2xl pb-2;
+  }
 
-a:hover {
-  @apply text-blue-400 underline;
-}
+  a,
+  a:active,
+  a:visited {
+    @apply text-blue-600;
+  }
 
-p {
-  @apply mb-3;
-}
+  a:hover {
+    @apply text-blue-400 underline;
+  }
 
-button {
-  @apply text-lg text-white bg-blue-600 rounded-md px-3 py-1;
-}
+  p {
+    @apply mb-3;
+  }
 
-button[disabled] {
-  @apply cursor-not-allowed opacity-50;
-}
+  button {
+    @apply text-lg text-white bg-blue-600 rounded-md px-3 py-1;
+  }
 
-.inactive {
-  @apply fill-blue-400;
-}
+  button[disabled] {
+    @apply cursor-not-allowed opacity-50;
+  }
 
-.active {
-  @apply fill-white;
-}
+  .inactive {
+    @apply fill-blue-400;
+  }
 
-@tailwind utilities;
+  .active {
+    @apply fill-white;
+  }
+}
 
 .footer {
   @apply text-sm;
