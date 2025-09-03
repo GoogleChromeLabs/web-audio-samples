@@ -2,12 +2,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-/* 
-@tailwind base;
-@tailwind components;
-@tailwind utilities; 
-*/
-
 @keyframes left-bounce-expand-in {
   0% {
     transform: translateX(-100%) scaleY(0.5);

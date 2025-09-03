@@ -7,8 +7,7 @@ const cssNanoProductionOptions = {
   
 module.exports = ({env}) => ({
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-    cssnano: env === 'production' ? cssNanoProductionOptions : false
+    "@tailwindcss/postcss": {},
+    // cssnano: env === 'production' ? cssNanoProductionOptions : false
   }
 });

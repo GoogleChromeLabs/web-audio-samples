@@ -1,9 +1,5 @@
 @import 'tailwindcss' layer(utilities);
 
-/* @tailwind base; */
-
-@import 'tailwindcss/utilities' layer(utilities);
-
 @layer utilities {
   h1 {
     @apply text-5xl pb-6;
