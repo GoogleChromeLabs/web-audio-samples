@@ -4,7 +4,7 @@
   "description": "A collection of projects, examples and resources for Web Audio API. Curated by the Chrome Web Audio team.",
   "main": "index.js",
   "scripts": {
-    "build": "run-s clean:dist build:css build:eleventy",
+    "build": "run-s clean build:css build:eleventy",
     "build:css": "npx @tailwindcss/cli -i ./src/styles/styles.css -o ./_site/styles.css --minify",
     "build:eleventy": "ELEVENTY_ENV=production eleventy",
     "clean": "rimraf _site",
