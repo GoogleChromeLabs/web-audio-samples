@@ -2,27 +2,21 @@ const yaml = require('js-yaml');
 const navigationPlugin = require('@11ty/eleventy-navigation');
 const path = require('path');
 
-// Generate the shortened commit hash and create (overwrite) `build_info.json`
-// file. This file will eventually be added to the footer of the page.
-const writeBuildInfoToFile = () => {
-  const version = require('./package.json').version;
-  const commitHash = require('child_process')
-      .execSync('git rev-parse --short HEAD').toString().trim();
-  const commitDate = require('child_process')
-      .execSync('git show -s --format=%cd --date=short').toString().trim();
-  const currentYear = (new Date()).getFullYear();
-  const jsonData = JSON.stringify({
-    version: version,
-    revision: commitHash,
-    lastUpdated: commitDate,
-    copyrightYear: currentYear
-  });
-  const fs = require('fs');
-  fs.writeFileSync('src/_data/build_info.json', jsonData);
-};
-
 module.exports = function(eleventyConfig) {
-  writeBuildInfoToFile();
+  eleventyConfig.addGlobalData('build_info', () => {
+    const version = require('./package.json').version;
+    const commitHash = require('child_process')
+        .execSync('git rev-parse --short HEAD').toString().trim();
+    const commitDate = require('child_process')
+        .execSync('git show -s --format=%cd --date=short').toString().trim();
+    const currentYear = (new Date()).getFullYear();
+    return {
+      version: version,
+      revision: commitHash,
+      lastUpdated: commitDate,
+      copyrightYear: currentYear
+    };
+  });
 
   // See .eleventyignore for files to ignore.
   eleventyConfig.setUseGitIgnore(false);
