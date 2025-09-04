@@ -2,19 +2,23 @@ const yaml = require('js-yaml');
 const navigationPlugin = require('@11ty/eleventy-navigation');
 const path = require('path');
 
-module.exports = function(eleventyConfig) {
+module.exports = function (eleventyConfig) {
   eleventyConfig.addGlobalData('build_info', () => {
     const version = require('./package.json').version;
     const commitHash = require('child_process')
-        .execSync('git rev-parse --short HEAD').toString().trim();
+      .execSync('git rev-parse --short HEAD')
+      .toString()
+      .trim();
     const commitDate = require('child_process')
-        .execSync('git show -s --format=%cd --date=short').toString().trim();
-    const currentYear = (new Date()).getFullYear();
+      .execSync('git show -s --format=%cd --date=short')
+      .toString()
+      .trim();
+    const currentYear = new Date().getFullYear();
     return {
       version: version,
       revision: commitHash,
       lastUpdated: commitDate,
-      copyrightYear: currentYear
+      copyrightYear: currentYear,
     };
   });
 
@@ -22,7 +26,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.setUseGitIgnore(false);
 
   // To enable YAML files in `_data`.
-  eleventyConfig.addDataExtension('yaml', contents => yaml.load(contents));
+  eleventyConfig.addDataExtension('yaml', (contents) => yaml.load(contents));
 
   // To handle relative paths and basic navigation via breadcrumbs.
   eleventyConfig.addPlugin(navigationPlugin);
@@ -76,11 +80,11 @@ module.exports = function(eleventyConfig) {
     'src/sitemap.xml',
     'src/lib/**/*.js',
     'src/lib/**/*.html',
-  ].map(path => eleventyConfig.addPassthroughCopy(path));
+  ].map((path) => eleventyConfig.addPassthroughCopy(path));
 
   // eleventyConfig.addPassthroughCopy('src/favicon');
 
   return {
-    dir: {input: 'src'}
+    dir: { input: 'src' },
   };
 };
