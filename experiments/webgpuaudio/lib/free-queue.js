@@ -119,18 +119,34 @@ class FreeQueue {
     }
     let nextWrite = currentWrite + blockLength;
     if (this.bufferLength < nextWrite) {
+      // Handle wrap-around: split data into two chunks
       nextWrite -= this.bufferLength;
+      const firstChunkLength = this.bufferLength - currentWrite;
+      const secondChunkLength = nextWrite;
+      
       for (let channel = 0; channel < this.channelCount; channel++) {
-        const blockA = this.channelData[channel].subarray(currentWrite);
-        const blockB = this.channelData[channel].subarray(0, nextWrite);
-        blockA.set(input[channel].subarray(0, blockA.length));
-        blockB.set(input[channel].subarray(blockA.length));
+        const channelData = this.channelData[channel];
+        const inputChannel = input[channel];
+        
+        // Copy first chunk (from currentWrite to end of buffer)
+        for (let i = 0; i < firstChunkLength; i++) {
+          channelData[currentWrite + i] = inputChannel[i];
+        }
+        
+        // Copy second chunk (from start of buffer to nextWrite)
+        for (let i = 0; i < secondChunkLength; i++) {
+          channelData[i] = inputChannel[firstChunkLength + i];
+        }
       }
     } else {
+      // No wrap-around: simple linear copy
       for (let channel = 0; channel < this.channelCount; channel++) {
-        this.channelData[channel]
-            .subarray(currentWrite, nextWrite)
-            .set(input[channel].subarray(0, blockLength));
+        const channelData = this.channelData[channel];
+        const inputChannel = input[channel];
+        
+        for (let i = 0; i < blockLength; i++) {
+          channelData[currentWrite + i] = inputChannel[i];
+        }
       }
       if (nextWrite === this.bufferLength) nextWrite = 0;
     }
@@ -156,18 +172,34 @@ class FreeQueue {
     }
     let nextRead = currentRead + blockLength;
     if (this.bufferLength < nextRead) {
+      // Handle wrap-around: split data into two chunks
       nextRead -= this.bufferLength;
+      const firstChunkLength = this.bufferLength - currentRead;
+      const secondChunkLength = nextRead;
+      
       for (let channel = 0; channel < this.channelCount; channel++) {
-        const blockA = this.channelData[channel].subarray(currentRead);
-        const blockB = this.channelData[channel].subarray(0, nextRead);
-        output[channel].set(blockA);
-        output[channel].set(blockB, blockA.length);
+        const channelData = this.channelData[channel];
+        const outputChannel = output[channel];
+        
+        // Copy first chunk (from currentRead to end of buffer)
+        for (let i = 0; i < firstChunkLength; i++) {
+          outputChannel[i] = channelData[currentRead + i];
+        }
+        
+        // Copy second chunk (from start of buffer to nextRead)
+        for (let i = 0; i < secondChunkLength; i++) {
+          outputChannel[firstChunkLength + i] = channelData[i];
+        }
       }
     } else {
+      // No wrap-around: simple linear copy
       for (let channel = 0; channel < this.channelCount; ++channel) {
-        output[channel].set(
-            this.channelData[channel].subarray(currentRead, nextRead)
-        );
+        const channelData = this.channelData[channel];
+        const outputChannel = output[channel];
+        
+        for (let i = 0; i < blockLength; i++) {
+          outputChannel[i] = channelData[currentRead + i];
+        }
       }
       if (nextRead === this.bufferLength) {
         nextRead = 0;
