@@ -14,7 +14,7 @@
     "format": "run-p format:eslint",
     "format:eslint": "npx eslint --fix _site/audio-worklet/**/*.js",
     "test": "npx playwright test",
-    "test:server": "npx http-server ./src/tests/playwright/pages/",
+    "test:server": "npx http-server .",
     "rainfly": "cd src/rainfly && npm run build"
   },
   "license": "MIT",
