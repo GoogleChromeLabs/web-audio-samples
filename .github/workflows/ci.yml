@@ -29,7 +29,6 @@ jobs:
           if [ -n "$FILES" ]; then
             echo "Linting changed files:"
             echo "$FILES"
-            echo "$FILES" | xargs npx prettier --check
             echo "$FILES" | grep -E '\.(js|jsx|ts|tsx)$' | xargs npx eslint || true
           else
             echo "No relevant files changed."

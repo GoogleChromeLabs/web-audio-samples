@@ -1,41 +1,37 @@
 {
   "name": "web-audio-samples",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "A collection of projects, examples and resources for Web Audio API. Curated by the Chrome Web Audio team.",
   "main": "index.js",
   "scripts": {
-    "clean": "rimraf _site",
-    "build": "npm run clean && run-p build:*",
+    "build": "run-s clean build:css build:eleventy",
+    "build:css": "npx @tailwindcss/cli -i ./src/styles/styles.css -o ./_site/styles.css --minify",
     "build:eleventy": "ELEVENTY_ENV=production eleventy",
-    "build:postcss": "ELEVENTY_ENV=production postcss src/styles/*.css --dir _site",
-    "build:rainfly": "cd src/rainfly && npm run build",
-    "start": "run-p start:*",
+    "clean": "rimraf _site",
+    "start": "run-p start:css start:eleventy",
+    "start:css": "npx @tailwindcss/cli -i ./src/styles/styles.css -o ./_site/styles.css --watch",
     "start:eleventy": "eleventy --serve",
-    "start:postcss": "postcss src/styles/*.css --dir _site --watch",
-    "format": "npx eslint --fix _site/audio-worklet/**/*.js && npx prettier --write --loglevel silent _site/audio-worklet/**/*.html",
+    "format": "run-p format:eslint",
+    "format:eslint": "npx eslint --fix _site/audio-worklet/**/*.js",
     "test": "npx playwright test",
-    "test-server": "npx http-server",
-    "test-live": "npx http-server ./src/tests/playwright/pages/"
+    "test:server": "npx http-server",
+    "test:live": "npx http-server ./src/tests/playwright/pages/",
+    "rainfly": "cd src/rainfly && npm run build"
   },
   "license": "MIT",
   "dependencies": {
-    "@11ty/eleventy": "^2.0.1",
-    "@11ty/eleventy-navigation": "^0.3.5",
-    "autoprefixer": "^10.4.21",
-    "cssnano": "^7.0.6",
-    "eslint": "9.23.0",
+    "@11ty/eleventy": "^3.1.2",
+    "@11ty/eleventy-navigation": "^1.0.4",
+    "@tailwindcss/cli": "^4.1.12",
+    "@playwright/test": "^1.55.0",
+    "eslint": "^9.34.0",
     "eslint-config-google": "^0.14.0",
-    "html-minifier": "^4.0.0",
     "js-yaml": "^4.1.0",
     "npm-run-all": "^4.1.5",
-    "postcss": "^8.5.3",
-    "postcss-cli": "^11.0.1",
-    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^4.1.12"
   },
-  "devDependencies": {
-    "@playwright/test": "latest",
-    "@types/node": "^20.12.13"
+  "devDependencies": {    
+    "@types/node": "^24.3.0"
   }
 }

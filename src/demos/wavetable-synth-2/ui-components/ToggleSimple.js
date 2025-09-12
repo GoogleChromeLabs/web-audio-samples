@@ -119,7 +119,7 @@ export class ToggleSimple extends HTMLElement {
         width: 16px; /* Fixed size for the SVG */
         height: 16px;
         margin-right: 8px; /* Space between LED and label */
-        flex-shrink: 0; /* Prevent SVG from shrinking */
+        shrink: 0; /* Prevent SVG from shrinking */
       }
 
       /* Style the LED circle */
@@ -149,7 +149,7 @@ export class ToggleSimple extends HTMLElement {
         white-space: nowrap; /* Prevent label wrapping */
         overflow: hidden; /* Hide overflow */
         text-overflow: ellipsis; /* Add ellipsis if text is too long */
-        flex-grow: 1; /* Allow label to take remaining space */
+        grow: 1; /* Allow label to take remaining space */
       }
     `;
 
