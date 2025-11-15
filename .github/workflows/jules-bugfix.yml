@@ -1,0 +1,26 @@
+name: Jules Bug Fixer
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  assign-to-jules:
+    if: github.event.label.name == 'jules-fix'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Jules CLI
+        run: npm install -g @google/jules
+
+      - name: Send Issue to Jules
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          jules remote new \
+            --repo ${{ github.repository }} \
+            --session "Fix the following bug reported in issue #${{ github.event.issue.number }}. \
+            Title: $ISSUE_TITLE \
+            Description: $ISSUE_BODY \
+            Please reproduce the issue with a test case if possible, fix it, and open a PR linked to the issue."
