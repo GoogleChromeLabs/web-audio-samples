@@ -9,7 +9,7 @@
  * @extends AudioWorkletProcessor
  */
 class BypassProcessor extends AudioWorkletProcessor {
-  // When constructor() undefined, the default constructor will be implicitly
+  // When constructor() is undefined, the default constructor will be implicitly
   // used.
 
   process(inputs, outputs) {
