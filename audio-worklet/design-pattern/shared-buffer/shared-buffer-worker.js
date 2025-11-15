@@ -19,10 +19,10 @@
 // associated AWP via SharedArrayBuffer (SAB).
 //
 // A pair of SABs is created by this Worker. The one is for the shared states
-// (Int32Array) of ring buffer between two objects and the other works like the
+// (Int32Array) of ring buffer between two obejcts and the other works like the
 // ring buffer for audio content (Float32Array).
 //
-// The synchronization mechanism between two objects is done by wake/wait
+// The synchronization mechanism between two object is done by wake/wait
 // function in Atomics API. When the ring buffer runs out of the data to
 // consume, the AWP will flip |REQUEST_RENDER| state to signal the worker. The
 // work wakes on the signal and renders the audio data requested.
@@ -65,7 +65,7 @@ const CONFIG = {
   ringBufferLength: 4096,
   kernelLength: 1024,
   channelCount: 1,
-  waitTimeout: 25000,
+  waitTimeOut: 25000,
 };
 
 // Shared states between this worker and AWP.
