@@ -21,7 +21,7 @@ self.onmessage = (msg) => {
       const didPull = inputQueue.pull([input], FRAME_SIZE);
       
       if (didPull) {
-        // If pulling data out was successfull, process it and push it to
+        // If pulling data out was successful, process it and push it to
         // outputQueue
         const output = input.map(sample => 0.1 * sample);
         outputQueue.push([output], FRAME_SIZE);
