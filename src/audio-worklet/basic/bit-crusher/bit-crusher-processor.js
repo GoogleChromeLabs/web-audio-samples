@@ -43,7 +43,7 @@ class BitCrusherProcessor extends AudioWorkletProcessor {
       const outputChannel = output[channel];
       let step = Math.pow(0.5, bitDepth[0]);
       for (let i = 0; i < inputChannel.length; ++i) {
-        // We only take care |bitDepth| because |frequencuReduction| will always
+        // We only take care |bitDepth| because |frequencyReduction| will always
         // have 128 values.
         if (!isBitDepthConstant) {
           step = Math.pow(0.5, bitDepth[i]);
