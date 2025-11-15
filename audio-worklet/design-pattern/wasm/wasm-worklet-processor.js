@@ -48,7 +48,7 @@ class WASMWorkletProcessor extends AudioWorkletProcessor {
       return true;
     }
 
-    // Use the 1st input and output only to make the example simple. |input|
+    // Use the 1st input and output only to make the example simpler. |input|
     // and |output| here have the similar structure with the AudioBuffer
     // interface. (i.e. An array of Float32Array)
     const input = inputs[0];

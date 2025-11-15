@@ -19,7 +19,7 @@ const startAudio = async (context) => {
   oscillator.start();
 };
 
-// A simple onLoad handler. It also handles user gesture to unlock the audio
+// A simplem onLoad handler. It also handles user gesture to unlock the audio
 // playback.
 window.addEventListener('load', async () => {
   const buttonEl = document.getElementById('button-start');
