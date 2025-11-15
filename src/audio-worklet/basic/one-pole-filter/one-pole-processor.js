@@ -42,7 +42,7 @@ class OnePoleProcessor extends AudioWorkletProcessor {
       const inputChannel = input[channel];
       const outputChannel = output[channel];
 
-      // If |frequency| parameter doesn't chnage in the current render quantum,
+      // If |frequency| parameter doesn't change in the current render quantum,
       // we don't need to update the filter coef either.
       if (isFrequencyConstant) {
         this.updateCoefficientsWithFrequency_(frequency[0]);
