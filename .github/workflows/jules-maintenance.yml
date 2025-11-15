@@ -21,6 +21,11 @@ jobs:
       - name: Install Jules CLI
         run: npm install -g @google/jules
 
+      - name: Authenticate Jules
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: jules login --token "$JULES_API_KEY"
+
       - name: Trigger Dependency Update
         env:
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
