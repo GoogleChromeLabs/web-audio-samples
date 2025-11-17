@@ -1,0 +1,67 @@
+
+> web-audio-samples@3.3.0 start
+> run-p start:css start:eleventy
+
+
+> web-audio-samples@3.3.0 start:eleventy
+> eleventy --serve
+
+
+> web-audio-samples@3.3.0 start:css
+> npx @tailwindcss/cli -i ./src/styles/styles.css -o ./_site/styles.css --watch
+
+[11ty] Writing ./_site/index.html from ./src/index.njk
+[11ty] Writing ./_site/audio-worklet/index.html from ./src/audio-worklet/index.njk
+[11ty] Writing ./_site/experiments/index.html from ./src/experiments/index.njk
+[11ty] Writing ./_site/tests/index.html from ./src/tests/index.njk
+[11ty] Writing ./_site/experiments/webgpuaudio/index.html from ./src/experiments/webgpuaudio/index.njk
+[11ty] Writing ./_site/demos/mld-drum-sampler/index.html from ./src/demos/mld-drum-sampler/index.njk
+[11ty] Writing ./_site/tests/pannernode/index.html from ./src/tests/pannernode/index.njk
+[11ty] Writing ./_site/tests/resampler/index.html from ./src/tests/resampler/index.njk
+[11ty] Writing ./_site/tests/resampler-smoke/index.html from ./src/tests/resampler-smoke/index.njk
+[11ty] Writing ./_site/tests/setsinkid/index.html from ./src/tests/setsinkid/index.njk
+[11ty] Writing ./_site/audio-worklet/design-pattern/shared-buffer/index.html from ./src/audio-worklet/design-pattern/shared-buffer/index.njk
+[11ty] Writing ./_site/audio-worklet/design-pattern/wasm/index.html from ./src/audio-worklet/design-pattern/wasm/index.njk
+[11ty] Writing ./_site/audio-worklet/design-pattern/wasm-ring-buffer/index.html from ./src/audio-worklet/design-pattern/wasm-ring-buffer/index.njk
+[11ty] Writing ./_site/audio-worklet/design-pattern/wasm-supersaw/index.html from ./src/audio-worklet/design-pattern/wasm-supersaw/index.njk
+[11ty] Writing ./_site/audio-worklet/migration/spn-recorder/index.html from ./src/audio-worklet/migration/spn-recorder/index.njk
+[11ty] Writing ./_site/audio-worklet/migration/worklet-recorder/index.html from ./src/audio-worklet/migration/worklet-recorder/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/audio-worklet-node-options/index.html from ./src/audio-worklet/basic/audio-worklet-node-options/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/bit-crusher/index.html from ./src/audio-worklet/basic/bit-crusher/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/handling-errors/index.html from ./src/audio-worklet/basic/handling-errors/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/hello-audio-worklet/index.html from ./src/audio-worklet/basic/hello-audio-worklet/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/message-port/index.html from ./src/audio-worklet/basic/message-port/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/noise-generator/index.html from ./src/audio-worklet/basic/noise-generator/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/one-pole-filter/index.html from ./src/audio-worklet/basic/one-pole-filter/index.njk
+[11ty] Writing ./_site/audio-worklet/basic/volume-meter/index.html from ./src/audio-worklet/basic/volume-meter/index.njk
+[11ty] Writing ./_site/audio-worklet/free-queue/examples/simple-passthrough/index.html from ./src/audio-worklet/free-queue/examples/simple-passthrough/index.njk
+[11ty] Writing ./_site/demos/dj/index.html from ./src/demos/dj/index.html (liquid)
+[11ty] Writing ./_site/demos/pool/index.html from ./src/demos/pool/index.html (liquid)
+[11ty] Writing ./_site/demos/panning-reverberation/index.html from ./src/demos/panning-reverberation/index.html (liquid)
+[11ty] Writing ./_site/demos/pwa-audio-recorder/index.html from ./src/demos/pwa-audio-recorder/index.html (liquid)
+[11ty] Writing ./_site/demos/shiny-drum-machine/index.html from ./src/demos/shiny-drum-machine/index.html (liquid)
+[11ty] Writing ./_site/demos/stress-box/index.html from ./src/demos/stress-box/index.html (liquid)
+[11ty] Writing ./_site/demos/visualizer/index.html from ./src/demos/visualizer/index.html (liquid)
+[11ty] Writing ./_site/demos/wavetable-synth/index.html from ./src/demos/wavetable-synth/index.html (liquid)
+[11ty] Writing ./_site/demos/wavetable-synth-2/index.html from ./src/demos/wavetable-synth-2/index.html (liquid)
+[11ty] Writing ./_site/demos/wavetable-synth-2/layout/index.html from ./src/demos/wavetable-synth-2/layout.html (liquid)
+[11ty] Writing ./_site/demos/wavetable-synth-2/prototype/index.html from ./src/demos/wavetable-synth-2/prototype.html (liquid)
+[11ty] Writing ./_site/rainfly/src/app/index.html from ./src/rainfly/src/app.html (liquid)
+[11ty] Writing ./_site/experiments/webgpuaudio/test/index.html from ./src/experiments/webgpuaudio/test/index.html (liquid)
+[11ty] Writing ./_site/lib/free-queue/benchmark/memory-allocation-demo/index.html from ./src/lib/free-queue/benchmark/memory-allocation-demo.html (liquid)
+[11ty] Writing ./_site/lib/free-queue/test/free-queue-sab.test/index.html from ./src/lib/free-queue/test/free-queue-sab.test.html (liquid)
+[11ty] Writing ./_site/lib/free-queue/test/free-queue.test/index.html from ./src/lib/free-queue/test/free-queue.test.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/chuck-realtime-sine/index.html from ./src/tests/playwright/pages/chuck-realtime-sine.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/index.html from ./src/tests/playwright/pages/index.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-audio-buffer-source-node/index.html from ./src/tests/playwright/pages/perf-audio-buffer-source-node.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-audio-worklet-node/index.html from ./src/tests/playwright/pages/perf-audio-worklet-node.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-biquad-filter-node/index.html from ./src/tests/playwright/pages/perf-biquad-filter-node.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-dynamics-compressor-node-knee/index.html from ./src/tests/playwright/pages/perf-dynamics-compressor-node-knee.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-dynamics-compressor-node-post-knee/index.html from ./src/tests/playwright/pages/perf-dynamics-compressor-node-post-knee.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-dynamics-compressor-node-pre-knee/index.html from ./src/tests/playwright/pages/perf-dynamics-compressor-node-pre-knee.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-gain-node/index.html from ./src/tests/playwright/pages/perf-gain-node.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-panner-node/index.html from ./src/tests/playwright/pages/perf-panner-node.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/perf-timeline-insert-event/index.html from ./src/tests/playwright/pages/perf-timeline-insert-event.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/realtime-sine/index.html from ./src/tests/playwright/pages/realtime-sine.html (liquid)
+[11ty] Writing ./_site/tests/playwright/pages/template/index.html from ./src/tests/playwright/pages/template.html (liquid)
+[11ty] Writing ./_site/CONTRIBUTING/index.html from ./src/CONTRIBUTING.md (liquid)
