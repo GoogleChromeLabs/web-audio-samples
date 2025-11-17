@@ -12,7 +12,7 @@ const ExpectedPrimingCount = FRAME_SIZE / RENDER_QUANTUM;
 class BasicProcessor extends AudioWorkletProcessor {
   /**
    * Constructor to initialize, input and output FreeQueue instances
-   * and atomicState to synchronise Worker with AudioWorklet
+   * and atomicState to synchronize Worker with AudioWorklet
    * @param {Object} options AudioWorkletProcessor options
    *    to initialize inputQueue, outputQueue and atomicState
    */
