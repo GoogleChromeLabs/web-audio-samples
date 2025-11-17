@@ -9,8 +9,8 @@ console.assert(navigator.gpu.requestAdapter);
  *
  * @class GPUProcessor
  * @property {Float32Array} irArray_ The impulse response array for convolution.
- * @property {GPUAdapter} adapter The GPU adapter.
- * @property {GPUDevice} device The GPU device.
+ * @property {GPUAdapter} adapter The size of the impulse response array.
+ * @property {GPUDevice} device The size of the impulse response array.
  * throughout channels.
  */
 class GPUProcessor {
