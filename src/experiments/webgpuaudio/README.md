@@ -33,7 +33,7 @@ pipeline by pushing input data and pulling output results via FIFO.
 - Go to the [live demo link](https://googlechromelabs.github.io/web-audio-samples/experiments/webgpuaudio/).
 - To start the experiment, click the "Start" button. If the button is disabled,
 it means that your browser does not meet the requirements for the experiment.
-Follow the instruction on the experiment page.
+Follow the instructions on the experiment page.
 
 ## Support
 
