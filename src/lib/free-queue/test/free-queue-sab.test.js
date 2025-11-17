@@ -23,7 +23,7 @@ describe('FreeQueueSAB', function () {
         });
     });
 
-    describe('Channel Adaption', () => {
+    describe('Channel Adaptation', () => {
         it('should initialize channel data correctly', function () {
             expect(queue.channelData).to.be.an('array');
             expect(queue.channelData.length).to.equal(channelCount);
