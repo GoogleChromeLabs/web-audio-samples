@@ -24,8 +24,8 @@ jobs:
       - name: Lint changed files
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin ${{ github.base_ref }}
-          FILES=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx|html|css)$' || true)
+          git fetch origin ${GITHUB_BASE_REF}
+          FILES=$(git diff --name-only origin/${GITHUB_BASE_REF} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx|html|css)$' || true)
           if [ -n "$FILES" ]; then
             echo "Linting changed files:"
             echo "$FILES"
