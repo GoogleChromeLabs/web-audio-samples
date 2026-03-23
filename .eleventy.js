@@ -35,7 +35,7 @@ module.exports = function (eleventyConfig) {
   });
 
   if (process.env.ELEVENTY_ENV !== 'production') {
-    eleventyConfig.setBrowserSyncConfig({});
+    eleventyConfig.setServerOptions({});
   }
 
   eleventyConfig.addWatchTarget('src/**/*.js');

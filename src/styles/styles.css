@@ -1,4 +1,5 @@
-@import 'tailwindcss' layer(utilities);
+@import "tailwindcss";
+@source "../**/*.{html,njk}";
 
 @layer utilities {
   h1 {
