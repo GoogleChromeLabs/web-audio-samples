@@ -6,26 +6,57 @@ import globals from "globals";
 export default [
   {
     ignores: [
-      "_site/**/*.wasm.js",
-      "_site/**/*.wasmmodule.js",
-      "_site/archive/",
-      "_site/**/build/*",
-      "_site/**/coi-serviceworker.js"
+      "**/node_modules/**",
+      "_site/**",
+      "dist/**",
+      "playwright-report/**",
+      "test-results/**",
+      "src/rainfly/**",
+      "src/archive/**",
+      "src/**/build/**",
+      "src/**/third-party/**",
+      "src/**/lib/**",
+      "src/**/*.wasm.js",
+      "src/**/*.wasmmodule.js",
+      "src/**/coi-serviceworker.js",
+      "src/demos/**",
+      "src/tests/**"
     ]
   },
   js.configs.recommended,
   {
+    linterOptions: {
+      reportUnusedDisableDirectives: "off"
+    },
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        ...globals.browser
+        ...globals.browser,
+        ...globals.node,
+        AudioWorkletGlobalScope: "readonly",
+        AudioWorkletProcessor: "readonly",
+        registerProcessor: "readonly",
+        currentFrame: "readonly",
+        currentTime: "readonly",
+        sampleRate: "readonly",
+        GPUBufferUsage: "readonly",
+        GPUMapMode: "readonly",
       }
     },
     rules: {
       "require-jsdoc": "off",
-      // Note: We dropped eslint-config-google because it is deprecated 
-      // and not directly compatible with ESLint flat config.
+      "no-redeclare": ["error", { "builtinGlobals": false }],
+      "no-unused-private-class-members": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          "args": "none",
+          "vars": "local",
+          "varsIgnorePattern": "^.*$",
+          "caughtErrors": "none"
+        }
+      ]
     }
   }
 ];
