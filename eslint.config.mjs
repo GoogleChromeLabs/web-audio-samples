@@ -46,6 +46,7 @@ export default [
     },
     rules: {
       "require-jsdoc": "off",
+      "no-useless-assignment": "off",
       "no-redeclare": ["error", { "builtinGlobals": false }],
       "no-unused-private-class-members": "off",
       "no-unused-vars": [
