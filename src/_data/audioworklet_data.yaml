@@ -1,75 +1,86 @@
 - title: Basic Demo
   entries:
     - title: Hello Audio Worklet!
-      description: Bypassing input to output
+      description: A minimal AudioWorklet example that passes the input to the
+        output.
       href: basic/hello-audio-worklet/
     - title: One Pole Filter
-      description: One-pole filter built with Audio Worklet
+      description: Implements a simple one-pole filter with AudioWorklet.
       href: basic/one-pole-filter/
     - title: Noise Generator with AudioParam
-      description: Noise generator with user-defined AudioParam
+      description: A noise generator with a user-defined AudioParam for
+        amplitude control.
       href: basic/noise-generator/
     - title: BitCrusher with AudioParam
-      description: Declative AudioParam configuration and its automation
+      description: A BitCrusher effect with declarative AudioParam configuration
+        and automation.
       href: basic/bit-crusher/
     - title: MessagePort
-      description: Messaging between an AudioWorkletNode and the associated
-        AudioWorkletProcessor
+      description: Demonstrates two-way messaging between an AudioWorkletNode
+        and its AudioWorkletProcessor.
       href: basic/message-port/
     - title: Volume Meter
-      description: Measures microphone volume with AudioWorkletProcessor
+      description: A volume meter that measures the volume of a microphone input
+        with AudioWorkletProcessor.
       href: basic/volume-meter/
     - title: AudioWorkletNode Options
-      description: Passing AudioWorkletNodeOptions from the node to the
-        associated AudioWorkletProcessor
+      description: Shows how to pass initial data to an AudioWorkletProcessor
+        with AudioWorkletNodeOptions.
       href: basic/audio-worklet-node-options/
     - title: Handling Errors
-      description: How to handle errors from AudioWorkletProcessor
+      description: Demonstrates how to handle exceptions and errors from an
+        AudioWorkletProcessor.
       href: basic/handling-errors/
 
 - title: Advanced Design Pattern
   entries:
     - title: Audio Worklet and WebAssembly
-      description: A basic set up for AudioWorklet and WebAssembly
+      description: A basic example of how to use WebAssembly in an
+        AudioWorkletProcessor. 
       href: design-pattern/wasm/
     - title: WebAssembly Supersaw
-      description: C++ Supersaw synth to WebAssembly (Google I/O 2019, Audio 
-        Developer Conference 2021)
+      description: A supersaw synthesizer built with C++ and WebAssembly,
+        running in an AudioWorklet. (Google I/O 2019, Audio Developer Conference
+        2021)
       href: design-pattern/wasm-supersaw/
     - title: Ring Buffer in AudioWorkletProcessor
-      description: Using Ring Buffer to work around buffer size mismatch
+      description: Using a WebAssembly-powered ring buffer to solve the buffer
+        size mismatch problem.
       href: design-pattern/wasm-ring-buffer/
     - title: Audio Worklet, SharedArrayBuffer, and Worker
-      description: For high performance large-scale audio applications
+      description: A design pattern for large-scale audio applications that
+        combines AudioWorklet, SharedArrayBuffer, and a Worker.
       href: design-pattern/shared-buffer/
 
 - title: FreeQueue
   entries:
     - title: Simple Passthrough
-      description: Basic example of FreeQueue and a worker thread.
-        FreeQueue is a lock-free ring buffer library for high-performance 
-        audio processing designed to be used on top of the Web Audio API.
-        This example demonstrates how this library can be used as a channel
-        between a worker thread and AudioWorklet to send audio data.
+      description: A basic example of using FreeQueue for thread-safe
+        communication between a worker and an AudioWorkletProcessor.
       href: free-queue/examples/simple-passthrough/
 
 - title: Migration from ScriptProcessorNode
   entries: 
     - title: ScriptProcessorNode Recorder
-      description: A simple audio recording app using ScriptProcessorNode 
+      description: A simple audio recording app built with the legacy
+        ScriptProcessorNode.
       href: migration/spn-recorder/
     - title: AudioWorklet Recorder
-      description: A simple audio recording app using AudioWorklet
+      description: A simple audio recording app built with AudioWorklet,
+        demonstrating the modern approach to audio processing.
       href: migration/worklet-recorder/
 
 - title: Resources
   entries:
     - title: Enter AudioWorklet
-      description: An introductory article on Audio Worklet
+      description: An introductory article on Audio Worklet by Google Chrome
+        developers.
       href: https://developer.chrome.com/blog/audio-worklet/
     - title: AudioWorklet Design Pattern
-      description: Design with WebAssembly SharedArrayBuffer and more
+      description: A blog post on advanced design patterns with AudioWorklet,
+        WebAssembly, and SharedArrayBuffer.
       href: https://developer.chrome.com/blog/audio-worklet-design-pattern/
     - title: AudioWorklet - The future of web audio
-      description: The first conference paper about AudioWorklet (ICMC 2018)
+      description: The first conference paper on AudioWorklet, presented at ICMC
+        2018 by Hongchan Choi.
       href: https://hoch.io/assets/publications/icmc-2018-choi-audioworklet.pdf

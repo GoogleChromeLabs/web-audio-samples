@@ -43,7 +43,7 @@ const _writeInt32ToArray = (aNumber, targetArray, offset) => {
 };
 
 // Return the bits of the float as a 32-bit integer value.  This
-// produces the raw bits; no intepretation of the value is done.
+// produces the raw bits; no interpretation of the value is done.
 const _floatBits = (f) => {
   const buf = new ArrayBuffer(4);
   (new Float32Array(buf))[0] = f;
@@ -85,7 +85,7 @@ const _writeAudioBufferToArray =
           _writeInt16ToArray(sample, targetArray, offset);
           offset += 2;
         } else if (bitDepth === 32) {
-        // This assumes we're going to out 32-float, not 32-bit linear.
+        // This assumes we're going to output 32-bit float, not 32-bit linear.
           sample = _floatBits(channelData[index]);
           _writeInt32ToArray(sample, targetArray, offset);
           offset += 4;
@@ -101,7 +101,7 @@ const _writeAudioBufferToArray =
  * Converts an AudioBuffer object into a WAV file in the form of a binary blob.
  * The resulting WAV file can be used for audio playback or further processing.
  * The function takes two parameters: audioBuffer which represents the audio
- * data, and as 32BitFloat which indicates whether the WAV file should be
+ * data, and as32BitFloat which indicates whether the WAV file should be
  * encoded as 32-bit float or 16-bit integer PCM. The function performs various
  * calculations and writes the necessary headers and data to create the WAV
  * file. Finally, it returns the WAV file as a Blob object with the MIME type

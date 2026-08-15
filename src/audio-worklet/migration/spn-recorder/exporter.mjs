@@ -25,7 +25,7 @@ function _writeInt32ToArray(aNumber, targetArray, offset) {
 }
 
 // Return the bits of the float as a 32-bit integer value.  This
-// produces the raw bits; no intepretation of the value is done.
+// produces the raw bits; no interpretation of the value is done.
 function _floatBits(f) {
   const buf = new ArrayBuffer(4);
   (new Float32Array(buf))[0] = f;

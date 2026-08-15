@@ -3,7 +3,7 @@ links:
     href: https://googlechromelabs.github.io/web-audio-samples/
   - title: Sources
     href: https://github.com/GoogleChromeLabs/web-audio-samples/
-  - title: Report issues
+  - title: Report an issue
     href: https://github.com/GoogleChromeLabs/web-audio-samples/issues/new
-  - title: Report Chrome issues
+  - title: Report a Chrome issue
     href: https://bugs.chromium.org/p/chromium/issues/entry?components=Blink%3EWebAudio

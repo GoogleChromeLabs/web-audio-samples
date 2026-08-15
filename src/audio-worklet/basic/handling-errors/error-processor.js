@@ -33,7 +33,7 @@ class ProcessErrorProcessor extends AudioWorkletProcessor {
 
   process() {
     throw new Error(
-        'ProcessErrorProcessor: an error throw from process method.');
+        'ProcessErrorProcessor: an error thrown from process method.');
   }
 }
 

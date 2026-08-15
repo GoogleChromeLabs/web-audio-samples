@@ -1,80 +1,89 @@
 - title: Resources
   entries:
     - title: Audio Worklet
-      description: Audio Worklet examples and resources
+      description: A collection of examples and resources for AudioWorklet.
       href: audio-worklet/
     - title: Web Audio DevTools Extension
-      description: Graph visualizer and inspector in Chrome DevTools
+      description: An extension for Chrome DevTools that helps you visualize the
+        graph and inspect the status of the Web Audio objects.
       href: https://chrome.google.com/webstore/detail/audion/cmhomipkklckpomafalojobppmmidlgl
     - title: Web Audio API Specification
-      description: W3C Recommendation
+      description: The official W3C Recommendation of the Web Audio API.
       href: https://www.w3.org/TR/webaudio/
     - title: Web Audio API Specification (Editor's Draft)
-      description: Latest editor's draft
+      description: The latest editor's draft of the Web Audio API specification.
       href: https://webaudio.github.io/web-audio-api/
     - title: Web Audio API on MDN
-      description: Documentations and examples on MDN
+      description: Documentation and examples on the Mozilla Developer Network.
       href: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
     - title: Canopy
-      description: Web Audio code editor and visual debugger
+      description: A live-coding environment and a visual debugger for the Web
+        Audio API.
       href: https://hoch.github.io/canopy/
-    - title: Rainfly
-      description: AudioWorklet DSP Playground and Visualizer
-      href: rainfly/
+    # - title: Rainfly
+    #   description: AudioWorklet DSP Playground and Visualizer
+    #   href: rainfly/
 
 - title: Demos
   entries:
     - title: Web Audio Demos
-      description: A demo collection by Chris Wilson
+      description: A collection of Web Audio demos by Chris Wilson, a former
+        co-chair of the W3C Audio Working Group.
       href: https://webaudiodemos.appspot.com/
     - title: Shiny Drum Machine
-      description: Drum sequencer with a variety of drum kits and effects
+      description: A drum sequencer with a variety of drum kits and effects.
       href: demos/shiny-drum-machine/
     - title: Web Audio DJ
-      description: Dual deck DJ app playing beatsynced loops
+      description: A dual-deck DJ app that plays beat-synced loops.
       href: demos/dj/
     - title: Audio Recorder
-      description: A simple PWA that records audio clips
+      description: A simple Progressive Web App that records and saves audio clips.
       href: demos/pwa-audio-recorder/
     - title: Web Audio API Drum Sampler (Korean)
-      description: A special tutorial for Mother Language Day
+      description: A special tutorial for Mother Language Day, featuring a drum
+        sampler with Korean drum samples.
       href: demos/mld-drum-sampler/
     - title: Box2D Stress Test
-      description: For smoke testing
+      description: A stress test for the Web Audio API, featuring a large number
+        of bouncing balls.
       href: demos/stress-box/
     - title: Wavetable Synthesizer
-      description: Wavetable synthesis and sequencer
+      description: A wavetable synthesizer with a step sequencer.
       href: demos/wavetable-synth/
     - title: AnalyserNode with visualization
-      description: Spectrum and waveform visualization with the Canvas API
+      description: Demonstrates how to visualize spectrum and waveform data from
+        an AnalyserNode with the Canvas API.
       href: demos/visualizer/
     - title: Panning and Reverberation
-      description: Spatial and binaural acoustic simulation
+      description: A demo of spatial and binaural acoustic simulation with
+        PannerNode and ConvolverNode.
       href: demos/panning-reverberation/
     - title: WebGL Pool with 3D audio
-      description: Play pool in your browser
+      description: A 3D pool game with spatial audio, built with WebGL and the
+        Web Audio API.
       href: demos/pool/
-    - title: Web Audio Test Suite
-      description: Various Web Audio tests
-      href: tests/
+    # - title: Web Audio Test Suite
+    #   description: Various Web Audio tests
+    #   href: tests/
 
-- title: Selected Projects
+- title: Google Projects
   entries:
     - title: Omnitone
-      description: 360° audio renderer for AR/VR web apps
+      description: A 360° audio renderer for AR/VR web applications, developed
+        by Google.
       href: https://googlechrome.github.io/omnitone/
     - title: Resonance Audio for Web
-      description: 3D Audio SDK powered by Omnitone
+      description: A 3D audio SDK for the web, powered by Omnitone.
       href: https://developers.google.com/resonance-audio/develop/web/getting-started
     - title: Chrome Music Lab
-      description: Learning music through web technology
+      description: A collection of experiments that let you learn about music
+        and sound with web technology.
       href: https://musiclab.chromeexperiments.com/
-    - title: "Google Doodle: Hiphop"
-      description: 44th Anniversary of the Birth of Hip Hop
-      href: https://www.google.com/doodles/44th-anniversary-of-the-birth-of-hip-hop
     - title: "Google Doodle: Clara Rockmore"
-      description: "Clara Rockmore's 105th Birthday"
+      description: A Google Doodle celebrating the 105th birthday of Clara
+        Rockmore, a virtuoso of the theremin.
       href: https://www.google.com/doodles/clara-rockmores-105th-birthday
     - title: "Google Doodle: Robert Moog's 78th Birthday"
-      description: "Robert Moog's 78th Birthday"
+      description: A Google Doodle celebrating the 78th birthday of Robert Moog,
+        the inventor of the Moog synthesizer.
       href: https://www.google.com/doodles/robert-moogs-78th-birthday

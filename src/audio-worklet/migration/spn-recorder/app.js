@@ -125,10 +125,10 @@ function setupScriptProcessor(recordingProperties, passSampleToVisualizers) {
       // While recording, feed data to recording buffer at the proper
       // time.
       if (recordingState === RecorderStates.RECORDING) {
-        // FrameNumber has to be an INTEGER for using as an index in
-        // 2D array.  Since JS don't have INTEGER type, We use
+        // FrameNumber has to be an integer for using as an index in
+        // 2D array.  Since JS doesn't have integer type, We use
         // Math.floor to ensure the recordingLength/BUFFER_SIZE is
-        // INTEGER.
+        // integer.
         let frameNumber = Math.floor(recordingLength / BUFFER_SIZE);
         recordBuffer[channel][frameNumber] = 
             new Float32Array(currentSamples[channel]);
