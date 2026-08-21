@@ -57,10 +57,21 @@ class FIFO {
 
   /**
    * Find and return the minimum element in the FIFO.
+   * Uses a direct loop over active elements to avoid on-the-fly heap
+   * allocations (e.g. subarray/spread) and ignore unfilled zero slots.
    * @returns {Number}
    */
   getMinValue() {
-    return Math.min(...this.data_);
+    if (this.count_ === 0) {
+      return 0;
+    }
+    let min = this.data_[0];
+    for (let i = 1; i < this.count_; i++) {
+      if (this.data_[i] < min) {
+        min = this.data_[i];
+      }
+    }
+    return min;
   }
 }
 
