@@ -1,0 +1,54 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides.map((guide) => ({
+    params: {
+      category: guide.data.category,
+      slug: guide.id,
+    },
+    props: { guide },
+  }));
+}
+
+const { guide } = Astro.props;
+const { Content } = await render(guide);
+---
+
+<Layout
+  title={`${guide.data.title} - Web Audio Samples`}
+  description={guide.data.description}
+  currentPath={`/audio-worklet/${guide.data.category}/${guide.id}/`}
+>
+  <article class="max-w-4xl space-y-8">
+    <!-- Guide Header -->
+    <header class="border-b border-slate-200 pb-6 space-y-2">
+      <div class="flex items-center gap-2">
+        <span
+          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider"
+        >
+          {guide.data.category}
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        {guide.data.title}
+      </h1>
+      {
+        guide.data.description && (
+          <p class="text-slate-600 text-base leading-relaxed">
+            {guide.data.description}
+          </p>
+        )
+      }
+    </header>
+
+    <!-- Guide Content -->
+    <div
+      class="prose prose-slate max-w-none space-y-6 text-slate-700 leading-relaxed"
+    >
+      <Content />
+    </div>
+  </article>
+</Layout>

@@ -1,0 +1,129 @@
+---
+---
+
+<div
+  class="rounded-lg border border-slate-200 bg-slate-50/70 p-6 shadow-sm space-y-5"
+>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h3 class="text-base font-semibold text-slate-900">
+        Interactive Audio Output Check
+      </h3>
+      <p class="text-xs text-slate-600 mt-0.5">
+        Generate test tone to verify browser AudioContext and speaker output.
+      </p>
+    </div>
+    <span
+      id="status-badge"
+      class="text-xs px-2.5 py-1 rounded-full bg-white text-slate-600 font-mono border border-slate-200"
+    >
+      AudioContext: Suspended
+    </span>
+  </div>
+
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200"
+  >
+    <div class="space-y-1.5">
+      <div class="flex justify-between text-xs text-slate-600 font-medium">
+        <span>Frequency</span>
+        <span id="freq-display" class="font-mono text-slate-900">440 Hz</span>
+      </div>
+      <input
+        type="range"
+        id="freq-slider"
+        min="110"
+        max="880"
+        value="440"
+        step="1"
+        class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+      />
+    </div>
+
+    <div class="space-y-1.5">
+      <label
+        for="wave-select"
+        class="text-xs font-medium text-slate-600 block"
+      >
+        Waveform
+      </label>
+      <select
+        id="wave-select"
+        class="w-full bg-white text-slate-800 border border-slate-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+      >
+        <option value="sine">Sine Wave</option>
+        <option value="triangle">Triangle Wave</option>
+        <option value="sawtooth">Sawtooth Wave</option>
+        <option value="square">Square Wave</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 pt-1">
+    <button
+      id="play-btn"
+      class="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+    >
+      <span>▶ Play 1s Tone</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  let audioCtx: AudioContext | null = null;
+
+  const playBtn = document.getElementById('play-btn');
+  const freqSlider =
+    document.getElementById('freq-slider') as HTMLInputElement;
+  const freqDisplay = document.getElementById('freq-display');
+  const waveSelect =
+    document.getElementById('wave-select') as HTMLSelectElement;
+  const statusBadge = document.getElementById('status-badge');
+
+  freqSlider?.addEventListener('input', () => {
+    if (freqDisplay) {
+      freqDisplay.textContent = `${freqSlider.value} Hz`;
+    }
+  });
+
+  function getAudioContext(): AudioContext {
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+    }
+    return audioCtx;
+  }
+
+  playBtn?.addEventListener('click', async () => {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    if (statusBadge) {
+      statusBadge.textContent = `AudioContext: ${ctx.state}`;
+      statusBadge.className =
+        'text-xs px-2.5 py-1 rounded-full bg-emerald-50 ' +
+        'text-emerald-700 font-mono border border-emerald-200';
+    }
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    const freq = parseFloat(freqSlider.value || '440');
+    const waveType = (waveSelect.value || 'sine') as OscillatorType;
+
+    osc.type = waveType;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 1.0);
+  });
+</script>
