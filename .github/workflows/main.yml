@@ -23,6 +23,7 @@ jobs:
     - name: npm install and build
       run: |
         npm install
+        npm --prefix v4-prototype install
         npm run build
     - name: deploy _site to gh-pages
       uses: s0/git-publish-subdir-action@develop

@@ -2,8 +2,300 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen antialiased;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    @apply bg-white text-slate-900 min-h-screen antialiased;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+      'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
+}
+
+/* Inline code formatting for technical terms & JS identifiers */
+:not(pre) > code {
+  font-family: var(
+    --font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace
+  );
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #1d4ed8; /* Distinct blue for JavaScript identifiers & code */
+}
+
+/* Markdown typography enhancements for guide pages */
+.guide-content h2,
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.guide-content h3,
+.prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.guide-content p,
+.prose p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.55;
+}
+
+.guide-content ul,
+.prose ul {
+  list-style-type: disc;
+  margin-top: 0.875rem;
+  margin-bottom: 0.875rem;
+  padding-left: 2rem;
+  margin-left: 0.5rem;
+}
+
+.guide-content ol,
+.prose ol {
+  list-style-type: decimal;
+  margin-top: 0.875rem;
+  margin-bottom: 0.875rem;
+  padding-left: 2rem;
+  margin-left: 0.5rem;
+}
+
+.guide-content li,
+.prose li {
+  line-height: 1.35;
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+  padding-left: 0.375rem;
+}
+
+.guide-content ol > li::marker,
+.prose ol > li::marker {
+  font-weight: 600;
+  color: #475569;
+}
+
+.guide-content ul > li::marker,
+.prose ul > li::marker {
+  color: #64748b;
+}
+
+.guide-content a,
+.prose a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.guide-content a:hover,
+.prose a:hover {
+  color: #1d4ed8;
+}
+
+.guide-content pre,
+.prose pre {
+  font-family: var(
+    --font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace
+  );
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.code-block-wrapper {
+  position: relative;
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.code-block-wrapper pre {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.guide-content pre code,
+.prose pre code {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background-color: transparent;
+  padding: 0;
+  border: none;
+}
+
+/* Collapsible technical details */
+.guide-content details {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.guide-content details[open] {
+  padding-bottom: 1.5rem;
+}
+
+.guide-content details > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.875rem 1.25rem;
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.15s ease;
+}
+
+.guide-content details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-content details > summary:hover {
+  background-color: #f1f5f9;
+}
+
+.guide-content details[open] > summary {
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.75rem;
+}
+
+.guide-content details > :not(summary) {
+  margin-left: 1.25rem;
+  margin-right: 1.25rem;
+}
+
+.guide-content details summary .chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.guide-content details[open] summary .chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* "See more..." progressive disclosure */
+.guide-content details.see-more-details {
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.guide-content details.see-more-details[open] {
+  padding-bottom: 0;
+}
+
+/* Newspaper Style Overview Teaser */
+.overview-teaser-wrapper {
+  position: relative;
+}
+
+.overview-teaser-content {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overview-teaser-content.is-collapsed {
+  max-height: 250px;
+}
+
+.overview-teaser-content.is-expanded {
+  max-height: 3500px;
+}
+
+/* Gradient fade to white at bottom when collapsed */
+.overview-teaser-content.is-collapsed + .overview-fade-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.7) 45%,
+    rgba(255, 255, 255, 1) 92%
+  );
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.5rem;
+  pointer-events: none;
+}
+
+.overview-teaser-content.is-expanded + .overview-fade-overlay {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: 1.5rem;
+  background: transparent;
+}
+
+/* Chip Style Button */
+.overview-chip-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px -1px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.overview-chip-btn:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.overview-chip-btn:active {
+  transform: translateY(0);
+}
+
+.overview-chip-btn .btn-icon {
+  transition: transform 0.25s ease;
+}
+
+.overview-chip-btn.is-expanded .btn-icon {
+  transform: rotate(180deg);
 }
