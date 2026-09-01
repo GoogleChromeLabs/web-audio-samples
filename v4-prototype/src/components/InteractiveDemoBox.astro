@@ -1,0 +1,47 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import AudioControlPanel from './AudioControlPanel.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  scriptSrc?: string;
+}
+
+const {
+  title = 'Audio Playback Check',
+  description = 'Click START to run this audio sample.',
+  scriptSrc,
+} = Astro.props;
+---
+
+<div
+  id="demo-box"
+  data-script-src={scriptSrc}
+  class="my-6 rounded-xl border border-blue-400/60 bg-blue-50/20 shadow-sm
+    overflow-hidden transition-all duration-200"
+>
+  <div class="p-5 flex flex-col justify-between gap-6 min-h-[110px]">
+    <div class="space-y-1">
+      <h3 class="text-sm font-semibold text-slate-900">
+        {title}
+      </h3>
+      {
+        description && (
+          <p class="text-xs text-slate-500">
+            {description}
+          </p>
+        )
+      }
+    </div>
+
+    <!-- Optional custom demo controls slot -->
+    <slot />
+
+    <!-- Audio transport & diagnostics panel -->
+    <AudioControlPanel scriptSrc={scriptSrc} />
+  </div>
+</div>

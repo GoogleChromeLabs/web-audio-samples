@@ -1,0 +1,276 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+interface Props {
+  scriptSrc?: string;
+}
+
+const { scriptSrc } = Astro.props;
+---
+
+<div class="w-full" data-control-panel data-script-src={scriptSrc}>
+  <!-- Pill Transport Controls -->
+  <div class="flex justify-end items-center">
+    <div
+      id="demo-pill-group"
+      class="inline-flex items-stretch rounded-full bg-blue-600 shadow-sm
+        text-white transition-colors duration-150 overflow-hidden"
+    >
+      <button
+        id="button-start"
+        type="button"
+        class="w-20 py-1.5 text-center text-xs font-semibold tracking-wide
+          transition hover:bg-black/10 cursor-pointer disabled:opacity-50"
+      >
+        START
+      </button>
+      <div class="w-px bg-white/30 my-1"></div>
+      <button
+        id="button-toggle-telemetry"
+        type="button"
+        class="px-2.5 py-1.5 flex items-center justify-center transition
+          hover:bg-black/10 cursor-pointer text-xs"
+        aria-label="Toggle Audio Diagnostics"
+        title="Toggle Audio Diagnostics"
+      >
+        <svg
+          class="w-3.5 h-3.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Telemetry Diagnostics Panel -->
+  <div
+    id="telemetry-panel"
+    class="hidden mt-4 -mx-5 -mb-5 border-t border-blue-200/60 bg-white/60
+      px-5 py-3 text-xs text-slate-600"
+  >
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div>
+        <span
+          class="block text-[10px] uppercase font-semibold text-slate-400"
+        >
+          Context State
+        </span>
+        <span
+          id="telemetry-context-state"
+          class="font-mono font-semibold text-slate-500"
+        >
+          uninitialized
+        </span>
+      </div>
+      <div>
+        <span
+          class="block text-[10px] uppercase font-semibold text-slate-400"
+        >
+          Sample Rate
+        </span>
+        <span id="telemetry-sample-rate" class="font-mono text-slate-800">
+          --
+        </span>
+      </div>
+      <div>
+        <span
+          class="block text-[10px] uppercase font-semibold text-slate-400"
+        >
+          Base Latency
+        </span>
+        <span id="telemetry-base-latency" class="font-mono text-slate-800">
+          --
+        </span>
+      </div>
+      <div>
+        <span
+          class="block text-[10px] uppercase font-semibold text-slate-400"
+        >
+          Output Latency
+        </span>
+        <span id="telemetry-output-latency" class="font-mono text-slate-800">
+          --
+        </span>
+      </div>
+      <div>
+        <span
+          class="block text-[10px] uppercase font-semibold text-slate-400"
+        >
+          Glitch Status
+        </span>
+        <span
+          id="telemetry-glitch-status"
+          class="font-mono text-emerald-600"
+        >
+          0 detected
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const panelEl = document.querySelector('[data-control-panel]');
+  const pillGroup = document.getElementById('demo-pill-group');
+  const button = document.getElementById('button-start');
+  const telemetryBtn = document.getElementById('button-toggle-telemetry');
+  const telemetryPanel = document.getElementById('telemetry-panel');
+  const sampleRateEl = document.getElementById('telemetry-sample-rate');
+  const baseLatencyEl = document.getElementById('telemetry-base-latency');
+  const outputLatencyEl = document.getElementById('telemetry-output-latency');
+  const glitchEl = document.getElementById('telemetry-glitch-status');
+  const contextStateEl = document.getElementById('telemetry-context-state');
+
+  if (telemetryBtn && telemetryPanel && !telemetryBtn.dataset.toggleBound) {
+    telemetryBtn.dataset.toggleBound = 'true';
+    telemetryBtn.addEventListener('click', () => {
+      telemetryPanel.classList.toggle('hidden');
+      telemetryBtn.classList.toggle('bg-black/20');
+    });
+  }
+
+  const scriptSrc =
+    panelEl?.getAttribute('data-script-src') ||
+    document.getElementById('demo-box')?.getAttribute('data-script-src');
+
+  if (scriptSrc && button && pillGroup) {
+    let audioContext = null;
+    let isStarted = false;
+    let isCapacityActive = false;
+    let sampleModule = null;
+
+    const updateTelemetry = (context) => {
+      if (!context) return;
+
+      if (sampleRateEl) {
+        sampleRateEl.textContent =
+          `${context.sampleRate.toLocaleString()} Hz`;
+      }
+      if (baseLatencyEl) {
+        baseLatencyEl.textContent =
+          typeof context.baseLatency === 'number'
+            ? `${(context.baseLatency * 1000).toFixed(2)} ms`
+            : 'N/A';
+      }
+      if (outputLatencyEl) {
+        outputLatencyEl.textContent =
+          typeof context.outputLatency === 'number'
+            ? `${(context.outputLatency * 1000).toFixed(2)} ms`
+            : 'N/A';
+      }
+      if (contextStateEl) {
+        contextStateEl.textContent = context.state;
+        if (context.state === 'running') {
+          contextStateEl.className =
+            'font-semibold text-emerald-700 font-mono';
+        } else if (context.state === 'suspended') {
+          contextStateEl.className =
+            'font-semibold text-amber-700 font-mono';
+        } else {
+          contextStateEl.className =
+            'font-semibold text-slate-700 font-mono';
+        }
+      }
+
+      if (glitchEl && !isCapacityActive && 'renderCapacity' in context) {
+        isCapacityActive = true;
+        const ctxAny = context;
+        ctxAny.renderCapacity.start({ updateInterval: 0.5 });
+        ctxAny.renderCapacity.onupdate = (event) => {
+          const load = Math.round(event.averageLoad * 100);
+          if (event.underrunRatio > 0) {
+            glitchEl.textContent = `Glitch (${load}% load)`;
+            glitchEl.className = 'font-mono text-red-600 font-semibold';
+          } else {
+            glitchEl.textContent = `0 detected (${load}% load)`;
+            glitchEl.className = 'font-mono text-emerald-600';
+          }
+        };
+      }
+    };
+
+    const updateButtonUI = (state) => {
+      if (!isStarted) {
+        button.textContent = 'START';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-blue-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      } else if (state === 'running') {
+        button.textContent = 'PAUSE';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-amber-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      } else {
+        button.textContent = 'RESUME';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-emerald-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      }
+    };
+
+    const nativeImport = (url) =>
+      new Function('specifier', 'return import(specifier)')(url);
+
+    const init = async () => {
+      try {
+        sampleModule = await nativeImport(scriptSrc);
+        if (sampleModule && typeof sampleModule.setup === 'function') {
+          audioContext = await sampleModule.setup();
+          if (audioContext) {
+            audioContext.onstatechange = () => {
+              if (audioContext) {
+                updateButtonUI(audioContext.state);
+                updateTelemetry(audioContext);
+              }
+            };
+            updateTelemetry(audioContext);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize audio sample:', error);
+      }
+    };
+
+    button.addEventListener('click', async () => {
+      if (!audioContext && sampleModule?.setup) {
+        audioContext = await sampleModule.setup();
+        if (audioContext) {
+          audioContext.onstatechange = () => {
+            if (audioContext) {
+              updateButtonUI(audioContext.state);
+              updateTelemetry(audioContext);
+            }
+          };
+        }
+      }
+      if (!audioContext) return;
+
+      if (!isStarted) {
+        if (typeof sampleModule?.start === 'function') {
+          await sampleModule.start(audioContext);
+        }
+        await audioContext.resume();
+        isStarted = true;
+      } else if (audioContext.state === 'running') {
+        await audioContext.suspend();
+      } else if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      updateButtonUI(audioContext.state);
+      updateTelemetry(audioContext);
+    });
+
+    init();
+  }
+</script>

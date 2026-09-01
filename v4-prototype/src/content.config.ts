@@ -16,6 +16,10 @@ const guides = defineCollection({
     ]),
     order: z.number().default(0),
     tags: z.array(z.string()).optional(),
+    demoTitle: z.string().optional(),
+    demoDescription: z.string().optional(),
+    demoScript: z.string().optional(),
+    hasDemo: z.boolean().default(true),
   }),
 });
 
