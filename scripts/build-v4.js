@@ -2,10 +2,11 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const v4Dir = path.join(__dirname, '../v4-prototype');
 console.log('Building v4-prototype with Astro...');
-execSync('npm --prefix v4-prototype run build', { stdio: 'inherit' });
+execSync('npm run build', { cwd: v4Dir, stdio: 'inherit' });
 
-const src = path.join(__dirname, '../v4-prototype/dist');
+const src = path.join(v4Dir, 'dist');
 const dest = path.join(__dirname, '../_site/v4-prototype');
 
 console.log(`Copying ${src} to ${dest}...`);
