@@ -41,10 +41,11 @@ jobs:
           rm -rf gh-pages-branch/v4-prototype
           mkdir -p gh-pages-branch/v4-prototype
           cp -r v4-prototype/dist/* gh-pages-branch/v4-prototype/
+          touch gh-pages-branch/.nojekyll
           cd gh-pages-branch
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add v4-prototype
+          git add .nojekyll v4-prototype
           if git diff --staged --quiet; then
             echo "No changes to deploy."
           else

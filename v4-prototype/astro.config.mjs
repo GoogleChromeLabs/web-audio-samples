@@ -140,6 +140,9 @@ function guideAssetsIntegration() {
 export default defineConfig({
   site: 'https://googlechromelabs.github.io',
   base,
+  build: {
+    assets: 'assets',
+  },
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
