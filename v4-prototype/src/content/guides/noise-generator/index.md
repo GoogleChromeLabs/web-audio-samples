@@ -15,105 +15,62 @@ demoTitle: Noise Generator with Modulation
 demoDescription: Click START to run the noise generator demo.
 ---
 
-A simple noise generator with a user-defined `AudioParam` modulated by an
-`OscillatorNode`. The modulation on a gain parameter creates a tremolo effect.
+## Overview
 
-This simple Web Audio graph connects three core components:
-1. **`OscillatorNode`**: A 0.5 Hz low-frequency oscillator (LFO) acting as a
-   modulator.
-2. **`GainNode`**: Scales the modulator depth (gain of 0.75) before connecting
-   to the worklet's `amplitude` parameter.
-3. **`AudioWorkletNode`** and **`AudioWorkletProcessor`**: Generates white noise
-   using `NoiseGenerator` (in `noise-generator.js`), scaling sample values by
-   its `amplitude` `AudioParam`.
-4. **`AudioDestinationNode`**: Browser audio output (speakers / headphones).
+Demonstrates defining a custom `AudioParam` within an `AudioWorkletProcessor`
+and modulating its value with native Web Audio API nodes.
 
-### Main Thread Setup
+The audio graph sets up an `OscillatorNode` running at 0.5 Hz that routes
+through a `GainNode` to modulate the `amplitude` AudioParam of the
+`AudioWorkletNode` (`noise-generator`). The noise generator produces white
+noise multiplied by the dynamic amplitude value and connects directly to
+`AudioContext.destination`.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`, and then
-connected into the Web Audio graph:
+This pattern demonstrates how custom worklet parameters seamlessly integrate
+into the Web Audio graph, allowing sample-accurate automation without manual
+thread synchronization.
 
-```javascript
-// main.js
-let audioContext = null;
-let modulatorNode = null;
-let modGainNode = null;
-let noiseGeneratorNode = null;
+## Technical Details
 
-// 1. Setup audio graph and return AudioContext to runner
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
+### Architecture & Implementation
 
-  const processorUrl =
-    new URL('noise-generator.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
+1. **Parameter Registration**: The processor registers custom parameters via
+   the static `parameterDescriptors` getter:
+   ```javascript
+   static get parameterDescriptors() {
+     return [
+       { name: 'amplitude', defaultValue: 0.25, minValue: 0, maxValue: 1 },
+     ];
+   }
+   ```
+2. **Audio-Rate Modulation**: An `OscillatorNode` connects directly to the
+   worklet's `amplitude` parameter through a `GainNode`:
+   ```javascript
+   const paramAmp = noiseGeneratorNode.parameters.get('amplitude');
+   modulatorNode.connect(modGainNode).connect(paramAmp);
+   ```
+3. **Dynamic Evaluation**: Inside `process()`, check whether `amplitude` is
+   constant (`length === 1`, k-rate) or automated (`length === 128`, a-rate):
+   ```javascript
+   const amplitude = parameters.amplitude;
+   const isConstant = amplitude.length === 1;
+   for (let i = 0; i < outputChannel.length; ++i) {
+     const amp = isConstant ? amplitude[0] : amplitude[i];
+     outputChannel[i] = (Math.random() * 2 - 1) * amp;
+   }
+   ```
 
-  modulatorNode = new OscillatorNode(audioContext, {
-    frequency: 0.5,
-  });
-  modGainNode = new GainNode(audioContext, {
-    gain: 0.75,
-  });
-  noiseGeneratorNode =
-    new AudioWorkletNode(audioContext, 'noise-generator');
+### Parameter Specifications
 
-  noiseGeneratorNode.connect(audioContext.destination);
+| Parameter | Type | Default | Range | Automation Rate |
+| :--- | :--- | :--- | :--- | :--- |
+| `amplitude` | Float32 | 0.25 | [0, 1] | a-rate (128 frames) / k-rate |
 
-  // Connect the oscillator to 'amplitude' AudioParam.
-  const paramAmp = noiseGeneratorNode.parameters.get('amplitude');
-  modulatorNode.connect(modGainNode).connect(paramAmp);
+### Additional Notes
 
-  return audioContext;
-};
+- **Direct Modulation**: Connecting an audio node to an `AudioParam` performs
+  sample-accurate summing on the audio rendering thread at full sample rate.
+- **Specification Reference**:
+  [W3C Web Audio API: AudioParam][spec-link].
 
-// 2. Start rendering upon user gesture
-export const start = async (context) => {
-  if (modulatorNode) {
-    try {
-      modulatorNode.start();
-    } catch {
-      // Node was already started.
-    }
-  }
-};
-```
-
-### Audio Thread Setup
-
-This `AudioWorkletProcessor` script runs on the audio rendering thread.
-
-```javascript
-// noise-generator.js
-class NoiseGenerator extends AudioWorkletProcessor {
-  static get parameterDescriptors() {
-    return [
-      { name: 'amplitude', defaultValue: 0.25, minValue: 0, maxValue: 1 },
-    ];
-  }
-
-  process(inputs, outputs, parameters) {
-    const output = outputs[0];
-    const amplitude = parameters.amplitude;
-    const isAmplitudeConstant = amplitude.length === 1;
-
-    for (let channel = 0; channel < output.length; ++channel) {
-      const outputChannel = output[channel];
-      for (let i = 0; i < outputChannel.length; ++i) {
-        outputChannel[i] = 2 * (Math.random() - 0.5) *
-            (isAmplitudeConstant ? amplitude[0] : amplitude[i]);
-      }
-    }
-
-    return true;
-  }
-}
-
-registerProcessor('noise-generator', NoiseGenerator);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#AudioParam

@@ -15,129 +15,64 @@ demoDescription: >
   Click START to initiate bi-directional MessagePort IPC communication.
 ---
 
-This example demonstrates bi-directional communication between the main thread
-(`AudioWorkletNode`) and the audio rendering thread (`AudioWorkletProcessor`)
-using the HTML5 `MessagePort` interface.
+## Overview
 
-The communication flow operates as follows:
-1. Every second, the `MessengerProcessor` on the audio thread sends a
-   timestamped notification message to the main thread via
-   `this.port.postMessage()`.
-2. The `MessengerWorkletNode` receives the message in its `port.onmessage`
-   handler and logs it to the console.
-3. Every 10 received messages, the node posts a reply back to the processor
-   via `this.port.postMessage()`, closing the loop.
+Demonstrates asynchronous bi-directional communication between the main
+thread (`AudioWorkletNode.port`) and the audio rendering thread
+(`AudioWorkletProcessor.port`) using the HTML5 `MessagePort` interface.
 
-This Web Audio setup connects two core components:
-1. **`AudioWorkletNode`** and **`AudioWorkletProcessor`**: Exchanges structured
-   messages asynchronously between threads without blocking audio rendering.
-2. **`AudioDestinationNode`**: Kept connected to pull audio rendering ticks
-   steadily through the worklet.
+The audio graph connects the `AudioWorkletNode` (`messenger-processor`)
+directly to `AudioContext.destination` to maintain continuous render cycles
+while passing messages across thread boundaries.
 
-### Main Thread Setup
+Because AudioWorklet runs on a real-time thread where blocking locks or
+synchronous RPCs are prohibited, `MessagePort` provides a thread-safe,
+non-blocking IPC mechanism for telemetry, parameter changes, and state events.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`. A custom
-subclass of `AudioWorkletNode` encapsulates message dispatching:
+## Technical Details
 
-```javascript
-// main.js
-import ConsoleLogger from './ConsoleLogger.js';
+### Architecture & Implementation
 
-let audioContext = null;
-let messengerNode = null;
-let logger = null;
+1. **Audio Thread Transmission**: The processor posts timestamped messages
+   via `this.port.postMessage()`:
+   ```javascript
+   if (currentTime - this._lastUpdate > 1.0) {
+     this.port.postMessage({
+       message: '1 second passed.',
+       contextTimestamp: currentTime,
+     });
+     this._lastUpdate = currentTime;
+   }
+   ```
+2. **Main Thread Reception & Response**: The node listens to `port.onmessage`
+   and dispatches replies back through the port:
+   ```javascript
+   this.port.onmessage = (event) => {
+     console.log('Received from processor:', event.data);
+     if (++this.counter === 10) {
+       this.port.postMessage({
+         message: '10 messages received!',
+         contextTimestamp: this.context.currentTime,
+       });
+       this.counter = 0;
+     }
+   };
+   ```
 
-class MessengerWorkletNode extends AudioWorkletNode {
-  constructor(context) {
-    super(context, 'messenger-processor');
-    this.counter_ = 0;
-    this.port.onmessage = this.handleMessage_.bind(this);
-    logger.log('[Node:constructor] created.');
-  }
+### Messaging Protocol
 
-  handleMessage_(event) {
-    logger.log(
-      `[Node:Received] ${event.data.message} ` +
-      `(${event.data.contextTimestamp})`
-    );
+| Channel | Trigger | Payload |
+| :--- | :--- | :--- |
+| Processor → Node | Every 1.0s in `process()` | `{ message, timestamp }` |
+| Node → Processor | Every 10 messages | `{ message, timestamp }` |
 
-    // Send a reply every 10 messages:
-    if (++this.counter_ === 10) {
-      logger.warn('[Node:postMessage] 10 messages received! Replying.');
-      this.port.postMessage({
-        message: '10 messages received!',
-        contextTimestamp: this.context.currentTime,
-      });
-      this.counter_ = 0;
-    }
-  }
-}
+### Additional Notes
 
-// 1. Setup AudioContext and register processor module
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
+- **Non-Blocking IPC**: `postMessage` delivers structured clones without
+  blocking the high-priority audio rendering thread.
+- **Transferable Objects**: For large typed arrays, pass transferables
+  `[buffer]` to transfer memory ownership with zero copy overhead.
+- **Specification Reference**:
+  [W3C Web Audio API: MessagePort][spec-link].
 
-  logger = new ConsoleLogger('#console-logger', {
-    title: 'MessagePort IPC - Live Log',
-  });
-
-  const processorUrl =
-    new URL('messenger-processor.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
-
-  return audioContext;
-};
-
-// 2. Instantiate node and connect on user gesture
-export const start = async (context) => {
-  if (!messengerNode) {
-    messengerNode = new MessengerWorkletNode(context);
-    messengerNode.connect(context.destination);
-  }
-};
-```
-
-### Audio Thread Setup
-
-This `AudioWorkletProcessor` script runs on the audio rendering thread,
-posting periodic messages to the node and logging replies from the main thread:
-
-```javascript
-// messenger-processor.js
-class MessengerProcessor extends AudioWorkletProcessor {
-  constructor() {
-    super();
-    this._lastUpdate = currentTime;
-    this.port.onmessage = this.handleMessage_.bind(this);
-  }
-
-  handleMessage_(event) {
-    console.log(
-      `[Processor:Received] ${event.data.message} ` +
-      `(${event.data.contextTimestamp})`
-    );
-  }
-
-  process() {
-    // Post a message to the node every 1 second:
-    if (currentTime - this._lastUpdate > 1.0) {
-      this.port.postMessage({
-        message: '1 second passed.',
-        contextTimestamp: currentTime,
-      });
-      this._lastUpdate = currentTime;
-    }
-
-    return true;
-  }
-}
-
-registerProcessor('messenger-processor', MessengerProcessor);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#dom-audioworkletnode-port

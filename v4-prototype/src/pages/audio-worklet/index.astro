@@ -15,12 +15,15 @@ const patternGuides = allGuides
 const migrationGuides = allGuides
   .filter((g) => g.data.category === 'migration')
   .sort((a, b) => a.data.order - b.data.order);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = base ? `${base}/audio-worklet/` : '/audio-worklet/';
 ---
 
 <Layout
   title="AudioWorklet Guides & Design Patterns - Web Audio Samples"
   description="Comprehensive AudioWorklet design patterns and migration guides."
-  currentPath="/audio-worklet/"
+  currentPath={currentPath}
 >
   <article class="max-w-4xl space-y-12">
     <header class="space-y-3 border-b border-slate-200 pb-6">
@@ -42,8 +45,10 @@ const migrationGuides = allGuides
         {
           basicGuides.map((guide) => (
             <a
-              href={`/audio-worklet/basic/${guide.id}/`}
-              class="p-5 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all block space-y-2"
+              href={`${base}/audio-worklet/basic/${guide.id}/`}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2"
             >
               <h3 class="font-semibold text-slate-900 text-base">
                 {guide.data.title}
@@ -68,8 +73,10 @@ const migrationGuides = allGuides
         {
           patternGuides.map((guide) => (
             <a
-              href={`/audio-worklet/design-pattern/${guide.id}/`}
-              class="p-5 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all block space-y-2"
+              href={`${base}/audio-worklet/design-pattern/${guide.id}/`}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2"
             >
               <h3 class="font-semibold text-slate-900 text-base">
                 {guide.data.title}
@@ -94,8 +101,10 @@ const migrationGuides = allGuides
         {
           migrationGuides.map((guide) => (
             <a
-              href={`/audio-worklet/migration/${guide.id}/`}
-              class="p-5 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all block space-y-2"
+              href={`${base}/audio-worklet/migration/${guide.id}/`}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2"
             >
               <h3 class="font-semibold text-slate-900 text-base">
                 {guide.data.title}

@@ -15,131 +15,128 @@ demoTitle: One Pole Filter
 demoDescription: Click START to run the one-pole filter frequency sweep.
 ---
 
-A one-pole IIR lowpass filter implementation using `AudioWorkletNode`. An audio
-source connects to the one-pole filter, and an `AudioParam` automation ramps the
-cutoff frequency across the audio spectrum.
+## Overview
 
-This Web Audio graph connects three core components:
-1. **`OscillatorNode`**: A sawtooth wave oscillator rich in harmonics to
-   demonstrate the filter sweep effect.
-2. **`AudioWorkletNode`** and **`AudioWorkletProcessor`**: Implements the
-   one-pole IIR filter algorithm in `OnePoleProcessor` (in
-   `one-pole-processor.js`), accepting a dynamic `frequency` `AudioParam`.
-3. **`AudioDestinationNode`**: Browser audio output (speakers / headphones).
+Implements a one-pole Infinite Impulse Response (IIR) lowpass filter with a
+dynamic, audio-rate cutoff frequency `AudioParam`.
 
-### Main Thread Setup
+The audio graph connects a sawtooth `OscillatorNode` into the `AudioWorkletNode`
+(`one-pole-processor`), which connects directly to `AudioContext.destination`.
+The rich harmonic content of the sawtooth wave makes the cutoff filter sweeps
+prominently audible.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`. When playback
-starts, the cutoff frequency is automated with exponential ramps:
+During playback, the main thread schedules continuous exponential sweeps of the
+cutoff frequency across the spectrum, recalculating filter coefficients per
+sample frame directly on the audio thread.
 
-```javascript
-// main.js
-let audioContext = null;
-let oscillatorNode = null;
-let filterNode = null;
+## Technical Details
 
-// 1. Setup audio graph and register processor
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
+### Architecture & Implementation
 
-  const processorUrl =
-    new URL('one-pole-processor.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
+1. **Automation Ramp**: The main thread schedules exponential sweeps across
+   the spectrum:
+   ```javascript
+   const freq = filterNode.parameters.get('frequency');
+   freq.setValueAtTime(200, now)
+     .exponentialRampToValueAtTime(context.sampleRate * 0.5, now + 4.0)
+     .exponentialRampToValueAtTime(200, now + 8.0);
+   ```
+2. **Audio Thread Processing**: When automated, coefficients recalculate per
+   sample frame, updating the recursive delay state
+   <math><msub><mi>z</mi><mn>1</mn></msub></math>:
+   ```javascript
+   for (let i = 0; i < outputChannel.length; ++i) {
+     if (!isFrequencyConstant) {
+       this.updateCoefficientsWithFrequency_(frequency[i]);
+     }
+     this.z1_ = inputChannel[i] * this.a0_ + this.z1_ * this.b1_;
+     outputChannel[i] = this.z1_;
+   }
+   ```
 
-  oscillatorNode = new OscillatorNode(audioContext, {type: 'sawtooth'});
-  filterNode = new AudioWorkletNode(audioContext, 'one-pole-processor');
+### Filter Difference Equation
 
-  oscillatorNode.connect(filterNode).connect(audioContext.destination);
-  return audioContext;
-};
+The discrete-time one-pole lowpass filter difference equation is:
 
-// 2. Start rendering and trigger frequency automation on user gesture
-export const start = async (context) => {
-  if (oscillatorNode && filterNode) {
-    const frequencyParam = filterNode.parameters.get('frequency');
-    const now = context.currentTime;
+<div class="math-block">
+  <math display="block">
+    <mrow>
+      <mi>y</mi>
+      <mo stretchy="false">[</mo>
+      <mi>n</mi>
+      <mo stretchy="false">]</mo>
+      <mo>=</mo>
+      <mi>x</mi>
+      <mo stretchy="false">[</mo>
+      <mi>n</mi>
+      <mo stretchy="false">]</mo>
+      <mo>&sdot;</mo>
+      <msub><mi>a</mi><mn>0</mn></msub>
+      <mo>+</mo>
+      <mi>y</mi>
+      <mo stretchy="false">[</mo>
+      <mi>n</mi>
+      <mo>&minus;</mo>
+      <mn>1</mn>
+      <mo stretchy="false">]</mo>
+      <mo>&sdot;</mo>
+      <msub><mi>b</mi><mn>1</mn></msub>
+    </mrow>
+  </math>
+</div>
 
-    frequencyParam.cancelScheduledValues(now);
-    frequencyParam
-      .setValueAtTime(200, now)
-      .exponentialRampToValueAtTime(context.sampleRate * 0.5, now + 4.0)
-      .exponentialRampToValueAtTime(200, now + 8.0);
+Where filter coefficients are derived per cutoff frequency
+<math><msub><mi>f</mi><mi>c</mi></msub></math> and sample rate
+<math><msub><mi>f</mi><mi>s</mi></msub></math>:
 
-    try {
-      oscillatorNode.start();
-    } catch {
-      // Node was already started.
-    }
-  }
-};
-```
+<div class="math-block">
+  <math display="block">
+    <mrow>
+      <msub><mi>b</mi><mn>1</mn></msub>
+      <mo>=</mo>
+      <msup>
+        <mi>e</mi>
+        <mrow>
+          <mo>&minus;</mo>
+          <mn>2</mn>
+          <mi>&pi;</mi>
+          <mo stretchy="false">(</mo>
+          <msub><mi>f</mi><mi>c</mi></msub>
+          <mo>/</mo>
+          <msub><mi>f</mi><mi>s</mi></msub>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+    </mrow>
+  </math>
+</div>
 
-### Audio Thread Setup
+<div class="math-block">
+  <math display="block">
+    <mrow>
+      <msub><mi>a</mi><mn>0</mn></msub>
+      <mo>=</mo>
+      <mn>1.0</mn>
+      <mo>&minus;</mo>
+      <msub><mi>b</mi><mn>1</mn></msub>
+    </mrow>
+  </math>
+</div>
 
-This `AudioWorkletProcessor` script runs on the audio rendering thread,
-updating filter coefficients and applying the difference equation
-$y[n] = x[n] \cdot a_0 + y[n-1] \cdot b_1$:
+### Parameter Specifications
 
-```javascript
-// one-pole-processor.js
-class OnePoleProcessor extends AudioWorkletProcessor {
-  static get parameterDescriptors() {
-    return [{
-      name: 'frequency',
-      defaultValue: 250,
-      minValue: 0,
-      maxValue: 0.5 * sampleRate,
-    }];
-  }
+| Parameter | Type | Default | Range | Automation Rate |
+| :--- | :--- | :--- | :--- | :--- |
+| `frequency` | Float32 | 250 | [0, 0.5 * sampleRate] | a-rate (128 frames) |
 
-  constructor() {
-    super();
-    this.updateCoefficientsWithFrequency_(250);
-  }
+### Additional Notes
 
-  updateCoefficientsWithFrequency_(frequency) {
-    this.b1_ = Math.exp(-2 * Math.PI * frequency / sampleRate);
-    this.a0_ = 1.0 - this.b1_;
-    this.z1_ = 0;
-  }
+- **State Continuity**: The delay state `this.z1_` persists across 128-frame
+  render quanta to avoid boundary discontinuities.
+- **Nyquist Limit**: The cutoff frequency must not exceed half the sample
+  rate (<math><msub><mi>f</mi><mi>s</mi></msub><mo>/</mo><mn>2</mn></math>)
+  to preserve filter stability.
+- **Specification Reference**:
+  [W3C Web Audio API: AudioWorkletProcessor][spec-link].
 
-  process(inputs, outputs, parameters) {
-    const input = inputs[0];
-    const output = outputs[0];
-
-    if (!input || input.length === 0) return true;
-
-    const frequency = parameters.frequency;
-    const isFrequencyConstant = frequency.length === 1;
-
-    for (let channel = 0; channel < output.length; ++channel) {
-      const inputChannel = input[channel];
-      const outputChannel = output[channel];
-      if (!inputChannel) continue;
-
-      if (isFrequencyConstant) {
-        this.updateCoefficientsWithFrequency_(frequency[0]);
-      }
-
-      for (let i = 0; i < outputChannel.length; ++i) {
-        if (!isFrequencyConstant) {
-          this.updateCoefficientsWithFrequency_(frequency[i]);
-        }
-        this.z1_ = inputChannel[i] * this.a0_ + this.z1_ * this.b1_;
-        outputChannel[i] = this.z1_;
-      }
-    }
-
-    return true;
-  }
-}
-
-registerProcessor('one-pole-processor', OnePoleProcessor);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletProcessor

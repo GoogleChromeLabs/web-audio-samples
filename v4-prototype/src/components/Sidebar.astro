@@ -26,26 +26,28 @@ const migrationGuides = allGuides
   .filter((g) => g.data.category === 'migration')
   .sort((a, b) => a.data.order - b.data.order);
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 const sections = [
   {
     title: 'Basic AudioWorklet',
     items: basicGuides.map((g) => ({
       label: g.data.title,
-      href: `/audio-worklet/basic/${g.id}/`,
+      href: `${base}/audio-worklet/basic/${g.id}/`,
     })),
   },
   {
     title: 'Design Patterns',
     items: patternGuides.map((g) => ({
       label: g.data.title,
-      href: `/audio-worklet/design-pattern/${g.id}/`,
+      href: `${base}/audio-worklet/design-pattern/${g.id}/`,
     })),
   },
   {
     title: 'Migration Guides',
     items: migrationGuides.map((g) => ({
       label: g.data.title,
-      href: `/audio-worklet/migration/${g.id}/`,
+      href: `${base}/audio-worklet/migration/${g.id}/`,
     })),
   },
 ].filter((s) => s.items.length > 0);
@@ -106,7 +108,10 @@ const sections = [
     sections.length > 0 ? (
       sections.map((section) => (
         <div class="space-y-2">
-          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <h4
+            class="text-xs font-semibold uppercase tracking-wider
+              text-slate-500"
+          >
             {section.title}
           </h4>
           <ul class="space-y-1 text-sm">
@@ -122,7 +127,8 @@ const sections = [
                       'block px-2.5 py-1.5 rounded-md transition-colors',
                       isActive
                         ? 'bg-blue-50 text-blue-700 font-semibold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50',
+                        : 'text-slate-600 hover:text-slate-900 ' +
+                          'hover:bg-slate-50',
                     ]}
                   >
                     {item.label}

@@ -24,6 +24,10 @@ IGNORE_DIRS = {
     'node_modules', '.git', 'dist', '_site', '.astro', '.vscode',
 }
 
+IGNORE_FILE_PATTERNS = {
+    '.wasmmodule.js', '.wasm.js',
+}
+
 
 def check_file(
     file_path: Path, max_col: int = 80
@@ -51,6 +55,8 @@ def collect_files(targets: list[str]) -> list[Path]:
             for root, dirs, filenames in os.walk(p):
                 dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
                 for fname in filenames:
+                    if any(fname.endswith(p) for p in IGNORE_FILE_PATTERNS):
+                        continue
                     ext = Path(fname).suffix.lower()
                     if ext in DEFAULT_EXTENSIONS:
                         files.append(Path(root) / fname)

@@ -1,11 +1,15 @@
 ---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const homeUrl = base ? `${base}/` : '/';
+const logoUrl = base ? `${base}/chrome-logo.png` : '/chrome-logo.png';
 ---
 
 <header
   class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"
 >
   <div
-    class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between"
+    class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
+      justify-between"
   >
     <!-- Left: Hamburger button + Text Title -->
     <div class="flex items-center gap-3">
@@ -13,7 +17,8 @@
         id="sidebar-toggle"
         type="button"
         aria-label="Toggle navigation menu"
-        class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:outline-none cursor-pointer"
+        class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900
+          hover:bg-slate-100 focus:outline-none cursor-pointer"
       >
         <svg
           class="w-5 h-5"
@@ -31,8 +36,9 @@
       </button>
 
       <a
-        href="/"
-        class="font-semibold text-lg text-slate-900 hover:text-blue-600 transition-colors"
+        href={homeUrl}
+        class="font-semibold text-lg text-slate-900 hover:text-blue-600
+          transition-colors"
       >
         Web Audio Samples
       </a>
@@ -106,7 +112,7 @@
         aria-label="Google Chrome"
       >
         <img
-          src="/chrome-logo.png"
+          src={logoUrl}
           alt="Google Chrome"
           class="w-5 h-5 object-contain"
           width="20"

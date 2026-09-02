@@ -8,13 +8,20 @@ interface Props {
   title?: string;
   description?: string;
   currentPath?: string;
+  githubUrl?: string;
+  bugReportUrl?: string;
 }
 
 const {
   title = 'Web Audio Samples',
   description = 'Web Audio API samples, guides, and developer resources.',
   currentPath = '/',
+  githubUrl,
+  bugReportUrl,
 } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const faviconUrl = base ? `${base}/chrome-logo.png` : '/chrome-logo.png';
 
 const fontUrl =
   'https://fonts.googleapis.com/css2?' +
@@ -28,7 +35,7 @@ const fontUrl =
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" type="image/png" href="/chrome-logo.png" />
+    <link rel="icon" type="image/png" href={faviconUrl} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href={fontUrl} rel="stylesheet" />
@@ -41,6 +48,6 @@ const fontUrl =
       <slot />
     </main>
 
-    <Footer />
+    <Footer githubUrl={githubUrl} bugReportUrl={bugReportUrl} />
   </body>
 </html>

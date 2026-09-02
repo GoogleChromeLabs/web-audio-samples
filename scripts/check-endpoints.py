@@ -46,7 +46,10 @@ def check_url(url: str) -> bool:
         req = urllib.request.Request(url, method="HEAD")
         with urllib.request.urlopen(req, timeout=5) as resp:
             content_type = resp.headers.get("Content-Type", "")
-            print(f"OK: {resp.status}  {content_type:28s}  {url}")
+            coop = resp.headers.get("Cross-Origin-Opener-Policy", "")
+            coep = resp.headers.get("Cross-Origin-Embedder-Policy", "")
+            iso = " [COOP/COEP]" if (coop and coep) else ""
+            print(f"OK: {resp.status}  {content_type:28s}  {url}{iso}")
             return resp.status == 200
     except Exception as e:
         print(f"FAIL: {url} ({e})", file=sys.stderr)

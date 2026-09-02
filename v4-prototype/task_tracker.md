@@ -18,10 +18,10 @@ Subagents** during the **v4** migration of `web-audio-samples`.
 | Workstream / Pillar | Assigned Agent | Tasks | Done | Status |
 | :--- | :--- | :---: | :---: | :---: |
 | **Pillar 1: Shared Packages** | `@agent-core` | 8 | 8 | `[x]` Completed |
-| **Pillar 2: Dev Portal** | `@agent-portal` | 21 | 11 | `[/]` In Progress |
+| **Pillar 2: Dev Portal** | `@agent-portal` | 21 | 21 | `[x]` Completed |
 | **Pillar 3: Tests & CI/CD** | `@agent-qa` | 8 | 0 | `[ ]` Pending |
 | **Pillar 4: Projects** | `@agent-projects` | 7 | 0 | `[ ]` Pending |
-| **Sprint Verification Gates** | All Agents | 17 | 5 | `[/]` In Progress |
+| **Sprint Verification Gates** | All Agents | 17 | 7 | `[/]` In Progress |
 
 ---
 
@@ -67,17 +67,17 @@ Subagents** during the **v4** migration of `web-audio-samples`.
 - [x] `[PORTAL-04f]` Port `handling-errors` (Error handling in AudioWorklet).
 - [x] `[PORTAL-04g]` Port `message-port` (Bi-directional MessagePort
   communication).
-- [ ] `[PORTAL-04h]` Port `audio-worklet-node-options` (Custom node
+- [x] `[PORTAL-04h]` Port `audio-worklet-node-options` (Custom node
   initialization options).
-- [ ] `[PORTAL-05a]` Port `shared-buffer` (Lock-free SharedArrayBuffer
+- [x] `[PORTAL-05a]` Port `shared-buffer` (Lock-free SharedArrayBuffer
   pattern).
-- [ ] `[PORTAL-05b]` Port `wasm` (Emscripten WebAssembly audio kernel).
-- [ ] `[PORTAL-05c]` Port `wasm-ring-buffer` (Variable buffer ring buffer with
+- [x] `[PORTAL-05b]` Port `wasm` (Emscripten WebAssembly audio kernel).
+- [x] `[PORTAL-05c]` Port `wasm-ring-buffer` (Variable buffer ring buffer with
   WASM).
-- [ ] `[PORTAL-05d]` Port `wasm-supersaw` (Virtual analog multi-voice
+- [x] `[PORTAL-05d]` Port `wasm-supersaw` (Virtual analog multi-voice
   synthesizer).
-- [ ] `[PORTAL-06a]` Port `spn-recorder` (ScriptProcessorNode legacy recorder).
-- [ ] `[PORTAL-06b]` Port `worklet-recorder` (Modern AudioWorklet recorder).
+- [x] `[PORTAL-06a]` Port `spn-recorder` (ScriptProcessorNode legacy recorder).
+- [x] `[PORTAL-06b]` Port `worklet-recorder` (Modern AudioWorklet recorder).
 - [x] `[PORTAL-07]` Migrate static audio assets from `src/sounds/` to
   `assets/sounds/` (shared across portal, tests, and projects).
 
@@ -96,13 +96,13 @@ Subagents** during the **v4** migration of `web-audio-samples`.
   `projects/synth/`.
 
 ### 🛡️ Sprint 1 Verification & Test Gate
-- [ ] `[V1-01]` `npm run build` in `dev-portal` builds all AudioWorklet pages
+- [x] `[V1-01]` `npm run build` in `dev-portal` builds all AudioWorklet pages
   cleanly.
 - [ ] `[V1-02]` `projects/rainfly` builds autonomously without root
   dependencies.
 - [ ] `[V1-03]` `tests/latency/` and `tests/perf/` fixtures serve on local test
   server.
-- [ ] `[V1-04]` Zero broken internal relative links in migrated AudioWorklet
+- [x] `[V1-04]` Zero broken internal relative links in migrated AudioWorklet
   pages.
 
 ---

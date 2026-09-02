@@ -8,77 +8,58 @@ tags:
   - bypass
   - audioworklet
 demoTitle: Hello Audio Worklet!
-demoDescription: Click START to run the demo.
+demoDescription: Click START to run the bypass processor.
 ---
 
-`AudioWorklet` lets you run custom audio processing off the main thread,
-greatly reducing the risk of audio glitches and dropouts from heavy UI work.
+## Overview
 
-This starter example is a basic bypass node that takes an incoming 440 Hz sine
-tone and forwards it straight to your speakers unchanged.
+Demonstrates the minimal configuration required to instantiate an
+`AudioWorkletNode` and pass audio through a custom `AudioWorkletProcessor`.
+This is the canonical entry point for Web Audio off-thread audio processing.
 
-This simple Web Audio graph connects three core components:
-1. **`OscillatorNode`**: Generates a 440 Hz sine wave tone.
-2. **`AudioWorkletNode`** and **`AudioWorkletProcessor`**: Forwards input
-   channels directly to output channels using `BypassProcessor`
-   (in `bypass-processor.js`).
-3. **`AudioDestinationNode`**: Browser audio output (speakers / headphones).
+The audio graph consists of an `OscillatorNode` generating a 440 Hz sine wave
+that routes directly into the `AudioWorkletNode` (`bypass-processor`). The
+bypasser copies incoming PCM samples untouched to its output, which connects
+to `AudioContext.destination`.
 
-### Main Thread Setup
+AudioWorklet decouples audio processing from the browser main thread, ensuring
+glitch-free rendering unaffected by DOM operations, layout recalculations, or
+garbage collection pauses.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`, and then
-connected into the Web Audio graph:
+## Technical Details
 
-```javascript
-// main.js
-let audioContext = null;
-let oscillatorNode = null;
+### Architecture & Implementation
 
-// 1. Setup audio graph and return AudioContext to runner
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
-  const processorUrl =
-    new URL('bypass-processor.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
+1. **Main Thread**: The processor script is registered asynchronously via
+   `audioContext.audioWorklet.addModule()`. Once registered, the node is
+   instantiated and connected to the graph:
+   ```javascript
+   const processorUrl =
+     new URL('bypass-processor.js', import.meta.url).href;
+   await audioContext.audioWorklet.addModule(processorUrl);
+   const bypasser = new AudioWorkletNode(audioContext, 'bypass-processor');
+   oscillatorNode.connect(bypasser).connect(audioContext.destination);
+   ```
+2. **Audio Rendering Thread**: The `process()` callback executes synchronously
+   every 128 sample frames on the dedicated audio thread:
+   ```javascript
+   process(inputs, outputs) {
+     const input = inputs[0];
+     const output = outputs[0];
+     for (let channel = 0; channel < output.length; ++channel) {
+       output[channel].set(input[channel]);
+     }
+     return true;
+   }
+   ```
 
-  oscillatorNode = new OscillatorNode(audioContext);
-  const bypasser = new AudioWorkletNode(audioContext, 'bypass-processor');
+### Additional Notes
 
-  oscillatorNode.connect(bypasser).connect(audioContext.destination);
-  return audioContext;
-};
+- **Render Quantum**: AudioWorklet operates on fixed 128-frame render quanta
+  (2.67 ms at 48 kHz, 2.90 ms at 44.1 kHz).
+- **Processor Lifetime**: Returning `true` from `process()` keeps the processor
+  alive. Returning `false` disposes the processor instance.
+- **Specification Reference**:
+  [W3C Web Audio API: AudioWorkletProcessor][spec-link].
 
-// 2. Start rendering upon user gesture
-export const start = async (context) => {
-  oscillatorNode.start();
-};
-```
-
-### Audio Thread Setup
-
-This `AudioWorkletProcessor` script runs on the audio rendering thread.
-
-```javascript
-// bypass-processor.js
-class BypassProcessor extends AudioWorkletProcessor {
-  process(inputs, outputs) {
-    const input = inputs[0];
-    const output = outputs[0];
-
-    for (let channel = 0; channel < output.length; ++channel) {
-      output[channel].set(input[channel]);
-    }
-
-    return true;
-  }
-}
-
-registerProcessor('bypass-processor', BypassProcessor);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletProcessor

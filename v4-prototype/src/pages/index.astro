@@ -1,7 +1,124 @@
 ---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const catalogUrl = base ? `${base}/audio-worklet/` : '/audio-worklet/';
 ---
 
-<Layout title="Web Audio Samples" currentPath="/">
-  <!-- Empty landing page canvas ready for documentation and guides -->
+<Layout
+  title="Web Audio Samples - Developer Portal"
+  description="High-performance Web Audio API guides and design patterns."
+  currentPath={base ? `${base}/` : '/'}
+>
+  <article class="max-w-4xl space-y-10 py-4">
+    <header class="space-y-3 border-b border-slate-200 pb-8">
+      <div class="inline-flex items-center gap-2">
+        <span
+          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
+            text-blue-700 border border-blue-200 uppercase tracking-wider"
+        >
+          Developer Portal
+        </span>
+      </div>
+      <h1 class="text-4xl font-bold tracking-tight text-slate-900">
+        Web Audio Samples
+      </h1>
+      <p class="text-slate-600 text-lg leading-relaxed">
+        High-performance Web Audio API guides, AudioWorklet design patterns, and
+        migration resources curated by the Chrome Web Audio team.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <a
+        href={catalogUrl}
+        class="p-6 rounded-xl border border-slate-200 hover:border-blue-300
+          hover:bg-blue-50/20 transition-all block space-y-3"
+      >
+        <div
+          class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex
+            items-center justify-center font-bold text-sm"
+        >
+          AW
+        </div>
+        <h2 class="text-lg font-bold text-slate-900">
+          AudioWorklet Basics
+        </h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Fundamental AudioWorklet implementations including bypass routing,
+          white noise generation, bit crushing, and AudioParam automation.
+        </p>
+      </a>
+
+      <a
+        href={catalogUrl}
+        class="p-6 rounded-xl border border-slate-200 hover:border-blue-300
+          hover:bg-blue-50/20 transition-all block space-y-3"
+      >
+        <div
+          class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex
+            items-center justify-center font-bold text-sm"
+        >
+          DP
+        </div>
+        <h2 class="text-lg font-bold text-slate-900">
+          Design Patterns &amp; WASM
+        </h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Lock-free SharedArrayBuffer ring buffers, Atomics synchronization, and
+          compiled C/C++ WebAssembly audio DSP kernels.
+        </p>
+      </a>
+
+      <a
+        href={catalogUrl}
+        class="p-6 rounded-xl border border-slate-200 hover:border-blue-300
+          hover:bg-blue-50/20 transition-all block space-y-3"
+      >
+        <div
+          class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex
+            items-center justify-center font-bold text-sm"
+        >
+          MG
+        </div>
+        <h2 class="text-lg font-bold text-slate-900">
+          Migration Guides
+        </h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Architectural comparisons and migration paths from deprecated
+          ScriptProcessorNode to real-time AudioWorklet processors.
+        </p>
+      </a>
+    </div>
+
+    <div
+      class="pt-4 flex items-center justify-between border-t border-slate-200"
+    >
+      <a
+        href={catalogUrl}
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600
+          hover:bg-blue-700 text-white text-sm font-semibold shadow-xs
+          transition-colors"
+      >
+        <span>Explore All 14 AudioWorklet Guides</span>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          ></path>
+        </svg>
+      </a>
+    </div>
+  </article>
 </Layout>

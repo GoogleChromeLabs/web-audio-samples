@@ -16,120 +16,66 @@ demoDescription: >
   Click START to trigger and catch processor construction and process errors.
 ---
 
-This example demonstrates catching runtime exceptions thrown by an
-`AudioWorkletProcessor` using the `onprocessorerror` event handler on
-`AudioWorkletNode`.
+## Overview
 
-Errors can occur during two distinct phases of a processor lifecycle:
-1. **Construction Phase (`constructor`)**: When the processor instance is being
-   instantiated upon `new AudioWorkletNode()`.
-2. **Audio Rendering Phase (`process`)**: When the processor callback executes
-   on the audio rendering thread.
+Demonstrates trapping runtime exceptions thrown by an `AudioWorkletProcessor`
+using the `onprocessorerror` event handler on `AudioWorkletNode`.
 
-This Web Audio setup tests two dedicated error-throwing processors:
-1. **`constructor-error`**: Throws an exception inside its constructor
-   function.
-2. **`process-error`**: Throws an exception inside its `process()` loop when
-   connected to the audio graph.
+The test graph instantiates two distinct error-throwing worklets. The first node
+throws during constructor execution, while the second node connects directly to
+`AudioContext.destination` to activate the real-time processing loop and throw
+inside its `process()` callback.
 
-### Main Thread Setup
+When an unhandled exception occurs on the audio rendering thread, the browser
+dispatches a `processorerror` event to the corresponding `AudioWorkletNode` on
+the main thread, allowing developers to catch and log audio failures cleanly.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`. When started,
-the nodes are created and their `onprocessorerror` handlers listen for error
-events:
+## Technical Details
 
-```javascript
-// main.js
-import ConsoleLogger from './ConsoleLogger.js';
+### Architecture & Implementation
 
-let audioContext = null;
-let logger = null;
+1. **Catching Construction Errors**: Thrown immediately when
+   `new AudioWorkletNode()` instantiates the processor on the audio thread:
+   ```javascript
+   const constructorNode =
+     new AudioWorkletNode(context, 'constructor-error');
+   constructorNode.onprocessorerror = (event) => {
+     console.error('Caught error during construction phase:', event);
+   };
+   ```
+2. **Catching Render Process Errors**: Thrown during audio graph execution:
+   ```javascript
+   const processNode = new AudioWorkletNode(context, 'process-error');
+   processNode.onprocessorerror = (event) => {
+     console.error('Caught error during process() callback:', event);
+   };
+   processNode.connect(context.destination);
+   ```
+3. **Audio Thread Exception**:
+   ```javascript
+   class ProcessErrorProcessor extends AudioWorkletProcessor {
+     process() {
+       throw new Error('Exception inside process() callback.');
+     }
+   }
+   registerProcessor('process-error', ProcessErrorProcessor);
+   ```
 
-// 1. Setup AudioContext and register processor module
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
+### Error Phases
 
-  logger = new ConsoleLogger('#console-logger', {
-    title: 'Handling Errors - Live Log',
-    maxHeight: '22rem',
-    minHeight: '12rem',
-  });
+| Phase | Trigger | Processor Behavior |
+| :--- | :--- | :--- |
+| **Constructor** | In `constructor()` | Instantiation fails; no audio |
+| **Process** | In `process()` | Audio halts; emits silence |
 
-  const processorUrl =
-    new URL('error-processor.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
+### Additional Notes
 
-  return audioContext;
-};
+- **Permanent Error State**: Once a processor throws an unhandled exception in
+  `process()`, the browser marks it as errored and permanently stops calling
+  `process()`. The node produces silence indefinitely.
+- **Diagnostics**: The `processorerror` event object does not leak private
+  audio thread memory; details are communicated via structured events.
+- **Specification Reference**:
+  [W3C Web Audio API: onprocessorerror][spec-link].
 
-// 2. Instantiate error-throwing nodes upon user gesture
-export const start = async (context) => {
-  logger.log('Starting error test nodes...');
-
-  // Handle an error from the construction phase:
-  const constructorErrorNode =
-    new AudioWorkletNode(context, 'constructor-error');
-  constructorErrorNode.onprocessorerror = (event) => {
-    logErrorDetails(
-      'constructor',
-      event,
-      'ConstructorErrorProcessor: an error thrown from constructor.'
-    );
-  };
-
-  // Handle an error from the process callback:
-  const processErrorNode =
-    new AudioWorkletNode(context, 'process-error');
-  processErrorNode.onprocessorerror = (event) => {
-    logErrorDetails(
-      'process',
-      event,
-      'ProcessErrorProcessor: an error thrown from process method.'
-    );
-  };
-
-  processErrorNode.connect(context.destination);
-};
-```
-
-### Audio Thread Setup
-
-This script defines two processors that intentionally throw errors to verify
-that `onprocessorerror` triggers correctly:
-
-```javascript
-// error-processor.js
-class ConstructorErrorProcessor extends AudioWorkletProcessor {
-  constructor() {
-    throw new Error(
-      'ConstructorErrorProcessor: an error thrown from constructor.'
-    );
-  }
-
-  process() {
-    return true;
-  }
-}
-
-class ProcessErrorProcessor extends AudioWorkletProcessor {
-  constructor() {
-    super();
-  }
-
-  process() {
-    throw new Error(
-      'ProcessErrorProcessor: an error thrown from process method.'
-    );
-  }
-}
-
-registerProcessor('constructor-error', ConstructorErrorProcessor);
-registerProcessor('process-error', ProcessErrorProcessor);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletNode

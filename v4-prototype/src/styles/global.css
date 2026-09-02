@@ -27,7 +27,7 @@
 /* Markdown typography enhancements for guide pages */
 .guide-content h2,
 .prose h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #0f172a;
@@ -37,7 +37,7 @@
 
 .guide-content h3,
 .prose h3 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: #0f172a;
@@ -143,6 +143,83 @@
   border: none;
 }
 
+/* Responsive table container and table styling */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.guide-content table,
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.table-wrapper .guide-content table,
+.guide-content .table-wrapper table,
+.table-wrapper table {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.guide-content th,
+.prose th {
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.guide-content td,
+.prose td {
+  padding: 0.625rem 1.25rem;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.guide-content tbody tr:last-child td,
+.prose tbody tr:last-child td {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.guide-content tbody tr:hover,
+.prose tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Mathematical formulas (Native MathML) */
+.math-block {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 0;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+math {
+  font-family: 'STIX Two Math', 'Latin Modern Math', 'Cambria Math',
+    'Times New Roman', serif;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.math-block math {
+  font-size: 1.2rem;
+}
+
 /* Collapsible technical details */
 .guide-content details {
   margin-top: 1.5rem;
@@ -213,25 +290,30 @@
   padding-bottom: 0;
 }
 
-/* Newspaper Style Overview Teaser */
+/* Technical Details Teaser */
+.tech-teaser-wrapper,
 .overview-teaser-wrapper {
   position: relative;
 }
 
+.tech-teaser-content,
 .overview-teaser-content {
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.tech-teaser-content.is-collapsed,
 .overview-teaser-content.is-collapsed {
-  max-height: 250px;
+  max-height: 200px;
 }
 
+.tech-teaser-content.is-expanded,
 .overview-teaser-content.is-expanded {
-  max-height: 3500px;
+  max-height: 5000px;
 }
 
 /* Gradient fade to white at bottom when collapsed */
+.tech-teaser-content.is-collapsed + .tech-fade-overlay,
 .overview-teaser-content.is-collapsed + .overview-fade-overlay {
   position: absolute;
   bottom: 0;
@@ -251,6 +333,7 @@
   pointer-events: none;
 }
 
+.tech-teaser-content.is-expanded + .tech-fade-overlay,
 .overview-teaser-content.is-expanded + .overview-fade-overlay {
   position: relative;
   display: flex;

@@ -81,12 +81,29 @@ function getGuideAssets(guidesDir) {
  */
 function guideAssetsIntegration() {
   const guidesDir = path.resolve('src/content/guides');
+  let cachedGuideAssets = null;
+
+  function getCachedAssets() {
+    if (!cachedGuideAssets) {
+      cachedGuideAssets = getGuideAssets(guidesDir);
+    }
+    return cachedGuideAssets;
+  }
 
   return {
     name: 'guide-assets',
     hooks: {
       'astro:server:setup': ({ server }) => {
+        server.watcher.on('all', (event, filePath) => {
+          if (filePath.includes('src/content/guides')) {
+            cachedGuideAssets = null;
+          }
+        });
+
         server.middlewares.use((req, res, next) => {
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
           const rawUrl = req.url?.split('?')[0] || '';
           let cleanPath = rawUrl.replace(/^\/+/, '');
 
@@ -95,7 +112,7 @@ function guideAssetsIntegration() {
             cleanPath = cleanPath.slice(cleanBase.length + 1);
           }
 
-          const guideAssets = getGuideAssets(guidesDir);
+          const guideAssets = getCachedAssets();
           const filePath = guideAssets.get(cleanPath);
           if (filePath && fs.existsSync(filePath)) {
             const ext = path.extname(filePath).toLowerCase();
@@ -123,8 +140,20 @@ function guideAssetsIntegration() {
 export default defineConfig({
   site: 'https://googlechromelabs.github.io',
   base,
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
   integrations: [guideAssetsIntegration()],
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
+    },
   },
 });

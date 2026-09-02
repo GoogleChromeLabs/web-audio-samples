@@ -13,130 +13,68 @@ demoTitle: Volume Meter
 demoDescription: Click START to begin measuring microphone input level.
 ---
 
-This example demonstrates measuring audio volume from a microphone input
-using an `AudioWorkletProcessor`. The processor computes Root Mean Square
-(RMS) values over input samples and posts the volume metrics back to the
-main thread at a 60 fps interval.
+## Overview
 
-This Web Audio graph connects four core components:
-1. **`MediaStreamAudioSourceNode`**: Captures raw live audio input from the
-   user's microphone via `navigator.mediaDevices.getUserMedia()`.
-2. **`AudioWorkletNode`** and **`AudioWorkletProcessor`**: Calculates real-time
-   RMS levels in `VolumeMeter` (in `volume-meter-processor.js`) and transmits
-   the smoothed level via `MessagePort`.
-3. **`VUMeter` (`VUMeter.js`)**: Visualizes real-time levels on a canvas using
-   a logarithmic dB scale and a smoothed FIFO queue.
-4. **`AudioDestinationNode`**: Kept connected to pull audio through the worklet
-   without rendering sound directly to output.
+Measures real-time audio volume from microphone input by computing Root
+Mean Square (RMS) power inside an `AudioWorkletProcessor` and posting smoothed
+levels to the main thread via `MessagePort`.
 
-### Main Thread Setup
+The audio graph routes a `MediaStreamAudioSourceNode` capturing live
+microphone input into the `AudioWorkletNode` (`volume-meter`), which connects
+to `AudioContext.destination`. Connecting to the destination ensures the audio
+engine continuously pulls render quanta through the node.
 
-On the main thread, the `AudioWorkletProcessor` module is loaded
-asynchronously using `audioContext.audioWorklet.addModule()`. Upon user
-gesture, the microphone stream is requested and connected into the graph:
+AudioWorklet processes 128 frames per quantum, while postMessage notifications
+are throttled to 60 fps to prevent main-thread event queue saturation during
+live metering.
 
-```javascript
-// main.js
-import VUMeter from './VUMeter.js';
+## Technical Details
 
-let audioContext = null;
-let micNode = null;
-let volumeMeterNode = null;
-let mediaStream = null;
-let vuMeter = null;
+### Architecture & Implementation
 
-// 1. Setup audio graph and register processor
-export const setup = async () => {
-  audioContext = new AudioContext();
-  await audioContext.suspend();
+1. **RMS Calculation & Throttling**: Inside `process()`, calculate RMS and
+   throttle `postMessage` calls to 60 fps to prevent main-thread queue
+   saturation:
+   ```javascript
+   const FRAME_INTERVAL = 1 / 60;
 
-  const processorUrl =
-    new URL('volume-meter-processor.js', import.meta.url).href;
-  await audioContext.audioWorklet.addModule(processorUrl);
+   process(inputs, outputs) {
+     const channel = inputs[0]?.[0];
+     if (channel && currentTime - this._lastUpdate > FRAME_INTERVAL) {
+       let sum = 0;
+       for (let i = 0; i < channel.length; i++) {
+         sum += channel[i] * channel[i];
+       }
+       const rms = Math.sqrt(sum / channel.length);
+       this._volume = Math.max(rms, this._volume * 0.8);
+       this.port.postMessage(this._volume);
+       this._lastUpdate = currentTime;
+     }
+     return true;
+   }
+   ```
+2. **Main Thread Reception & Canvas Display**: The main thread listens to
+   `port.onmessage` and updates the `VUMeter` canvas visualizer:
+   ```javascript
+   volumeMeterNode.port.onmessage = ({ data }) => {
+     vuMeter.draw(data);
+   };
+   ```
 
-  volumeMeterNode = new AudioWorkletNode(audioContext, 'volume-meter');
+### Messaging Protocol
 
-  const canvas = document.getElementById('vu-meter');
-  vuMeter = new VUMeter(canvas, {
-    minDecibel: -40,
-    fifoSize: 6,
-    backgroundColor: 'transparent',
-  });
-  vuMeter.reset();
+| Direction | Trigger | Payload | Rate |
+| :--- | :--- | :--- | :--- |
+| Processor → Node | Interval elapsed | `Float` (RMS 0–1) | 60 Hz |
 
-  audioContext.addEventListener('statechange', () => {
-    if (audioContext.state === 'suspended' && vuMeter) {
-      vuMeter.reset();
-    }
-  });
+### Additional Notes
 
-  volumeMeterNode.port.onmessage = ({ data }) => {
-    vuMeter.draw(data);
-  };
+- **Message Decimation**: Audio rendering runs at ~375 quanta/second (at
+  48 kHz). Decimating `postMessage` down to 60 Hz reduces IPC message count
+  by 84%, protecting main-thread UI smoothness.
+- **Audio Destination**: The worklet connects to `destination` to maintain
+  active pulling through the audio engine, even if no audio is output.
+- **Specification Reference**:
+  [W3C Web Audio API: MessagePort][spec-link].
 
-  volumeMeterNode.connect(audioContext.destination);
-  return audioContext;
-};
-
-// 2. Request microphone access and connect upon user gesture
-export const start = async (context) => {
-  if (!micNode && navigator.mediaDevices?.getUserMedia) {
-    try {
-      mediaStream =
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      micNode = context.createMediaStreamSource(mediaStream);
-      micNode.connect(volumeMeterNode);
-    } catch (err) {
-      console.warn('Microphone access denied or unavailable:', err);
-    }
-  }
-};
-```
-
-### Audio Thread Setup
-
-This `AudioWorkletProcessor` script runs on the audio rendering thread,
-calculating the smoothed RMS power of incoming samples:
-
-```javascript
-// volume-meter-processor.js
-const SMOOTHING_FACTOR = 0.8;
-const FRAME_PER_SECOND = 60;
-const FRAME_INTERVAL = 1 / FRAME_PER_SECOND;
-
-class VolumeMeter extends AudioWorkletProcessor {
-  constructor() {
-    super();
-    this._lastUpdate = currentTime;
-    this._volume = 0;
-  }
-
-  calculateRMS(inputChannelData) {
-    let sum = 0;
-    for (let i = 0; i < inputChannelData.length; i++) {
-      sum += inputChannelData[i] * inputChannelData[i];
-    }
-    const rms = Math.sqrt(sum / inputChannelData.length);
-    this._volume = Math.max(rms, this._volume * SMOOTHING_FACTOR);
-  }
-
-  process(inputs, outputs) {
-    const inputChannelData = inputs[0] && inputs[0][0];
-
-    if (inputChannelData && currentTime - this._lastUpdate > FRAME_INTERVAL) {
-      this.calculateRMS(inputChannelData);
-      this.port.postMessage(this._volume);
-      this._lastUpdate = currentTime;
-    }
-
-    return true;
-  }
-}
-
-registerProcessor('volume-meter', VolumeMeter);
-```
-
-For more background on the architecture, see the
-[Chrome Developers article on AudioWorklet][article-link].
-
-[article-link]: https://developer.chrome.com/blog/audio-worklet/
+[spec-link]: https://www.w3.org/TR/webaudio/#dom-audioworkletnode-port
