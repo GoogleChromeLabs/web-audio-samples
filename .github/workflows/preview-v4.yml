@@ -25,9 +25,8 @@ jobs:
 
       - name: Build v4-prototype
         run: |
-          npm install -g npm@latest
           cd v4-prototype
-          npm install --no-audit --no-fund
+          npm ci
           npm run build
 
       - name: Checkout gh-pages branch
