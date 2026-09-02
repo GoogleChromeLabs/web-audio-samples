@@ -140,9 +140,9 @@ def check_run(run: dict, token: Optional[str] = None):
             # Fetch log tail if possible
             logs = fetch_job_logs(job_id, token)
             if logs:
-                print(f"\n  Log excerpt (last 25 lines of job {job_id}):")
+                print(f"\n  Log excerpt (last 60 lines of job {job_id}):")
                 print("  " + "-" * 70)
-                for line in logs[-25:]:
+                for line in logs[-60:]:
                     print(f"    {line}")
                 print("  " + "-" * 70)
 
