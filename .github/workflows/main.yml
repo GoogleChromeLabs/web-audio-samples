@@ -2,7 +2,7 @@ name: Build and deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "v4-dev" ]
   pull_request:
     branches: [ "main" ]
 
