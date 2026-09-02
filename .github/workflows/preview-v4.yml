@@ -1,0 +1,53 @@
+name: Deploy v4 Preview to GitHub Pages
+
+on:
+  push:
+    branches: [ "v4-dev" ]
+    paths:
+      - "v4-prototype/**"
+      - ".github/workflows/preview-v4.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-preview:
+    name: Deploy v4-prototype Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v4-dev
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build v4-prototype
+        run: |
+          cd v4-prototype
+          npm ci
+          npm run build
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-branch
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy v4-prototype to gh-pages and push
+        run: |
+          rm -rf gh-pages-branch/v4-prototype
+          mkdir -p gh-pages-branch/v4-prototype
+          cp -r v4-prototype/dist/* gh-pages-branch/v4-prototype/
+          cd gh-pages-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add v4-prototype
+          if git diff --staged --quiet; then
+            echo "No changes to deploy."
+          else
+            git commit -m "deploy: update v4-prototype preview from v4-dev"
+            git push origin gh-pages
+          fi
