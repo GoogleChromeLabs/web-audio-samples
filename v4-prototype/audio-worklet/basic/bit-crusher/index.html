@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BitCrusher with AudioParam - Web Audio Samples</title><meta name="description" content="BitCrusher example demonstrating dynamic AudioParam automations.
+"><link rel="icon" type="image/png" href="/web-audio-samples/v4-prototype/chrome-logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/web-audio-samples/v4-prototype/_astro/_slug_.B4K7W_Kt.css"></head> <body class="bg-white text-slate-900 min-h-screen flex flex-col antialiased"> <header class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
+      justify-between"> <!-- Left: Hamburger button + Text Title --> <div class="flex items-center gap-3"> <button id="sidebar-toggle" type="button" aria-label="Toggle navigation menu" class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900
+          hover:bg-slate-100 focus:outline-none cursor-pointer"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> </svg> </button> <a href="/web-audio-samples/v4-prototype/" class="font-semibold text-lg text-slate-900 hover:text-blue-600
+          transition-colors">
+Web Audio Samples
+</a> </div> <!-- Right: Navigation Links + Chrome Logo --> <nav class="flex items-center gap-5 text-sm font-medium text-slate-600"> <a href="https://github.com/GoogleChromeLabs/web-audio-samples" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 transition-colors flex items-center gap-1"> <span>GitHub</span> <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> <a href="https://www.w3.org/TR/webaudio/" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center gap-1 hover:text-slate-900"> <span>Specification</span> <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> <!-- Google Chrome Logo Image --> <a href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity ml-1" title="Google Chrome" aria-label="Google Chrome"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-5 h-5 object-contain" width="20" height="20"> </a> </nav> </div> </header> <!-- Sliding Drawer Backdrop --><div id="sidebar-backdrop" class="fixed inset-0 top-16 bg-slate-900/25 z-30 transition-opacity duration-300 opacity-0 pointer-events-none" aria-hidden="true"></div> <!-- Animated Left Drawer --> <aside id="sidebar-drawer" class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 sm:w-80 shrink-0 bg-white border-r border-slate-200 p-6 space-y-6 overflow-y-auto shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out" aria-label="Sidebar navigation"> <!-- Drawer Header with Close Button --> <div class="flex items-center justify-end pb-3 border-b border-slate-100"> <button id="sidebar-close" type="button" aria-label="Close navigation drawer" class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </button> </div> <!-- Dynamic Content Collections Navigation --> <div class="space-y-2"> <h4 class="text-xs font-semibold uppercase tracking-wider
+              text-slate-500"> Basic AudioWorklet </h4> <ul class="space-y-1 text-sm"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/hello-audio-worklet/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Hello Audio Worklet! </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/noise-generator/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Noise Generator with Modulation </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/bit-crusher/" class="block px-2.5 py-1.5 rounded-md transition-colors bg-blue-50 text-blue-700 font-semibold"> BitCrusher with AudioParam </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/volume-meter/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Volume Meter </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/one-pole-filter/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> One Pole Filter </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/handling-errors/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Handling Errors </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/message-port/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> MessagePort Communication </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/audio-worklet-node-options/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorkletNode Options </a> </li> </ul> </div><div class="space-y-2"> <h4 class="text-xs font-semibold uppercase tracking-wider
+              text-slate-500"> Design Patterns </h4> <ul class="space-y-1 text-sm"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/shared-buffer/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet, SharedArrayBuffer, and Worker </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet and WebAssembly </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm-ring-buffer/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Ring Buffer in AudioWorkletProcessor </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm-supersaw/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> WebAssembly Supersaw Synthesizer </a> </li> </ul> </div><div class="space-y-2"> <h4 class="text-xs font-semibold uppercase tracking-wider
+              text-slate-500"> Migration Guides </h4> <ul class="space-y-1 text-sm"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/spn-recorder/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> ScriptProcessorNode Audio Recorder </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/worklet-recorder/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet Audio Recorder </a> </li> </ul> </div> </aside> <script type="module">const o=document.getElementById("sidebar-toggle"),r=document.getElementById("sidebar-close"),e=document.getElementById("sidebar-drawer"),t=document.getElementById("sidebar-backdrop");let a=!1;function c(){!e||!t||(e.classList.remove("-translate-x-full"),e.classList.add("translate-x-0"),t.classList.remove("opacity-0","pointer-events-none"),t.classList.add("opacity-100","pointer-events-auto"),a=!0)}function n(){!e||!t||(e.classList.remove("translate-x-0"),e.classList.add("-translate-x-full"),t.classList.remove("opacity-100","pointer-events-auto"),t.classList.add("opacity-0","pointer-events-none"),a=!1)}function i(){a?n():c()}o?.addEventListener("click",s=>{s.stopPropagation(),i()});r?.addEventListener("click",n);t?.addEventListener("click",n);e?.querySelectorAll("a").forEach(s=>{s.addEventListener("click",n)});window.addEventListener("keydown",s=>{s.key==="Escape"&&a&&n()});</script> <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">  <article class="max-w-4xl space-y-8"> <!-- 1. [Title] & [1-line description] --> <header class="space-y-2"> <div class="flex items-center gap-2"> <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
+            text-blue-700 border border-blue-200 uppercase tracking-wider"> basic </span> </div> <h1 class="text-3xl font-bold tracking-tight text-slate-900"> BitCrusher with AudioParam </h1> <p class="text-slate-600 text-base leading-relaxed"> BitCrusher example demonstrating dynamic AudioParam automations.
+ </p> </header> <!-- 2. [Interactive demo box (including AudioControlPanel)] --> <div id="demo-box" data-script-src="/web-audio-samples/v4-prototype/audio-worklet/basic/bit-crusher/main.js" class="my-6 rounded-xl border border-blue-400/60 bg-blue-50/20 shadow-sm
+    overflow-hidden transition-all duration-200"> <div class="p-5 flex flex-col justify-between gap-6 min-h-[110px]"> <div class="space-y-1"> <h3 class="text-sm font-semibold text-slate-900"> BitCrusher with AudioParam </h3> <p class="text-xs text-slate-500"> Click START to run the 8-second demo. </p> </div> <!-- Optional custom demo controls slot -->    <!-- Audio transport & diagnostics panel --> <div class="w-full" data-control-panel data-script-src="/web-audio-samples/v4-prototype/audio-worklet/basic/bit-crusher/main.js"> <!-- Pill Transport Controls --> <div class="flex justify-end items-center"> <div id="demo-pill-group" class="inline-flex items-stretch rounded-full bg-blue-600 shadow-sm
+        text-white transition-colors duration-150 overflow-hidden"> <button id="button-start" type="button" class="w-20 py-1.5 text-center text-xs font-semibold tracking-wide
+          transition hover:bg-black/10 cursor-pointer disabled:opacity-50">
+START
+</button> <div class="w-px bg-white/30 my-1"></div> <button id="button-toggle-telemetry" type="button" class="px-2.5 py-1.5 flex items-center justify-center transition
+          hover:bg-black/10 cursor-pointer text-xs" aria-label="Toggle Audio Diagnostics" title="Toggle Audio Diagnostics"> <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> </button> </div> </div> <!-- Telemetry Diagnostics Panel --> <div id="telemetry-panel" class="hidden mt-4 -mx-5 -mb-5 border-t border-blue-200/60 bg-white/60
+      px-5 py-3 text-xs text-slate-600"> <div class="grid grid-cols-2 sm:grid-cols-5 gap-3"> <div> <span class="block text-[10px] uppercase font-semibold text-slate-400">
+Context State
+</span> <span id="telemetry-context-state" class="font-mono font-semibold text-slate-500">
+uninitialized
+</span> </div> <div> <span class="block text-[10px] uppercase font-semibold text-slate-400">
+Sample Rate
+</span> <span id="telemetry-sample-rate" class="font-mono text-slate-800">
+--
+</span> </div> <div> <span class="block text-[10px] uppercase font-semibold text-slate-400">
+Base Latency
+</span> <span id="telemetry-base-latency" class="font-mono text-slate-800">
+--
+</span> </div> <div> <span class="block text-[10px] uppercase font-semibold text-slate-400">
+Output Latency
+</span> <span id="telemetry-output-latency" class="font-mono text-slate-800">
+--
+</span> </div> <div> <span class="block text-[10px] uppercase font-semibold text-slate-400">
+Glitch Status
+</span> <span id="telemetry-glitch-status" class="font-mono text-emerald-600">
+0 detected
+</span> </div> </div> </div> </div> <script>
+  const panelEl = document.querySelector('[data-control-panel]');
+  const pillGroup = document.getElementById('demo-pill-group');
+  const button = document.getElementById('button-start');
+  const telemetryBtn = document.getElementById('button-toggle-telemetry');
+  const telemetryPanel = document.getElementById('telemetry-panel');
+  const sampleRateEl = document.getElementById('telemetry-sample-rate');
+  const baseLatencyEl = document.getElementById('telemetry-base-latency');
+  const outputLatencyEl = document.getElementById('telemetry-output-latency');
+  const glitchEl = document.getElementById('telemetry-glitch-status');
+  const contextStateEl = document.getElementById('telemetry-context-state');
+
+  if (telemetryBtn && telemetryPanel && !telemetryBtn.dataset.toggleBound) {
+    telemetryBtn.dataset.toggleBound = 'true';
+    telemetryBtn.addEventListener('click', () => {
+      telemetryPanel.classList.toggle('hidden');
+      telemetryBtn.classList.toggle('bg-black/20');
+    });
+  }
+
+  const scriptSrc =
+    panelEl?.getAttribute('data-script-src') ||
+    document.getElementById('demo-box')?.getAttribute('data-script-src');
+
+  if (scriptSrc && button && pillGroup) {
+    let audioContext = null;
+    let isStarted = false;
+    let isCapacityActive = false;
+    let sampleModule = null;
+
+    const updateTelemetry = (context) => {
+      if (!context) return;
+
+      if (sampleRateEl) {
+        sampleRateEl.textContent =
+          `${context.sampleRate.toLocaleString()} Hz`;
+      }
+      if (baseLatencyEl) {
+        baseLatencyEl.textContent =
+          typeof context.baseLatency === 'number'
+            ? `${(context.baseLatency * 1000).toFixed(2)} ms`
+            : 'N/A';
+      }
+      if (outputLatencyEl) {
+        outputLatencyEl.textContent =
+          typeof context.outputLatency === 'number'
+            ? `${(context.outputLatency * 1000).toFixed(2)} ms`
+            : 'N/A';
+      }
+      if (contextStateEl) {
+        contextStateEl.textContent = context.state;
+        if (context.state === 'running') {
+          contextStateEl.className =
+            'font-semibold text-emerald-700 font-mono';
+        } else if (context.state === 'suspended') {
+          contextStateEl.className =
+            'font-semibold text-amber-700 font-mono';
+        } else {
+          contextStateEl.className =
+            'font-semibold text-slate-700 font-mono';
+        }
+      }
+
+      if (glitchEl && !isCapacityActive && 'renderCapacity' in context) {
+        isCapacityActive = true;
+        const ctxAny = context;
+        ctxAny.renderCapacity.start({ updateInterval: 0.5 });
+        ctxAny.renderCapacity.onupdate = (event) => {
+          const load = Math.round(event.averageLoad * 100);
+          if (event.underrunRatio > 0) {
+            glitchEl.textContent = `Glitch (${load}% load)`;
+            glitchEl.className = 'font-mono text-red-600 font-semibold';
+          } else {
+            glitchEl.textContent = `0 detected (${load}% load)`;
+            glitchEl.className = 'font-mono text-emerald-600';
+          }
+        };
+      }
+    };
+
+    const updateButtonUI = (state) => {
+      if (!isStarted) {
+        button.textContent = 'START';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-blue-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      } else if (state === 'running') {
+        button.textContent = 'PAUSE';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-amber-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      } else {
+        button.textContent = 'RESUME';
+        pillGroup.className =
+          'inline-flex items-stretch rounded-full bg-emerald-600 shadow-sm ' +
+          'text-white transition-colors duration-150 overflow-hidden';
+      }
+    };
+
+    const nativeImport = (url) =>
+      new Function('specifier', 'return import(specifier)')(url);
+
+    const init = async () => {
+      try {
+        sampleModule = await nativeImport(scriptSrc);
+        if (sampleModule && typeof sampleModule.setup === 'function') {
+          audioContext = await sampleModule.setup();
+          if (audioContext) {
+            audioContext.onstatechange = () => {
+              if (audioContext) {
+                updateButtonUI(audioContext.state);
+                updateTelemetry(audioContext);
+              }
+            };
+            updateTelemetry(audioContext);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize audio sample:', error);
+      }
+    };
+
+    button.addEventListener('click', async () => {
+      if (!audioContext && sampleModule?.setup) {
+        audioContext = await sampleModule.setup();
+        if (audioContext) {
+          audioContext.onstatechange = () => {
+            if (audioContext) {
+              updateButtonUI(audioContext.state);
+              updateTelemetry(audioContext);
+            }
+          };
+        }
+      }
+      if (!audioContext) return;
+
+      if (!isStarted) {
+        if (typeof sampleModule?.start === 'function') {
+          await sampleModule.start(audioContext);
+        }
+        await audioContext.resume();
+        isStarted = true;
+      } else if (audioContext.state === 'running') {
+        await audioContext.suspend();
+      } else if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      updateButtonUI(audioContext.state);
+      updateTelemetry(audioContext);
+    });
+
+    init();
+  }
+</script> </div> </div> <!-- 3. Guide Documentation --> <section class="space-y-4 pt-2"> <div id="guide-content" class="guide-content prose max-w-none text-slate-700 leading-normal">  <h2 id="overview">Overview</h2>
+<p>Implements a non-linear bit-depth and sample-rate reduction processor based on
+the W3C Web Audio API specification, demonstrating dynamic <code>AudioParam</code>
+automation.</p>
+<p>The audio graph connects a 5 kHz sawtooth <code>OscillatorNode</code> through the
+<code>AudioWorkletNode</code> (<code>bit-crusher-processor</code>), which connects directly to
+<code>AudioContext.destination</code>.</p>
+<p>During playback, the main thread schedules linear and exponential automation
+curves on the <code>frequencyReduction</code> parameter, while the processor performs
+sample quantization and sample-and-hold downsampling on the audio thread.</p>
+<h2 id="technical-details">Technical Details</h2>
+<h3 id="architecture--implementation">Architecture &#x26; Implementation</h3>
+<ol>
+<li><strong>Parameter Registration</strong>: Custom <code>AudioParam</code> descriptors are declared
+in the processor:
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#E1E4E8">static get </span><span style="color:#B392F0">parameterDescriptors</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">    { name: </span><span style="color:#9ECBFF">'bitDepth'</span><span style="color:#E1E4E8">, defaultValue: </span><span style="color:#79B8FF">12</span><span style="color:#E1E4E8">, minValue: </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, maxValue: </span><span style="color:#79B8FF">16</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#E1E4E8">      name: </span><span style="color:#9ECBFF">'frequencyReduction'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      defaultValue: </span><span style="color:#79B8FF">0.5</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      minValue: </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      maxValue: </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">  ];</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+</li>
+<li><strong>Scheduling Automation</strong>: The main thread schedules ramps via native
+<code>AudioParam</code> methods:
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#E1E4E8">paramReduction.</span><span style="color:#B392F0">setValueAtTime</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">0.01</span><span style="color:#E1E4E8">, now);</span></span>
+<span class="line"><span style="color:#E1E4E8">paramReduction.</span><span style="color:#B392F0">linearRampToValueAtTime</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">0.1</span><span style="color:#E1E4E8">, now </span><span style="color:#F97583">+</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">paramReduction.</span><span style="color:#B392F0">exponentialRampToValueAtTime</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">0.01</span><span style="color:#E1E4E8">, now </span><span style="color:#F97583">+</span><span style="color:#79B8FF"> 8</span><span style="color:#E1E4E8">);</span></span></code></pre>
+</li>
+<li><strong>Handling Variable Rates</strong>: Inside <code>process()</code>, check whether parameter
+arrays are constant (length 1) or automated per frame (length 128):
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> isReductionConstant</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> parameters.frequencyReduction.</span><span style="color:#79B8FF">length</span><span style="color:#F97583"> ===</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">let</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> inputChannel.</span><span style="color:#79B8FF">length</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> reduction</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> isReductionConstant</span></span>
+<span class="line"><span style="color:#F97583">    ?</span><span style="color:#E1E4E8"> parameters.frequencyReduction[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#F97583">    :</span><span style="color:#E1E4E8"> parameters.frequencyReduction[i];</span></span>
+<span class="line"><span style="color:#79B8FF">  this</span><span style="color:#E1E4E8">.phase_ </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> reduction;</span></span>
+<span class="line"><span style="color:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+</li>
+</ol>
+<h3 id="parameter-specifications">Parameter Specifications</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Range</th><th align="left">Automation Rate</th></tr></thead><tbody><tr><td align="left"><code>bitDepth</code></td><td align="left">Float32</td><td align="left">12</td><td align="left">[1, 16]</td><td align="left">k-rate</td></tr><tr><td align="left"><code>frequencyReduction</code></td><td align="left">Float32</td><td align="left">0.5</td><td align="left">[0, 1]</td><td align="left">a-rate (128 frames)</td></tr></tbody></table>
+<h3 id="additional-notes">Additional Notes</h3>
+<ul>
+<li><strong>Quantization Math</strong>: Sample quantization uses uniform midpoint step
+sizing: <code>step = Math.pow(0.5, bitDepth)</code>.</li>
+<li><strong>Parameter Array Allocation</strong>: The browser allocates a single 128-element
+typed array per automated parameter per quantum, avoiding runtime garbage
+collection.</li>
+<li><strong>Specification Reference</strong>:
+<a href="https://www.w3.org/TR/webaudio/#the-bitcrusher-node">W3C Web Audio API: BitCrusher Example</a>.</li>
+</ul>  </div> </section> </article>  </main> <footer class="border-t border-slate-200 bg-slate-50/50 mt-auto"> <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row
+      items-center justify-between gap-4 text-xs text-slate-500"> <div class="flex items-center gap-2"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-4 h-4 object-contain opacity-70" width="16" height="16"> <span>Web Audio Samples</span> </div> <div class="flex items-center gap-4 text-xs"> <a href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/audio-worklet/basic/bit-crusher" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-medium text-slate-600
+          hover:text-blue-600 transition-colors"> <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504
+              .5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605
+              -3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908
+              -.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53
+              2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253
+              -4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103
+              -.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564
+              0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747
+              -1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028
+              1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309
+              .678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18
+              .58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12
+              2z"></path> </svg> <span>View Source on GitHub</span> </a> <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new?title=%5BBitCrusher%20with%20AudioParam%5D%20Issue&labels=bug" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border
+          border-slate-200 bg-white text-xs font-medium text-slate-700
+          hover:text-red-600 hover:border-red-200 hover:bg-red-50/50
+          transition-colors shadow-xs"> <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3
+              L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333
+              .192 3 1.732 3z"></path> </svg> <span>Report an Issue</span> </a> </div> </div> </footer> </body></html> <script type="module">function m(){const s='<svg class="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>',r='<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';document.querySelectorAll(".guide-content pre").forEach(a=>{if(a.parentElement?.classList.contains("code-block-wrapper"))return;const o=document.createElement("div");o.className="code-block-wrapper relative group my-4",a.parentNode?.insertBefore(o,a),o.appendChild(a);const e=document.createElement("button");e.type="button",e.className="copy-code-btn absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium tracking-wide text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-600/60 shadow-sm transition-all duration-150 cursor-pointer select-none opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100",e.setAttribute("aria-label","Copy code to clipboard"),e.title="Copy code",e.innerHTML=`${s}<span>Copy</span>`,e.addEventListener("click",async()=>{const n=a.querySelector("code"),l=n?n.innerText:a.innerText;try{await navigator.clipboard.writeText(l),e.innerHTML=`${r}<span class="text-emerald-300">Copied!</span>`,setTimeout(()=>{e.innerHTML=`${s}<span>Copy</span>`},2e3)}catch(t){console.error("Failed to copy code: ",t)}}),o.appendChild(e)})}const h=()=>{const s=document.getElementById("guide-content");if(!s)return;const c=Array.from(s.querySelectorAll("h2")).find(i=>i.id==="technical-details"||i.textContent?.trim().toLowerCase()==="technical details");if(!c)return;const a=[];let o=c;for(;o;){const i=o.nextSibling;a.push(o),o=i}const e=document.createElement("div");e.className="tech-teaser-wrapper relative mt-8";const n=document.createElement("div");n.id="tech-teaser-content",n.className="tech-teaser-content is-collapsed",a.forEach(i=>n.appendChild(i)),e.appendChild(n);const l=document.createElement("div");l.className="tech-fade-overlay";const t=document.createElement("button");t.id="tech-toggle-btn",t.type="button",t.className="overview-chip-btn",t.setAttribute("aria-expanded","false");const u='<svg class="btn-icon w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path></svg>';t.innerHTML=`<span class="btn-text">See more</span>${u}`,l.appendChild(t),e.appendChild(l),s.appendChild(e);const d=t.querySelector(".btn-text");t.addEventListener("click",()=>{n.classList.contains("is-expanded")?(n.classList.remove("is-expanded"),n.classList.add("is-collapsed"),t.classList.remove("is-expanded"),t.setAttribute("aria-expanded","false"),d&&(d.textContent="See more"),e.scrollIntoView({behavior:"smooth",block:"nearest"})):(n.classList.remove("is-collapsed"),n.classList.add("is-expanded"),t.classList.add("is-expanded"),t.setAttribute("aria-expanded","true"),d&&(d.textContent="See less"))})},v=()=>{document.querySelectorAll(".guide-content table").forEach(r=>{if(r.parentElement?.classList.contains("table-wrapper"))return;const c=document.createElement("div");c.className="table-wrapper",r.parentNode?.insertBefore(c,r),c.appendChild(r)})},p=()=>{m(),v(),h()};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",p):p();</script>
