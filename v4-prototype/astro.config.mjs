@@ -121,6 +121,15 @@ function guideAssetsIntegration() {
             res.setHeader('Cache-Control', 'no-cache');
             return fs.createReadStream(filePath).pipe(res);
           }
+
+          // Auto-resolve index.html for directory URLs in public folder
+          const publicIndexPath =
+            path.resolve('public', cleanPath, 'index.html');
+          if (fs.existsSync(publicIndexPath)) {
+            res.setHeader('Content-Type', 'text/html;charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            return fs.createReadStream(publicIndexPath).pipe(res);
+          }
           next();
         });
       },

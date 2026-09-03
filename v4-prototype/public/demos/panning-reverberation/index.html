@@ -1,0 +1,788 @@
+<!--
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Panning/Reverb</title>
+
+    <!-- Slider stuff -->
+    <script type="text/javascript" src="lib/events.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="./simple.css" />
+
+    <style type="text/css">
+      #slider {
+        margin: 10px;
+      }
+    </style>
+
+    <!-- Our javascript code -->
+    <script type="text/javascript">
+      // Temporary patch until all browsers support unprefixed context.
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+      // init() once the page has finished loading.
+      window.onload = init;
+
+      var context;
+      var buffer;
+      var convolver;
+      var panner;
+      var source = null;
+      var dryGainNode;
+      var wetGainNode;
+
+      var lowFilter;
+
+      var gTopProjection = 0;
+      var gFrontProjection = 0;
+
+      var x = 0;
+      var y = 0;
+      var z = 0;
+      var hilightedElement = 0;
+      var bufferList;
+
+      var fileCount = 8;
+      var fileList = [
+        "../../sounds/fx/white-noise.wav",
+        "../../sounds/fx/human-voice.mp3",
+        "../../sounds/fx/ticking.wav",
+        "../../sounds/fx/waves.wav",
+        "../../sounds/fx/cauldron.wav",
+        "../../sounds/fx/obama-oilspill.mp3",
+        "../../sounds/fx/penny-spinning.wav",
+        "../../sounds/loops/breakbeat.wav",
+      ];
+
+      var kInitialReverbLevel = 0.6;
+
+      function setReverbImpulseResponse(url) {
+        // Load impulse response asynchronously
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+
+        request.onload = function () {
+          context.decodeAudioData(
+            request.response,
+            function (buffer) {
+              convolver.buffer = buffer;
+            },
+
+            function (buffer) {
+              console.log("Error decoding impulse response!");
+            }
+          );
+        };
+
+        request.send();
+      }
+
+      function mixToMono(buffer) {
+        if (buffer.numberOfChannels == 2) {
+          var pL = buffer.getChannelData(0);
+          var pR = buffer.getChannelData(1);
+          var length = buffer.length;
+
+          for (var i = 0; i < length; ++i) {
+            var mono = 0.5 * (pL[i] + pR[i]);
+            pL[i] = mono;
+            pR[i] = mono;
+          }
+        }
+      }
+
+      function startPlaying(i) {
+        if (source) source.stop();
+        source = context.createBufferSource();
+        source.buffer = bufferList[i];
+        source.connect(lowFilter);
+        source.playbackRate.value = 1.0;
+        source.loop = true;
+        source.start();
+      }
+
+      function setAudioSource(i) {
+        var buffer = bufferList[i];
+
+        // See if we have cached buffer
+        if (buffer) {
+          source.buffer = buffer;
+        } else {
+          // Load asynchronously
+          var url = fileList[i];
+
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+
+          request.onload = function () {
+            context.decodeAudioData(
+              request.response,
+              function (buffer) {
+                mixToMono(buffer);
+                bufferList[i] = buffer; // cache it
+                startPlaying(i);
+              },
+
+              function (buffer) {
+                console.log("Error decoding audio source data!");
+              }
+            );
+          };
+
+          request.send();
+        }
+      }
+
+      function highlightElement(object) {
+        if (hilightedElement) hilightedElement.style.backgroundColor = "white";
+        hilightedElement = object;
+
+        object.style.backgroundColor = "green";
+      }
+
+      function pitchHandler(event, ui) {
+        var cents = ui.value;
+        var info = document.getElementById("pitch-value");
+        info.innerHTML = "pitch = " + cents + " cents";
+
+        var rate = Math.pow(2.0, cents / 1200.0);
+        if (source) source.playbackRate.value = rate;
+      }
+
+      function reverbHandler(event, ui) {
+        var value = ui.value;
+        var info = document.getElementById("ambience-value");
+        info.innerHTML = "ambience = " + value;
+
+        if (wetGainNode) wetGainNode.gain.value = value;
+      }
+
+      function influenceHandler(event, ui) {
+        var value = ui.value;
+        var info = document.getElementById("influence-value");
+        info.innerHTML = "reverb main gain influence = " + value;
+      }
+
+      function mainGainHandler(event, ui) {
+        var value = ui.value;
+        var info = document.getElementById("mainGain-value");
+        info.innerHTML = "main gain = " + value;
+
+        if (dryGainNode) dryGainNode.gain.value = value;
+      }
+
+      function cutoffHandler(event, ui) {
+        var value = ui.value;
+        var noctaves = Math.log(22050.0 / 40.0) / Math.LN2;
+        var v2 = Math.pow(2.0, noctaves * (value - 1.0));
+
+        var sampleRate = 44100.0;
+        var nyquist = sampleRate * 0.5;
+        var frequency = v2 * nyquist;
+        var info = document.getElementById("cutoff-value");
+
+        info.innerHTML = "cutoff = " + frequency + " hz";
+
+        if (lowFilter) lowFilter.frequency.value = frequency;
+      }
+
+      function addSliders() {
+        addSlider("pitch");
+        addSlider("ambience");
+        addSlider("mainGain");
+        addSlider("cutoff");
+        configureSlider("pitch", 0.0, -2400.0, 2400.0, pitchHandler);
+        configureSlider(
+          "ambience",
+          kInitialReverbLevel,
+          0.0,
+          1.0,
+          reverbHandler
+        );
+        configureSlider("mainGain", 1.0, 0.0, 1.0, mainGainHandler);
+        configureSlider("cutoff", 0.99, 0.0, 1.0, cutoffHandler);
+      }
+
+      function setSourceBuffer(buffer) {
+        source.buffer = buffer;
+      }
+
+      /**
+       * Start panning demo
+       */
+      function init() {
+        addSliders();
+
+        var canvas = document.getElementById("canvasID");
+        var canvas2 = document.getElementById("canvasElevationID");
+
+        var ctx = canvas.getContext("2d");
+        var ctx2 = canvas2.getContext("2d");
+
+        gTopProjection = new Projection("canvasID", 0);
+        gFrontProjection = new Projection("canvasElevationID", 1);
+
+        // draw center
+        var width = canvas.width;
+        var height = canvas.height;
+
+        ctx.fillStyle = "rgb(0,200,0)";
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        ctx2.fillStyle = "rgb(0,200,0)";
+        ctx2.beginPath();
+        ctx2.arc(width / 2, height / 2, 10, 0, Math.PI * 2, true);
+        ctx2.fill();
+
+        canvas.addEventListener("mousedown", handleMouseDown, true);
+        canvas.addEventListener("mousemove", handleAzimuthMouseMove, true);
+        canvas.addEventListener("mouseup", handleMouseUp, true);
+
+        canvas2.addEventListener("mousedown", handleMouseDown, true);
+        canvas2.addEventListener("mousemove", handleElevationMouseMove, true);
+        canvas2.addEventListener("mouseup", handleMouseUp, true);
+
+        // Initialize audio
+        context = new AudioContext();
+        context.suspend();
+
+        dryGainNode = context.createGain();
+        wetGainNode = context.createGain();
+        panner = context.createPanner();
+        panner.panningModel = "equalpower";
+
+        lowFilter = context.createBiquadFilter();
+        lowFilter.frequency.value = 22050.0;
+        lowFilter.Q.value = 5.0;
+
+        convolver = context.createConvolver();
+
+        // Connect audio processing graph
+        lowFilter.connect(panner);
+
+        // Connect dry mix
+        panner.connect(dryGainNode);
+        dryGainNode.connect(context.destination);
+
+        // Connect wet mix
+        panner.connect(convolver);
+        convolver.connect(wetGainNode);
+        wetGainNode.connect(context.destination);
+        wetGainNode.gain.value = kInitialReverbLevel;
+
+        bufferList = new Array(fileCount);
+        for (var i = 0; i < fileCount; ++i) {
+          bufferList[i] = 0;
+        }
+
+        setReverbImpulseResponse(
+          "../../sounds/impulse-responses/spatialized3.wav"
+        );
+
+        panner.setPosition(0, 0, -4.0);
+
+        // Load up initial sound
+        setAudioSource(0);
+
+        var cn = { x: 0.0, y: -0.5 };
+        gTopProjection.drawDotNormalized(cn);
+
+        cn.y = 0.0;
+        gFrontProjection.drawDotNormalized(cn);
+
+        document.body.addEventListener(
+          "click",
+          () => {
+            context.resume();
+          },
+          { once: true }
+        );
+      }
+
+      var gIsMouseDown = false;
+
+      // type: 0: top-view  1: front-view
+      function Projection(canvasID, type) {
+        this.canvasID = canvasID;
+        this.canvas = document.getElementById(canvasID);
+        this.type = type;
+        this.lastX = 0;
+        this.lastY = 0;
+      }
+
+      // With normalized graphics coordinate system (-1 -> 1)
+      Projection.prototype.drawDotNormalized = function (cn) {
+        var c = {
+          x: 0.5 * (cn.x + 1.0) * this.canvas.width,
+          y: 0.5 * (cn.y + 1.0) * this.canvas.height,
+        };
+
+        this.drawDot(c);
+      };
+
+      Projection.prototype.handleMouseMove = function (event, suppressY) {
+        if (gIsMouseDown) {
+          var eventInfo = { event: event, element: this.canvas };
+          var c = getRelativeCoordinates(eventInfo);
+          if (suppressY) {
+            c.y = this.lastY;
+          }
+          this.drawDot(c);
+        }
+      };
+
+      Projection.prototype.eraseLastDot = function () {
+        var ctx = this.canvas.getContext("2d");
+
+        // Erase last location
+        ctx.fillStyle = "rgb(255,255,255)";
+        ctx.beginPath();
+        ctx.arc(this.lastX, this.lastY, 12, 0, Math.PI * 2, true);
+        ctx.fill();
+      };
+
+      Projection.prototype.drawDot = function (c) {
+        var canvas = this.canvas;
+        var type = this.type;
+
+        var ctx = canvas.getContext("2d");
+
+        // Erase last location
+        this.eraseLastDot();
+
+        // Draw new location
+        ctx.fillStyle = "rgb(200,0,0)";
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 10, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        // Draw center
+        var width = canvas.width;
+        var height = canvas.height;
+        divWidth = width;
+        divHeight = height;
+
+        ctx.fillStyle = "rgb(0,200,0)";
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        ctx.strokeRect(0, 0, width, height);
+
+        this.lastX = c.x;
+        this.lastY = c.y;
+
+        var a = c.x / divWidth;
+        var b = c.y / divHeight;
+
+        x = 8.0 * (2.0 * a - 1.0);
+
+        if (type == 0) {
+          z = 8.0 * (2.0 * b - 1.0);
+        } else {
+          y = -11.0 * (2.0 * b - 1.0);
+        }
+
+        panner.setPosition(x, y, z);
+
+        lastX = x;
+        lastZ = z;
+      };
+
+      function handleMouseDown(event) {
+        gIsMouseDown = true;
+      }
+
+      function handleMouseUp(event) {
+        gIsMouseDown = false;
+      }
+
+      function handleAzimuthMouseMove(event) {
+        gTopProjection.handleMouseMove(event, false);
+        gFrontProjection.handleMouseMove(event, true);
+      }
+
+      function handleElevationMouseMove(event) {
+        gFrontProjection.handleMouseMove(event, false);
+        gTopProjection.handleMouseMove(event, true);
+      }
+    </script>
+  </head>
+
+  <body>
+    <h1>Top View ---------------- Front View</h1>
+    <canvas
+      id="canvasID"
+      width="400"
+      height="400"
+      style="border: 10px inset blue"
+    >
+    </canvas>
+
+    <canvas
+      id="canvasElevationID"
+      width="400"
+      height="400"
+      style="border: 10px inset blue"
+    >
+    </canvas>
+
+    <div id="info"></div>
+
+    <br />
+
+    <!-- Sliders and other controls will be added here -->
+    <div id="controls"></div>
+
+    <br /><br />
+    <div style="position: relative; height: 350px">
+      <div
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 250px;
+          border: 2px inset blue;
+        "
+      >
+        <h1>Sounds</h1>
+        <form>
+          <input
+            type="radio"
+            name="source"
+            value="0"
+            checked="checked"
+            onClick="setAudioSource(0);"
+          />White Noise<br />
+          <input
+            type="radio"
+            name="source"
+            value="1"
+            onClick="setAudioSource(1);"
+          />Spoken Word<br />
+          <input
+            type="radio"
+            name="source"
+            value="2"
+            onClick="setAudioSource(2);"
+          />Ticking Clock<br />
+          <input
+            type="radio"
+            name="source"
+            value="3"
+            onClick="setAudioSource(3);"
+          />Waves<br />
+          <input
+            type="radio"
+            name="source"
+            value="4"
+            onClick="setAudioSource(4);"
+          />Cauldron<br />
+          <input
+            type="radio"
+            name="source"
+            value="5"
+            onClick="setAudioSource(5);"
+          />Obama Oilspill<br />
+          <input
+            type="radio"
+            name="source"
+            value="6"
+            onClick="setAudioSource(6);"
+          />Penny Spinning<br />
+          <input
+            type="radio"
+            name="source"
+            value="7"
+            onClick="setAudioSource(7);"
+          />Breakbeat<br />
+        </form>
+      </div>
+
+      <div
+        style="
+          position: absolute;
+          top: 300px;
+          left: 0;
+          width: 250px;
+          border: 2px inset blue;
+        "
+      >
+        <h1>Panner Settings</h1>
+        <h2>Panning model</h2>
+        <form>
+          <input
+            type="radio"
+            name="panning"
+            value="equalpower"
+            checked="checked"
+            onClick='panner.panningModel = "equalpower";'
+          />equalpower<br />
+          <input
+            type="radio"
+            name="panning"
+            value="HRTF"
+            onClick='panner.panningModel = "HRTF";'
+          />HRTF<br />
+        </form>
+        <h2>Distance model</h2>
+        <form>
+          <input
+            type="radio"
+            name="distance"
+            value="linear"
+            onClick='panner.distanceModel = "linear";'
+          />linear<br />
+          <input
+            type="radio"
+            name="distance"
+            value="inverse"
+            checked="checked"
+            onClick='panner.distanceModel = "inverse";'
+          />inverse<br />
+          <input
+            type="radio"
+            name="distance"
+            value="exponential"
+            onClick='panner.distanceModel = "exponential";'
+          />exponential<br />
+        </form>
+      </div>
+
+      <div
+        id="acoustic-spaces"
+        style="
+          position: absolute;
+          top: 0;
+          left: 300px;
+          width: 50%;
+          border: 2px inset blue;
+        "
+      >
+        <h1>Acoustic Spaces</h1>
+
+        <form>
+          <input
+            type="radio"
+            name="reverb"
+            value="binaural"
+            checked="checked"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/binaural-s3_r4_bd.wav');"
+          />
+          Binaural<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="warehouse cardiod-25-10-spread"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-35-10-spread.wav');"
+          />
+          Warehouse Cardiod-35-10-spread<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="warehouse cardiod-rear-35-10"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-rear-35-10.wav');"
+          />
+          Warehouse Cardiod-rear-35-10<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="warehouse super-ceiling-35-10"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/super-ceiling-35-10.wav');"
+          />
+          Warehouse Super-ceiling-35-10<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="warehouse omni-35-10"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/omni-35-10.wav');"
+          />
+          Warehouse Omni-35-10<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="warehouse true-stereo-15-8"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/cardiod-true-stereo-15-8.wav');"
+          />
+          Warehouse True-Stereo-15-8<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 1"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized1.wav');"
+          />
+          spatialized 1 (huge spacious)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 2"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized2.wav');"
+          />
+          spatialized 2 (outside)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 3"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized3.wav');"
+          />
+          spatialized 3 (outside)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 4"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized4.wav');"
+          />
+          spatialized 4 (huge spacious)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 5"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized5.wav');"
+          />
+          spatialized 5 (backwards)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 6"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized6.wav');"
+          />
+          spatialized 6 (cosmic)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 7"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized7.wav');"
+          />
+          spatialized 7 (dark cathedral)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 8"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized8.wav');"
+          />
+          spatialized 8 (medium open)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="spatialized 9"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/spatialized9.wav');"
+          />
+          spatialized 9 (medium open)<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="echo chamber"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/echo-chamber.wav');"
+          />
+          Echo Chamber<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="noise spreader"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/noise-spreader1.wav');"
+          />
+          Noise Spreader<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="fluttery"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/peculiar-backwards.wav');"
+          />
+          Fluttery<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="sifter"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/sifter.wav');"
+          />
+          Sifter<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="wild echo"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/wildecho.wav');"
+          />
+          Wild Echo<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="backslap"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/backslap1.wav');"
+          />
+          backslap<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="tim-stretch2"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/tim-stretch2.wav');"
+          />
+          tim-stretch2<br />
+
+          <input
+            type="radio"
+            name="reverb"
+            value="time-warehouse-stretch1"
+            onClick="setReverbImpulseResponse('../../sounds/impulse-responses/tim-warehouse-stretch1.wav');"
+          />
+          tim-warehouse-stretch1.wav<br />
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

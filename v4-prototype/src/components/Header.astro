@@ -47,6 +47,18 @@ const logoUrl = base ? `${base}/chrome-logo.png` : '/chrome-logo.png';
     <!-- Right: Navigation Links + Chrome Logo -->
     <nav class="flex items-center gap-5 text-sm font-medium text-slate-600">
       <a
+        href={base ? `${base}/audio-worklet/` : '/audio-worklet/'}
+        class="hover:text-slate-900 transition-colors hidden sm:block"
+      >
+        Guides
+      </a>
+      <a
+        href={base ? `${base}/demos/` : '/demos/'}
+        class="hover:text-slate-900 transition-colors hidden sm:block"
+      >
+        Demos
+      </a>
+      <a
         href="https://github.com/GoogleChromeLabs/web-audio-samples"
         target="_blank"
         rel="noopener noreferrer"

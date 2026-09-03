@@ -1,0 +1,307 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import Layout from '../../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = base ? `${base}/demos/` : '/demos/';
+
+const curatedDemos = [
+  {
+    title: 'Shiny Drum Machine',
+    href: `${base}/demos/shiny-drum-machine/`,
+    tag: 'Sequencer',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    description:
+      'Classic 16-step drum sequencer with multiple kits, swing timing, ' +
+      'stereo delay, and convolution reverb.',
+  },
+  {
+    title: 'Mother Language Day Drum Sampler',
+    href: `${base}/demos/mld-drum-sampler/`,
+    tag: 'Sampler',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    description:
+      'Interactive drum sampler featuring Korean traditional percussion ' +
+      'samples, dynamic convolution acoustics, and directory loading.',
+  },
+  {
+    title: 'Web Audio DJ',
+    href: `${base}/demos/dj/`,
+    tag: 'Mixing',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    description:
+      'Dual-deck crossfader DJ mixing console with real-time frequency ' +
+      'filtering, beat-synced loops, and live spectrogram analysis.',
+  },
+  {
+    title: 'WebGL 3D Pool with Spatial Audio',
+    href: `${base}/demos/pool/`,
+    tag: '3D Spatial',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    description:
+      'Full 3D physics-based pool game built with WebGL and spatialized ' +
+      '3D audio listener rendering for cue hits, collisions, and pockets.',
+  },
+  {
+    title: 'AnalyserNode Frequency Visualizer',
+    href: `${base}/demos/visualizer/`,
+    tag: 'Analysis',
+    badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    description:
+      'Real-time 3D frequency spectrum, sonogram, and waveform ' +
+      'visualization powered by WebGL and AnalyserNode FFT.',
+  },
+  {
+    title: 'Wavetable Synthesizer',
+    href: `${base}/demos/wavetable-synth/`,
+    tag: 'Synthesis',
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    description:
+      'Interactive wavetable synthesizer featuring over 50 wave-table ' +
+      'profiles, step sequencing, waveshaper saturation, and BPM delay.',
+  },
+  {
+    title: 'Panning & Reverberation',
+    href: `${base}/demos/panning-reverberation/`,
+    tag: 'Spatial',
+    badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+    description:
+      'Interactive 3D binaural and equal-power sound spatialization with ' +
+      'PannerNode positioning and ConvolverNode room acoustics.',
+  },
+  {
+    title: 'Box2D Physics Audio Stress Test',
+    href: `${base}/demos/stress-box/`,
+    tag: 'Performance',
+    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    description:
+      'High-density rigid-body physics simulation generating concurrent ' +
+      'polyphonic collision impacts to benchmark audio engine limits.',
+  },
+  {
+    title: 'Offline PWA Audio Recorder',
+    href: `${base}/demos/pwa-audio-recorder/`,
+    tag: 'Utility',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    description:
+      'Progressive Web App for microphone capture, IndexedDB audio clip ' +
+      'management, and responsive waveform visualization.',
+  },
+];
+
+const externalShowcase = [
+  {
+    title: 'Omnitone',
+    href: 'https://googlechrome.github.io/omnitone/',
+    tag: 'Google Project',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    description:
+      'Full-sphere first-order ambisonic spatial audio renderer for ' +
+      'virtual and augmented reality web applications.',
+  },
+  {
+    title: 'Resonance Audio for Web',
+    href:
+      'https://developers.google.com/resonance-audio/develop/web/' +
+      'getting-started',
+    tag: 'Google SDK',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    description:
+      'Scalable 3D spatial audio SDK for web experiences, computing ' +
+      'realistic sound propagation and spatial room reflections.',
+  },
+  {
+    title: 'Chrome Music Lab',
+    href: 'https://musiclab.chromeexperiments.com/',
+    tag: 'Experiments',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    description:
+      'A collection of playful, interactive web experiments that make ' +
+      'learning music, sound, and harmonics accessible through code.',
+  },
+  {
+    title: 'Google Doodle: Clara Rockmore',
+    href: 'https://www.google.com/doodles/clara-rockmores-105th-birthday',
+    tag: 'Doodle',
+    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    description:
+      'Interactive playable theremin celebrating the 105th birthday of ' +
+      'legendary theremin virtuoso Clara Rockmore.',
+  },
+  {
+    title: 'Google Doodle: Robert Moog',
+    href: 'https://www.google.com/doodles/robert-moogs-78th-birthday',
+    tag: 'Doodle',
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    description:
+      'Playable, multi-track modular analog synthesizer doodle honoring ' +
+      'Robert Moog, inventor of the Moog synthesizer.',
+  },
+  {
+    title: 'Audion DevTools Extension',
+    href:
+      'https://chrome.google.com/webstore/detail/audion/' +
+      'cmhomipkklckpomafalojobppmmidlgl',
+    tag: 'Tooling',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    description:
+      'Chrome DevTools extension visualizing the live Web Audio graph, ' +
+      'node connections, and parameter states in real time.',
+  },
+  {
+    title: 'W3C Web Audio API Specification',
+    href: 'https://www.w3.org/TR/webaudio/',
+    tag: 'Standard',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    description:
+      'The official W3C Recommendation standard defining the architecture, ' +
+      'nodes, and interfaces for web audio signal processing.',
+  },
+  {
+    title: 'MDN Web Audio API Documentation',
+    href: 'https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API',
+    tag: 'Docs',
+    badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    description:
+      'Comprehensive reference documentation, step-by-step guides, and ' +
+      'browser compatibility tables by the Mozilla Developer Network.',
+  },
+];
+---
+
+<Layout
+  title="Apps & Demos - Web Audio Samples"
+  description="Interactive Web Audio demos, synths, and ecosystem showcase."
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-12">
+    <header class="space-y-3 border-b border-slate-200 pb-6">
+      <div class="inline-flex items-center gap-2">
+        <span
+          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
+            text-blue-700 border border-blue-200 uppercase tracking-wider"
+        >
+          Milestone 1 MVP
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        Apps &amp; Demos
+      </h1>
+      <p class="text-slate-600 text-base leading-relaxed">
+        Explore interactive drum sequencers, spatial audio simulations,
+        wavetable synthesizers, and landmark Google Web Audio projects.
+      </p>
+    </header>
+
+    <!-- Curated Interactive Demos Section -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-900">
+          Curated Interactive Demos
+        </h2>
+        <span class="text-xs font-medium text-slate-500">
+          {curatedDemos.length} Apps
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          curatedDemos.map((demo) => (
+            <a
+              href={demo.href}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <h3
+                  class="font-semibold text-slate-900 text-base
+                    group-hover:text-blue-600 transition-colors"
+                >
+                  {demo.title}
+                </h3>
+                <span
+                  class={`text-[10px] font-semibold px-2 py-0.5 rounded-full
+                    border ${demo.badgeClass} shrink-0`}
+                >
+                  {demo.tag}
+                </span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                {demo.description}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- External Showcase & Ecosystem Links Section -->
+    <section class="space-y-4 pt-6 border-t border-slate-200">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-900">
+          External Showcase &amp; Ecosystem Links
+        </h2>
+        <span class="text-xs font-medium text-slate-500">
+          {externalShowcase.length} Resources
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          externalShowcase.map((item) => (
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <h3
+                    class="font-semibold text-slate-900 text-base
+                      group-hover:text-blue-600 transition-colors truncate"
+                  >
+                    {item.title}
+                  </h3>
+                  <svg
+                    class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500
+                      shrink-0 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </div>
+                <span
+                  class={`text-[10px] font-semibold px-2 py-0.5 rounded-full
+                    border ${item.badgeClass} shrink-0`}
+                >
+                  {item.tag}
+                </span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </article>
+</Layout>

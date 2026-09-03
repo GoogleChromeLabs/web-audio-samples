@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<!--
+Copyright 2021 Google Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Audio API 드럼머신 만들기</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      color: #2563eb;
+      text-decoration: none;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    p.desc {
+      font-size: 0.875rem;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+    p.desc a {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    button {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #64748b;
+    }
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .pad {
+      aspect-ratio: 1;
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      border-radius: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.08s ease;
+    }
+    .pad:hover:not(.disabled) {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+    }
+    .pad.active {
+      background: #bfdbfe;
+      border-color: #2563eb;
+      transform: scale(0.96);
+    }
+    .pad.disabled { opacity: 0.4; cursor: not-allowed; }
+    .pad .key {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .pad .name {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+      text-align: center;
+      padding: 0 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../" class="back-link">&larr; Back to Demos</a>
+    <h1>Web Audio API 드럼머신 만들기</h1>
+    <p class="desc">
+      Web Audio API와 File System Access API로 제작된 드럼머신 샘플러입니다.
+      2021 모국어의 날(Mother Language Day) 특집 국악기 드럼 사운드가 포함되어
+      있습니다.
+    </p>
+    <div class="controls">
+      <button id="btn-load-bundled" class="btn-primary">
+        기본 샘플 로드 (Load Bundled Samples)
+      </button>
+      <button id="btn-select-dir" class="btn-secondary">
+        로컬 폴더 선택 (Select Folder)
+      </button>
+      <span id="status-text" class="status">버튼을 눌러 시작하세요</span>
+    </div>
+    <div class="pad-grid" id="pad-grid">
+      <!-- 12 pads rendered dynamically -->
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
