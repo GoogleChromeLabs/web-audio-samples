@@ -1,0 +1,213 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import Layout from '../../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = base ? `${base}/showcases/` : '/showcases/';
+
+const pageDescription =
+  'External Web Audio projects, Google experiments, and developer resources.';
+
+const showcases = [
+  {
+    title: 'Omnitone',
+    href: 'https://googlechrome.github.io/omnitone/',
+    description:
+      'Full-sphere first-order ambisonic spatial audio renderer for ' +
+      'virtual and augmented reality web applications.',
+  },
+  {
+    title: 'Resonance Audio for Web',
+    href:
+      'https://developers.google.com/resonance-audio/develop/web/' +
+      'getting-started',
+    description:
+      'Scalable 3D spatial audio SDK for web experiences, computing ' +
+      'realistic sound propagation and spatial room reflections.',
+  },
+  {
+    title: 'Chrome Music Lab',
+    href: 'https://musiclab.chromeexperiments.com/',
+    description:
+      'A collection of playful, interactive web experiments that make ' +
+      'learning music, sound, and harmonics accessible through code.',
+  },
+  {
+    title: 'Google Doodle: Clara Rockmore',
+    href: 'https://www.google.com/doodles/clara-rockmores-105th-birthday',
+    description:
+      'Interactive playable theremin celebrating the 105th birthday of ' +
+      'legendary theremin virtuoso Clara Rockmore.',
+  },
+  {
+    title: 'Google Doodle: Robert Moog',
+    href: 'https://www.google.com/doodles/robert-moogs-78th-birthday',
+    description:
+      'Playable, multi-track modular analog synthesizer doodle honoring ' +
+      'Robert Moog, inventor of the Moog synthesizer.',
+  },
+];
+
+const resources = [
+  {
+    title: 'Audion DevTools Extension',
+    href:
+      'https://chrome.google.com/webstore/detail/audion/' +
+      'cmhomipkklckpomafalojobppmmidlgl',
+    description:
+      'Chrome DevTools extension visualizing the live Web Audio graph, ' +
+      'node connections, and parameter states in real time.',
+  },
+  {
+    title: 'W3C Web Audio API Specification',
+    href: 'https://www.w3.org/TR/webaudio/',
+    description:
+      'The official W3C Recommendation standard defining the ' +
+      'architecture, nodes, and interfaces for web audio signal processing.',
+  },
+  {
+    title: 'MDN Web Audio API Documentation',
+    href: 'https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API',
+    description:
+      'Comprehensive reference documentation, step-by-step guides, and ' +
+      'browser compatibility tables by the Mozilla Developer Network.',
+  },
+];
+---
+
+<Layout
+  title="Showcases & Resources - Web Audio Samples"
+  description={pageDescription}
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-12">
+    <header class="space-y-3 border-b border-slate-200 pb-6">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        Showcases &amp; Resources
+      </h1>
+      <p class="text-slate-600 text-[1.1rem] leading-relaxed">
+        Explore landmark Google Web Audio projects, playful music experiments,
+        developer tools, and official API specifications.
+      </p>
+    </header>
+
+    <!-- Ecosystem Showcases Section -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-slate-900">
+          Ecosystem Showcases
+        </h2>
+        <span class="text-xs font-medium text-slate-500">
+          {showcases.length} Projects
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          showcases.map((item) => (
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <div class="flex items-center gap-1.5 min-w-0">
+                <h3
+                  class="font-semibold text-slate-900 text-xl
+                    group-hover:text-blue-600 transition-colors truncate"
+                >
+                  {item.title}
+                </h3>
+                <svg
+                  class="w-4 h-4 text-slate-400 group-hover:text-blue-500
+                    shrink-0 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+              <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Developer Resources Section -->
+    <section class="space-y-4 pt-6 border-t border-slate-200">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-slate-900">
+          Developer Resources &amp; Specifications
+        </h2>
+        <span class="text-xs font-medium text-slate-500">
+          {resources.length} Resources
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          resources.map((item) => (
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <div class="flex items-center gap-1.5 min-w-0">
+                <h3
+                  class="font-semibold text-slate-900 text-xl
+                    group-hover:text-blue-600 transition-colors truncate"
+                >
+                  {item.title}
+                </h3>
+                <svg
+                  class="w-4 h-4 text-slate-400 group-hover:text-blue-500
+                    shrink-0 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+              <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </article>
+</Layout>
