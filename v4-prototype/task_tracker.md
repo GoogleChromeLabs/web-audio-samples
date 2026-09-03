@@ -131,7 +131,7 @@ Google and ecosystem links, and foundational test and benchmark fixtures.
   `dj`, `pool`, `visualizer`, `wavetable-synth`) load and run without errors.
 - [x] `[V1-04]` External project cards link accurately to external repositories
   and documentation.
-- [x] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
+- [ ] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
   repros) serve and execute properly on the local test server.
 
 ---
