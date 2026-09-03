@@ -29,19 +29,19 @@ const MIME_TYPES = {
 };
 
 /**
- * Scans src/content/guides/ for guide folders and discovers all co-located
+ * Scans a content folder (guides or tests) and discovers all co-located
  * companion assets (scripts, audio files, WASM, images, etc.).
  */
-function getGuideAssets(guidesDir) {
+function getContentAssets(contentDir, urlRoot) {
   const assetMap = new Map();
-  if (!fs.existsSync(guidesDir)) return assetMap;
+  if (!fs.existsSync(contentDir)) return assetMap;
 
-  const entries = fs.readdirSync(guidesDir, { withFileTypes: true });
+  const entries = fs.readdirSync(contentDir, { withFileTypes: true });
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const guideSlug = entry.name;
-    const guideFolderPath = path.join(guidesDir, guideSlug);
-    const indexPath = path.join(guideFolderPath, 'index.md');
+    const itemSlug = entry.name;
+    const folderPath = path.join(contentDir, itemSlug);
+    const indexPath = path.join(folderPath, 'index.md');
     if (!fs.existsSync(indexPath)) continue;
 
     // Read category from frontmatter
@@ -62,41 +62,47 @@ function getGuideAssets(guidesDir) {
           scanFolder(fullPath, relPath);
         } else if (dirEntry.isFile()) {
           if (relPath === 'index.md' || relPath === 'index.mdx') continue;
-          const urlPath = `audio-worklet/${category}/${guideSlug}/${relPath}`;
+          const urlPath = `${urlRoot}/${category}/${itemSlug}/${relPath}`;
           assetMap.set(urlPath, fullPath);
         }
       }
     }
 
-    scanFolder(guideFolderPath);
+    scanFolder(folderPath);
   }
 
   return assetMap;
 }
 
 /**
- * Astro integration to serve and copy co-located guide companion assets.
+ * Astro integration to serve and copy co-located companion assets.
  * In dev: Serves files via Vite middleware.
- * In build: Copies files to dist/audio-worklet/<category>/<slug>/.
+ * In build: Copies files to dist/<urlRoot>/<category>/<slug>/.
  */
-function guideAssetsIntegration() {
+function companionAssetsIntegration() {
   const guidesDir = path.resolve('src/content/guides');
-  let cachedGuideAssets = null;
+  const testsDir = path.resolve('src/content/tests');
+  let cachedAssets = null;
 
   function getCachedAssets() {
-    if (!cachedGuideAssets) {
-      cachedGuideAssets = getGuideAssets(guidesDir);
+    if (!cachedAssets) {
+      const guideAssets = getContentAssets(guidesDir, 'audio-worklet');
+      const testAssets = getContentAssets(testsDir, 'tests');
+      cachedAssets = new Map([...guideAssets, ...testAssets]);
     }
-    return cachedGuideAssets;
+    return cachedAssets;
   }
 
   return {
-    name: 'guide-assets',
+    name: 'companion-assets',
     hooks: {
       'astro:server:setup': ({ server }) => {
         server.watcher.on('all', (event, filePath) => {
-          if (filePath.includes('src/content/guides')) {
-            cachedGuideAssets = null;
+          if (
+            filePath.includes('src/content/guides') ||
+            filePath.includes('src/content/tests')
+          ) {
+            cachedAssets = null;
           }
         });
 
@@ -112,8 +118,8 @@ function guideAssetsIntegration() {
             cleanPath = cleanPath.slice(cleanBase.length + 1);
           }
 
-          const guideAssets = getCachedAssets();
-          const filePath = guideAssets.get(cleanPath);
+          const assets = getCachedAssets();
+          const filePath = assets.get(cleanPath);
           if (filePath && fs.existsSync(filePath)) {
             const ext = path.extname(filePath).toLowerCase();
             const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -134,9 +140,9 @@ function guideAssetsIntegration() {
         });
       },
       'astro:build:done': async ({ dir }) => {
-        const guideAssets = getGuideAssets(guidesDir);
+        const assets = getCachedAssets();
         const outDir = fileURLToPath(dir);
-        for (const [urlPath, sourceFilePath] of guideAssets) {
+        for (const [urlPath, sourceFilePath] of assets) {
           const destPath = path.join(outDir, urlPath);
           fs.mkdirSync(path.dirname(destPath), { recursive: true });
           fs.copyFileSync(sourceFilePath, destPath);
@@ -158,7 +164,7 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
-  integrations: [guideAssetsIntegration()],
+  integrations: [companionAssetsIntegration()],
   vite: {
     plugins: [tailwindcss()],
     server: {

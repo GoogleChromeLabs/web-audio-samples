@@ -108,19 +108,19 @@ Google and ecosystem links, and foundational test and benchmark fixtures.
   Robert Moog), Audion DevTools Extension, W3C spec, and MDN Web Docs.
 
 ### 3. Test and Benchmark (`@agent-qa`)
-- [ ] `[TEST-01]` Scaffold `tests/` directory structure and unified test
+- [x] `[TEST-01]` Scaffold `tests/` directory structure and unified test
   catalog index page.
-- [ ] `[TEST-02]` Port `resampler` test and benchmark fixture
+- [x] `[TEST-02]` Port `resampler` test and benchmark fixture
   (`src/tests/resampler/`).
-- [ ] `[TEST-03]` Port `resampler-smoke` stress and stability test harness
+- [x] `[TEST-03]` Port `resampler-smoke` stress and stability test harness
   (`src/tests/resampler-smoke/`).
-- [ ] `[TEST-04]` Port `setsinkid` device routing test fixture
+- [x] `[TEST-04]` Port `setsinkid` device routing test fixture
   (`AudioContext.setSinkId()`).
-- [ ] `[TEST-05]` Port `pannernode` audio listener and spatial performance
+- [x] `[TEST-05]` Port `pannernode` audio listener and spatial performance
   benchmark.
-- [ ] `[TEST-06]` Migrate legacy bug reproduction test cases and audio graph
+- [x] `[TEST-06]` Migrate legacy bug reproduction test cases and audio graph
   edge cases.
-- [ ] `[TEST-07]` Setup local test server fixture serving and benchmark
+- [x] `[TEST-07]` Setup local test server fixture serving and benchmark
   reporting.
 
 ### 🛡️ Milestone 1 Verification & Quality Gate
@@ -131,7 +131,7 @@ Google and ecosystem links, and foundational test and benchmark fixtures.
   `dj`, `pool`, `visualizer`, `wavetable-synth`) load and run without errors.
 - [x] `[V1-04]` External project cards link accurately to external repositories
   and documentation.
-- [ ] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
+- [x] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
   repros) serve and execute properly on the local test server.
 
 ---

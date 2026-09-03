@@ -1,0 +1,168 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import type { CollectionEntry } from 'astro:content';
+import Layout from './Layout.astro';
+import InteractiveTestBox from '../components/InteractiveTestBox.astro';
+
+interface Props {
+  test: CollectionEntry<'tests'>;
+}
+
+const { test } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath =
+  `${base}/tests/${test.data.category}/${test.id}/`;
+
+const testScript =
+  test.data.testScript ??
+  `${base}/tests/${test.data.category}/${test.id}/main.js`;
+
+const categoryLabels: Record<string, string> = {
+  manual: 'Manual Test',
+  regression: 'Regression Repro',
+};
+---
+
+<Layout
+  title={`${test.data.title} | Web Audio Tests`}
+  description={test.data.description}
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-8 py-4">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-sm text-slate-500">
+      <a
+        href={base ? `${base}/tests/` : '/tests/'}
+        class="hover:text-blue-600 transition-colors"
+      >
+        Tests &amp; Benchmarks
+      </a>
+      <span>/</span>
+      <span class="capitalize text-slate-600">
+        {categoryLabels[test.data.category] || test.data.category}
+      </span>
+      <span>/</span>
+      <span class="text-slate-900 font-medium">{test.data.title}</span>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="space-y-3 border-b border-slate-200 pb-6">
+      <div class="flex items-center gap-2">
+        <span
+          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
+            text-blue-700 border border-blue-200 uppercase tracking-wider"
+        >
+          {categoryLabels[test.data.category] || test.data.category}
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        {test.data.title}
+      </h1>
+      {
+        test.data.description && (
+          <p class="text-slate-600 text-[1.1rem] leading-relaxed">
+            {test.data.description}
+          </p>
+        )
+      }
+    </header>
+
+    <!-- Interactive Test Harness Box -->
+    {
+      test.data.hasHarness && (
+        <InteractiveTestBox
+          title={test.data.testTitle ?? test.data.title}
+          description={
+            test.data.testDescription ??
+            'Click START TEST to initialize and execute this test fixture.'
+          }
+          scriptSrc={testScript}
+        >
+          <slot name="controls" slot="controls" />
+        </InteractiveTestBox>
+      )
+    }
+
+    <!-- Test Documentation & Code Walkthrough -->
+    <section class="space-y-4 pt-2">
+      <div
+        id="guide-content"
+        class="guide-content prose max-w-none text-slate-700 leading-normal"
+      >
+        <slot />
+      </div>
+    </section>
+  </article>
+</Layout>
+
+<script>
+  function setupCodeBlockCopyButtons() {
+    const copySvg =
+      '<svg class="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" ' +
+      'stroke="currentColor">' +
+      '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+      'd="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 ' +
+      '002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />' +
+      '</svg>';
+
+    const checkSvg =
+      '<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" ' +
+      'viewBox="0 0 24 24" stroke="currentColor">' +
+      '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+      'd="M5 13l4 4L19 7" />' +
+      '</svg>';
+
+    document.querySelectorAll('pre').forEach((pre) => {
+      if (pre.querySelector('.copy-code-button')) return;
+
+      const codeEl = pre.querySelector('code');
+      if (!codeEl) return;
+
+      pre.style.position = 'relative';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className =
+        'copy-code-button absolute top-3 right-3 p-1.5 rounded-md ' +
+        'bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all ' +
+        'opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer';
+      btn.setAttribute('aria-label', 'Copy code snippet');
+      btn.title = 'Copy code';
+      btn.innerHTML = copySvg;
+
+      pre.addEventListener('mouseenter', () => {
+        btn.style.opacity = '1';
+      });
+      pre.addEventListener('mouseleave', () => {
+        if (!btn.classList.contains('copied')) {
+          btn.style.opacity = '0';
+        }
+      });
+
+      btn.addEventListener('click', async () => {
+        const textToCopy = codeEl.innerText.trim();
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          btn.classList.add('copied');
+          btn.innerHTML = checkSvg;
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = copySvg;
+            btn.style.opacity = '0';
+          }, 2000);
+        } catch {
+          btn.textContent = 'Failed';
+        }
+      });
+
+      pre.appendChild(btn);
+    });
+  }
+
+  setupCodeBlockCopyButtons();
+  document.addEventListener('astro:page-load', setupCodeBlockCopyButtons);
+</script>

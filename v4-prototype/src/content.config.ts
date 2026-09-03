@@ -23,6 +23,28 @@ const guides = defineCollection({
   }),
 });
 
+const tests = defineCollection({
+  loader: glob({
+    pattern: '*/index.{md,mdx}',
+    base: './src/content/tests',
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    category: z.enum([
+      'manual',
+      'regression',
+    ]),
+    order: z.number().default(0),
+    tags: z.array(z.string()).optional(),
+    testTitle: z.string().optional(),
+    testDescription: z.string().optional(),
+    testScript: z.string().optional(),
+    hasHarness: z.boolean().default(true),
+  }),
+});
+
 export const collections = {
   guides,
+  tests,
 };

@@ -26,10 +26,19 @@ const migrationGuides = allGuides
   .filter((g) => g.data.category === 'migration')
   .sort((a, b) => a.data.order - b.data.order);
 
+let allTests: any[] = [];
+try {
+  allTests = await getCollection('tests');
+} catch {
+  allTests = [];
+}
+allTests.sort((a, b) => a.data.order - b.data.order);
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const sections = [
   {
+    id: 'basic',
     title: 'Basic AudioWorklet',
     items: basicGuides.map((g) => ({
       label: g.data.title,
@@ -37,6 +46,7 @@ const sections = [
     })),
   },
   {
+    id: 'design-pattern',
     title: 'Design Patterns',
     items: patternGuides.map((g) => ({
       label: g.data.title,
@@ -44,6 +54,7 @@ const sections = [
     })),
   },
   {
+    id: 'migration',
     title: 'Migration Guides',
     items: migrationGuides.map((g) => ({
       label: g.data.title,
@@ -51,6 +62,7 @@ const sections = [
     })),
   },
   {
+    id: 'demos',
     title: 'Interactive Demos',
     items: [
       {
@@ -87,7 +99,38 @@ const sections = [
       },
     ],
   },
+  {
+    id: 'showcases',
+    title: 'Showcases and Resources',
+    items: [
+      {
+        label: 'Showcases & Resources',
+        href: `${base}/showcases/`,
+      },
+    ],
+  },
+  {
+    id: 'tests',
+    title: 'Tests and Benchmarks',
+    items: [
+      {
+        label: 'All Tests & Benchmarks',
+        href: `${base}/tests/`,
+      },
+      ...allTests.map((t) => ({
+        label: t.data.title,
+        href: `${base}/tests/${t.data.category}/${t.id}/`,
+      })),
+    ],
+  },
 ].filter((s) => s.items.length > 0);
+
+const hasAnyActive = sections.some((section) =>
+  section.items.some(
+    (item) =>
+      currentPath === item.href || currentPath === item.href.replace(/\/$/, '')
+  )
+);
 ---
 
 <!-- Sliding Drawer Backdrop -->
@@ -107,79 +150,136 @@ const sections = [
   class:list={[
     'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)]',
     'w-72 sm:w-80 shrink-0 bg-white border-r border-slate-200',
-    'p-6 space-y-6 overflow-y-auto shadow-2xl',
+    'p-6 space-y-4 overflow-y-auto shadow-2xl',
     'transform -translate-x-full',
     'transition-transform duration-300 ease-in-out',
   ]}
   aria-label="Sidebar navigation"
 >
-  <!-- Drawer Header with Close Button -->
-  <div class="flex items-center justify-end pb-3 border-b border-slate-100">
-    <button
-      id="sidebar-close"
-      type="button"
-      aria-label="Close navigation drawer"
-      class:list={[
-        'p-1 rounded-md text-slate-400 hover:text-slate-700',
-        'hover:bg-slate-100 cursor-pointer transition-colors',
-      ]}
-    >
-      <svg
-        class="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+  <!-- Drawer Header with Navigation Title & Action Buttons -->
+  <div
+    class="flex items-center justify-between pb-3 border-b border-slate-200"
+  >
+    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+      Navigation
+    </span>
+    <div class="flex items-center gap-2">
+      <button
+        id="sidebar-toggle-all"
+        type="button"
+        class="text-[11px] font-medium text-slate-500 hover:text-blue-600
+          px-2 py-0.5 rounded hover:bg-slate-100 transition-colors
+          cursor-pointer"
       >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M6 18L18 6M6 6l12 12"
-        ></path>
-      </svg>
-    </button>
+        Collapse All
+      </button>
+      <button
+        id="sidebar-close"
+        type="button"
+        aria-label="Close navigation drawer"
+        class:list={[
+          'p-1 rounded-md text-slate-400 hover:text-slate-700',
+          'hover:bg-slate-100 cursor-pointer transition-colors',
+        ]}
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Dynamic Content Collections Navigation -->
-  {
-    sections.length > 0 ? (
-      sections.map((section) => (
-        <div class="space-y-2">
-          <h4
-            class="text-xs font-semibold uppercase tracking-wider
-              text-slate-500"
-          >
-            {section.title}
-          </h4>
-          <ul class="space-y-1 text-sm">
-            {section.items.map((item) => {
-              const isActive =
-                currentPath === item.href ||
-                currentPath === item.href.replace(/\/$/, '');
-              return (
-                <li>
-                  <a
-                    href={item.href}
-                    class:list={[
-                      'block px-2.5 py-1.5 rounded-md transition-colors',
-                      isActive
-                        ? 'bg-blue-50 text-blue-700 font-semibold'
-                        : 'text-slate-600 hover:text-slate-900 ' +
-                          'hover:bg-slate-50',
-                    ]}
+  <!-- Collapsible Navigation Sections -->
+  <div class="space-y-3">
+    {
+      sections.length > 0 ? (
+        sections.map((section) => {
+          const hasActive = section.items.some(
+            (item) =>
+              currentPath === item.href ||
+              currentPath === item.href.replace(/\/$/, '')
+          );
+          const isOpen = hasActive || !hasAnyActive;
+
+          return (
+            <details
+              class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0"
+              open={isOpen}
+              data-section-id={section.id}
+            >
+              <summary
+                class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"
+              >
+                <span class="flex items-center gap-2">
+                  <span>{section.title}</span>
+                  <span
+                    class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"
                   >
-                    {item.label}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))
-    ) : (
-      <slot />
-    )
-  }
+                    {section.items.length}
+                  </span>
+                </span>
+                <svg
+                  class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </summary>
+              <ul class="mt-1 space-y-1 text-sm pl-1">
+                {section.items.map((item) => {
+                  const isActive =
+                    currentPath === item.href ||
+                    currentPath === item.href.replace(/\/$/, '');
+                  return (
+                    <li>
+                      <a
+                        href={item.href}
+                        class:list={[
+                          'block px-2.5 py-1.5 rounded-md transition-colors',
+                          isActive
+                            ? 'bg-blue-50 text-blue-700 font-semibold'
+                            : 'text-slate-600 hover:text-slate-900 ' +
+                              'hover:bg-slate-50',
+                        ]}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          );
+        })
+      ) : (
+        <slot />
+      )
+    }
+  </div>
 </aside>
 
 <script>
@@ -187,6 +287,7 @@ const sections = [
   const closeBtn = document.getElementById('sidebar-close');
   const drawer = document.getElementById('sidebar-drawer');
   const backdrop = document.getElementById('sidebar-backdrop');
+  const toggleAllBtn = document.getElementById('sidebar-toggle-all');
 
   let isOpen = false;
 
@@ -233,4 +334,49 @@ const sections = [
       closeDrawer();
     }
   });
+
+  // Collapsible section management and state persistence
+  const sectionElements =
+    drawer?.querySelectorAll<HTMLDetailsElement>('details.sidebar-section');
+
+  function updateToggleAllLabel() {
+    if (!toggleAllBtn || !sectionElements) return;
+    const anyOpen = Array.from(sectionElements).some((el) => el.open);
+    toggleAllBtn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+  }
+
+  sectionElements?.forEach((details) => {
+    const id = details.dataset.sectionId;
+    if (id) {
+      const saved = localStorage.getItem(`sidebar_section_${id}`);
+      const hasActive = details.querySelector('a.bg-blue-50') !== null;
+      if (hasActive) {
+        details.open = true;
+      } else if (saved !== null) {
+        details.open = saved === 'true';
+      }
+    }
+
+    details.addEventListener('toggle', () => {
+      if (id) {
+        localStorage.setItem(`sidebar_section_${id}`, String(details.open));
+      }
+      updateToggleAllLabel();
+    });
+  });
+
+  toggleAllBtn?.addEventListener('click', () => {
+    if (!sectionElements) return;
+    const anyOpen = Array.from(sectionElements).some((el) => el.open);
+    sectionElements.forEach((el) => {
+      el.open = !anyOpen;
+      const id = el.dataset.sectionId;
+      if (id) {
+        localStorage.setItem(`sidebar_section_${id}`, String(!anyOpen));
+      }
+    });
+    updateToggleAllLabel();
+  });
+
+  updateToggleAllLabel();
 </script>

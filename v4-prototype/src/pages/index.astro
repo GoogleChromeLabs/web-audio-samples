@@ -8,6 +8,8 @@ import Layout from '../layouts/Layout.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const guidesUrl = base ? `${base}/audio-worklet/` : '/audio-worklet/';
 const demosUrl = base ? `${base}/demos/` : '/demos/';
+const showcasesUrl = base ? `${base}/showcases/` : '/showcases/';
+const testsUrl = base ? `${base}/tests/` : '/tests/';
 ---
 
 <Layout
@@ -28,7 +30,7 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
       <h1 class="text-4xl font-bold tracking-tight text-slate-900">
         Web Audio Samples
       </h1>
-      <p class="text-slate-600 text-lg leading-relaxed">
+      <p class="text-slate-600 text-[1.1rem] leading-relaxed">
         High-performance Web Audio API guides, AudioWorklet design patterns,
         and interactive demos curated by the Chrome Web Audio team.
       </p>
@@ -55,10 +57,10 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
             14 Guides &rarr;
           </span>
         </div>
-        <h2 class="text-lg font-bold text-slate-900">
+        <h2 class="text-xl font-bold text-slate-900">
           AudioWorklet Guides
         </h2>
-        <p class="text-xs text-slate-600 leading-relaxed">
+        <p class="text-[1.1rem] text-slate-600 leading-relaxed">
           Comprehensive AudioWorklet implementation guides, bypass routing,
           lock-free SharedArrayBuffer queues, and C++/WASM audio kernels.
         </p>
@@ -83,12 +85,12 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
             Interactive Apps &rarr;
           </span>
         </div>
-        <h2 class="text-lg font-bold text-slate-900">
+        <h2 class="text-xl font-bold text-slate-900">
           Apps &amp; Demos
         </h2>
-        <p class="text-xs text-slate-600 leading-relaxed">
+        <p class="text-[1.1rem] text-slate-600 leading-relaxed">
           Playable vintage drum sequencers, dual-deck DJ consoles, 3D WebGL
-          spatial pool, wavetable synthesizers, and Google ecosystem showcases.
+          spatial pool, wavetable synthesizers, and audio visualizers.
         </p>
       </a>
     </section>
@@ -110,10 +112,10 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
           >
             01
           </div>
-          <h3 class="text-sm font-bold text-slate-900">
+          <h3 class="text-base font-bold text-slate-900">
             Worklet Basics
           </h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
             Tone routing, noise generation, bitcrushing, error handling, and
             AudioParam automation.
           </p>
@@ -130,10 +132,10 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
           >
             02
           </div>
-          <h3 class="text-sm font-bold text-slate-900">
+          <h3 class="text-base font-bold text-slate-900">
             Design Patterns
           </h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
             Lock-free SAB ring buffers, Atomics synchronization, and compiled
             WASM DSP kernels.
           </p>
@@ -150,10 +152,10 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
           >
             03
           </div>
-          <h3 class="text-sm font-bold text-slate-900">
+          <h3 class="text-base font-bold text-slate-900">
             Migration Guides
           </h3>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
             Architectural paths from legacy ScriptProcessorNode to
             low-latency AudioWorklet processors.
           </p>
@@ -194,6 +196,50 @@ const demosUrl = base ? `${base}/demos/` : '/demos/';
           border-slate-300 transition-colors"
       >
         <span>Launch Interactive Demos</span>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </a>
+
+      <a
+        href={showcasesUrl}
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
+          hover:bg-slate-200 text-slate-800 text-sm font-semibold border
+          border-slate-300 transition-colors"
+      >
+        <span>Showcases &amp; Resources</span>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </a>
+
+      <a
+        href={testsUrl}
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
+          hover:bg-slate-200 text-slate-800 text-sm font-semibold border
+          border-slate-300 transition-colors"
+      >
+        <span>Tests &amp; Benchmarks</span>
         <svg
           class="w-4 h-4"
           fill="none"

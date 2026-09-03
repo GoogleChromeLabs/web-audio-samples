@@ -1,0 +1,26 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import { getCollection, render } from 'astro:content';
+import TestLayout from '../../../layouts/TestLayout.astro';
+
+export async function getStaticPaths() {
+  const tests = await getCollection('tests');
+  return tests.map((test) => ({
+    params: {
+      category: test.data.category,
+      slug: test.id,
+    },
+    props: { test },
+  }));
+}
+
+const { test } = Astro.props;
+const { Content } = await render(test);
+---
+
+<TestLayout test={test}>
+  <Content />
+</TestLayout>

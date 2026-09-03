@@ -69,9 +69,15 @@ def main():
         p = Path(arg)
         if p.is_dir():
             category, slug, files = get_guide_info(p)
-            base_url = f"{BASE_HOST}/audio-worklet/{category}/{slug}"
+            url_prefix = (
+                "tests" if "tests" in p.parts else "audio-worklet"
+            )
+            base_url = f"{BASE_HOST}/{url_prefix}/{category}/{slug}"
             urls = [f"{base_url}/"] + [f"{base_url}/{f}" for f in files]
-            print(f"\nChecking guide: {p} ({len(urls)} endpoints)")
+            item_type = (
+                "test fixture" if url_prefix == "tests" else "guide"
+            )
+            print(f"\nChecking {item_type}: {p} ({len(urls)} endpoints)")
             for u in urls:
                 if not check_url(u):
                     all_ok = False
