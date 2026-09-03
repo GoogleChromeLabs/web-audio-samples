@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audio Recorder</title>
+    <link
+      href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+    <link rel="manifest" href="site.webmanifest">
+  </head>
+  <body class="mdc-typography">
+    <header class="mdc-top-app-bar">
+      <div class="mdc-top-app-bar__row">
+        <section
+          class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
+        >
+          <i class="logo material-icons">mic</i>
+          <span class="mdc-top-app-bar__title">Audio Recorder</span>
+        </section>
+        <section
+          class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
+          role="toolbar"
+        >
+          <a
+            href="https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/demos/pwa-audio-recorder"
+            class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+            aria-label="Help"
+            target="_blank"
+          >
+            help
+          </a>
+        </section>
+      </div>
+    </header>
+    <main class="mdc-top-app-bar--fixed-adjust">
+      <section class="sound-clips">
+        <div class="empty">
+          <i class="material-icons">mic_external_on</i>
+          <p>
+            Press the button to record audio.<br />No data will be uploaded.
+          </p>
+        </div>
+
+        <template id="clip-template">
+          <div class="mdc-card clip clip-recording">
+            <div class="my-card__media mdc-card__media">
+              <canvas class="visualizer" height="60px"></canvas>
+            </div>
+            <div class="mdc-card__actions recording-invisible">
+              <audio controls></audio>
+              <button class="mdc-icon-button material-icons delete-button">
+                delete
+              </button>
+            </div>
+          </div>
+        </template>
+      </section>
+
+      <div id="record-outline">
+        <button class="mdc-fab" id="record">
+          <i
+            class="material-icons mdc-icon-button__icon mdc-icon-button__icon--on"
+            >stop</i
+          >
+          <i class="material-icons mdc-icon-button__icon"
+            >fiber_manual_record</i
+          >
+        </button>
+      </div>
+    </main>
+
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>

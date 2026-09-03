@@ -1,0 +1,282 @@
+<!--
+Copyright 2011, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Create custom drum beats with a few clicks. Choose from 15 drum kits and 26 effects, and adjust the pitch of each drum. Save and share your beats… rock on!">
+    <title>WebAudio Drum Machine</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="drummachine.css">
+    <script src="shiny-drum-machine.js" type="module"></script>
+
+    <!-- Preload images of dynamic UI elements -->
+    <link rel="preload" as="image" href="images/button_off.png">
+    <link rel="preload" as="image" href="images/button_half.png">
+    <link rel="preload" as="image" href="images/button_on.png">
+    <link rel="preload" as="image" href="images/LED_on.png">
+</head>
+<body id="body">
+    <div id="title">
+        WebAudio Drum Machine <span id="version">1.2</span>
+    </div>
+    <section class="container" id="pad">
+        <div class="buttons_row">
+            <span class="label">Tom 1</span>
+            <button data-instrument="Tom1" data-rhythm="0" class="btn note" alt="Toggle Tom 1 on beat 1"></button>
+            <button data-instrument="Tom1" data-rhythm="1" class="btn note" alt="Toggle Tom 1 on beat 2"></button>
+            <button data-instrument="Tom1" data-rhythm="2" class="btn note" alt="Toggle Tom 1 on beat 3"></button>
+            <button data-instrument="Tom1" data-rhythm="3" class="btn note" alt="Toggle Tom 1 on beat 4"></button>
+            <button data-instrument="Tom1" data-rhythm="4" class="btn note" alt="Toggle Tom 1 on beat 5"></button>
+            <button data-instrument="Tom1" data-rhythm="5" class="btn note" alt="Toggle Tom 1 on beat 6"></button>
+            <button data-instrument="Tom1" data-rhythm="6" class="btn note" alt="Toggle Tom 1 on beat 7"></button>
+            <button data-instrument="Tom1" data-rhythm="7" class="btn note" alt="Toggle Tom 1 on beat 8"></button>
+            <button data-instrument="Tom1" data-rhythm="8" class="btn note" alt="Toggle Tom 1 on beat 9"></button>
+            <button data-instrument="Tom1" data-rhythm="9" class="btn note" alt="Toggle Tom 1 on beat 10"></button>
+            <button data-instrument="Tom1" data-rhythm="10" class="btn note" alt="Toggle Tom 1 on beat 11"></button>
+            <button data-instrument="Tom1" data-rhythm="11" class="btn note" alt="Toggle Tom 1 on beat 12"></button>
+            <button data-instrument="Tom1" data-rhythm="12" class="btn note" alt="Toggle Tom 1 on beat 13"></button>
+            <button data-instrument="Tom1" data-rhythm="13" class="btn note" alt="Toggle Tom 1 on beat 14"></button>
+            <button data-instrument="Tom1" data-rhythm="14" class="btn note" alt="Toggle Tom 1 on beat 15"></button>
+            <button data-instrument="Tom1" data-rhythm="15" class="btn note" alt="Toggle Tom 1 on beat 16"></button>
+        </div>
+        <div class="buttons_row">
+            <span class="label">Tom 2</span>
+            <button data-instrument="Tom2" data-rhythm="0" class="btn note" alt="Toggle Tom 2 on beat 1"></button>
+            <button data-instrument="Tom2" data-rhythm="1" class="btn note" alt="Toggle Tom 2 on beat 2"></button>
+            <button data-instrument="Tom2" data-rhythm="2" class="btn note" alt="Toggle Tom 2 on beat 3"></button>
+            <button data-instrument="Tom2" data-rhythm="3" class="btn note" alt="Toggle Tom 2 on beat 4"></button>
+            <button data-instrument="Tom2" data-rhythm="4" class="btn note" alt="Toggle Tom 2 on beat 5"></button>
+            <button data-instrument="Tom2" data-rhythm="5" class="btn note" alt="Toggle Tom 2 on beat 6"></button>
+            <button data-instrument="Tom2" data-rhythm="6" class="btn note" alt="Toggle Tom 2 on beat 7"></button>
+            <button data-instrument="Tom2" data-rhythm="7" class="btn note" alt="Toggle Tom 2 on beat 8"></button>
+            <button data-instrument="Tom2" data-rhythm="8" class="btn note" alt="Toggle Tom 2 on beat 9"></button>
+            <button data-instrument="Tom2" data-rhythm="9" class="btn note" alt="Toggle Tom 2 on beat 10"></button>
+            <button data-instrument="Tom2" data-rhythm="10" class="btn note" alt="Toggle Tom 2 on beat 11"></button>
+            <button data-instrument="Tom2" data-rhythm="11" class="btn note" alt="Toggle Tom 2 on beat 12"></button>
+            <button data-instrument="Tom2" data-rhythm="12" class="btn note" alt="Toggle Tom 2 on beat 13"></button>
+            <button data-instrument="Tom2" data-rhythm="13" class="btn note" alt="Toggle Tom 2 on beat 14"></button>
+            <button data-instrument="Tom2" data-rhythm="14" class="btn note" alt="Toggle Tom 2 on beat 15"></button>
+            <button data-instrument="Tom2" data-rhythm="15" class="btn note" alt="Toggle Tom 2 on beat 16"></button>
+        </div>
+        <div class="buttons_row">
+            <span class="label">Tom 3</span>
+            <button data-instrument="Tom3" data-rhythm="0" class="btn note" alt="Toggle Tom 3 on beat 1"></button>
+            <button data-instrument="Tom3" data-rhythm="1" class="btn note" alt="Toggle Tom 3 on beat 2"></button>
+            <button data-instrument="Tom3" data-rhythm="2" class="btn note" alt="Toggle Tom 3 on beat 3"></button>
+            <button data-instrument="Tom3" data-rhythm="3" class="btn note" alt="Toggle Tom 3 on beat 4"></button>
+            <button data-instrument="Tom3" data-rhythm="4" class="btn note" alt="Toggle Tom 3 on beat 5"></button>
+            <button data-instrument="Tom3" data-rhythm="5" class="btn note" alt="Toggle Tom 3 on beat 6"></button>
+            <button data-instrument="Tom3" data-rhythm="6" class="btn note" alt="Toggle Tom 3 on beat 7"></button>
+            <button data-instrument="Tom3" data-rhythm="7" class="btn note" alt="Toggle Tom 3 on beat 8"></button>
+            <button data-instrument="Tom3" data-rhythm="8" class="btn note" alt="Toggle Tom 3 on beat 9"></button>
+            <button data-instrument="Tom3" data-rhythm="9" class="btn note" alt="Toggle Tom 3 on beat 10"></button>
+            <button data-instrument="Tom3" data-rhythm="10" class="btn note" alt="Toggle Tom 3 on beat 11"></button>
+            <button data-instrument="Tom3" data-rhythm="11" class="btn note" alt="Toggle Tom 3 on beat 12"></button>
+            <button data-instrument="Tom3" data-rhythm="12" class="btn note" alt="Toggle Tom 3 on beat 13"></button>
+            <button data-instrument="Tom3" data-rhythm="13" class="btn note" alt="Toggle Tom 3 on beat 14"></button>
+            <button data-instrument="Tom3" data-rhythm="14" class="btn note" alt="Toggle Tom 3 on beat 15"></button>
+            <button data-instrument="Tom3" data-rhythm="15" class="btn note" alt="Toggle Tom 3 on beat 16"></button>
+        </div>
+        <div class="buttons_row">
+            <span class="label">Hi-Hat</span>
+            <button data-instrument="HiHat" data-rhythm="0" class="btn note" alt="Toggle Hi-Hat on beat 1"></button>
+            <button data-instrument="HiHat" data-rhythm="1" class="btn note" alt="Toggle Hi-Hat on beat 2"></button>
+            <button data-instrument="HiHat" data-rhythm="2" class="btn note" alt="Toggle Hi-Hat on beat 3"></button>
+            <button data-instrument="HiHat" data-rhythm="3" class="btn note" alt="Toggle Hi-Hat on beat 4"></button>
+            <button data-instrument="HiHat" data-rhythm="4" class="btn note" alt="Toggle Hi-Hat on beat 5"></button>
+            <button data-instrument="HiHat" data-rhythm="5" class="btn note" alt="Toggle Hi-Hat on beat 6"></button>
+            <button data-instrument="HiHat" data-rhythm="6" class="btn note" alt="Toggle Hi-Hat on beat 7"></button>
+            <button data-instrument="HiHat" data-rhythm="7" class="btn note" alt="Toggle Hi-Hat on beat 8"></button>
+            <button data-instrument="HiHat" data-rhythm="8" class="btn note" alt="Toggle Hi-Hat on beat 9"></button>
+            <button data-instrument="HiHat" data-rhythm="9" class="btn note" alt="Toggle Hi-Hat on beat 10"></button>
+            <button data-instrument="HiHat" data-rhythm="10" class="btn note" alt="Toggle Hi-Hat on beat 11"></button>
+            <button data-instrument="HiHat" data-rhythm="11" class="btn note" alt="Toggle Hi-Hat on beat 12"></button>
+            <button data-instrument="HiHat" data-rhythm="12" class="btn note" alt="Toggle Hi-Hat on beat 13"></button>
+            <button data-instrument="HiHat" data-rhythm="13" class="btn note" alt="Toggle Hi-Hat on beat 14"></button>
+            <button data-instrument="HiHat" data-rhythm="14" class="btn note" alt="Toggle Hi-Hat on beat 15"></button>
+            <button data-instrument="HiHat" data-rhythm="15" class="btn note" alt="Toggle Hi-Hat on beat 16"></button>
+        </div>
+        <div class="buttons_row">
+            <span class="label">Snare</span>
+            <button data-instrument="Snare" data-rhythm="0" class="btn note" alt="Toggle Snare on beat 1"></button>
+            <button data-instrument="Snare" data-rhythm="1" class="btn note" alt="Toggle Snare on beat 2"></button>
+            <button data-instrument="Snare" data-rhythm="2" class="btn note" alt="Toggle Snare on beat 3"></button>
+            <button data-instrument="Snare" data-rhythm="3" class="btn note" alt="Toggle Snare on beat 4"></button>
+            <button data-instrument="Snare" data-rhythm="4" class="btn note" alt="Toggle Snare on beat 5"></button>
+            <button data-instrument="Snare" data-rhythm="5" class="btn note" alt="Toggle Snare on beat 6"></button>
+            <button data-instrument="Snare" data-rhythm="6" class="btn note" alt="Toggle Snare on beat 7"></button>
+            <button data-instrument="Snare" data-rhythm="7" class="btn note" alt="Toggle Snare on beat 8"></button>
+            <button data-instrument="Snare" data-rhythm="8" class="btn note" alt="Toggle Snare on beat 9"></button>
+            <button data-instrument="Snare" data-rhythm="9" class="btn note" alt="Toggle Snare on beat 10"></button>
+            <button data-instrument="Snare" data-rhythm="10" class="btn note" alt="Toggle Snare on beat 11"></button>
+            <button data-instrument="Snare" data-rhythm="11" class="btn note" alt="Toggle Snare on beat 12"></button>
+            <button data-instrument="Snare" data-rhythm="12" class="btn note" alt="Toggle Snare on beat 13"></button>
+            <button data-instrument="Snare" data-rhythm="13" class="btn note" alt="Toggle Snare on beat 14"></button>
+            <button data-instrument="Snare" data-rhythm="14" class="btn note" alt="Toggle Snare on beat 15"></button>
+            <button data-instrument="Snare" data-rhythm="15" class="btn note" alt="Toggle Snare on beat 16"></button>
+        </div>
+        <div class="buttons_row">
+            <span class="label">Kick</span>
+            <button data-instrument="Kick" data-rhythm="0" class="btn note" alt="Toggle Kick on beat 1"></button>
+            <button data-instrument="Kick" data-rhythm="1" class="btn note" alt="Toggle Kick on beat 2"></button>
+            <button data-instrument="Kick" data-rhythm="2" class="btn note" alt="Toggle Kick on beat 3"></button>
+            <button data-instrument="Kick" data-rhythm="3" class="btn note" alt="Toggle Kick on beat 4"></button>
+            <button data-instrument="Kick" data-rhythm="4" class="btn note" alt="Toggle Kick on beat 5"></button>
+            <button data-instrument="Kick" data-rhythm="5" class="btn note" alt="Toggle Kick on beat 6"></button>
+            <button data-instrument="Kick" data-rhythm="6" class="btn note" alt="Toggle Kick on beat 7"></button>
+            <button data-instrument="Kick" data-rhythm="7" class="btn note" alt="Toggle Kick on beat 8"></button>
+            <button data-instrument="Kick" data-rhythm="8" class="btn note" alt="Toggle Kick on beat 9"></button>
+            <button data-instrument="Kick" data-rhythm="9" class="btn note" alt="Toggle Kick on beat 10"></button>
+            <button data-instrument="Kick" data-rhythm="10" class="btn note" alt="Toggle Kick on beat 11"></button>
+            <button data-instrument="Kick" data-rhythm="11" class="btn note" alt="Toggle Kick on beat 12"></button>
+            <button data-instrument="Kick" data-rhythm="12" class="btn note" alt="Toggle Kick on beat 13"></button>
+            <button data-instrument="Kick" data-rhythm="13" class="btn note" alt="Toggle Kick on beat 14"></button>
+            <button data-instrument="Kick" data-rhythm="14" class="btn note" alt="Toggle Kick on beat 15"></button>
+            <button data-instrument="Kick" data-rhythm="15" class="btn note" alt="Toggle Kick on beat 16"></button>
+        </div>
+        <div class="buttons_row" id="LED_row">
+            <span class="label"></span>
+            <div class="led" data-led="off" data-rhythm="0"></div>
+            <div class="led" data-led="off" data-rhythm="1"></div>
+            <div class="led" data-led="off" data-rhythm="2"></div>
+            <div class="led" data-led="off" data-rhythm="3"></div>
+            <div class="led" data-led="off" data-rhythm="4"></div>
+            <div class="led" data-led="off" data-rhythm="5"></div>
+            <div class="led" data-led="off" data-rhythm="6"></div>
+            <div class="led" data-led="off" data-rhythm="7"></div>
+            <div class="led" data-led="off" data-rhythm="8"></div>
+            <div class="led" data-led="off" data-rhythm="9"></div>
+            <div class="led" data-led="off" data-rhythm="10"></div>
+            <div class="led" data-led="off" data-rhythm="11"></div>
+            <div class="led" data-led="off" data-rhythm="12"></div>
+            <div class="led" data-led="off" data-rhythm="13"></div>
+            <div class="led" data-led="off" data-rhythm="14"></div>
+            <div class="led" data-led="off" data-rhythm="15"></div>
+        </div>
+    </section>
+    <section class="container" id="params">
+        <div class="row">
+            <div id="paramsleft_container">
+                <div id="kitcombo_container" class="row">
+                    <label class="label" id="kitlabel" for="kitlist">Kit</label>
+                    <select id="kitlist"></select>
+                </div>
+                <div id="effectcombo_container" class="row">
+                    <label class="label" id="effectlabel" for="effectlist">Effect</label>
+                    <select id="effectlist"></select>
+                </div>
+                <div id="tempo_container" class="row">
+                    <span class="label" id="tempolabel">Tempo</span>
+                    <div id="tempodisplay">
+                    <span id="tempo"></span> <span id="bpm">bpm</span>
+                    </div>
+                    <div class="button_group buttons_container adjust_for_transparency">
+                        <input type="image" id="tempodec" src="images/tempo_dec.png" alt="Decrease tempo">
+                        <input type="image" id="tempoinc" src="images/tempo_inc.png" alt="Increase tempo">
+                    </div>
+                </div>
+                <div class="slider_container" id="swing_container" class="row">
+                    <label class="label" id="swinglabel" for="swing_thumb">Swing</label>
+                    <input type="range" id="swing_thumb">
+                </div>
+            </div>
+            <div class="vrule"></div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="effect_thumb">
+                <label class="slider_label" for="effect_thumb">
+                    Effect Level
+                </label>
+            </div>
+            <div class="vrule"></div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="kick_thumb" data-instrument="Kick" data-pitch>
+                <label class="slider_label" for="kick_thumb">
+                    Kick Pitch
+                </label>
+            </div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="snare_thumb" data-instrument="Snare" data-pitch>
+                <label class="slider_label" for="snare_thumb">
+                    Snare Pitch
+                </label>
+            </div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="hihat_thumb" data-instrument="HiHat" data-pitch>
+                <label class="slider_label" for="hihat_thumb">
+                    Hi-Hat Pitch
+                </label>
+            </div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="tom1_thumb" data-instrument="Tom1" data-pitch>
+                <label class="slider_label" for="tom1_thumb">
+                    Tom 1 Pitch
+                </label>
+            </div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="tom2_thumb" data-instrument="Tom2" data-pitch>
+                <label class="slider_label" for="tom2_thumb">
+                    Tom 2 Pitch
+                </label>
+            </div>
+            <div class="slider_container">
+                <input type="range" class="vertical" id="tom3_thumb" data-instrument="Tom3" data-pitch>
+                <label class="slider_label" for="tom3_thumb">
+                    Tom 3 Pitch
+                </label>
+            </div>
+        </div>
+    </section>
+    
+    <section class="container" id="tools">
+        <div class="row buttons_container">
+            <span class="label" id="beatlabel">Beat</span>
+            <button id="play" class="btn play" alt="Toggle play"></button>
+
+            <div class="button_group">    
+                <input type="image" id="save" src="images/btn_save.png" alt="Save">
+                <input type="image" id="load" src="images/btn_load.png" alt="Load">
+                <input type="image" id="reset" src="images/btn_reset.png" alt="Reset">
+            </div>
+
+            <span class="label" id="demolabel">Demo</span>
+            <div class="button_group">
+                <button class="btn demo" data-demo="0" alt="Load demo 1"></button>
+                <button class="btn demo" data-demo="1" alt="Load demo 2"></button>
+                <button class="btn demo" data-demo="2" alt="Load demo 3"></button>
+                <button class="btn demo" data-demo="3" alt="Load demo 4"></button>
+                <button class="btn demo" data-demo="4" alt="Load demo 5"></button>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

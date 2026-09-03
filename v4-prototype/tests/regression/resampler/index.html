@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Resampler Verification (Issue 331682035) | Web Audio Tests</title><meta name="description" content="Regression verification fixture for sample rate conversion stability and click artifact detection at 16,000 Hz.
+"><link rel="icon" type="image/png" href="/web-audio-samples/v4-prototype/chrome-logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/web-audio-samples/v4-prototype/assets/_slug_.Ubtk9vBy.css"></head> <body class="bg-white text-slate-900 min-h-screen flex flex-col antialiased"> <header class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
+      justify-between"> <!-- Left: Hamburger button + Text Title --> <div class="flex items-center gap-3"> <button id="sidebar-toggle" type="button" aria-label="Toggle navigation menu" class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900
+          hover:bg-slate-100 focus:outline-none cursor-pointer"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> </svg> </button> <a href="/web-audio-samples/v4-prototype/" class="font-semibold text-lg text-slate-900 hover:text-blue-600
+          transition-colors">
+Web Audio Samples
+</a> </div> <!-- Right: Navigation Links + Chrome Logo --> <nav class="flex items-center gap-5 text-sm font-medium text-slate-600"> <a href="/web-audio-samples/v4-prototype/audio-worklet/" class="hover:text-slate-900 transition-colors hidden sm:block">
+Guides
+</a> <a href="/web-audio-samples/v4-prototype/demos/" class="hover:text-slate-900 transition-colors hidden sm:block">
+Demos
+</a> <a href="/web-audio-samples/v4-prototype/showcases/" class="hover:text-slate-900 transition-colors hidden sm:block">
+Showcases
+</a> <a href="/web-audio-samples/v4-prototype/tests/" class="hover:text-slate-900 transition-colors hidden sm:block">
+Tests
+</a> <a href="https://github.com/GoogleChromeLabs/web-audio-samples" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 transition-colors flex items-center gap-1"> <span>GitHub</span> <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> <a href="https://www.w3.org/TR/webaudio/" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center gap-1 hover:text-slate-900"> <span>Specification</span> <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> <!-- Google Chrome Logo Image --> <a href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity ml-1" title="Google Chrome" aria-label="Google Chrome"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-5 h-5 object-contain" width="20" height="20"> </a> </nav> </div> </header> <!-- Sliding Drawer Backdrop --><div id="sidebar-backdrop" class="fixed inset-0 top-16 bg-slate-900/25 z-30 transition-opacity duration-300 opacity-0 pointer-events-none" aria-hidden="true"></div> <!-- Animated Left Drawer --> <aside id="sidebar-drawer" class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 sm:w-80 shrink-0 bg-white border-r border-slate-200 p-6 space-y-4 overflow-y-auto shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out" aria-label="Sidebar navigation"> <!-- Drawer Header with Navigation Title & Action Buttons --> <div class="flex items-center justify-between pb-3 border-b border-slate-200"> <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+Navigation
+</span> <div class="flex items-center gap-2"> <button id="sidebar-toggle-all" type="button" class="text-[11px] font-medium text-slate-500 hover:text-blue-600
+          px-2 py-0.5 rounded hover:bg-slate-100 transition-colors
+          cursor-pointer">
+Collapse All
+</button> <button id="sidebar-close" type="button" aria-label="Close navigation drawer" class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </button> </div> </div> <!-- Collapsible Navigation Sections --> <div class="space-y-3"> <details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" data-section-id="basic"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Basic AudioWorklet</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 8 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/hello-audio-worklet/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Hello Audio Worklet! </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/noise-generator/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Noise Generator with Modulation </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/bit-crusher/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> BitCrusher with AudioParam </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/volume-meter/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Volume Meter </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/one-pole-filter/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> One Pole Filter </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/handling-errors/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Handling Errors </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/message-port/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> MessagePort Communication </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/audio-worklet-node-options/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorkletNode Options </a> </li> </ul> </details><details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" data-section-id="design-pattern"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Design Patterns</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 4 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/shared-buffer/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet, SharedArrayBuffer, and Worker </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet and WebAssembly </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm-ring-buffer/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Ring Buffer in AudioWorkletProcessor </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/wasm-supersaw/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> WebAssembly Supersaw Synthesizer </a> </li> </ul> </details><details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" data-section-id="migration"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Migration Guides</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 2 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/spn-recorder/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> ScriptProcessorNode Audio Recorder </a> </li><li> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/worklet-recorder/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioWorklet Audio Recorder </a> </li> </ul> </details><details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" data-section-id="demos"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Interactive Demos</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 8 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/demos/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Explore All Demos </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/shiny-drum-machine/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Shiny Drum Machine </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/mld-drum-sampler/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> MLD Drum Sampler </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/dj/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Web Audio DJ </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/pool/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> WebGL 3D Pool </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/visualizer/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Frequency Visualizer </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/wavetable-synth/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Wavetable Synth </a> </li><li> <a href="/web-audio-samples/v4-prototype/demos/panning-reverberation/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Panning &amp; Reverb </a> </li> </ul> </details><details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" data-section-id="showcases"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Showcases and Resources</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 1 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/showcases/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Showcases &amp; Resources </a> </li> </ul> </details><details class="sidebar-section group border-b border-slate-100 pb-3
+                last:border-b-0" open data-section-id="tests"> <summary class="flex items-center justify-between cursor-pointer
+                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
+                  text-slate-600 hover:text-blue-600 transition-colors
+                  select-none [&::-webkit-details-marker]:hidden"> <span class="flex items-center gap-2"> <span>Tests and Benchmarks</span> <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded
+                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
+                      group-hover:text-blue-600 transition-colors"> 5 </span> </span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                    transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-1"> <li> <a href="/web-audio-samples/v4-prototype/tests/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> All Tests &amp; Benchmarks </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/regression/resampler/" class="block px-2.5 py-1.5 rounded-md transition-colors bg-blue-50 text-blue-700 font-semibold"> Resampler Verification (Issue 331682035) </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/manual/setsinkid/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> AudioContext.setSinkId() Manual Test </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/manual/pannernode/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> PannerNode Spatialization &amp; Glitch Verification </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/regression/resampler-smoke/" class="block px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> Resampler Smoke Test (A/B Stream Comparison) </a> </li> </ul> </details> </div> </aside> <script type="module">const d=document.getElementById("sidebar-toggle"),g=document.getElementById("sidebar-close"),n=document.getElementById("sidebar-drawer"),o=document.getElementById("sidebar-backdrop"),c=document.getElementById("sidebar-toggle-all");let l=!1;function u(){!n||!o||(n.classList.remove("-translate-x-full"),n.classList.add("translate-x-0"),o.classList.remove("opacity-0","pointer-events-none"),o.classList.add("opacity-100","pointer-events-auto"),l=!0)}function r(){!n||!o||(n.classList.remove("translate-x-0"),n.classList.add("-translate-x-full"),o.classList.remove("opacity-100","pointer-events-auto"),o.classList.add("opacity-0","pointer-events-none"),l=!1)}function p(){l?r():u()}d?.addEventListener("click",e=>{e.stopPropagation(),p()});g?.addEventListener("click",r);o?.addEventListener("click",r);n?.querySelectorAll("a").forEach(e=>{e.addEventListener("click",r)});window.addEventListener("keydown",e=>{e.key==="Escape"&&l&&r()});const s=n?.querySelectorAll("details.sidebar-section");function i(){if(!c||!s)return;const e=Array.from(s).some(t=>t.open);c.textContent=e?"Collapse All":"Expand All"}s?.forEach(e=>{const t=e.dataset.sectionId;if(t){const a=localStorage.getItem(`sidebar_section_${t}`);e.querySelector("a.bg-blue-50")!==null?e.open=!0:a!==null&&(e.open=a==="true")}e.addEventListener("toggle",()=>{t&&localStorage.setItem(`sidebar_section_${t}`,String(e.open)),i()})});c?.addEventListener("click",()=>{if(!s)return;const e=Array.from(s).some(t=>t.open);s.forEach(t=>{t.open=!e;const a=t.dataset.sectionId;a&&localStorage.setItem(`sidebar_section_${a}`,String(!e))}),i()});i();</script> <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">  <article class="max-w-4xl space-y-8 py-4"> <!-- Breadcrumbs --> <nav class="flex items-center gap-2 text-sm text-slate-500"> <a href="/web-audio-samples/v4-prototype/tests/" class="hover:text-blue-600 transition-colors">
+Tests &amp; Benchmarks
+</a> <span>/</span> <span class="capitalize text-slate-600"> Regression Repro </span> <span>/</span> <span class="text-slate-900 font-medium">Resampler Verification (Issue 331682035)</span> </nav> <!-- Header Section --> <header class="space-y-3 border-b border-slate-200 pb-6"> <div class="flex items-center gap-2"> <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
+            text-blue-700 border border-blue-200 uppercase tracking-wider"> Regression Repro </span> </div> <h1 class="text-3xl font-bold tracking-tight text-slate-900"> Resampler Verification (Issue 331682035) </h1> <p class="text-slate-600 text-[1.1rem] leading-relaxed"> Regression verification fixture for sample rate conversion stability and click artifact detection at 16,000 Hz.
+ </p> </header> <!-- Interactive Test Harness Box --> <div id="test-harness-box" data-script-src="/web-audio-samples/v4-prototype/tests/regression/resampler/main.js" class="my-6 rounded-xl border border-slate-200 bg-white shadow-sm
+    overflow-hidden transition-all duration-200"> <!-- Harness Header & Controls Bar --> <div class="p-6 border-b border-slate-100 space-y-4"> <div class="flex flex-col sm:flex-row sm:items-center justify-between
+        gap-4"> <div class="space-y-1"> <h2 class="text-base font-bold text-slate-900"> 16 kHz AudioContext Resampler Test </h2> <p class="text-xs text-slate-500"> Generates an audio stream to verify resampling stability. </p> </div> <!-- Action Buttons --> <div class="flex items-center gap-2.5 shrink-0"> <button id="button-start-test" type="button" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700
+            text-white font-medium text-xs tracking-wide transition-colors
+            cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+START TEST
+</button> <button id="button-stop-test" type="button" disabled class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200
+            text-slate-700 font-medium text-xs tracking-wide transition-colors
+            cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+STOP
+</button> </div> </div> <!-- Custom Controls Slot (e.g. dropdowns, switches, axis cards) -->  </div> <!-- Realtime Inspector Panel --> <div class="px-6 py-4 bg-slate-50 border-b border-slate-100"> <div class="flex items-center justify-between mb-2"> <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+AudioContext &amp; Node Inspector
+</span> <span id="test-status-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200
+          text-slate-600">
+IDLE
+</span> </div> <div id="test-inspector" class="p-3.5 rounded-lg bg-white border border-slate-200 font-mono
+        text-xs text-slate-700 whitespace-pre leading-relaxed">
+Ready. Press START TEST to initialize AudioContext.
+</div> </div> <!-- Execution Console Log Output --> <div class="bg-slate-900 p-6"> <div class="flex items-center justify-between pb-3 mb-3 border-b
+        border-slate-800"> <span class="text-xs font-semibold text-slate-300 tracking-wide uppercase">
+Execution Log
+</span> <button id="button-clear-log" type="button" class="text-xs text-slate-400 hover:text-slate-200 transition-colors
+          cursor-pointer">
+Clear Log
+</button> </div> <div id="test-log" class="font-mono text-xs text-slate-300 whitespace-pre-wrap h-44
+        overflow-y-auto leading-relaxed"></div> </div> </div> <script type="module" src="/web-audio-samples/v4-prototype/tests/regression/resampler/main.js"></script> <!-- Test Documentation & Code Walkthrough --> <section class="space-y-4 pt-2"> <div id="guide-content" class="guide-content prose max-w-none text-slate-700 leading-normal">  <h2 id="overview">Overview</h2>
+<p>In Chromium’s Web Audio implementation, when an <code>AudioContext</code> is constructed
+with a custom sample rate different from the underlying hardware device rate
+(e.g., 16,000 Hz context playing to a 44,100 Hz or 48,000 Hz output), the audio
+stream is processed through an internal sample rate converter (resampler).</p>
+<p>In <a href="https://crbug.com/331682035">Chromium Issue 331682035</a>, users reported
+audible clicks, glitches, and audio buffer stuttering when routing audio
+through certain Bluetooth headsets or external DACs under 16 kHz context
+resampling.</p>
+<p>This test fixture reproduces the audio graph configuration from the bug report
+to verify that audio playback remains clean and free of resampling artifacts.</p>
+<h2 id="how-to-test">How to Test</h2>
+<ol>
+<li>Connect headphones, earbuds, or an external audio device.</li>
+<li>Click <strong>START TEST</strong> to instantiate an <code>AudioContext</code> configured at
+<code>sampleRate: 16000</code>.</li>
+<li>Listen to the continuous 440 Hz tone.</li>
+<li><strong>Expected Result</strong>: Smooth, clean sine wave playback without periodic
+clicks, dropouts, or buffer underrun noise.</li>
+<li>Click <strong>STOP</strong> to close the context and terminate the test.</li>
+</ol>
+<h2 id="implementation-details">Implementation Details</h2>
+<p>The audio graph creates an <code>AudioContext</code> with an explicit 16 kHz sample rate:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> audioContext</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> AudioContext</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  latencyHint: </span><span style="color:#9ECBFF">'interactive'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  sampleRate: </span><span style="color:#79B8FF">16000</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> osc</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> OscillatorNode</span><span style="color:#E1E4E8">(audioContext, {</span></span>
+<span class="line"><span style="color:#E1E4E8">  type: </span><span style="color:#9ECBFF">'sine'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  frequency: </span><span style="color:#79B8FF">440</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> gain</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> GainNode</span><span style="color:#E1E4E8">(audioContext, { gain: </span><span style="color:#79B8FF">0.2</span><span style="color:#E1E4E8"> });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">osc.</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(gain).</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(audioContext.destination);</span></span>
+<span class="line"><span style="color:#E1E4E8">osc.</span><span style="color:#B392F0">start</span><span style="color:#E1E4E8">();</span></span></code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li>&#x3C;a
+href=“<a href="https://crbug.com/331682035">https://crbug.com/331682035</a>”
+target=“_blank”
+rel=“noopener”
+<blockquote>
+<p>Chromium Issue 331682035: Audio glitches in resampler</p>
+</blockquote>
+</li>
+<li>&#x3C;a
+href=“<a href="https://webaudio.github.io/web-audio-api/#AudioContextOptions">https://webaudio.github.io/web-audio-api/#AudioContextOptions</a>”
+target=“_blank”
+rel=“noopener”
+<blockquote>
+<p>W3C Web Audio API: AudioContextOptions.sampleRate</p>
+</blockquote>
+</li>
+</ul>  </div> </section> </article>  </main> <footer class="border-t border-slate-200 bg-slate-50/50 mt-auto"> <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row
+      items-center justify-between gap-4 text-xs text-slate-500"> <div class="flex items-center gap-2"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-4 h-4 object-contain opacity-70" width="16" height="16"> <span>Web Audio Samples</span> </div> <div class="flex items-center gap-4 text-xs"> <a href="https://github.com/GoogleChromeLabs/web-audio-samples" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-medium text-slate-600
+          hover:text-blue-600 transition-colors"> <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504
+              .5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605
+              -3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908
+              -.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53
+              2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253
+              -4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103
+              -.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564
+              0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747
+              -1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028
+              1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309
+              .678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18
+              .58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12
+              2z"></path> </svg> <span>View Source on GitHub</span> </a> <a href="https://github.com/GoogleChromeLabs/web-audio-samples/issues/new" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border
+          border-slate-200 bg-white text-xs font-medium text-slate-700
+          hover:text-red-600 hover:border-red-200 hover:bg-red-50/50
+          transition-colors shadow-xs"> <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3
+              L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333
+              .192 3 1.732 3z"></path> </svg> <span>Report an Issue</span> </a> </div> </div> </footer> </body></html> <script type="module">function i(){const o='<svg class="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>',s='<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';document.querySelectorAll("pre").forEach(e=>{if(e.querySelector(".copy-code-button"))return;const n=e.querySelector("code");if(!n)return;e.style.position="relative";const t=document.createElement("button");t.type="button",t.className="copy-code-button absolute top-3 right-3 p-1.5 rounded-md bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer",t.setAttribute("aria-label","Copy code snippet"),t.title="Copy code",t.innerHTML=o,e.addEventListener("mouseenter",()=>{t.style.opacity="1"}),e.addEventListener("mouseleave",()=>{t.classList.contains("copied")||(t.style.opacity="0")}),t.addEventListener("click",async()=>{const a=n.innerText.trim();try{await navigator.clipboard.writeText(a),t.classList.add("copied"),t.innerHTML=s,setTimeout(()=>{t.classList.remove("copied"),t.innerHTML=o,t.style.opacity="0"},2e3)}catch{t.textContent="Failed"}}),e.appendChild(t)})}i();document.addEventListener("astro:page-load",i);</script>
