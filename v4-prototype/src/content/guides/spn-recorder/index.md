@@ -72,7 +72,7 @@ playback.
 - **Modern alternative**: See the
   [AudioWorklet Audio Recorder][worklet-recorder] for the recommended modern
   pattern.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: ScriptProcessorNode (Deprecated)][spn-spec].
 
 [worklet-recorder]: ../worklet-recorder/

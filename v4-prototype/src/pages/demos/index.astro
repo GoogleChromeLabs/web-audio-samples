@@ -4,16 +4,20 @@
 // found in the LICENSE file.
 
 import Layout from '../../layouts/Layout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = base ? `${base}/demos/` : '/demos/';
+
+const breadcrumbs = [{ label: 'Apps and Demos' }];
 
 const curatedDemos = [
   {
     title: 'Shiny Drum Machine',
     href: `${base}/demos/shiny-drum-machine/`,
     tag: 'Sequencer',
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeClass: 'bg-blue-50 text-blue-700',
+    image: `${base}/images/demos/shiny-drum-machine.png`,
     description:
       'Classic 16-step drum sequencer with multiple kits, swing timing, ' +
       'stereo delay, and convolution reverb.',
@@ -22,7 +26,8 @@ const curatedDemos = [
     title: 'Mother Language Day Drum Sampler',
     href: `${base}/demos/mld-drum-sampler/`,
     tag: 'Sampler',
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeClass: 'bg-amber-50 text-amber-700',
+    image: `${base}/images/demos/mld-drum-sampler.png`,
     description:
       'Interactive drum sampler featuring Korean traditional percussion ' +
       'samples, dynamic convolution acoustics, and directory loading.',
@@ -31,7 +36,8 @@ const curatedDemos = [
     title: 'Web Audio DJ',
     href: `${base}/demos/dj/`,
     tag: 'Mixing',
-    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    badgeClass: 'bg-indigo-50 text-indigo-700',
+    image: `${base}/images/demos/dj.png`,
     description:
       'Dual-deck crossfader DJ mixing console with real-time frequency ' +
       'filtering, beat-synced loops, and live spectrogram analysis.',
@@ -40,7 +46,8 @@ const curatedDemos = [
     title: 'WebGL 3D Pool with Spatial Audio',
     href: `${base}/demos/pool/`,
     tag: '3D Spatial',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeClass: 'bg-emerald-50 text-emerald-700',
+    image: `${base}/images/demos/pool.png`,
     description:
       'Full 3D physics-based pool game built with WebGL and spatialized ' +
       '3D audio listener rendering for cue hits, collisions, and pockets.',
@@ -49,7 +56,8 @@ const curatedDemos = [
     title: 'AnalyserNode Frequency Visualizer',
     href: `${base}/demos/visualizer/`,
     tag: 'Analysis',
-    badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    badgeClass: 'bg-cyan-50 text-cyan-700',
+    image: `${base}/images/demos/visualizer.png`,
     description:
       'Real-time 3D frequency spectrum, sonogram, and waveform ' +
       'visualization powered by WebGL and AnalyserNode FFT.',
@@ -58,7 +66,8 @@ const curatedDemos = [
     title: 'Wavetable Synthesizer',
     href: `${base}/demos/wavetable-synth/`,
     tag: 'Synthesis',
-    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    badgeClass: 'bg-purple-50 text-purple-700',
+    image: `${base}/images/demos/wavetable-synth.png`,
     description:
       'Interactive wavetable synthesizer featuring over 50 wave-table ' +
       'profiles, step sequencing, waveshaper saturation, and BPM delay.',
@@ -67,7 +76,8 @@ const curatedDemos = [
     title: 'Panning & Reverberation',
     href: `${base}/demos/panning-reverberation/`,
     tag: 'Spatial',
-    badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+    badgeClass: 'bg-teal-50 text-teal-700',
+    image: `${base}/images/demos/panning-reverberation.png`,
     description:
       'Interactive 3D binaural and equal-power sound spatialization with ' +
       'PannerNode positioning and ConvolverNode room acoustics.',
@@ -76,7 +86,8 @@ const curatedDemos = [
     title: 'Box2D Physics Audio Stress Test',
     href: `${base}/demos/stress-box/`,
     tag: 'Performance',
-    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    badgeClass: 'bg-rose-50 text-rose-700',
+    image: `${base}/images/demos/stress-box.png`,
     description:
       'High-density rigid-body physics simulation generating concurrent ' +
       'polyphonic collision impacts to benchmark audio engine limits.',
@@ -85,7 +96,8 @@ const curatedDemos = [
     title: 'Offline PWA Audio Recorder',
     href: `${base}/demos/pwa-audio-recorder/`,
     tag: 'Utility',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    badgeClass: 'bg-slate-100 text-slate-700',
+    image: `${base}/images/demos/pwa-audio-recorder.png`,
     description:
       'Progressive Web App for microphone capture, IndexedDB audio clip ' +
       'management, and responsive waveform visualization.',
@@ -95,90 +107,70 @@ const curatedDemos = [
 ---
 
 <Layout
-  title="Apps & Demos - Web Audio Samples"
+  title="Apps and Demos - Web Audio Samples"
   description="Interactive Web Audio demos, synths, and audio experiments."
   currentPath={currentPath}
 >
   <article class="max-w-4xl space-y-12">
-    <header class="space-y-3 border-b border-slate-200 pb-6">
+    <header class="space-y-3 pb-2">
+      <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl font-bold tracking-tight text-slate-900">
-        Apps &amp; Demos
+        Apps and Demos
       </h1>
-      <p class="text-slate-600 text-[1.1rem] leading-relaxed">
+      <p class="text-slate-600 text-[1.05rem] leading-relaxed">
         Explore interactive drum sequencers, spatial audio simulations,
         wavetable synthesizers, and Web Audio applications.
       </p>
     </header>
 
-    <!-- Curated Demos Section -->
+    <!-- Demos List -->
     <section class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-slate-900">
-          Curated Demos
-        </h2>
-        <span class="text-xs font-medium text-slate-500">
-          {curatedDemos.length} Apps
-        </span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="flex flex-col space-y-4">
         {
           curatedDemos.map((demo) => (
             <a
               href={demo.href}
-              class="p-5 rounded-lg border border-slate-200
-                hover:border-blue-300 hover:bg-blue-50/30 transition-all
-                block space-y-2 group"
+              class="group flex flex-col sm:flex-row items-start sm:items-center
+                gap-5 p-4 sm:p-5 rounded-xl border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all"
             >
-              <h3
-                class="font-semibold text-slate-900 text-xl
-                  group-hover:text-blue-600 transition-colors"
+              <div
+                class="w-full sm:w-52 md:w-56 shrink-0 aspect-[16/10] rounded-lg
+                  overflow-hidden bg-slate-100 border border-slate-200/80"
               >
-                {demo.title}
-              </h3>
-              <p class="text-[1.1rem] text-slate-600 leading-relaxed">
-                {demo.description}
-              </p>
+                <img
+                  src={demo.image}
+                  alt={`Screenshot of ${demo.title}`}
+                  class="w-full h-full object-cover object-top
+                    group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <div class="flex-1 min-w-0 space-y-2">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <h2
+                    class="text-xl font-semibold text-slate-900
+                      group-hover:text-blue-600 transition-colors"
+                  >
+                    {demo.title}
+                  </h2>
+                  <span
+                    class:list={[
+                      'text-xs font-medium px-2 py-0.5 rounded',
+                      demo.badgeClass,
+                    ]}
+                  >
+                    {demo.tag}
+                  </span>
+                </div>
+                <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+                  {demo.description}
+                </p>
+              </div>
             </a>
           ))
         }
       </div>
     </section>
-
-    <!-- Callout to Showcases and Resources -->
-    <aside
-      class="p-6 rounded-xl border border-slate-200 bg-slate-50/60
-        flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-    >
-      <div class="space-y-1">
-        <h3 class="font-bold text-slate-900 text-lg">
-          Looking for external projects &amp; developer tools?
-        </h3>
-        <p class="text-slate-600 text-[1.1rem] leading-relaxed">
-          Explore Google experiments, Web Audio DevTools, and W3C
-          specifications.
-        </p>
-      </div>
-      <a
-        href={base ? `${base}/showcases/` : '/showcases/'}
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600
-          hover:bg-blue-700 text-white text-sm font-semibold shadow-xs
-          transition-colors shrink-0"
-      >
-        <span>View Showcases &amp; Resources</span>
-        <svg
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </a>
-    </aside>
   </article>
 </Layout>

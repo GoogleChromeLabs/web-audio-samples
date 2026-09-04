@@ -74,7 +74,7 @@ live metering.
   by 84%, protecting main-thread UI smoothness.
 - **Audio Destination**: The worklet connects to `destination` to maintain
   active pulling through the audio engine, even if no audio is output.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: MessagePort][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#dom-audioworkletnode-port

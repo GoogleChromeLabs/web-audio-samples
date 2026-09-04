@@ -66,13 +66,8 @@ panner.positionX.linearRampToValueAtTime(1.0, now + 3.0);
 
 ## References
 
-- <a
-    href="https://webaudio.github.io/web-audio-api/#Spatialization"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: Spatialization Specification</a>
-- <a
-    href="https://webaudio.github.io/web-audio-api/#PannerNode"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: PannerNode Interface</a>
+- [W3C Web Audio API: Spatialization Specification][spatial-spec]
+- [W3C Web Audio API: PannerNode Interface][panner-spec]
+
+[spatial-spec]: https://webaudio.github.io/web-audio-api/#Spatialization
+[panner-spec]: https://webaudio.github.io/web-audio-api/#PannerNode

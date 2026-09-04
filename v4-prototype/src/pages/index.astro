@@ -6,10 +6,11 @@
 import Layout from '../layouts/Layout.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const guidesUrl = base ? `${base}/audio-worklet/` : '/audio-worklet/';
+const guidesUrl =
+  base ? `${base}/audio-worklet/basic/` : '/audio-worklet/basic/';
 const demosUrl = base ? `${base}/demos/` : '/demos/';
-const showcasesUrl = base ? `${base}/showcases/` : '/showcases/';
-const testsUrl = base ? `${base}/tests/` : '/tests/';
+const resourcesUrl = base ? `${base}/resources/` : '/resources/';
+const testsUrl = base ? `${base}/tests/manual/` : '/tests/manual/';
 ---
 
 <Layout
@@ -18,19 +19,11 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
   currentPath={base ? `${base}/` : '/'}
 >
   <article class="max-w-4xl space-y-10 py-4">
-    <header class="space-y-3 border-b border-slate-200 pb-8">
-      <div class="inline-flex items-center gap-2">
-        <span
-          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
-            text-blue-700 border border-blue-200 uppercase tracking-wider"
-        >
-          Developer Portal
-        </span>
-      </div>
+    <header class="space-y-3 pb-2">
       <h1 class="text-4xl font-bold tracking-tight text-slate-900">
         Web Audio Samples
       </h1>
-      <p class="text-slate-600 text-[1.1rem] leading-relaxed">
+      <p class="text-slate-600 text-[1.05rem] leading-relaxed">
         High-performance Web Audio API guides, AudioWorklet design patterns,
         and interactive demos curated by the Chrome Web Audio team.
       </p>
@@ -60,7 +53,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
         <h2 class="text-xl font-bold text-slate-900">
           AudioWorklet Guides
         </h2>
-        <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+        <p class="text-[1.05rem] text-slate-600 leading-relaxed">
           Comprehensive AudioWorklet implementation guides, bypass routing,
           lock-free SharedArrayBuffer queues, and C++/WASM audio kernels.
         </p>
@@ -88,7 +81,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
         <h2 class="text-xl font-bold text-slate-900">
           Apps &amp; Demos
         </h2>
-        <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+        <p class="text-[1.05rem] text-slate-600 leading-relaxed">
           Playable vintage drum sequencers, dual-deck DJ consoles, 3D WebGL
           spatial pool, wavetable synthesizers, and audio visualizers.
         </p>
@@ -102,7 +95,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <a
-          href={guidesUrl}
+          href={`${base}/audio-worklet/basic/`}
           class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
             hover:bg-blue-50/20 transition-all block space-y-2"
         >
@@ -115,14 +108,14 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
           <h3 class="text-base font-bold text-slate-900">
             Worklet Basics
           </h3>
-          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+          <p class="text-[1.05rem] text-slate-600 leading-relaxed">
             Tone routing, noise generation, bitcrushing, error handling, and
             AudioParam automation.
           </p>
         </a>
 
         <a
-          href={guidesUrl}
+          href={`${base}/audio-worklet/design-pattern/`}
           class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
             hover:bg-blue-50/20 transition-all block space-y-2"
         >
@@ -135,14 +128,14 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
           <h3 class="text-base font-bold text-slate-900">
             Design Patterns
           </h3>
-          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+          <p class="text-[1.05rem] text-slate-600 leading-relaxed">
             Lock-free SAB ring buffers, Atomics synchronization, and compiled
             WASM DSP kernels.
           </p>
         </a>
 
         <a
-          href={guidesUrl}
+          href={`${base}/audio-worklet/migration/`}
           class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
             hover:bg-blue-50/20 transition-all block space-y-2"
         >
@@ -155,7 +148,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
           <h3 class="text-base font-bold text-slate-900">
             Migration Guides
           </h3>
-          <p class="text-[1.1rem] text-slate-600 leading-relaxed">
+          <p class="text-[1.05rem] text-slate-600 leading-relaxed">
             Architectural paths from legacy ScriptProcessorNode to
             low-latency AudioWorklet processors.
           </p>
@@ -164,9 +157,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
     </section>
 
     <!-- Bottom Actions -->
-    <div
-      class="pt-6 flex flex-wrap items-center gap-4 border-t border-slate-200"
-    >
+    <div class="pt-4 flex flex-wrap items-center gap-4">
       <a
         href={guidesUrl}
         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600
@@ -212,12 +203,12 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
       </a>
 
       <a
-        href={showcasesUrl}
+        href={resourcesUrl}
         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
           hover:bg-slate-200 text-slate-800 text-sm font-semibold border
           border-slate-300 transition-colors"
       >
-        <span>Showcases &amp; Resources</span>
+        <span>Resources</span>
         <svg
           class="w-4 h-4"
           fill="none"
@@ -239,7 +230,7 @@ const testsUrl = base ? `${base}/tests/` : '/tests/';
           hover:bg-slate-200 text-slate-800 text-sm font-semibold border
           border-slate-300 transition-colors"
       >
-        <span>Tests &amp; Benchmarks</span>
+        <span>Test Suite</span>
         <svg
           class="w-4 h-4"
           fill="none"

@@ -71,7 +71,7 @@ over `MessagePort` just to pass startup parameters to a newly spawned worklet.
 - **One-Time Initialization**: Unlike `AudioParam`, `processorOptions` cannot
   be modified after instantiation. Dynamic changes require `MessagePort` or
   parameters.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: AudioWorkletNodeOptions][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletNodeOptions

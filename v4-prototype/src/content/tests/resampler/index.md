@@ -3,10 +3,10 @@ title: Resampler Verification (Issue 331682035)
 description: >
   Regression verification fixture for sample rate conversion stability
   and click artifact detection at 16,000 Hz.
-category: regression
-order: 1
+category: manual
+order: 3
 tags:
-  - regression
+  - manual
   - resampler
   - bug-repro
   - crbug-331682035
@@ -61,13 +61,8 @@ osc.start();
 
 ## References
 
-- <a
-    href="https://crbug.com/331682035"
-    target="_blank"
-    rel="noopener"
-  >Chromium Issue 331682035: Audio glitches in resampler</a>
-- <a
-    href="https://webaudio.github.io/web-audio-api/#AudioContextOptions"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: AudioContextOptions.sampleRate</a>
+- [Chromium Issue 331682035: Audio glitches in resampler][crbug]
+- [W3C Web Audio API: AudioContextOptions.sampleRate][spec-link]
+
+[crbug]: https://crbug.com/331682035
+[spec-link]: https://webaudio.github.io/web-audio-api/#AudioContextOptions

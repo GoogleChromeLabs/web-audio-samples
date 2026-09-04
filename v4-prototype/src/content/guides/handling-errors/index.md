@@ -75,7 +75,7 @@ the main thread, allowing developers to catch and log audio failures cleanly.
   `process()`. The node produces silence indefinitely.
 - **Diagnostics**: The `processorerror` event object does not leak private
   audio thread memory; details are communicated via structured events.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: onprocessorerror][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletNode

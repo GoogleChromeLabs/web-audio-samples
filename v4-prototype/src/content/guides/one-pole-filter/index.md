@@ -136,7 +136,7 @@ Where filter coefficients are derived per cutoff frequency
 - **Nyquist Limit**: The cutoff frequency must not exceed half the sample
   rate (<math><msub><mi>f</mi><mi>s</mi></msub><mo>/</mo><mn>2</mn></math>)
   to preserve filter stability.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: AudioWorkletProcessor][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletProcessor

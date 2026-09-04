@@ -1,0 +1,172 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = base ? `${base}/resources/` : '/resources/';
+
+const pageDescription =
+  'Official Web Audio specifications, developer tools, and external showcases.';
+
+const breadcrumbs = [{ label: 'Resources' }];
+
+const allResources = [
+  {
+    title: 'Audion DevTools Extension',
+    href:
+      'https://chrome.google.com/webstore/detail/audion/' +
+      'cmhomipkklckpomafalojobppmmidlgl',
+    tag: 'DevTools',
+    badgeClass: 'bg-blue-50 text-blue-700',
+    description:
+      'Chrome DevTools extension visualizing the live Web Audio graph, ' +
+      'node connections, and parameter states in real time.',
+  },
+  {
+    title: 'W3C Web Audio API Specification',
+    href: 'https://www.w3.org/TR/webaudio/',
+    tag: 'Specification',
+    badgeClass: 'bg-purple-50 text-purple-700',
+    description:
+      'The official W3C Recommendation standard defining the ' +
+      'architecture, nodes, and interfaces for web audio signal processing.',
+  },
+  {
+    title: 'MDN Web Audio API Documentation',
+    href: 'https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API',
+    tag: 'Documentation',
+    badgeClass: 'bg-amber-50 text-amber-700',
+    description:
+      'Comprehensive reference documentation, step-by-step guides, and ' +
+      'browser compatibility tables by the Mozilla Developer Network.',
+  },
+  {
+    title: 'Omnitone',
+    href: 'https://googlechrome.github.io/omnitone/',
+    tag: 'Spatial Audio',
+    badgeClass: 'bg-teal-50 text-teal-700',
+    description:
+      'Full-sphere first-order ambisonic spatial audio renderer for ' +
+      'virtual and augmented reality web applications.',
+  },
+  {
+    title: 'Resonance Audio for Web',
+    href:
+      'https://developers.google.com/resonance-audio/develop/web/' +
+      'getting-started',
+    tag: 'SDK',
+    badgeClass: 'bg-emerald-50 text-emerald-700',
+    description:
+      'Scalable 3D spatial audio SDK for web experiences, computing ' +
+      'realistic sound propagation and spatial room reflections.',
+  },
+  {
+    title: 'Chrome Music Lab',
+    href: 'https://musiclab.chromeexperiments.com/',
+    tag: 'Showcase',
+    badgeClass: 'bg-indigo-50 text-indigo-700',
+    description:
+      'A collection of playful, interactive web experiments that make ' +
+      'learning music, sound, and harmonics accessible through code.',
+  },
+  {
+    title: 'Google Doodle: Clara Rockmore',
+    href: 'https://www.google.com/doodles/clara-rockmores-105th-birthday',
+    tag: 'Showcase',
+    badgeClass: 'bg-rose-50 text-rose-700',
+    description:
+      'Interactive playable theremin celebrating the 105th birthday of ' +
+      'legendary theremin virtuoso Clara Rockmore.',
+  },
+  {
+    title: 'Google Doodle: Robert Moog',
+    href: 'https://www.google.com/doodles/robert-moogs-78th-birthday',
+    tag: 'Showcase',
+    badgeClass: 'bg-rose-50 text-rose-700',
+    description:
+      'Playable, multi-track modular analog synthesizer doodle honoring ' +
+      'Robert Moog, inventor of the Moog synthesizer.',
+  },
+];
+---
+
+<Layout
+  title="Resources - Web Audio Samples"
+  description={pageDescription}
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-12">
+    <header class="space-y-3 pb-2">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        Resources
+      </h1>
+      <p class="text-slate-600 text-[1.05rem] leading-relaxed">
+        Official Web Audio specifications, developer tools, and landmark
+        Google Web Audio showcases.
+      </p>
+    </header>
+
+    <!-- Resources List -->
+    <section class="space-y-4">
+      <div class="flex flex-col space-y-4">
+        {
+          allResources.map((item) => (
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block p-5 rounded-xl border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                space-y-2"
+            >
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h2
+                  class="text-xl font-semibold text-slate-900
+                    group-hover:text-blue-600 transition-colors"
+                >
+                  {item.title}
+                </h2>
+                <span
+                  class:list={[
+                    'text-xs font-medium px-2 py-0.5 rounded',
+                    item.badgeClass,
+                  ]}
+                >
+                  {item.tag}
+                </span>
+                <svg
+                  class="w-4 h-4 text-slate-400 group-hover:text-blue-500
+                    shrink-0 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+              <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </article>
+</Layout>

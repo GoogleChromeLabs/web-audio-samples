@@ -59,7 +59,7 @@ garbage collection pauses.
   (2.67 ms at 48 kHz, 2.90 ms at 44.1 kHz).
 - **Processor Lifetime**: Returning `true` from `process()` keeps the processor
   alive. Returning `false` disposes the processor instance.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: AudioWorkletProcessor][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#AudioWorkletProcessor

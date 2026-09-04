@@ -80,7 +80,7 @@ sample quantization and sample-and-hold downsampling on the audio thread.
 - **Parameter Array Allocation**: The browser allocates a single 128-element
   typed array per automated parameter per quantum, avoiding runtime garbage
   collection.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: BitCrusher Example][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#the-bitcrusher-node

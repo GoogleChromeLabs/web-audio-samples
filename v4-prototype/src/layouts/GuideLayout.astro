@@ -6,6 +6,7 @@
 import type { CollectionEntry } from 'astro:content';
 import Layout from './Layout.astro';
 import InteractiveDemoBox from '../components/InteractiveDemoBox.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
 
 interface Props {
   guide: CollectionEntry<'guides'>;
@@ -28,6 +29,20 @@ const bugReportUrl =
 const demoScript =
   guide.data.demoScript ??
   `${base}/audio-worklet/${guide.data.category}/${guide.id}/main.js`;
+
+const collapseTechnicalDetails =
+  guide.data.collapseTechnicalDetails ?? false;
+
+const categoryLabels: Record<string, string> = {
+  basic: 'Basic',
+  'design-pattern': 'Design Pattern',
+  migration: 'Migration Pattern',
+};
+
+const breadcrumbs = [
+  { label: 'Audio Worklet Guides' },
+  { label: categoryLabels[guide.data.category] || guide.data.category },
+];
 ---
 
 <Layout
@@ -39,21 +54,14 @@ const demoScript =
 >
   <article class="max-w-4xl space-y-8">
     <!-- 1. [Title] & [1-line description] -->
-    <header class="space-y-2">
-      <div class="flex items-center gap-2">
-        <span
-          class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50
-            text-blue-700 border border-blue-200 uppercase tracking-wider"
-        >
-          {guide.data.category.replace(/-/g, ' ')}
-        </span>
-      </div>
+    <header class="space-y-3 pb-2">
+      <Breadcrumb items={breadcrumbs} />
       <h1 class="text-3xl font-bold tracking-tight text-slate-900">
         {guide.data.title}
       </h1>
       {
         guide.data.description && (
-          <p class="text-slate-600 text-[1.1rem] leading-relaxed">
+          <p class="text-slate-600 text-[1.05rem] leading-relaxed">
             {guide.data.description}
           </p>
         )
@@ -81,6 +89,7 @@ const demoScript =
       <div
         id="guide-content"
         class="guide-content prose max-w-none text-slate-700 leading-normal"
+        data-collapse-technical={collapseTechnicalDetails ? 'true' : 'false'}
       >
         <slot />
       </div>
@@ -156,6 +165,13 @@ const demoScript =
   const setupTechnicalDetailsTeaser = () => {
     const content = document.getElementById('guide-content');
     if (!content) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceCollapse = urlParams.get('collapse') === 'true';
+    const isEnabled =
+      forceCollapse || content.dataset.collapseTechnical === 'true';
+
+    if (!isEnabled) return;
 
     const headings = Array.from(content.querySelectorAll('h2'));
     const techHeading = headings.find(

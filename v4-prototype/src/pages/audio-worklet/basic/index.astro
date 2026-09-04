@@ -1,0 +1,67 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+
+const allGuides = await getCollection('guides');
+
+const guides = allGuides
+  .filter((g) => g.data.category === 'basic')
+  .sort((a, b) => a.data.order - b.data.order);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath =
+  base ? `${base}/audio-worklet/basic/` : '/audio-worklet/basic/';
+
+const breadcrumbs = [{ label: 'Audio Worklet Guides' }];
+---
+
+<Layout
+  title="Basic - Audio Worklet Guides - Web Audio Samples"
+  description="Foundational AudioWorklet guides and core audio nodes."
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-8">
+    <header class="space-y-3 pb-2">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        Basic
+      </h1>
+      <p class="text-slate-600 text-[1.05rem] leading-relaxed">
+        Foundational guides covering AudioWorklet initialization, parameter
+        automation, message passing, and core audio processing nodes.
+      </p>
+    </header>
+
+    <section class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          guides.map((guide) => (
+            <a
+              href={`${base}/audio-worklet/basic/${guide.id}/`}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <h2
+                class="font-semibold text-slate-900 text-xl
+                  group-hover:text-blue-600 transition-colors"
+              >
+                {guide.data.title}
+              </h2>
+              {guide.data.description && (
+                <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+                  {guide.data.description}
+                </p>
+              )}
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </article>
+</Layout>

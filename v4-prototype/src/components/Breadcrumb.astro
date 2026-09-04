@@ -1,0 +1,41 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{
+  items && items.length > 0 && (
+    <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 flex-wrap">
+      {items.map((item, index) => (
+        <Fragment>
+          {index > 0 && (
+            <span
+              class="text-slate-300 text-xs select-none"
+              aria-hidden="true"
+            >
+              /
+            </span>
+          )}
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100
+              text-slate-600 text-xs font-medium"
+          >
+            {item.label}
+          </span>
+        </Fragment>
+      ))}
+    </nav>
+  )
+}

@@ -20,6 +20,7 @@ const guides = defineCollection({
     demoDescription: z.string().optional(),
     demoScript: z.string().optional(),
     hasDemo: z.boolean().default(true),
+    collapseTechnicalDetails: z.boolean().default(false),
   }),
 });
 
@@ -33,6 +34,7 @@ const tests = defineCollection({
     description: z.string().optional(),
     category: z.enum([
       'manual',
+      'benchmark',
       'regression',
     ]),
     order: z.number().default(0),

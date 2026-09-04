@@ -3,10 +3,10 @@ title: Resampler Smoke Test (A/B Stream Comparison)
 description: >
   Real-time stress test comparing an 8,000 Hz resampled AudioContext stream
   against an unresampled AudioElement stream.
-category: regression
-order: 2
+category: benchmark
+order: 1
 tags:
-  - regression
+  - benchmark
   - resampler
   - a-b-test
   - smoke-test
@@ -64,13 +64,9 @@ elementB.volume = 1.0;
 
 ## References
 
-- <a
-    href="https://webaudio.github.io/web-audio-api/#MediaElementAudioSourceNode"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: MediaElementAudioSourceNode</a>
-- <a
-    href="https://webaudio.github.io/web-audio-api/#AudioContextOptions"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: AudioContextOptions</a>
+- [W3C Web Audio API: MediaElementAudioSourceNode][media-source-spec]
+- [W3C Web Audio API: AudioContextOptions][options-spec]
+
+[media-source-spec]:
+  https://webaudio.github.io/web-audio-api/#MediaElementAudioSourceNode
+[options-spec]: https://webaudio.github.io/web-audio-api/#AudioContextOptions

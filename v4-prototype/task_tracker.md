@@ -180,3 +180,9 @@ CI testing.
 - [ ] `[V2-05]` COOP/COEP isolation headers verified on staging deployment.
 - [ ] `[V2-06]` Cutover: legacy `src/` directory archived and `v4-dev` PR
   merged to `main`.
+
+
+----
+
+Search feature
+3 tags per page (filterable)

@@ -70,7 +70,7 @@ thread synchronization.
 
 - **Direct Modulation**: Connecting an audio node to an `AudioParam` performs
   sample-accurate summing on the audio rendering thread at full sample rate.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: AudioParam][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#AudioParam

@@ -1,0 +1,66 @@
+---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+
+const allTests = await getCollection('tests');
+
+const benchmarkTests = allTests
+  .filter((t) => t.data.category === 'benchmark')
+  .sort((a, b) => a.data.order - b.data.order);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = base ? `${base}/tests/benchmark/` : '/tests/benchmark/';
+
+const breadcrumbs = [{ label: 'Test Suite' }];
+---
+
+<Layout
+  title="Benchmarks - Web Audio Samples"
+  description="Performance benchmarks, stress tests, and audio comparisons."
+  currentPath={currentPath}
+>
+  <article class="max-w-4xl space-y-8">
+    <header class="space-y-3 pb-2">
+      <Breadcrumb items={breadcrumbs} />
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        Benchmarks
+      </h1>
+      <p class="text-slate-600 text-[1.05rem] leading-relaxed">
+        Performance stress tests, throughput benchmarks, and real-time A/B
+        audio comparisons to evaluate browser audio engine limits.
+      </p>
+    </header>
+
+    <section class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {
+          benchmarkTests.map((test) => (
+            <a
+              href={`${base}/tests/benchmark/${test.id}/`}
+              class="p-5 rounded-lg border border-slate-200
+                hover:border-blue-300 hover:bg-blue-50/30 transition-all
+                block space-y-2 group"
+            >
+              <h2
+                class="font-semibold text-slate-900 text-xl
+                  group-hover:text-blue-600 transition-colors"
+              >
+                {test.data.title}
+              </h2>
+              {test.data.description && (
+                <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+                  {test.data.description}
+                </p>
+              )}
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </article>
+</Layout>

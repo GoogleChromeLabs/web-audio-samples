@@ -5,7 +5,7 @@
     @apply bg-white text-slate-900 min-h-screen antialiased;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
       'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 }
 
@@ -48,7 +48,7 @@
 
 .guide-content p,
 .prose p {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
   line-height: 1.6;

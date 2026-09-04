@@ -75,11 +75,10 @@ await audioContext.setSinkId({ type: 'none' });
 
 ## References
 
-- <a
-    href="https://webaudio.github.io/web-audio-api/#dom-audiocontext-setsinkid"
-    target="_blank"
-    rel="noopener"
-  >W3C Web Audio API: AudioContext.setSinkId()</a>
-- <a target="_blank" rel="noopener"
-href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/setSinkId"
->MDN Web Docs: AudioContext.setSinkId()</a>
+- [W3C Web Audio API: AudioContext.setSinkId()][spec-link]
+- [MDN Web Docs: AudioContext.setSinkId()][mdn-link]
+
+[spec-link]:
+  https://webaudio.github.io/web-audio-api/#dom-audiocontext-setsinkid
+[mdn-link]:
+  https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/setSinkId

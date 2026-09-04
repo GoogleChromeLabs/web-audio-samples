@@ -79,7 +79,7 @@ bidirectional messages on `port`:
   starts and transfer the typed array buffers via `postMessage` upon completion.
 - **Legacy Comparison**: See the
   [ScriptProcessorNode Audio Recorder][spn-recorder] for the legacy pattern.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: AudioWorkletProcessor][worklet-spec].
 
 [spn-recorder]: ../spn-recorder/

@@ -1,4 +1,8 @@
 ---
+// Copyright (c) 2026 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import { getCollection } from 'astro:content';
 
 interface Props {
@@ -6,6 +10,7 @@ interface Props {
 }
 
 const { currentPath = '/' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 let allGuides: any[] = [];
 try {
@@ -14,123 +19,93 @@ try {
   allGuides = [];
 }
 
-const basicGuides = allGuides
-  .filter((g) => g.data.category === 'basic')
-  .sort((a, b) => a.data.order - b.data.order);
-
-const patternGuides = allGuides
-  .filter((g) => g.data.category === 'design-pattern')
-  .sort((a, b) => a.data.order - b.data.order);
-
-const migrationGuides = allGuides
-  .filter((g) => g.data.category === 'migration')
-  .sort((a, b) => a.data.order - b.data.order);
-
 let allTests: any[] = [];
 try {
   allTests = await getCollection('tests');
 } catch {
   allTests = [];
 }
-allTests.sort((a, b) => a.data.order - b.data.order);
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const basicCount = allGuides.filter((g) => g.data.category === 'basic').length;
+const patternCount = allGuides.filter(
+  (g) => g.data.category === 'design-pattern'
+).length;
+const migrationCount = allGuides.filter(
+  (g) => g.data.category === 'migration'
+).length;
+const manualCount = allTests.filter((t) => t.data.category === 'manual').length;
+const benchmarkCount = allTests.filter(
+  (t) => t.data.category === 'benchmark'
+).length;
 
-const sections = [
+const navSections = [
   {
-    id: 'basic',
-    title: 'Basic AudioWorklet',
-    items: basicGuides.map((g) => ({
-      label: g.data.title,
-      href: `${base}/audio-worklet/basic/${g.id}/`,
-    })),
-  },
-  {
-    id: 'design-pattern',
-    title: 'Design Patterns',
-    items: patternGuides.map((g) => ({
-      label: g.data.title,
-      href: `${base}/audio-worklet/design-pattern/${g.id}/`,
-    })),
-  },
-  {
-    id: 'migration',
-    title: 'Migration Guides',
-    items: migrationGuides.map((g) => ({
-      label: g.data.title,
-      href: `${base}/audio-worklet/migration/${g.id}/`,
-    })),
-  },
-  {
-    id: 'demos',
-    title: 'Interactive Demos',
+    id: 'audio-worklet',
+    title: 'Audio Worklet Guides',
     items: [
       {
-        label: 'Explore All Demos',
-        href: `${base}/demos/`,
+        label: 'Basic',
+        href: `${base}/audio-worklet/basic/`,
+        matchPrefix: `${base}/audio-worklet/basic`,
+        count: basicCount,
       },
       {
-        label: 'Shiny Drum Machine',
-        href: `${base}/demos/shiny-drum-machine/`,
+        label: 'Design Pattern',
+        href: `${base}/audio-worklet/design-pattern/`,
+        matchPrefix: `${base}/audio-worklet/design-pattern`,
+        count: patternCount,
       },
       {
-        label: 'MLD Drum Sampler',
-        href: `${base}/demos/mld-drum-sampler/`,
-      },
-      {
-        label: 'Web Audio DJ',
-        href: `${base}/demos/dj/`,
-      },
-      {
-        label: 'WebGL 3D Pool',
-        href: `${base}/demos/pool/`,
-      },
-      {
-        label: 'Frequency Visualizer',
-        href: `${base}/demos/visualizer/`,
-      },
-      {
-        label: 'Wavetable Synth',
-        href: `${base}/demos/wavetable-synth/`,
-      },
-      {
-        label: 'Panning & Reverb',
-        href: `${base}/demos/panning-reverberation/`,
+        label: 'Migration Pattern',
+        href: `${base}/audio-worklet/migration/`,
+        matchPrefix: `${base}/audio-worklet/migration`,
+        count: migrationCount,
       },
     ],
   },
   {
-    id: 'showcases',
-    title: 'Showcases and Resources',
+    id: 'test-suite',
+    title: 'Test Suite',
     items: [
       {
-        label: 'Showcases & Resources',
-        href: `${base}/showcases/`,
+        label: 'Manual Tests',
+        href: `${base}/tests/manual/`,
+        matchPrefix: `${base}/tests/manual`,
+        count: manualCount,
+      },
+      {
+        label: 'Benchmarks',
+        href: `${base}/tests/benchmark/`,
+        matchPrefix: `${base}/tests/benchmark`,
+        count: benchmarkCount,
       },
     ],
+  },
+];
+
+const directLinks = [
+  {
+    label: 'Apps and Demos',
+    href: `${base}/demos/`,
+    matchPrefix: `${base}/demos`,
+    count: 9,
   },
   {
-    id: 'tests',
-    title: 'Tests and Benchmarks',
-    items: [
-      {
-        label: 'All Tests & Benchmarks',
-        href: `${base}/tests/`,
-      },
-      ...allTests.map((t) => ({
-        label: t.data.title,
-        href: `${base}/tests/${t.data.category}/${t.id}/`,
-      })),
-    ],
+    label: 'Resources',
+    href: `${base}/resources/`,
+    matchPrefix: `${base}/resources`,
+    count: 8,
   },
-].filter((s) => s.items.length > 0);
+];
 
-const hasAnyActive = sections.some((section) =>
-  section.items.some(
-    (item) =>
-      currentPath === item.href || currentPath === item.href.replace(/\/$/, '')
-  )
-);
+function isItemActive(href: string, matchPrefix: string): boolean {
+  const normCurrent = currentPath.replace(/\/$/, '');
+  const normHref = href.replace(/\/$/, '');
+  const normPrefix = matchPrefix.replace(/\/$/, '');
+  return (
+    normCurrent === normHref || normCurrent.startsWith(normPrefix + '/')
+  );
+}
 ---
 
 <!-- Sliding Drawer Backdrop -->
@@ -156,138 +131,123 @@ const hasAnyActive = sections.some((section) =>
   ]}
   aria-label="Sidebar navigation"
 >
-  <!-- Drawer Header with Navigation Title & Action Buttons -->
-  <div
-    class="flex items-center justify-between pb-3 border-b border-slate-200"
-  >
-    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-      Navigation
-    </span>
-    <div class="flex items-center gap-2">
-      <button
-        id="sidebar-toggle-all"
-        type="button"
-        class="text-[11px] font-medium text-slate-500 hover:text-blue-600
-          px-2 py-0.5 rounded hover:bg-slate-100 transition-colors
-          cursor-pointer"
-      >
-        Collapse All
-      </button>
-      <button
-        id="sidebar-close"
-        type="button"
-        aria-label="Close navigation drawer"
-        class:list={[
-          'p-1 rounded-md text-slate-400 hover:text-slate-700',
-          'hover:bg-slate-100 cursor-pointer transition-colors',
-        ]}
-      >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
-    </div>
-  </div>
-
   <!-- Collapsible Navigation Sections -->
   <div class="space-y-3">
     {
-      sections.length > 0 ? (
-        sections.map((section) => {
-          const hasActive = section.items.some(
-            (item) =>
-              currentPath === item.href ||
-              currentPath === item.href.replace(/\/$/, '')
-          );
-          const isOpen = hasActive || !hasAnyActive;
-
-          return (
-            <details
-              class="sidebar-section group border-b border-slate-100 pb-3
-                last:border-b-0"
-              open={isOpen}
-              data-section-id={section.id}
+      navSections.map((section) => {
+        return (
+          <details
+            class="sidebar-section group pb-2"
+            open={true}
+            data-section-id={section.id}
+          >
+            <summary
+              class="flex items-center justify-between cursor-pointer
+                list-none py-1.5 px-2.5 -mx-2.5 rounded-md text-xs font-bold
+                uppercase tracking-wider text-slate-600 hover:text-blue-600
+                hover:bg-slate-50 transition-colors select-none
+                [&::-webkit-details-marker]:hidden"
             >
-              <summary
-                class="flex items-center justify-between cursor-pointer
-                  list-none py-1.5 text-xs font-bold uppercase tracking-wider
-                  text-slate-600 hover:text-blue-600 transition-colors
-                  select-none [&::-webkit-details-marker]:hidden"
+              <span>{section.title}</span>
+              <svg
+                class="w-4 h-4 text-slate-400 group-hover:text-blue-600
+                  transition-transform duration-200 group-open:rotate-180"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <span class="flex items-center gap-2">
-                  <span>{section.title}</span>
-                  <span
-                    class="text-[10px] font-semibold px-1.5 py-0.5 rounded
-                      bg-slate-100 text-slate-500 group-hover:bg-blue-50
-                      group-hover:text-blue-600 transition-colors"
-                  >
-                    {section.items.length}
-                  </span>
-                </span>
-                <svg
-                  class="w-4 h-4 text-slate-400 group-hover:text-blue-600
-                    transition-transform duration-200 group-open:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </summary>
+            <ul class="mt-1 space-y-1 text-sm pl-3">
+              {section.items.map((item) => {
+                const active = isItemActive(item.href, item.matchPrefix);
+                return (
+                  <li>
+                    <a
+                      href={item.href}
+                      class:list={[
+                        'flex items-center justify-between px-2.5 py-1.5 ' +
+                          'rounded-md transition-colors',
+                        active
+                          ? 'bg-blue-50 text-blue-700 font-semibold'
+                          : 'text-slate-600 hover:text-slate-900 ' +
+                            'hover:bg-slate-50',
+                      ]}
+                    >
+                      <span>{item.label}</span>
+                      {item.count !== undefined && (
+                        <span
+                          class:list={[
+                            'inline-flex items-center justify-center w-5 ' +
+                              'h-5 text-xs rounded font-medium shrink-0',
+                            active
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-slate-100 text-slate-500',
+                          ]}
+                        >
+                          {item.count}
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        );
+      })
+    }
+
+    <!-- Top-Level Direct Links (Apps and Demos, Resources) -->
+    <div class="space-y-1">
+      {
+        directLinks.map((item) => {
+          const active = isItemActive(item.href, item.matchPrefix);
+          return (
+            <a
+              href={item.href}
+              class:list={[
+                'flex items-center justify-between px-2.5 -mx-2.5 py-1.5 ' +
+                  'rounded-md text-xs font-bold uppercase tracking-wider ' +
+                  'transition-colors select-none',
+                active
+                  ? 'bg-blue-50 text-blue-700 font-bold'
+                  : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50',
+              ]}
+            >
+              <span>{item.label}</span>
+              {item.count !== undefined && (
+                <span
+                  class:list={[
+                    'inline-flex items-center justify-center w-5 h-5 ' +
+                      'text-xs rounded font-medium shrink-0 normal-case ' +
+                      'tracking-normal',
+                    active
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-slate-100 text-slate-500',
+                  ]}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </summary>
-              <ul class="mt-1 space-y-1 text-sm pl-1">
-                {section.items.map((item) => {
-                  const isActive =
-                    currentPath === item.href ||
-                    currentPath === item.href.replace(/\/$/, '');
-                  return (
-                    <li>
-                      <a
-                        href={item.href}
-                        class:list={[
-                          'block px-2.5 py-1.5 rounded-md transition-colors',
-                          isActive
-                            ? 'bg-blue-50 text-blue-700 font-semibold'
-                            : 'text-slate-600 hover:text-slate-900 ' +
-                              'hover:bg-slate-50',
-                        ]}
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
+                  {item.count}
+                </span>
+              )}
+            </a>
           );
         })
-      ) : (
-        <slot />
-      )
-    }
+      }
+    </div>
   </div>
 </aside>
 
 <script>
   const toggleBtn = document.getElementById('sidebar-toggle');
-  const closeBtn = document.getElementById('sidebar-close');
   const drawer = document.getElementById('sidebar-drawer');
   const backdrop = document.getElementById('sidebar-backdrop');
-  const toggleAllBtn = document.getElementById('sidebar-toggle-all');
 
   let isOpen = false;
 
@@ -322,7 +282,6 @@ const hasAnyActive = sections.some((section) =>
     toggleDrawer();
   });
 
-  closeBtn?.addEventListener('click', closeDrawer);
   backdrop?.addEventListener('click', closeDrawer);
 
   drawer?.querySelectorAll('a').forEach((link) => {
@@ -338,12 +297,6 @@ const hasAnyActive = sections.some((section) =>
   // Collapsible section management and state persistence
   const sectionElements =
     drawer?.querySelectorAll<HTMLDetailsElement>('details.sidebar-section');
-
-  function updateToggleAllLabel() {
-    if (!toggleAllBtn || !sectionElements) return;
-    const anyOpen = Array.from(sectionElements).some((el) => el.open);
-    toggleAllBtn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
-  }
 
   sectionElements?.forEach((details) => {
     const id = details.dataset.sectionId;
@@ -361,22 +314,6 @@ const hasAnyActive = sections.some((section) =>
       if (id) {
         localStorage.setItem(`sidebar_section_${id}`, String(details.open));
       }
-      updateToggleAllLabel();
     });
   });
-
-  toggleAllBtn?.addEventListener('click', () => {
-    if (!sectionElements) return;
-    const anyOpen = Array.from(sectionElements).some((el) => el.open);
-    sectionElements.forEach((el) => {
-      el.open = !anyOpen;
-      const id = el.dataset.sectionId;
-      if (id) {
-        localStorage.setItem(`sidebar_section_${id}`, String(!anyOpen));
-      }
-    });
-    updateToggleAllLabel();
-  });
-
-  updateToggleAllLabel();
 </script>

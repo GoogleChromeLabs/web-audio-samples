@@ -72,7 +72,7 @@ non-blocking IPC mechanism for telemetry, parameter changes, and state events.
   blocking the high-priority audio rendering thread.
 - **Transferable Objects**: For large typed arrays, pass transferables
   `[buffer]` to transfer memory ownership with zero copy overhead.
-- **Specification Reference**:
+- **Specification**:
   [W3C Web Audio API: MessagePort][spec-link].
 
 [spec-link]: https://www.w3.org/TR/webaudio/#dom-audioworkletnode-port
