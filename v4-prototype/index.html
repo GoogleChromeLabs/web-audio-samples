@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Web Audio Samples - Developer Portal</title><meta name="description" content="High-performance Web Audio API guides and interactive demos."><link rel="icon" type="image/png" href="/web-audio-samples/v4-prototype/chrome-logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/web-audio-samples/v4-prototype/assets/_slug_.CfSVhZp8.css"></head> <body class="bg-white text-slate-900 min-h-screen flex flex-col antialiased"> <header class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Web Audio Samples - Developer Portal</title><meta name="description" content="Web Audio API guides, tests, and interactive demos."><link rel="icon" type="image/png" href="/web-audio-samples/v4-prototype/chrome-logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/web-audio-samples/v4-prototype/assets/_slug_.CpfZ86J2.css"></head> <body class="bg-white text-slate-900 min-h-screen flex flex-col antialiased"> <header class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
       justify-between"> <!-- Left: Hamburger button + Text Title --> <div class="flex items-center gap-3"> <button id="sidebar-toggle" type="button" aria-label="Toggle navigation menu" class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900
           hover:bg-slate-100 focus:outline-none cursor-pointer"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> </svg> </button> <a href="/web-audio-samples/v4-prototype/" class="font-semibold text-lg text-slate-900 hover:text-blue-600
           transition-colors">
@@ -13,73 +13,111 @@ Web Audio Samples
                 uppercase tracking-wider text-slate-600 hover:text-blue-600
                 hover:bg-slate-50 transition-colors select-none
                 [&::-webkit-details-marker]:hidden"> <span>Test Suite</span> <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600
-                  transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-3"> <li> <a href="/web-audio-samples/v4-prototype/tests/manual/" class="flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> <span>Manual Tests</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 bg-slate-100 text-slate-500"> 3 </span> </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/benchmark/" class="flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> <span>Benchmarks</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 bg-slate-100 text-slate-500"> 1 </span> </a> </li> </ul> </details> <!-- Top-Level Direct Links (Apps and Demos, Resources) --> <div class="space-y-1"> <a href="/web-audio-samples/v4-prototype/demos/" class="flex items-center justify-between px-2.5 -mx-2.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors select-none text-slate-600 hover:text-blue-600 hover:bg-slate-50"> <span>Apps and Demos</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 normal-case tracking-normal bg-slate-100 text-slate-500"> 9 </span> </a><a href="/web-audio-samples/v4-prototype/resources/" class="flex items-center justify-between px-2.5 -mx-2.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors select-none text-slate-600 hover:text-blue-600 hover:bg-slate-50"> <span>Resources</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 normal-case tracking-normal bg-slate-100 text-slate-500"> 8 </span> </a> </div> </div> </aside> <script type="module">const c=document.getElementById("sidebar-toggle"),t=document.getElementById("sidebar-drawer"),n=document.getElementById("sidebar-backdrop");let o=!1;function i(){!t||!n||(t.classList.remove("-translate-x-full"),t.classList.add("translate-x-0"),n.classList.remove("opacity-0","pointer-events-none"),n.classList.add("opacity-100","pointer-events-auto"),o=!0)}function a(){!t||!n||(t.classList.remove("translate-x-0"),t.classList.add("-translate-x-full"),n.classList.remove("opacity-100","pointer-events-auto"),n.classList.add("opacity-0","pointer-events-none"),o=!1)}function l(){o?a():i()}c?.addEventListener("click",e=>{e.stopPropagation(),l()});n?.addEventListener("click",a);t?.querySelectorAll("a").forEach(e=>{e.addEventListener("click",a)});window.addEventListener("keydown",e=>{e.key==="Escape"&&o&&a()});const d=t?.querySelectorAll("details.sidebar-section");d?.forEach(e=>{const s=e.dataset.sectionId;if(s){const r=localStorage.getItem(`sidebar_section_${s}`);e.querySelector("a.bg-blue-50")!==null?e.open=!0:r!==null&&(e.open=r==="true")}e.addEventListener("toggle",()=>{s&&localStorage.setItem(`sidebar_section_${s}`,String(e.open))})});</script> <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">  <article class="max-w-4xl space-y-10 py-4"> <header class="space-y-3 pb-2"> <h1 class="text-4xl font-bold tracking-tight text-slate-900">
+                  transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </summary> <ul class="mt-1 space-y-1 text-sm pl-3"> <li> <a href="/web-audio-samples/v4-prototype/tests/manual/" class="flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> <span>Manual Tests</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 bg-slate-100 text-slate-500"> 3 </span> </a> </li><li> <a href="/web-audio-samples/v4-prototype/tests/benchmark/" class="flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"> <span>Benchmarks</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 bg-slate-100 text-slate-500"> 1 </span> </a> </li> </ul> </details> <!-- Top-Level Direct Links (Apps and Demos, Resources) --> <div class="space-y-1"> <a href="/web-audio-samples/v4-prototype/demos/" class="flex items-center justify-between px-2.5 -mx-2.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors select-none text-slate-600 hover:text-blue-600 hover:bg-slate-50"> <span>Apps and Demos</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 normal-case tracking-normal bg-slate-100 text-slate-500"> 9 </span> </a><a href="/web-audio-samples/v4-prototype/resources/" class="flex items-center justify-between px-2.5 -mx-2.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors select-none text-slate-600 hover:text-blue-600 hover:bg-slate-50"> <span>Resources</span> <span class="inline-flex items-center justify-center w-5 h-5 text-xs rounded font-medium shrink-0 normal-case tracking-normal bg-slate-100 text-slate-500"> 8 </span> </a> </div> </div> </aside> <script type="module">const c=document.getElementById("sidebar-toggle"),t=document.getElementById("sidebar-drawer"),n=document.getElementById("sidebar-backdrop");let o=!1;function i(){!t||!n||(t.classList.remove("-translate-x-full"),t.classList.add("translate-x-0"),n.classList.remove("opacity-0","pointer-events-none"),n.classList.add("opacity-100","pointer-events-auto"),o=!0)}function a(){!t||!n||(t.classList.remove("translate-x-0"),t.classList.add("-translate-x-full"),n.classList.remove("opacity-100","pointer-events-auto"),n.classList.add("opacity-0","pointer-events-none"),o=!1)}function l(){o?a():i()}c?.addEventListener("click",e=>{e.stopPropagation(),l()});n?.addEventListener("click",a);t?.querySelectorAll("a").forEach(e=>{e.addEventListener("click",a)});window.addEventListener("keydown",e=>{e.key==="Escape"&&o&&a()});const d=t?.querySelectorAll("details.sidebar-section");d?.forEach(e=>{const s=e.dataset.sectionId;if(s){const r=localStorage.getItem(`sidebar_section_${s}`);e.querySelector("a.bg-blue-50")!==null?e.open=!0:r!==null&&(e.open=r==="true")}e.addEventListener("toggle",()=>{s&&localStorage.setItem(`sidebar_section_${s}`,String(e.open))})});</script> <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">  <article class="max-w-4xl mx-auto space-y-10 py-4"> <!-- Hero Header --> <header class="space-y-3 pb-2"> <h1 class="text-4xl font-bold tracking-tight text-slate-900">
 Web Audio Samples
 </h1> <p class="text-slate-600 text-[1.05rem] leading-relaxed">
-High-performance Web Audio API guides, AudioWorklet design patterns,
-        and interactive demos curated by the Chrome Web Audio team.
-</p> </header> <!-- Top Pillars: Guides vs Demos --> <section class="grid grid-cols-1 md:grid-cols-2 gap-6"> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/" class="p-6 rounded-xl border border-slate-200 hover:border-blue-300
-          hover:bg-blue-50/20 transition-all block space-y-3 group"> <div class="flex items-center justify-between"> <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex
-              items-center justify-center font-bold text-sm">
-AW
-</div> <span class="text-xs font-semibold text-blue-600
-              group-hover:translate-x-0.5 transition-transform">
-14 Guides &rarr;
-</span> </div> <h2 class="text-xl font-bold text-slate-900">
+Web Audio API guides, AudioWorklet design patterns, and interactive
+        demos from the Chrome team. Includes implementation examples from
+        basic audio routing to WebAssembly audio processing.
+</p> </header> <!-- [Row 0] News and Updates --> <section class="space-y-4"> <h2 class="text-xl font-bold tracking-tight text-slate-900">
+News and Updates
+</h2> <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-5
+          divide-y divide-slate-200/80"> <div class="py-3.5 first:pt-0 last:pb-0 space-y-1.5"> <div class="flex flex-wrap items-center gap-2.5"> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                    font-semibold bg-blue-100 text-blue-800"> Chrome 153 </span> <a href="https://chromestatus.com/feature/5078190552907776" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-900 hover:text-blue-600
+                    transition-colors inline-flex items-center gap-1 group
+                    text-base"> <span>WebAudio: Configurable render quantum</span> <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600
+                      transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
+                        002-2v-4M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> </div> <p class="text-[1.05rem] text-slate-600 leading-relaxed"> Adds renderSizeHint to AudioContext and OfflineAudioContext, allowing customizable render quantum sizes: a specific frame count, &quot;default&quot; (128 frames), or &quot;hardware&quot;. </p> </div><div class="py-3.5 first:pt-0 last:pb-0 space-y-1.5"> <div class="flex flex-wrap items-center gap-2.5"> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                    font-semibold bg-blue-100 text-blue-800"> Chrome 153 </span> <a href="https://chromestatus.com/feature/5113656292540416" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-900 hover:text-blue-600
+                    transition-colors inline-flex items-center gap-1 group
+                    text-base"> <span>Immersive Audio Model and Formats (IAMF) decoding support</span> <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600
+                      transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
+                        002-2v-4M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> </div> <p class="text-[1.05rem] text-slate-600 leading-relaxed"> Adds support for decoding and playing back IAMF audio in HTML media elements via Media Source Extensions (MSE). </p> </div><div class="py-3.5 first:pt-0 last:pb-0 space-y-1.5"> <div class="flex flex-wrap items-center gap-2.5"> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                    font-semibold bg-blue-100 text-blue-800"> Chrome 151 </span> <a href="https://chromestatus.com/feature/4785284026859520" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-900 hover:text-blue-600
+                    transition-colors inline-flex items-center gap-1 group
+                    text-base"> <span>Web Speech API: Unspoken Punctuation</span> <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600
+                      transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
+                        002-2v-4M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> </div> <p class="text-[1.05rem] text-slate-600 leading-relaxed"> Adds the unspokenPunctuation attribute to SpeechRecognition, automatically inserting punctuation marks based on speech pauses. </p> </div><div class="py-3.5 first:pt-0 last:pb-0 space-y-1.5"> <div class="flex flex-wrap items-center gap-2.5"> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                    font-semibold bg-blue-100 text-blue-800"> Chrome 146 </span> <a href="https://chromestatus.com/feature/5172818344148992" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-900 hover:text-blue-600
+                    transition-colors inline-flex items-center gap-1 group
+                    text-base"> <span>Playback Statistics API for WebAudio</span> <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600
+                      transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
+                        002-2v-4M14 4h6m0 0v6m0-6L10 14"></path> </svg> </a> </div> <p class="text-[1.05rem] text-slate-600 leading-relaxed"> Adds AudioContext.playbackStats to inspect audio playback metrics, including latency and buffer underruns. </p> </div> </div> </section> <!-- [Row 1] Guides & Tests --> <section class="grid grid-cols-1 md:grid-cols-2 gap-6"> <!-- AudioWorklet Guides --> <div class="space-y-4"> <div class="space-y-2"> <h2 class="text-xl font-bold text-slate-900">
 AudioWorklet Guides
 </h2> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
-Comprehensive AudioWorklet implementation guides, bypass routing,
-          lock-free SharedArrayBuffer queues, and C++/WASM audio kernels.
-</p> </a> <a href="/web-audio-samples/v4-prototype/demos/" class="p-6 rounded-xl border border-slate-200 hover:border-blue-300
-          hover:bg-blue-50/20 transition-all block space-y-3 group"> <div class="flex items-center justify-between"> <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex
-              items-center justify-center font-bold text-sm">
-DM
-</div> <span class="text-xs font-semibold text-purple-600
-              group-hover:translate-x-0.5 transition-transform">
-Interactive Apps &rarr;
-</span> </div> <h2 class="text-xl font-bold text-slate-900">
+AudioWorklet implementation guides, design patterns, and
+            migration examples.
+</p> </div> <div class="space-y-2 pt-2"> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/" class="p-3.5 rounded-lg border border-slate-200
+              hover:border-blue-300 hover:bg-blue-50/20 transition-all block
+              group"> <div class="text-lg font-semibold text-slate-900
+                group-hover:text-blue-600 flex items-center justify-between"> <span>Basic</span> <span class="text-slate-400 group-hover:text-blue-600
+                  group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </div> <p class="text-[1.05rem] text-slate-600 mt-1 leading-relaxed">
+Foundational node setup, lifecycle management, audio parameter
+              automation, and message passing.
+</p> </a> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/" class="p-3.5 rounded-lg border border-slate-200
+              hover:border-blue-300 hover:bg-blue-50/20 transition-all
+              block group"> <div class="text-lg font-semibold text-slate-900
+                group-hover:text-blue-600 flex items-center justify-between"> <span>Design Pattern</span> <span class="text-slate-400 group-hover:text-blue-600
+                  group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </div> <p class="text-[1.05rem] text-slate-600 mt-1 leading-relaxed">
+Multi-threaded audio architectures, shared memory
+              synchronization, and WebAssembly integration.
+</p> </a> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/" class="p-3.5 rounded-lg border border-slate-200
+              hover:border-blue-300 hover:bg-blue-50/20 transition-all
+              block group"> <div class="text-lg font-semibold text-slate-900
+                group-hover:text-blue-600 flex items-center justify-between"> <span>Migration Guide</span> <span class="text-slate-400 group-hover:text-blue-600
+                  group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </div> <p class="text-[1.05rem] text-slate-600 mt-1 leading-relaxed">
+Migration strategies and patterns for transitioning legacy
+              ScriptProcessorNode pipelines to AudioWorklet.
+</p> </a> </div> </div> <!-- Tests and Benchmarks --> <div class="space-y-4"> <div class="space-y-2"> <h2 class="text-xl font-bold text-slate-900">
+Tests and Benchmarks
+</h2> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+Verification test fixtures and performance benchmarks for Web Audio
+            features.
+</p> </div> <div class="space-y-2 pt-2"> <a href="/web-audio-samples/v4-prototype/tests/manual/" class="p-3.5 rounded-lg border border-slate-200
+              hover:border-blue-300 hover:bg-blue-50/20 transition-all
+              block group"> <div class="text-lg font-semibold text-slate-900
+                group-hover:text-blue-600 flex items-center justify-between"> <span>Manual Tests</span> <span class="text-slate-400 group-hover:text-blue-600
+                  group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </div> <p class="text-[1.05rem] text-slate-600 mt-1 leading-relaxed">
+Verification test fixtures for audio node behavior, device output
+              routing, and browser API compliance.
+</p> </a> <a href="/web-audio-samples/v4-prototype/tests/benchmark/" class="p-3.5 rounded-lg border border-slate-200
+              hover:border-blue-300 hover:bg-blue-50/20 transition-all
+              block group"> <div class="text-lg font-semibold text-slate-900
+                group-hover:text-blue-600 flex items-center justify-between"> <span>Benchmarks</span> <span class="text-slate-400 group-hover:text-blue-600
+                  group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </div> <p class="text-[1.05rem] text-slate-600 mt-1 leading-relaxed">
+Performance measurements and stress tests for audio render
+              capacity, buffer latency, and processing load.
+</p> </a> </div> </div> </section> <!-- [Row 2] Apps & Demos and Resources --> <section class="grid grid-cols-1 md:grid-cols-2 gap-6"> <!-- Apps & Demos --> <div class="space-y-4"> <div class="space-y-3"> <h2 class="text-xl font-bold text-slate-900">
 Apps &amp; Demos
 </h2> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
-Playable vintage drum sequencers, dual-deck DJ consoles, 3D WebGL
-          spatial pool, wavetable synthesizers, and audio visualizers.
-</p> </a> </section> <!-- AudioWorklet Categories Breakdown --> <section class="space-y-4 pt-2"> <h2 class="text-xl font-bold text-slate-900">
-AudioWorklet Knowledge Pillars
-</h2> <div class="grid grid-cols-1 md:grid-cols-3 gap-6"> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/" class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
-            hover:bg-blue-50/20 transition-all block space-y-2"> <div class="w-8 h-8 rounded bg-blue-100 text-blue-700 flex
-              items-center justify-center font-bold text-xs">
-01
-</div> <h3 class="text-base font-bold text-slate-900">
-Worklet Basics
-</h3> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
-Tone routing, noise generation, bitcrushing, error handling, and
-            AudioParam automation.
-</p> </a> <a href="/web-audio-samples/v4-prototype/audio-worklet/design-pattern/" class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
-            hover:bg-blue-50/20 transition-all block space-y-2"> <div class="w-8 h-8 rounded bg-amber-100 text-amber-700 flex
-              items-center justify-center font-bold text-xs">
-02
-</div> <h3 class="text-base font-bold text-slate-900">
-Design Patterns
-</h3> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
-Lock-free SAB ring buffers, Atomics synchronization, and compiled
-            WASM DSP kernels.
-</p> </a> <a href="/web-audio-samples/v4-prototype/audio-worklet/migration/" class="p-5 rounded-lg border border-slate-200 hover:border-blue-300
-            hover:bg-blue-50/20 transition-all block space-y-2"> <div class="w-8 h-8 rounded bg-emerald-100 text-emerald-700 flex
-              items-center justify-center font-bold text-xs">
-03
-</div> <h3 class="text-base font-bold text-slate-900">
-Migration Guides
-</h3> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
-Architectural paths from legacy ScriptProcessorNode to
-            low-latency AudioWorklet processors.
-</p> </a> </div> </section> <!-- Bottom Actions --> <div class="pt-4 flex flex-wrap items-center gap-4"> <a href="/web-audio-samples/v4-prototype/audio-worklet/basic/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600
-          hover:bg-blue-700 text-white text-sm font-semibold shadow-xs
-          transition-colors"> <span>Explore All 14 Guides</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> </svg> </a> <a href="/web-audio-samples/v4-prototype/demos/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
-          hover:bg-slate-200 text-slate-800 text-sm font-semibold border
-          border-slate-300 transition-colors"> <span>Launch Interactive Demos</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> </svg> </a> <a href="/web-audio-samples/v4-prototype/resources/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
-          hover:bg-slate-200 text-slate-800 text-sm font-semibold border
-          border-slate-300 transition-colors"> <span>Resources</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> </svg> </a> <a href="/web-audio-samples/v4-prototype/tests/manual/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100
-          hover:bg-slate-200 text-slate-800 text-sm font-semibold border
-          border-slate-300 transition-colors"> <span>Test Suite</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> </svg> </a> </div> </article>  </main> <footer class="border-t border-slate-200 bg-slate-50/50 mt-auto"> <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row
+Interactive applications demonstrating real-time audio synthesis,
+            signal processing pipelines, and user interface integration.
+</p> </div> <div class="pt-2"> <a href="/web-audio-samples/v4-prototype/demos/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg
+              bg-slate-100 hover:bg-blue-600 text-slate-700 hover:text-white
+              text-base font-semibold border border-slate-200
+              hover:border-blue-600 active:bg-blue-700 transition-colors group"> <span>View Apps &amp; Demos</span> <span class="group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </a> </div> </div> <!-- Resources --> <div class="space-y-4"> <div class="space-y-3"> <h2 class="text-xl font-bold text-slate-900">
+Resources
+</h2> <p class="text-[1.05rem] text-slate-600 leading-relaxed">
+Web standards specifications, browser implementation trackers,
+            platform roadmaps, and developer documentation.
+</p> </div> <div class="pt-2"> <a href="/web-audio-samples/v4-prototype/resources/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg
+              bg-slate-100 hover:bg-blue-600 text-slate-700 hover:text-white
+              text-base font-semibold border border-slate-200
+              hover:border-blue-600 active:bg-blue-700 transition-colors group"> <span>View Resources</span> <span class="group-hover:translate-x-0.5 transition-transform">
+&rarr;
+</span> </a> </div> </div> </section> </article>  </main> <footer class="border-t border-slate-200 bg-slate-50/50 mt-auto"> <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row
       items-center justify-between gap-4 text-xs text-slate-500"> <div class="flex items-center gap-2"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-4 h-4 object-contain opacity-70" width="16" height="16"> <span>&copy; 2026 Chromium Authors</span> </div> <div class="flex items-center gap-4 text-xs"> <a href="https://github.com/GoogleChromeLabs/web-audio-samples" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-medium text-slate-600
           hover:text-blue-600 transition-colors"> <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504
               .5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605
