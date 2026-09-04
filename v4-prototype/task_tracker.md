@@ -20,12 +20,14 @@ Subagents** during the **v4** migration of `web-audio-samples`.
 | **Foundation: Shared Packages** | `@agent-core` | 8 | 8 | `[x]` Done |
 | **M1: Dev Portal (Guides)** | `@agent-portal` | 17 | 17 | `[x]` Done |
 | **M1: Apps and Demos** | `@agent-projects` | 8 | 8 | `[x]` Done |
-| **M1: Tests & Benchmarks** | `@agent-qa` | 7 | 0 | `[ ]` Pending |
-| **M1: Verification Gates** | All Agents | 5 | 4 | `[/]` In Progress |
+| **M1: Tests & Benchmarks** | `@agent-qa` | 7 | 7 | `[x]` Done |
+| **M1: UI Polish & Automation** | All Agents | 6 | 6 | `[x]` Done |
+| **M1: Verification Gates** | All Agents | 5 | 5 | `[x]` Done |
 | **M2: Dev Portal (Music 220A)** | `@agent-portal` | 2 | 0 | `[ ]` Pending |
 | **M2: Apps and Demos** | `@agent-projects` | 4 | 0 | `[ ]` Pending |
 | **M2: Tests & CI (Playwright)** | `@agent-qa` | 5 | 0 | `[ ]` Pending |
-| **M2: Cutover Gates** | `@agent-em` | 6 | 0 | `[ ]` Pending |
+| **M2: Search & Discovery** | `@agent-portal` | 5 | 0 | `[ ]` Pending |
+| **M2: Cutover Gates** | `@agent-em` | 7 | 0 | `[ ]` Pending |
 
 ---
 
@@ -123,6 +125,27 @@ Google and ecosystem links, and foundational test and benchmark fixtures.
 - [x] `[TEST-07]` Setup local test server fixture serving and benchmark
   reporting.
 
+### 4. UI Polish, Navigation & Agent Tooling (Completed)
+- [x] `[POLISH-01]` Navigation Sidebar: Uppercase section headers
+  (`APPS AND DEMOS`, `RESOURCES`), equal-width badges (`w-5 text-right`),
+  added resource count, removed close button and redundant "NAVIGATION"
+  header, unified indentations.
+- [x] `[POLISH-02]` Breadcrumbs: Render non-clickable category label with page
+  title below; removed "Web Audio Samples" prefix.
+- [x] `[POLISH-03]` Gallery Pages: 1-column vertical card gallery with
+  screenshot previews for Apps & Demos and Resources.
+- [x] `[POLISH-04]` Theme & Styling: Thicker interactive demo borders
+  (`border-2 border-primary/30`), body font size 1.05rem, removed
+  horizontal rules (`<hr>`), updated footer copyright to "2026 Chromium
+  Authors".
+- [x] `[POLISH-05]` Fixture & Content Cleanup: Removed orphan test pages, fixed
+  unrendered HTML links in reference sections, normalized "Specification"
+  headings.
+- [x] `[POLISH-06]` Agent Workflow & Tooling: Relocated agent scripts to
+  `_agents/scripts/` (`precommit.py`, `audit-routes.py`, `80-col.py`,
+  `check-endpoints.py`, `check-action.py`), migrated all rules to
+  `_agents/rules/`, and eliminated redundant `AGENTS.md`.
+
 ### 🛡️ Milestone 1 Verification & Quality Gate
 - [x] `[V1-01]` `npm run build` in portal builds all AudioWorklet pages cleanly.
 - [x] `[V1-02]` Zero broken internal relative links in migrated AudioWorklet
@@ -131,7 +154,7 @@ Google and ecosystem links, and foundational test and benchmark fixtures.
   `dj`, `pool`, `visualizer`, `wavetable-synth`) load and run without errors.
 - [x] `[V1-04]` External project cards link accurately to external repositories
   and documentation.
-- [ ] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
+- [x] `[V1-05]` Test fixtures (`resampler`, `setsinkid`, `pannernode`, bug
   repros) serve and execute properly on the local test server.
 
 ---
@@ -169,6 +192,18 @@ CI testing.
 - [ ] `[QA-09]` Configure GitHub Actions CI/CD workflows for automated PR
   testing and regression checks.
 
+### 4. Search & Discovery: Full-Text Search & Tag Filtering (`@agent-portal`)
+- [ ] `[SEARCH-01]` Tag Schema & Taxonomy: Enforce 3 tags per page maximum in
+  `content.config.ts` schema and normalize tags across all collections.
+- [ ] `[SEARCH-02]` Static Search Indexing with Pagefind: Integrate Pagefind
+  static indexer with `data-pagefind-filter` across guides, demos, and tests.
+- [ ] `[SEARCH-03]` Sidebar Search Header: Embed an accessible search input at
+  the top of `Sidebar.astro` with instant result previews and navigation.
+- [ ] `[SEARCH-04]` Tag UI & In-Page Filtering: Render tag chips on headers
+  and cards with interactive URL query-synced filtering (`?tag=...`).
+- [ ] `[SEARCH-05]` Discovery Verification: Validate Pagefind build indexing,
+  tag filter URL synchronization, and Playwright automated search tests.
+
 ### 🛡️ Milestone 2 Verification & Release Gate
 - [ ] `[V2-01]` Playwright tests pass on Chromium, Firefox, and WebKit in CI.
 - [ ] `[V2-02]` `route-diff-auditor.js` dry-run shows 100% route coverage
@@ -180,9 +215,5 @@ CI testing.
 - [ ] `[V2-05]` COOP/COEP isolation headers verified on staging deployment.
 - [ ] `[V2-06]` Cutover: legacy `src/` directory archived and `v4-dev` PR
   merged to `main`.
-
-
-----
-
-Search feature
-3 tags per page (filterable)
+- [ ] `[V2-07]` Search index generation and tag filtering pass end-to-end
+  browser verification.

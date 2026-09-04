@@ -6,8 +6,8 @@
 """Utility script to verify local dev server endpoints for guide folders.
 
 Usage:
-  python3 scripts/check-endpoints.py [guide_dir_or_url ...]
-  python3 scripts/check-endpoints.py \
+  python3 _agents/scripts/check-endpoints.py [guide_dir_or_url ...]
+  python3 _agents/scripts/check-endpoints.py \
     v4-prototype/src/content/guides/noise-generator
 """
 
@@ -59,7 +59,8 @@ def check_url(url: str) -> bool:
 def main():
     if len(sys.argv) < 2:
         print(
-            "Usage: python3 scripts/check-endpoints.py <guide_dir_or_url...>",
+            "Usage: python3 _agents/scripts/check-endpoints.py "
+            "<guide_dir_or_url...>",
             file=sys.stderr,
         )
         sys.exit(1)

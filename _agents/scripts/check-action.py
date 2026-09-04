@@ -6,8 +6,8 @@
 """Utility script to check GitHub Actions run status and step outcomes.
 
 Usage:
-  python3 scripts/check-action.py [--branch <branch>] [--limit <n>]
-  python3 scripts/check-action.py --run-id <run_id>
+  python3 _agents/scripts/check-action.py [--branch <branch>] [--limit <n>]
+  python3 _agents/scripts/check-action.py --run-id <run_id>
 """
 
 import json

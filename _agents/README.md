@@ -11,3 +11,5 @@ Antigravity AI agents.
   (`<skill_name>/SKILL.md`).
 - **`rules/`**: Contextual and glob-based coding style and architectural rules
   (`*.md`).
+- **`scripts/`**: Automation, linting, and verification scripts for agents
+  (`80-col.py`, `check-endpoints.py`, `precommit.py`, etc.).

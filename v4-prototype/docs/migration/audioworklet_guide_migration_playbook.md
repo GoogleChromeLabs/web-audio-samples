@@ -111,7 +111,7 @@ export const start = async (context) => {
 * Verify files emit to `dist/audio-worklet/<category>/<slug>/`.
 * Verify the dev server returns `HTTP 200 OK` and `application/javascript`
   via `curl -I http://localhost:4321/audio-worklet/<category>/<slug>/main.js`
-  or `python3 scripts/check-endpoints.py`.
+  or `python3 _agents/scripts/check-endpoints.py`.
 
 ---
 
@@ -237,7 +237,7 @@ export const start = async (context) => {
 > Do not manually test individual assets with `curl`. Use the automated CLI
 > verification tool to validate all companion assets in one command:
 > ```bash
-> python3 scripts/check-endpoints.py \
+> python3 _agents/scripts/check-endpoints.py \
 >   v4-prototype/src/content/guides/<guide-slug>
 > ```
 > The script parses frontmatter category and slug, discovers all companion
@@ -289,7 +289,7 @@ Copy and use this checklist for each migrated guide:
       touched `.md` and `.js` files.
 - [ ] **10. Build & Endpoint Verification**: Ran `npm run build` with 0
       warnings and verified all endpoints with
-      `python3 scripts/check-endpoints.py`.
+      `python3 _agents/scripts/check-endpoints.py`.
 - [ ] **11. Constructor Options**: Used standard options dictionaries in node
       constructors (e.g. `new OscillatorNode(ctx, {type: 'sawtooth'})`) rather
       than mutating property setters.

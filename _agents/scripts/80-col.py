@@ -6,8 +6,9 @@
 """Linter script to check the 80-column line limit rule.
 
 Usage:
-  python3 scripts/80-col.py [file_or_dir ...]
-  python3 scripts/80-col.py src/content/guides/hello-audio-worklet/index.md
+  python3 _agents/scripts/80-col.py [file_or_dir ...]
+  python3 _agents/scripts/80-col.py \
+    v4-prototype/src/content/guides/noise-generator/index.md
 """
 
 import argparse
