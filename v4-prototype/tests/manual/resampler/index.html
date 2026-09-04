@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PannerNode Spatialization &amp; Glitch Verification | Web Audio Tests</title><meta name="description" content="Manual verification fixture for HRTF spatialization sweeps across X, Y, and Z axes without audio clicks or discontinuities.
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Resampler Verification (Issue 331682035) | Web Audio Tests</title><meta name="description" content="Regression verification fixture for sample rate conversion stability and click artifact detection at 16,000 Hz.
 "><link rel="icon" type="image/png" href="/web-audio-samples/v4-prototype/chrome-logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/web-audio-samples/v4-prototype/assets/_slug_.CfSVhZp8.css"></head> <body class="bg-white text-slate-900 min-h-screen flex flex-col antialiased"> <header class="border-b border-slate-200 bg-white sticky top-0 z-50 h-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center
       justify-between"> <!-- Left: Hamburger button + Text Title --> <div class="flex items-center gap-3"> <button id="sidebar-toggle" type="button" aria-label="Toggle navigation menu" class="p-2 -ml-2 rounded-md text-slate-700 hover:text-slate-900
           hover:bg-slate-100 focus:outline-none cursor-pointer"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> </svg> </button> <a href="/web-audio-samples/v4-prototype/" class="font-semibold text-lg text-slate-900 hover:text-blue-600
@@ -18,10 +18,10 @@ Web Audio Samples
               text-slate-600 text-xs font-medium">Test Suite</span><span class="text-slate-300 text-xs select-none" aria-hidden="true">
 /
 </span><span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100
-              text-slate-600 text-xs font-medium">Manual Tests</span></nav> <h1 class="text-3xl font-bold tracking-tight text-slate-900"> PannerNode Spatialization &amp; Glitch Verification </h1> <p class="text-slate-600 text-[1.05rem] leading-relaxed"> Manual verification fixture for HRTF spatialization sweeps across X, Y, and Z axes without audio clicks or discontinuities.
- </p> </header> <!-- Interactive Test Harness Box --> <div id="test-harness-box" data-script-src="/web-audio-samples/v4-prototype/tests/manual/pannernode/main.js" class="my-6 rounded-xl border-2 border-slate-300 bg-white shadow-sm
+              text-slate-600 text-xs font-medium">Manual Tests</span></nav> <h1 class="text-3xl font-bold tracking-tight text-slate-900"> Resampler Verification (Issue 331682035) </h1> <p class="text-slate-600 text-[1.05rem] leading-relaxed"> Regression verification fixture for sample rate conversion stability and click artifact detection at 16,000 Hz.
+ </p> </header> <!-- Interactive Test Harness Box --> <div id="test-harness-box" data-script-src="/web-audio-samples/v4-prototype/tests/manual/resampler/main.js" class="my-6 rounded-xl border-2 border-slate-300 bg-white shadow-sm
     overflow-hidden transition-all duration-200"> <!-- Harness Header & Controls Bar --> <div class="p-6 border-b border-slate-100 space-y-4"> <div class="flex flex-col sm:flex-row sm:items-center justify-between
-        gap-4"> <div class="space-y-1"> <h2 class="text-base font-bold text-slate-900"> 3-Axis HRTF Spatialization Sweep </h2> <p class="text-xs text-slate-500"> Runs consecutive 3-second sweeps across X, Y, and Z axes. </p> </div> <!-- Action Buttons --> <div class="flex items-center gap-2.5 shrink-0"> <button id="button-start-test" type="button" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700
+        gap-4"> <div class="space-y-1"> <h2 class="text-base font-bold text-slate-900"> 16 kHz AudioContext Resampler Test </h2> <p class="text-xs text-slate-500"> Generates an audio stream to verify resampling stability. </p> </div> <!-- Action Buttons --> <div class="flex items-center gap-2.5 shrink-0"> <button id="button-start-test" type="button" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700
             text-white font-medium text-xs tracking-wide transition-colors
             cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
 START TEST
@@ -44,50 +44,46 @@ Execution Log
           cursor-pointer">
 Clear Log
 </button> </div> <div id="test-log" class="font-mono text-xs text-slate-300 whitespace-pre-wrap h-44
-        overflow-y-auto leading-relaxed"></div> </div> </div> <script type="module" src="/web-audio-samples/v4-prototype/tests/manual/pannernode/main.js"></script> <!-- Test Documentation & Code Walkthrough --> <section class="space-y-4 pt-2"> <div id="guide-content" class="guide-content prose max-w-none text-slate-700 leading-normal">  <h2 id="overview">Overview</h2>
-<p>In the Web Audio API, the <code>PannerNode</code> provides 3D spatial positioning using
-either simple equal-power panning or sophisticated Head-Related Transfer
-Function (HRTF) convolution kernels.</p>
-<p>During dynamic coordinate interpolation (e.g. <code>linearRampToValueAtTime</code> on
-<code>AudioParam</code> positions <code>positionX</code>, <code>positionY</code>, and <code>positionZ</code>), the internal
-convolution kernels and crossfades must smoothly transition between elevation
-and azimuth angles without audible clicks, zipper noise, or sudden amplitude
-drops.</p>
-<p>This test plays three consecutive 3-second segments of a
-<code>ConstantSourceNode</code> with a DC offset of 0.5 through an HRTF <code>PannerNode</code>.
-Because the input signal is flat DC, any sound heard other than smooth,
-continuous spatial localization indicates an audio rendering artifact.</p>
-<h2 id="test-sequence">Test Sequence</h2>
-<p>The sweep executes in three distinct 3-second phases (9 seconds total):</p>
+        overflow-y-auto leading-relaxed"></div> </div> </div> <script type="module" src="/web-audio-samples/v4-prototype/tests/manual/resampler/main.js"></script> <!-- Test Documentation & Code Walkthrough --> <section class="space-y-4 pt-2"> <div id="guide-content" class="guide-content prose max-w-none text-slate-700 leading-normal">  <h2 id="overview">Overview</h2>
+<p>In Chromium’s Web Audio implementation, when an <code>AudioContext</code> is constructed
+with a custom sample rate different from the underlying hardware device rate
+(e.g., 16,000 Hz context playing to a 44,100 Hz or 48,000 Hz output), the audio
+stream is processed through an internal sample rate converter (resampler).</p>
+<p>In <a href="https://crbug.com/331682035">Chromium Issue 331682035</a>, users reported
+audible clicks, glitches, and audio buffer stuttering when routing audio
+through certain Bluetooth headsets or external DACs under 16 kHz context
+resampling.</p>
+<p>This test fixture reproduces the audio graph configuration from the bug report
+to verify that audio playback remains clean and free of resampling artifacts.</p>
+<h2 id="how-to-test">How to Test</h2>
 <ol>
-<li><strong>Phase 1: X-Axis Sweep (0s – 3s)</strong>:
-Source pans from left (<code>positionX = -1.0</code>) to right (<code>positionX = +1.0</code>)
-at fixed <code>positionY = 0.1</code> and <code>positionZ = 0.1</code>.</li>
-<li><strong>Phase 2: Y-Axis Sweep (3s – 6s)</strong>:
-Source pans from bottom (<code>positionY = -1.0</code>) to top (<code>positionY = +1.0</code>)
-at fixed <code>positionX = 0.1</code> and <code>positionZ = 0.1</code>.</li>
-<li><strong>Phase 3: Z-Axis Sweep (6s – 9s)</strong>:
-Source pans from front (<code>positionZ = -1.0</code>) to back (<code>positionZ = +1.0</code>)
-at fixed <code>positionX = 0.1</code> and <code>positionY = 0.1</code>.</li>
+<li>Connect headphones, earbuds, or an external audio device.</li>
+<li>Click <strong>START TEST</strong> to instantiate an <code>AudioContext</code> configured at
+<code>sampleRate: 16000</code>.</li>
+<li>Listen to the continuous 440 Hz tone.</li>
+<li><strong>Expected Result</strong>: Smooth, clean sine wave playback without periodic
+clicks, dropouts, or buffer underrun noise.</li>
+<li>Click <strong>STOP</strong> to close the context and terminate the test.</li>
 </ol>
 <h2 id="implementation-details">Implementation Details</h2>
-<p>The audio graph connects a DC offset source to an HRTF panner:</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> audioContext</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> AudioContext</span><span style="color:#E1E4E8">();</span></span>
-<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> source</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> ConstantSourceNode</span><span style="color:#E1E4E8">(audioContext, { offset: </span><span style="color:#79B8FF">0.5</span><span style="color:#E1E4E8"> });</span></span>
-<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> gain</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> GainNode</span><span style="color:#E1E4E8">(audioContext, { gain: </span><span style="color:#79B8FF">0.25</span><span style="color:#E1E4E8"> });</span></span>
-<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> panner</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> PannerNode</span><span style="color:#E1E4E8">(audioContext, { panningModel: </span><span style="color:#9ECBFF">'HRTF'</span><span style="color:#E1E4E8"> });</span></span>
+<p>The audio graph creates an <code>AudioContext</code> with an explicit 16 kHz sample rate:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> audioContext</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> AudioContext</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  latencyHint: </span><span style="color:#9ECBFF">'interactive'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  sampleRate: </span><span style="color:#79B8FF">16000</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span>
 <span class="line"></span>
-<span class="line"><span style="color:#E1E4E8">source.</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(gain).</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(panner).</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(audioContext.destination);</span></span>
-<span class="line"><span style="color:#E1E4E8">source.</span><span style="color:#B392F0">start</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> osc</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> OscillatorNode</span><span style="color:#E1E4E8">(audioContext, {</span></span>
+<span class="line"><span style="color:#E1E4E8">  type: </span><span style="color:#9ECBFF">'sine'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  frequency: </span><span style="color:#79B8FF">440</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> gain</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> GainNode</span><span style="color:#E1E4E8">(audioContext, { gain: </span><span style="color:#79B8FF">0.2</span><span style="color:#E1E4E8"> });</span></span>
 <span class="line"></span>
-<span class="line"><span style="color:#6A737D">// Schedule continuous linear parameter automation</span></span>
-<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> now</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> audioContext.currentTime;</span></span>
-<span class="line"><span style="color:#E1E4E8">panner.positionX.</span><span style="color:#B392F0">setValueAtTime</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">-</span><span style="color:#79B8FF">1.0</span><span style="color:#E1E4E8">, now);</span></span>
-<span class="line"><span style="color:#E1E4E8">panner.positionX.</span><span style="color:#B392F0">linearRampToValueAtTime</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">1.0</span><span style="color:#E1E4E8">, now </span><span style="color:#F97583">+</span><span style="color:#79B8FF"> 3.0</span><span style="color:#E1E4E8">);</span></span></code></pre>
+<span class="line"><span style="color:#E1E4E8">osc.</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(gain).</span><span style="color:#B392F0">connect</span><span style="color:#E1E4E8">(audioContext.destination);</span></span>
+<span class="line"><span style="color:#E1E4E8">osc.</span><span style="color:#B392F0">start</span><span style="color:#E1E4E8">();</span></span></code></pre>
 <h2 id="references">References</h2>
 <ul>
-<li><a href="https://webaudio.github.io/web-audio-api/#Spatialization">W3C Web Audio API: Spatialization Specification</a></li>
-<li><a href="https://webaudio.github.io/web-audio-api/#PannerNode">W3C Web Audio API: PannerNode Interface</a></li>
+<li><a href="https://crbug.com/331682035">Chromium Issue 331682035: Audio glitches in resampler</a></li>
+<li><a href="https://webaudio.github.io/web-audio-api/#AudioContextOptions">W3C Web Audio API: AudioContextOptions.sampleRate</a></li>
 </ul>  </div> </section> </article>  </main> <footer class="border-t border-slate-200 bg-slate-50/50 mt-auto"> <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row
       items-center justify-between gap-4 text-xs text-slate-500"> <div class="flex items-center gap-2"> <img src="/web-audio-samples/v4-prototype/chrome-logo.png" alt="Google Chrome" class="w-4 h-4 object-contain opacity-70" width="16" height="16"> <span>&copy; 2026 Chromium Authors</span> </div> <div class="flex items-center gap-4 text-xs"> <a href="https://github.com/GoogleChromeLabs/web-audio-samples" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-medium text-slate-600
           hover:text-blue-600 transition-colors"> <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504
