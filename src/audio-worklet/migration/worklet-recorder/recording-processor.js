@@ -22,8 +22,13 @@ class RecordingProcessor extends AudioWorkletProcessor {
       this.numberOfChannels = numberOfChannels;
     }
 
-    this._recordingBuffer = new Array(this.numberOfChannels)
-        .fill(new Float32Array(this.maxRecordingFrames));
+    // Note: `Array.prototype.fill()` evaluates its argument only once, so it
+    // would store a reference to a single Float32Array in every slot and make
+    // all channels alias the same memory. `Array.from()` invokes the factory
+    // per element, giving each channel its own buffer.
+    this._recordingBuffer = Array.from(
+        {length: this.numberOfChannels},
+        () => new Float32Array(this.maxRecordingFrames));
 
     this.recordedFrames = 0;
     this.isRecording = false;
