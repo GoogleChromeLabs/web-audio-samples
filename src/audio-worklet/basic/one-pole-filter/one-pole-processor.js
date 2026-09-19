@@ -38,7 +38,8 @@ class OnePoleProcessor extends AudioWorkletProcessor {
     const frequency = parameters.frequency;
     const isFrequencyConstant = frequency.length === 1;
 
-    for (let channel = 0; channel < output.length; ++channel) {
+    const channelCount = Math.min(input.length, output.length);
+    for (let channel = 0; channel < channelCount; ++channel) {
       const inputChannel = input[channel];
       const outputChannel = output[channel];
 

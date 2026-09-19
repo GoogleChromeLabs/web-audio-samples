@@ -52,8 +52,14 @@ class RecordingProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs, params) {
+    if (inputs[0].length === 0) {
+      return true;
+    }
+
     for (let input = 0; input < 1; input++) {
-      for (let channel = 0; channel < this.numberOfChannels; channel++) {
+      const channelCount = Math.min(
+          inputs[input].length, this.numberOfChannels);
+      for (let channel = 0; channel < channelCount; channel++) {
         for (let sample = 0; sample < inputs[input][channel].length; sample++) {
           const currentSample = inputs[input][channel][sample];
 
