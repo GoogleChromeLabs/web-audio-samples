@@ -67,6 +67,9 @@ class RingBufferWorkletProcessor extends AudioWorkletProcessor {
     // interface. (i.e. An array of Float32Array)
     const input = inputs[0];
     const output = outputs[0];
+    if (input.length === 0 || output.length === 0) {
+      return true;
+    }
 
     // AudioWorkletProcessor always gets 128 frames in and 128 frames out. Here
     // we push 128 frames into the ring buffer.
