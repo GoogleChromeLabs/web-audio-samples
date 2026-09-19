@@ -94,8 +94,13 @@ WaveTable.prototype.load = function(callback) {
     var wave = this;
     
     request.onload = function() {
-        // Get the frequency-domain waveform data.
-        var f = eval('(' + request.responseText + ')');
+        // Get the frequency-domain waveform data. The wave-table files use
+        // single-quoted keys and trailing commas, so normalize to valid JSON
+        // before calling JSON.parse() instead of evaluating with eval().
+        var jsonText = request.responseText
+            .replace(/'/g, '"')
+            .replace(/,(\s*[\]}])/g, '$1');
+        var f = JSON.parse(jsonText);
 
         // Copy into more efficient Float32Arrays.
         var n = f.real.length;
