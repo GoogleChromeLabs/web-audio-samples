@@ -42,10 +42,11 @@ class RecordingProcessor extends AudioWorkletProcessor {
         this.isRecording = event.data.setRecording;
 
         if (this.isRecording === false) {
-          this.port.postMessage({
-            message: 'SHARE_RECORDING_BUFFER',
-            buffer: this._recordingBuffer,
-          });
+          const trimmed = this._recordingBuffer.map(
+              (ch) => ch.slice(0, this.recordedFrames));
+          this.port.postMessage(
+              {message: 'SHARE_RECORDING_BUFFER', buffer: trimmed},
+              trimmed.map((ch) => ch.buffer));
         }
       }
     };
@@ -92,10 +93,11 @@ class RecordingProcessor extends AudioWorkletProcessor {
       } else {
         // Let the rest of the app know the limit was reached.
         this.isRecording = false;
-        this.port.postMessage({
-          message: 'MAX_RECORDING_LENGTH_REACHED',
-          buffer: this._recordingBuffer,
-        });
+        const trimmed = this._recordingBuffer.map(
+            (ch) => ch.slice(0, this.maxRecordingFrames));
+        this.port.postMessage(
+            {message: 'MAX_RECORDING_LENGTH_REACHED', buffer: trimmed},
+            trimmed.map((ch) => ch.buffer));
 
         this.recordedFrames += 128;
         this.port.postMessage({
