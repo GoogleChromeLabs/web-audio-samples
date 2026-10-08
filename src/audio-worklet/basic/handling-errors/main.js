@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 const audioContext = new AudioContext();
+let isModuleLoaded = false;
+let isGraphReady = false;
 
-const startAudio = async (context) => {
-  await context.audioWorklet.addModule('error-processor.js');
-
+const loadGraph = (context) => {
   // To handle an error from the construction phase.
   const constructorErrorWorkletNode =
       new AudioWorkletNode(context, 'constructor-error');
@@ -28,15 +28,36 @@ const startAudio = async (context) => {
   processErrorWorkletNode.connect(context.destination);
 };
 
+const startAudio = async (context) => {
+  if (!isModuleLoaded) {
+    await context.audioWorklet.addModule('error-processor.js');
+    isModuleLoaded = true;
+  }
+  if (!isGraphReady) {
+    loadGraph(context);
+    isGraphReady = true;
+  }
+};
+
 // A simple onLoad handler. It also handles user gesture to unlock the audio
 // playback.
 window.addEventListener('load', async () => {
-  const buttonEl = document.getElementById('button-start');
-  buttonEl.disabled = false;
-  buttonEl.addEventListener('click', async () => {
+  const startButtonEl = document.getElementById('button-start');
+  const stopButtonEl = document.getElementById('button-stop');
+  startButtonEl.disabled = false;
+
+  startButtonEl.addEventListener('click', async () => {
     await startAudio(audioContext);
     audioContext.resume();
-    buttonEl.disabled = true;
-    buttonEl.textContent = 'Playing...';
+    startButtonEl.disabled = true;
+    startButtonEl.textContent = 'Playing...';
+    stopButtonEl.disabled = false;
+  }, false);
+
+  stopButtonEl.addEventListener('click', async () => {
+    audioContext.suspend();
+    startButtonEl.disabled = false;
+    startButtonEl.textContent = 'START';
+    stopButtonEl.disabled = true;
   }, false);
 });
