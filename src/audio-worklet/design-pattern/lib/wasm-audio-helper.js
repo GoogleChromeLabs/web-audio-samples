@@ -50,7 +50,7 @@ class HeapAudioBuffer {
     this._length = length;
     this._maxChannelCount = maxChannelCount ?
         Math.min(maxChannelCount, MAX_CHANNEL_COUNT) : channelCount;
-    this._channelCount = channelCount;
+    this._channelCount = Math.min(channelCount, this._maxChannelCount);
     this._allocateHeap();
     this._isInitialized = true;
   }
@@ -63,10 +63,10 @@ class HeapAudioBuffer {
    */
   _allocateHeap() {
     const channelByteSize = this._length * BYTES_PER_SAMPLE;
-    const dataByteSize = this._channelCount * channelByteSize;
+    const dataByteSize = this._maxChannelCount * channelByteSize;
     this._dataPtr = this._module._malloc(dataByteSize);
     this._channelData = [];
-    for (let i = 0; i < this._channelCount; ++i) {
+    for (let i = 0; i < this._maxChannelCount; ++i) {
       const startByteOffset = this._dataPtr + i * channelByteSize;
       const endByteOffset = startByteOffset + channelByteSize;
       // Get the actual array index by dividing the byte offset by 2 bytes.
@@ -83,7 +83,7 @@ class HeapAudioBuffer {
    * @param  {number} newChannelCount The new channel count.
    */
   adaptChannel(newChannelCount) {
-    if (newChannelCount < this._maxChannelCount) {
+    if (newChannelCount <= this._maxChannelCount) {
       this._channelCount = newChannelCount;
     }
   }
@@ -212,6 +212,9 @@ class RingBuffer {
   push(arraySequence) {
     // The channel count of arraySequence and the length of each channel must
     // match with this buffer object.
+    if (arraySequence.length !== this._channelCount) {
+      return;
+    }
 
     // Transfer data from the |arraySequence| storage to the internal buffer.
     const sourceLength = arraySequence[0].length;
@@ -237,6 +240,9 @@ class RingBuffer {
   pull(arraySequence) {
     // The channel count of arraySequence and the length of each channel must
     // match with this buffer obejct.
+    if (arraySequence.length !== this._channelCount) {
+      return;
+    }
 
     // If the FIFO is completely empty, do nothing.
     if (this._framesAvailable === 0) {

@@ -32,23 +32,23 @@ class BitCrusherProcessor extends AudioWorkletProcessor {
     const output = outputs[0];
 
     // AudioParam array can be either length of 1 or 128. Generally, the code
-    // should prepare for both cases. In this particular example, |bitDepth|
-    // AudioParam is constant but |frequencyReduction| is being automated.
+    // should prepare for both cases.
     const bitDepth = parameters.bitDepth;
     const frequencyReduction = parameters.frequencyReduction;
     const isBitDepthConstant = bitDepth.length === 1;
+    const isFrequencyReductionConstant = frequencyReduction.length === 1;
 
     for (let channel = 0; channel < input.length; ++channel) {
       const inputChannel = input[channel];
       const outputChannel = output[channel];
       let step = Math.pow(0.5, bitDepth[0]);
       for (let i = 0; i < inputChannel.length; ++i) {
-        // We only take care |bitDepth| because |frequencyReduction| will always
-        // have 128 values.
         if (!isBitDepthConstant) {
           step = Math.pow(0.5, bitDepth[i]);
         }
-        this.phase_ += frequencyReduction[i];
+        this.phase_ += isFrequencyReductionConstant ?
+            frequencyReduction[0] :
+            frequencyReduction[i];
         if (this.phase_ >= 1.0) {
           this.phase_ -= 1.0;
           this.lastSampleValue_ =

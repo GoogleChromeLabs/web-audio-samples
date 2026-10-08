@@ -136,6 +136,9 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
     // This example only handles mono channel.
     const inputChannelData = inputs[0][0];
     const outputChannelData = outputs[0][0];
+    if (!inputChannelData || !outputChannelData) {
+      return true;
+    }
 
     this._pushInputChannelData(inputChannelData);
     this._pullOutputChannelData(outputChannelData);

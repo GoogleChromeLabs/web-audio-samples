@@ -111,6 +111,9 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   push(input, blockLength) {
+    if (input.length !== this.channelCount) {
+      return false;
+    }
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableWrite(currentRead, currentWrite) < blockLength) {
@@ -163,6 +166,9 @@ class FreeQueue {
    * @return {boolean} False if the operation fails.
    */
   pull(output, blockLength) {
+    if (output.length !== this.channelCount) {
+      return false;
+    }
     const currentRead = Atomics.load(this.states, this.States.READ);
     const currentWrite = Atomics.load(this.states, this.States.WRITE);
     if (this._getAvailableRead(currentRead, currentWrite) < blockLength) {

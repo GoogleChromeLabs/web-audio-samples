@@ -22,8 +22,13 @@ class RecordingProcessor extends AudioWorkletProcessor {
       this.numberOfChannels = numberOfChannels;
     }
 
-    this._recordingBuffer = new Array(this.numberOfChannels)
-        .fill(new Float32Array(this.maxRecordingFrames));
+    // Note: `Array.prototype.fill()` evaluates its argument only once, so it
+    // would store a reference to a single Float32Array in every slot and make
+    // all channels alias the same memory. `Array.from()` invokes the factory
+    // per element, giving each channel its own buffer.
+    this._recordingBuffer = Array.from(
+        {length: this.numberOfChannels},
+        () => new Float32Array(this.maxRecordingFrames));
 
     this.recordedFrames = 0;
     this.isRecording = false;
@@ -47,8 +52,14 @@ class RecordingProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs, params) {
+    if (inputs[0].length === 0) {
+      return true;
+    }
+
     for (let input = 0; input < 1; input++) {
-      for (let channel = 0; channel < this.numberOfChannels; channel++) {
+      const channelCount = Math.min(
+          inputs[input].length, this.numberOfChannels);
+      for (let channel = 0; channel < channelCount; channel++) {
         for (let sample = 0; sample < inputs[input][channel].length; sample++) {
           const currentSample = inputs[input][channel][sample];
 
